@@ -5,6 +5,7 @@
 //----------------------------------------------------
 
 const dev = process.argv[2] != "build"
+
 process.env.NODE_ENV = dev ? "development" : "production"
 
 //----------------------------------------------------
@@ -35,7 +36,35 @@ const webpackBuild = () =>
           colors: true,
         })
       )
+    beautifyHTML()
   })
+
+//----------------------------------------------------
+// Beautify
+//----------------------------------------------------
+
+const fs = require("fs")
+const glob = require("glob")
+const beautify = require("js-beautify")
+const beautifyOptions = {
+  indent_size: 2,
+  max_preserve_newlines: 0,
+}
+
+const beautifyHTML = () => {
+  glob.sync("dist/**/*.html").forEach((file) => {
+    fs.readFile(file, "utf8", (err, html) => {
+      if (err) console.log(err)
+      if (err) return
+
+      const result = beautify.html(html, beautifyOptions)
+
+      fs.writeFile(file, result, "utf8", (err) => {
+        if (err) console.log(err)
+      })
+    })
+  })
+}
 
 //----------------------------------------------------
 // Actions
