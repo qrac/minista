@@ -2,7 +2,12 @@ const path = require("path")
 const glob = require("glob")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 
+const dev = process.env.NODE_ENV != "production"
 const webpackConfig = {
+  mode: dev ? "development" : "production",
+  watchOptions: {
+    ignored: "**/node_modules",
+  },
   entry: "./src/assets/index.js",
   output: {
     path: path.resolve("dist"),
