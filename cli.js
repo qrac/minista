@@ -48,7 +48,5 @@ switch (process.argv[2]) {
   case "build":
     return webpackBuild()
   default:
-    return console.log(
-      'Command error! The command you can use is "minista dev" or "minista build".'
-    )
+    return console.log("Command error!\nminista dev or minista build")
 }
