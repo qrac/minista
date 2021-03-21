@@ -1,0 +1,57 @@
+{
+  "name": "minista",
+  "description": "Mini static site generator that can be written in React (JSX) for web coding",
+  "version": "0.1.0",
+  "bin": {
+    "minista": "cli.js"
+  },
+  "main": "./main.js",
+  "files": [
+    "main.js",
+    "cli.js",
+    "webpack.config.js"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/qrac/minista",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qrac/minista"
+  },
+  "bugs": {
+    "url": "https://github.com/qrac/minista/issues"
+  },
+  "keywords": [
+    "static-site-generator",
+    "ssg",
+    "coding",
+    "react",
+    "jsx",
+    "webpack",
+    "japanese",
+    "minista"
+  ],
+  "author": {
+    "name": "Qrac",
+    "url": "https://qrac.jp"
+  },
+  "organization": {
+    "name": "QRANOKO",
+    "url": "https://qranoko.jp"
+  },
+  "scripts": {},
+  "prettier": {
+    "semi": false
+  },
+  "dependencies": {
+    "@babel/core": "^7.13.10",
+    "@babel/preset-react": "^7.12.13",
+    "babel-loader": "^8.2.2",
+    "glob": "^7.1.6",
+    "html-webpack-plugin": "^5.3.1",
+    "js-beautify": "^1.13.5",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-helmet": "^6.1.0",
+    "webpack": "^5.26.3"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "minista-test",
+  "private": true,
+  "scripts": {
+    "dev": "minista",
+    "build": "minista build",
+    "clean": "trash ./dist"
+  },
+  "dependencies": {
+    "minista": "file:.."
+  }
+}

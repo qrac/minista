@@ -1,1 +1,64 @@
 # minista
+
+<p>
+  <a aria-label="Made by QRANOKO" href="https://qranoko.jp">
+    <img src="https://img.shields.io/badge/MADE%20BY%20QRANOKO-212121.svg?style=for-the-badge&labelColor=212121">
+  </a>
+  <a aria-label="NPM version" href="https://www.npmjs.com/package/minista">
+    <img alt="" src="https://img.shields.io/npm/v/minista.svg?style=for-the-badge&labelColor=212121">
+  </a>
+  <a aria-label="License" href="https://github.com/qrac/minista/blob/master/LICENSE">
+    <img alt="" src="https://img.shields.io/npm/l/minista.svg?style=for-the-badge&labelColor=212121">
+  </a>
+</p>
+
+## About
+
+minista（ミニスタ）は、React(JSX)で書ける web コーディング用の小さいスタティックサイトジェネレーターです。
+
+- ゼロコンフィグ
+- 綺麗な HTML とアセットを出力
+- React(JSX)でコーディング
+
+## How To Use
+
+### [npm](https://www.npmjs.com/package/minista)
+
+```bash
+$ npm install --save-dev minista
+```
+
+```bash
+# Example
+src
+├── assets
+│   └── index.js
+├── components
+│   └── layout.js
+└── pages
+    ├── about
+    │   └── index.js
+    └── index.js
+```
+
+```bash
+$ minista build
+```
+
+## Respect
+
+- [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
+- [Next.js by Vercel - The React Framework](https://nextjs.org/)
+- [Node Interface | webpack](https://webpack.js.org/api/node/)
+- [テンプレートエンジンに React を使いつつ、きれいな HTML を生成したいんじゃ！！](https://zenn.dev/otsukayuhi/articles/e52651b4e2c5ae7c4a17)
+- [EJS をやめて React で HTML を書く](https://zenn.dev/hisho/scraps/4ef6c6106a6395)
+- [MPA(マルチページアプリ)で webpack を使う](https://www.key-p.com/blog/staff/archives/107125)
+
+## License
+
+- MIT
+
+## Credit
+
+- Author: [Qrac](https://qrac.jp)
+- Organization: [QRANOKO](https://qranoko.jp)
