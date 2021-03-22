@@ -1,6 +1,8 @@
 const path = require("path")
 const glob = require("glob")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 
 const dev = process.env.NODE_ENV != "production"
 const webpackConfig = {
@@ -13,7 +15,6 @@ const webpackConfig = {
     path: path.resolve("dist"),
     filename: "assets/scripts.js",
   },
-  plugins: [],
   module: {
     rules: [
       {
@@ -27,7 +28,29 @@ const webpackConfig = {
           },
         ],
       },
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: "css-loader",
+            options: {
+              sourceMap: dev,
+              importLoaders: 1,
+            },
+          },
+        ],
+      },
     ],
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: `assets/styles.css`,
+    }),
+  ],
+  optimization: {
+    minimize: !dev,
+    minimizer: [new CssMinimizerPlugin({})],
   },
 }
 
