@@ -7,7 +7,8 @@
     "clean": "trash ./dist"
   },
   "dependencies": {
-    "shitajicss": "^6.0.0"
+    "shitajicss": "^6.0.0",
+    "yakuhanjp": "^3.4.1"
   },
   "devDependencies": {
     "minista": "file:.."

@@ -42,11 +42,24 @@ const webpackConfig = {
           },
         ],
       },
+      {
+        test: /\.(woff2?|eot|ttf|otf)$/i,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "[name].[ext]",
+              outputPath: "assets/fonts",
+              publicPath: "./fonts/",
+            },
+          },
+        ],
+      },
     ],
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: `assets/styles.css`,
+      filename: "assets/styles.css",
     }),
   ],
   optimization: {
