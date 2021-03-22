@@ -1,22 +1,37 @@
 #!/usr/bin/env node
 
 //----------------------------------------------------
+// Global Require
+//----------------------------------------------------
+
+const fs = require("fs")
+//const path = require("path")
+const glob = require("glob")
+
+//----------------------------------------------------
 // Variables
 //----------------------------------------------------
 
-const dev = process.argv[2] != "build"
-
-process.env.NODE_ENV = dev ? "development" : "production"
+const isDev = process.argv[2] !== "build"
+process.env.NODE_ENV = isDev ? "development" : "production"
 
 //----------------------------------------------------
 // webpack
 //----------------------------------------------------
 
 const webpack = require("webpack")
+const webpackDevServer = require("webpack-dev-server")
 const webpackConfig = require("./webpack.config")
 const webpackCompiler = webpack(webpackConfig)
 
-const webpackWatch = () =>
+const webpackDev = () =>
+  new webpackDevServer(webpackCompiler, {
+    //hot: true,
+    //watchContentBase: true,
+    //contentBase: path.resolve("dist"),
+  })
+
+/*const webpackWatch = () =>
   webpackCompiler.watch({}, (err, stats) => {
     err && console.log(err)
     stats &&
@@ -25,7 +40,7 @@ const webpackWatch = () =>
           colors: true,
         })
       )
-  })
+  })*/
 
 const webpackBuild = () =>
   webpackCompiler.run((err, stats) => {
@@ -43,8 +58,6 @@ const webpackBuild = () =>
 // Beautify
 //----------------------------------------------------
 
-const fs = require("fs")
-const glob = require("glob")
 const beautify = require("js-beautify")
 const beautifyOptions = {
   indent_size: 2,
@@ -73,7 +86,7 @@ const beautifyHTML = () => {
 switch (process.argv[2]) {
   case undefined:
   case "dev":
-    return webpackWatch()
+    return webpackDev().listen(8080)
   case "build":
     return webpackBuild()
   default:

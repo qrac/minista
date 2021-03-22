@@ -7,10 +7,11 @@ const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const TerserPlugin = require("terser-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
 
-const dev = process.env.NODE_ENV != "production"
+const isDev = process.env.NODE_ENV !== "production"
 
 const webpackConfig = {
-  mode: dev ? "development" : "production",
+  mode: isDev ? "development" : "production",
+  devtool: isDev ? "source-map" : false,
   watchOptions: {
     ignored: "**/node_modules",
   },
@@ -27,7 +28,7 @@ const webpackConfig = {
           {
             loader: "babel-loader",
             options: {
-              presets: ["@babel/react"],
+              presets: ["@babel/preset-env", "@babel/react"],
             },
           },
         ],
@@ -39,14 +40,14 @@ const webpackConfig = {
           {
             loader: "css-loader",
             options: {
-              sourceMap: dev,
+              sourceMap: isDev,
               importLoaders: 1,
             },
           },
           {
             loader: "postcss-loader",
             options: {
-              sourceMap: dev,
+              sourceMap: isDev,
             },
           },
         ],
@@ -58,22 +59,22 @@ const webpackConfig = {
           {
             loader: "css-loader",
             options: {
-              sourceMap: dev,
+              sourceMap: isDev,
               importLoaders: 2,
             },
           },
           {
             loader: "postcss-loader",
             options: {
-              sourceMap: dev,
+              sourceMap: isDev,
             },
           },
           {
             loader: "sass-loader",
             options: {
-              sourceMap: dev,
+              sourceMap: isDev,
               sassOptions: {
-                outputStyle: dev ? "expanded" : "",
+                outputStyle: isDev ? "expanded" : "",
               },
             },
           },
@@ -106,7 +107,7 @@ const webpackConfig = {
     }),
   ],
   optimization: {
-    minimize: !dev,
+    minimize: !isDev,
     minimizer: [new CssMinimizerPlugin({}), new TerserPlugin({})],
   },
 }

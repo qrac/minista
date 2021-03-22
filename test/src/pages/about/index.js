@@ -10,7 +10,7 @@ const Home = () => {
       <Helmet>
         <title>About</title>
       </Helmet>
-      <h1>Hello 2</h1>
+      <h1>About</h1>
     </AppLayout>
   )
 }
