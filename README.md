@@ -17,12 +17,18 @@
 minista（ミニスタ）は、React(JSX)で書ける web コーディング用の小さいスタティックサイトジェネレーターです。
 
 - ゼロコンフィグ
-- 綺麗な HTML とアセットを出力
-- React(JSX)でコーディング
+- React(JSX)から静的な HTML を出力
+- Next.js 風のディレクトリ構成
+- CSS / Dart Sass / PostCSS (Autoprefixer etc.)
+- JavaScript / ESNext / Babel
+- node_modules からのライブラリ読み込み
+- ソースコードの Minify
 
 ## How To Use
 
 ### [npm](https://www.npmjs.com/package/minista)
+
+#### Setup
 
 ```bash
 $ npm install --save-dev minista
@@ -40,6 +46,18 @@ src
     │   └── index.js
     └── index.js
 ```
+
+#### Develop
+
+```bash
+# Start
+$ minista
+
+# Stop
+Press Ctrl+C
+```
+
+#### Build
 
 ```bash
 $ minista build
