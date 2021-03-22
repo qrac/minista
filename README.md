@@ -36,12 +36,13 @@ $ npm install --save-dev minista
 
 ```bash
 # Example
+public # Copy root
 src
 ├── assets
-│   └── index.js
+│   └── index.js # Required!
 ├── components
 │   └── layout.js
-└── pages
+└── pages # Required!
     ├── about
     │   └── index.js
     └── index.js
