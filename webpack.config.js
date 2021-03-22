@@ -3,6 +3,7 @@ const glob = require("glob")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
+const TerserPlugin = require("terser-webpack-plugin")
 
 const dev = process.env.NODE_ENV != "production"
 const webpackConfig = {
@@ -50,7 +51,7 @@ const webpackConfig = {
   ],
   optimization: {
     minimize: !dev,
-    minimizer: [new CssMinimizerPlugin({})],
+    minimizer: [new CssMinimizerPlugin({}), new TerserPlugin({})],
   },
 }
 
