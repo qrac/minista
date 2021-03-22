@@ -41,6 +41,12 @@ const webpackConfig = {
               importLoaders: 1,
             },
           },
+          {
+            loader: "postcss-loader",
+            options: {
+              sourceMap: dev,
+            },
+          },
         ],
       },
       {

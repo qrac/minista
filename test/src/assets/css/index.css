@@ -1,3 +1,15 @@
+@media (min-width: 800px) {
+  .test-css {
+    color: red;
+  }
+}
+
 .test-css {
   color: black;
+}
+
+@media (min-width: 400px) {
+  .test-css {
+    color: blue;
+  }
 }
