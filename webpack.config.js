@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const TerserPlugin = require("terser-webpack-plugin")
+const CopyPlugin = require("copy-webpack-plugin")
 
 const dev = process.env.NODE_ENV != "production"
 const webpackConfig = {
@@ -60,6 +61,12 @@ const webpackConfig = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: "assets/styles.css",
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: "./public", to: path.resolve("dist"), noErrorOnMissing: true },
+        { from: "./static", to: path.resolve("dist"), noErrorOnMissing: true },
+      ],
     }),
   ],
   optimization: {
