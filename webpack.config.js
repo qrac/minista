@@ -1,5 +1,6 @@
 const path = require("path")
 const glob = require("glob")
+
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
@@ -7,6 +8,7 @@ const TerserPlugin = require("terser-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
 
 const dev = process.env.NODE_ENV != "production"
+
 const webpackConfig = {
   mode: dev ? "development" : "production",
   watchOptions: {
@@ -45,6 +47,34 @@ const webpackConfig = {
             loader: "postcss-loader",
             options: {
               sourceMap: dev,
+            },
+          },
+        ],
+      },
+      {
+        test: /\.(sass|scss)$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: "css-loader",
+            options: {
+              sourceMap: dev,
+              importLoaders: 2,
+            },
+          },
+          {
+            loader: "postcss-loader",
+            options: {
+              sourceMap: dev,
+            },
+          },
+          {
+            loader: "sass-loader",
+            options: {
+              sourceMap: dev,
+              sassOptions: {
+                outputStyle: dev ? "expanded" : "",
+              },
             },
           },
         ],

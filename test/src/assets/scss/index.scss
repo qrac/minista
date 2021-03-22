@@ -1,17 +1,17 @@
-@import "./_parts.css";
+@use "./parts";
 
 @media (min-width: 800px) {
-  .test-css {
+  .test-scss {
     color: red;
   }
 }
 
-.test-css {
+.test-scss {
   color: black;
 }
 
 @media (min-width: 400px) {
-  .test-css {
+  .test-scss {
     color: blue;
   }
 }
