@@ -1,7 +1,7 @@
 {
   "name": "minista",
   "description": "Mini static site generator that can be written in React (JSX) for web coding",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "bin": {
     "minista": "cli.js"
   },
@@ -53,6 +53,7 @@
     "css-minimizer-webpack-plugin": "^1.3.0",
     "file-loader": "^6.2.0",
     "glob": "^7.1.6",
+    "html-replace-webpack-plugin": "^2.6.0",
     "html-webpack-plugin": "^5.3.1",
     "js-beautify": "^1.13.5",
     "mini-css-extract-plugin": "^1.3.9",

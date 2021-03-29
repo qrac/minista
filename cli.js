@@ -24,23 +24,7 @@ const webpackDevServer = require("webpack-dev-server")
 const webpackConfig = require("./webpack.config")
 const webpackCompiler = webpack(webpackConfig)
 
-const webpackDev = () =>
-  new webpackDevServer(webpackCompiler, {
-    //hot: true,
-    //watchContentBase: true,
-    //contentBase: path.resolve("dist"),
-  })
-
-/*const webpackWatch = () =>
-  webpackCompiler.watch({}, (err, stats) => {
-    err && console.log(err)
-    stats &&
-      console.log(
-        stats.toString({
-          colors: true,
-        })
-      )
-  })*/
+const webpackDev = () => new webpackDevServer(webpackCompiler, {})
 
 const webpackBuild = () =>
   webpackCompiler.run((err, stats) => {

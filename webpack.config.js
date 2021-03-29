@@ -2,6 +2,7 @@ const path = require("path")
 const glob = require("glob")
 
 const HtmlWebpackPlugin = require("html-webpack-plugin")
+const HtmlReplaceWebpackPlugin = require("html-replace-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const TerserPlugin = require("terser-webpack-plugin")
@@ -96,6 +97,12 @@ const webpackConfig = {
     ],
   },
   plugins: [
+    new HtmlReplaceWebpackPlugin([
+      {
+        pattern: /<div class="minista-comment">(.+?)<\/div>/g,
+        replacement: "<!-- $1 -->",
+      },
+    ]),
     new MiniCssExtractPlugin({
       filename: "assets/styles.css",
     }),

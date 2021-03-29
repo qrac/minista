@@ -1,3 +1,4 @@
+import React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { Helmet } from "react-helmet"
 
@@ -26,4 +27,8 @@ const render = (element) => {
   `
 }
 
-export { render }
+const Comment = ({ text }) => {
+  return <div className="minista-comment">{text}</div>
+}
+
+export { render, Comment }

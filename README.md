@@ -35,7 +35,10 @@ $ npm install --save-dev minista
 ```
 
 ```bash
-# Example
+# ----------------------------------------------------
+# Directory Example
+# ----------------------------------------------------
+
 public # Copy root
 src
 ├── assets
@@ -46,6 +49,24 @@ src
     ├── about
     │   └── index.js
     └── index.js
+```
+
+<!-- prettier-ignore -->
+```js
+//----------------------------------------------------
+// Page Example
+//----------------------------------------------------
+
+import React from "react" // Required!
+import { render } from "minista" // Required!
+
+const Home = () => {
+  return render( // Required!
+    <h1>Hello</h1>
+  )
+}
+
+export default Home
 ```
 
 #### Develop
@@ -62,6 +83,35 @@ Press Ctrl+C
 
 ```bash
 $ minista build
+```
+
+## Components
+
+### Comment
+
+#### Input
+
+```js
+import React from "react"
+import { render, Comment } from "minista"
+
+const Home = () => {
+  return render(
+    <Comment text="Comment Test" />
+    <h1>Hello</h1>
+  )
+}
+
+export default Home
+```
+
+#### output
+
+```html
+<body>
+  <!-- Comment Test -->
+  <h1>Hello</h1>
+</body>
 ```
 
 ## Respect
