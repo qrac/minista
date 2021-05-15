@@ -97,8 +97,10 @@ import { render, Comment } from "minista"
 
 const Home = () => {
   return render(
-    <Comment text="Comment Test" />
-    <h1>Hello</h1>
+    <>
+      <Comment text="Comment Test" />
+      <h1>Hello</h1>
+    </>
   )
 }
 
