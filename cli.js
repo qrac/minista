@@ -26,7 +26,7 @@ const webpackCompiler = webpack(webpackConfig)
 const devServerOptions = Object.assign(
   {},
   {
-    contentBase: path.join(__dirname, "dist"),
+    contentBase: path.join(__dirname, "src"),
   }
 )
 
