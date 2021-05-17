@@ -14,8 +14,9 @@ const webpackConfig = {
   mode: isDev ? "development" : "production",
   devtool: isDev ? "source-map" : false,
   devServer: {
-    contentBase: path.resolve("src"),
-    watchContentBase: true,
+    //publicPath: path.resolve("dist"),
+    //contentBase: path.resolve("dist"),
+    //watchContentBase: true,
     watchOptions: {
       ignored: "**/node_modules",
     },
