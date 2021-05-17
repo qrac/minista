@@ -5,7 +5,7 @@
 //----------------------------------------------------
 
 const fs = require("fs")
-//const path = require("path")
+const path = require("path")
 const glob = require("glob")
 
 //----------------------------------------------------
@@ -23,8 +23,14 @@ const webpack = require("webpack")
 const webpackDevServer = require("webpack-dev-server")
 const webpackConfig = require("./webpack.config")
 const webpackCompiler = webpack(webpackConfig)
+const devServerOptions = Object.assign(
+  {},
+  {
+    contentBase: path.join(__dirname, "dist"),
+  }
+)
 
-const webpackDev = () => new webpackDevServer(webpackCompiler, {})
+const webpackDev = () => new webpackDevServer(webpackCompiler, devServerOptions)
 
 const webpackBuild = () =>
   webpackCompiler.run((err, stats) => {
