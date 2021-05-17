@@ -14,12 +14,17 @@ const webpackConfig = {
   mode: isDev ? "development" : "production",
   devtool: isDev ? "source-map" : false,
   devServer: {
-    //publicPath: path.resolve("dist"),
-    //contentBase: path.resolve("dist"),
-    //watchContentBase: true,
+    inline: true,
+    //hot: true,
+    //hotOnly: true,
+    contentBase: [path.resolve("public"), path.resolve("static")],
+    //contentBasePublicPath: "/",
+    //publicPath: "/assets/",
+    watchContentBase: true,
     watchOptions: {
       ignored: "**/node_modules",
     },
+    //writeToDisk: true,
   },
   entry: "./src/assets/index.js",
   output: {
