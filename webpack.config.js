@@ -1,5 +1,6 @@
 const path = require("path")
 const glob = require("glob")
+const chokidar = require("chokidar")
 
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const HtmlReplaceWebpackPlugin = require("html-replace-webpack-plugin")
@@ -11,24 +12,37 @@ const CopyPlugin = require("copy-webpack-plugin")
 const isDev = process.env.NODE_ENV !== "production"
 
 const webpackConfig = {
+  target: "web",
   mode: isDev ? "development" : "production",
   devtool: isDev ? "source-map" : false,
   devServer: {
     inline: true,
     //hot: true,
     //hotOnly: true,
-    contentBase: [path.resolve("public"), path.resolve("static")],
-    //contentBasePublicPath: "/",
-    //publicPath: "/assets/",
+    publicPath: "/",
+    contentBase: [
+      //path.resolve("dist"),
+      path.resolve("public"),
+      path.resolve("static"),
+    ],
+    contentBasePublicPath: "/",
     watchContentBase: true,
     watchOptions: {
       ignored: "**/node_modules",
     },
     //writeToDisk: true,
+    before(app, server) {
+      chokidar
+        .watch([path.resolve("src/pages/**/*.js")])
+        .on("all", function () {
+          server.sockWrite(server.sockets, "content-changed")
+        })
+    },
   },
   entry: "./src/assets/index.js",
   output: {
     path: path.resolve("dist"),
+    publicPath: "/",
     filename: "assets/scripts.js",
   },
   module: {
