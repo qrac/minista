@@ -23,12 +23,7 @@ const webpack = require("webpack")
 const webpackDevServer = require("webpack-dev-server")
 const webpackConfig = require("./webpack.config")
 const webpackCompiler = webpack(webpackConfig)
-const devServerOptions = Object.assign(
-  {},
-  {
-    contentBase: path.join(path.resolve(), "src"),
-  }
-)
+const devServerOptions = Object.assign({}, webpackConfig.devServer)
 
 const webpackDev = () => new webpackDevServer(webpackCompiler, devServerOptions)
 

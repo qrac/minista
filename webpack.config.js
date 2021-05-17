@@ -13,8 +13,12 @@ const isDev = process.env.NODE_ENV !== "production"
 const webpackConfig = {
   mode: isDev ? "development" : "production",
   devtool: isDev ? "source-map" : false,
-  watchOptions: {
-    ignored: "**/node_modules",
+  devServer: {
+    contentBase: path.resolve("src"),
+    watchContentBase: true,
+    watchOptions: {
+      ignored: "**/node_modules",
+    },
   },
   entry: "./src/assets/index.js",
   output: {
