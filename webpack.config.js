@@ -10,6 +10,7 @@ const TerserPlugin = require("terser-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
 
 const isDev = process.env.NODE_ENV !== "production"
+const publicPath = process.env.publicPath || "/"
 
 const webpackConfig = {
   target: "web",
@@ -42,7 +43,7 @@ const webpackConfig = {
   entry: "./src/assets/index.js",
   output: {
     path: path.resolve("dist"),
-    publicPath: "/",
+    publicPath,
     filename: "assets/scripts.js",
   },
   module: {
