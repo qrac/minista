@@ -141,6 +141,9 @@ const webpackConfig = {
     minimize: !isDev,
     minimizer: [new CssMinimizerPlugin({}), new TerserPlugin({})],
   },
+  resolve: {
+    extensions: [".js", ".jsx"],
+  },
 }
 
 glob
