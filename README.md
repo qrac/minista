@@ -122,6 +122,10 @@ export default Home
 
 プロジェクトの root に `webpack.config.js` を配置することで設定を追加できます。
 
+## Media
+
+- [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
+
 ## Respect
 
 - [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
