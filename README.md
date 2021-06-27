@@ -116,6 +116,12 @@ export default Home
 </body>
 ```
 
+## Customize
+
+### webpack
+
+プロジェクトの root に `webpack.config.js` を配置することで設定を追加できます。
+
 ## Respect
 
 - [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
