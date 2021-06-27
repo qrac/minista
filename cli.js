@@ -20,10 +20,16 @@ process.env.NODE_ENV = isDev ? "development" : "production"
 //----------------------------------------------------
 
 const webpack = require("webpack")
+const { merge } = require("webpack-merge")
 const webpackDevServer = require("webpack-dev-server")
+
 const webpackConfig = require("./webpack.config")
-const webpackCompiler = webpack(webpackConfig)
-const devServerOptions = Object.assign({}, webpackConfig.devServer)
+const userWebpackConfig = fs.existsSync(path.resolve("webpack.config.js"))
+  ? require(path.resolve("webpack.config"))
+  : {}
+const mergedWebpackConfig = merge(webpackConfig, userWebpackConfig)
+const webpackCompiler = webpack(mergedWebpackConfig)
+const devServerOptions = Object.assign({}, mergedWebpackConfig.devServer)
 
 const webpackDev = () => new webpackDevServer(webpackCompiler, devServerOptions)
 
