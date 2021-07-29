@@ -30,10 +30,16 @@ const webpackConfig = {
     watchOptions: {
       ignored: "**/node_modules",
     },
+    stats: {
+      preset: "errors-only",
+    },
     //writeToDisk: true,
     before(app, server) {
       chokidar
         .watch([path.resolve("src/pages/**/*.js")])
+        .on("change", (path, stats) => {
+          if (stats) console.log(`File ${path} changed size to ${stats.size}`)
+        })
         .on("all", function () {
           server.sockWrite(server.sockets, "content-changed")
         })
