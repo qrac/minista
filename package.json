@@ -1,7 +1,7 @@
 {
   "name": "minista",
   "description": "Mini static site generator that can be written in React (JSX) for web coding",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "bin": {
     "minista": "cli.js"
   },
@@ -44,8 +44,8 @@
     "semi": false
   },
   "dependencies": {
-    "@babel/core": "^7.14.8",
-    "@babel/preset-env": "^7.14.8",
+    "@babel/core": "^7.15.0",
+    "@babel/preset-env": "^7.15.0",
     "@babel/preset-react": "^7.14.5",
     "babel-loader": "^8.2.2",
     "copy-webpack-plugin": "^9.0.1",
@@ -56,7 +56,7 @@
     "html-replace-webpack-plugin": "^2.6.0",
     "html-webpack-plugin": "^5.3.2",
     "js-beautify": "^1.14.0",
-    "mini-css-extract-plugin": "^2.1.0",
+    "mini-css-extract-plugin": "^2.2.0",
     "postcss": "^8.3.6",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-import": "^14.0.2",
@@ -66,9 +66,9 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-helmet": "^6.1.0",
-    "sass": "^1.36.0",
+    "sass": "^1.37.5",
     "sass-loader": "^12.1.0",
-    "webpack": "^5.47.0",
+    "webpack": "^5.48.0",
     "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.8.0"
   }
