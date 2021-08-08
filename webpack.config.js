@@ -17,14 +17,8 @@ const webpackConfig = {
   devtool: isDev ? "source-map" : false,
   devServer: {
     inline: true,
-    //hot: true,
-    //hotOnly: true,
     publicPath: "/",
-    contentBase: [
-      //path.resolve("dist"),
-      path.resolve("public"),
-      path.resolve("static"),
-    ],
+    contentBase: [path.resolve("public"), path.resolve("static")],
     contentBasePublicPath: "/",
     watchContentBase: true,
     watchOptions: {
@@ -33,7 +27,6 @@ const webpackConfig = {
     stats: {
       preset: "errors-only",
     },
-    //writeToDisk: true,
     before(app, server) {
       chokidar
         .watch([path.resolve("src/pages/**/*.js")])
