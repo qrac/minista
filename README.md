@@ -31,7 +31,7 @@ minista（ミニスタ）は、React(JSX)で書ける web コーディング用�
 #### Setup
 
 ```bash
-$ npm install --save-dev minista
+$ npm install --save-dev minista react react-dom
 ```
 
 ```bash

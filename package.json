@@ -43,6 +43,10 @@
   "prettier": {
     "semi": false
   },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
   "dependencies": {
     "@babel/core": "^7.15.0",
     "@babel/preset-env": "^7.15.0",
@@ -62,8 +66,6 @@
     "postcss-loader": "^6.1.1",
     "postcss-preset-env": "^6.7.0",
     "postcss-sort-media-queries": "^3.11.12",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
     "react-helmet": "^6.1.0",
     "sass": "^1.37.5",
     "sass-loader": "^12.1.0",
