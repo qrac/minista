@@ -16,13 +16,10 @@
 
 minista（ミニスタ）は、React(JSX)で書ける web コーディング用の小さいスタティックサイトジェネレーターです。
 
-- ゼロコンフィグ
+- ゼロコンフィグで始められる
 - React(JSX)から静的な HTML を出力
+- CSS と JavaScript を Minify 出力
 - Next.js 風のディレクトリ構成
-- CSS / Dart Sass / PostCSS (Autoprefixer etc.)
-- JavaScript / ESNext / Babel
-- node_modules からのライブラリ読み込み
-- ソースコードの Minify
 
 ## How To Use
 
@@ -121,6 +118,14 @@ export default Home
 ### webpack
 
 プロジェクトの root に `webpack.config.js` を配置することで設定を追加できます。
+
+### Sass / SCSS
+
+`sass-loader` と `sass`（または `node-sass`）を追加することで使えます。
+
+```bash
+$ npm install --save-dev sass-loader sass
+```
 
 ## Media
 

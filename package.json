@@ -67,8 +67,6 @@
     "postcss-preset-env": "^6.7.0",
     "postcss-sort-media-queries": "^3.11.12",
     "react-helmet": "^6.1.0",
-    "sass": "^1.37.5",
-    "sass-loader": "^12.1.0",
     "webpack": "^5.48.0",
     "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.8.0"
