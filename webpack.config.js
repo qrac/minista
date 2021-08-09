@@ -1,3 +1,4 @@
+const fs = require("fs")
 const path = require("path")
 const glob = require("glob")
 const chokidar = require("chokidar")
@@ -10,6 +11,15 @@ const TerserPlugin = require("terser-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
 
 const isDev = process.env.NODE_ENV !== "production"
+
+const postcssOptions = {
+  plugins: {
+    "postcss-import": {},
+    "postcss-flexbugs-fixes": {},
+    "postcss-sort-media-queries": {},
+    "postcss-preset-env": {},
+  },
+}
 
 const webpackConfig = {
   target: "web",
@@ -70,9 +80,12 @@ const webpackConfig = {
           },
           {
             loader: "postcss-loader",
-            options: {
-              sourceMap: isDev,
-            },
+            options: fs.existsSync(path.resolve("postcss.config.js"))
+              ? { sourceMap: isDev }
+              : {
+                  sourceMap: isDev,
+                  postcssOptions: postcssOptions,
+                },
           },
         ],
       },
@@ -89,9 +102,12 @@ const webpackConfig = {
           },
           {
             loader: "postcss-loader",
-            options: {
-              sourceMap: isDev,
-            },
+            options: fs.existsSync(path.resolve("postcss.config.js"))
+              ? { sourceMap: isDev }
+              : {
+                  sourceMap: isDev,
+                  postcssOptions: postcssOptions,
+                },
           },
           {
             loader: "sass-loader",
