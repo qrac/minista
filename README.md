@@ -127,6 +127,21 @@ export default Home
 $ npm install --save-dev sass-loader sass
 ```
 
+### PostCSS
+
+PostCSS はゼロコンフィグで以下のプラグインが適応されますが、プロジェクトの root に `postcss.config.js` を配置することで設定を上書きできます。
+
+```js
+module.exports = {
+  plugins: {
+    "postcss-import": {},
+    "postcss-flexbugs-fixes": {},
+    "postcss-sort-media-queries": {},
+    "postcss-preset-env": {},
+  },
+}
+```
+
 ## Media
 
 - [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
