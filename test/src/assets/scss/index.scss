@@ -1,7 +1,7 @@
 @use "./parts";
 
 @media (min-width: 800px) {
-  .test-scss {
+  .test-scss-media-1 {
     color: red;
   }
 }
@@ -11,7 +11,13 @@
 }
 
 @media (min-width: 400px) {
-  .test-scss {
+  .test-scss-media-2 {
     color: blue;
+  }
+}
+
+@media (min-width: 800px) {
+  .test-scss-media-3 {
+    color: red;
   }
 }
