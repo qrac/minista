@@ -1,7 +1,6 @@
 const fs = require("fs")
 const path = require("path")
 const glob = require("glob")
-const chokidar = require("chokidar")
 
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const HtmlReplaceWebpackPlugin = require("html-replace-webpack-plugin")
@@ -36,16 +35,6 @@ const webpackConfig = {
     },
     stats: {
       preset: "errors-only",
-    },
-    before(app, server) {
-      chokidar
-        .watch([path.resolve("src/pages/**/*.js")])
-        .on("change", (path, stats) => {
-          if (stats) console.log(`File ${path} changed size to ${stats.size}`)
-        })
-        .on("all", function () {
-          server.sockWrite(server.sockets, "content-changed")
-        })
     },
   },
   entry: "./src/assets/index.js",
