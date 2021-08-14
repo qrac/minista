@@ -113,19 +113,17 @@ export default Home
 </body>
 ```
 
+### Sitemap
+
+納品用のサイトマップを簡単に作るコンポーネントを npm で追加可能です。納品物に追加の CSS や JavaScript をバンドルさせません。
+
+- minista sitemap: [repo](https://github.com/qrac/minista-sitemap) / [npm](https://www.npmjs.com/package/minista-sitemap)
+
 ## Customize
 
 ### webpack
 
 プロジェクトの root に `webpack.config.js` を配置することで設定を追加できます。
-
-### Sass / SCSS
-
-`sass-loader` と `sass`（または `node-sass`）を追加することで使えます。
-
-```bash
-$ npm install --save-dev sass-loader sass
-```
 
 ### PostCSS
 
@@ -140,6 +138,14 @@ module.exports = {
     "postcss-preset-env": {},
   },
 }
+```
+
+### Sass / SCSS
+
+`sass-loader` と `sass`（または `node-sass`）を追加することで使えます。
+
+```bash
+$ npm install --save-dev sass-loader sass
 ```
 
 ## Media
