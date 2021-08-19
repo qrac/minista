@@ -25,17 +25,20 @@ const webpackConfig = {
   mode: isDev ? "development" : "production",
   devtool: isDev ? "source-map" : false,
   devServer: {
-    inline: true,
-    publicPath: "/",
-    contentBase: [path.resolve("public"), path.resolve("static")],
-    contentBasePublicPath: "/",
-    watchContentBase: true,
-    watchOptions: {
-      ignored: "**/node_modules",
+    devMiddleware: {
+      publicPath: "/",
+      stats: {
+        preset: "errors-only",
+      },
     },
-    stats: {
-      preset: "errors-only",
+    static: {
+      directory: path.resolve("public"),
+      publicPath: "/",
+      watch: true,
     },
+  },
+  watchOptions: {
+    ignored: ["**/.git/**", "**/node_modules/**"],
   },
   entry: "./src/assets/index.js",
   output: {
