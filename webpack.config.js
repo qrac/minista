@@ -25,10 +25,11 @@ const webpackConfig = {
   mode: isDev ? "development" : "production",
   devtool: isDev ? "source-map" : false,
   devServer: {
+    hot: false,
     devMiddleware: {
       publicPath: "/",
       stats: {
-        preset: "errors-only",
+        //preset: "errors-only",
       },
     },
     static: {
