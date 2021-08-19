@@ -1,7 +1,7 @@
 {
   "name": "minista",
   "description": "Mini static site generator that can be written in React (JSX) for web coding",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "bin": {
     "minista": "cli.js"
   },
@@ -67,8 +67,8 @@
     "postcss-preset-env": "^6.7.0",
     "postcss-sort-media-queries": "^3.11.12",
     "react-helmet": "^6.1.0",
-    "webpack": "^5.48.0",
-    "webpack-dev-server": "^3.11.2",
+    "webpack": "^5.50.0",
+    "webpack-dev-server": "^4.0.0",
     "webpack-merge": "^5.8.0"
   }
 }
