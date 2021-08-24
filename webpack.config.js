@@ -135,7 +135,6 @@ const webpackConfig = {
     new CopyPlugin({
       patterns: [
         { from: "./public", to: path.resolve("dist"), noErrorOnMissing: true },
-        { from: "./static", to: path.resolve("dist"), noErrorOnMissing: true },
       ],
     }),
   ],
