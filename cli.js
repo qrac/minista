@@ -22,12 +22,28 @@ process.env.NODE_ENV = isDev ? "development" : "production"
 const webpack = require("webpack")
 const { merge } = require("webpack-merge")
 const webpackDevServer = require("webpack-dev-server")
+const HtmlWebpackPlugin = require("html-webpack-plugin")
 
 const webpackConfig = require("./webpack.config")
 const userWebpackConfig = fs.existsSync(path.resolve("webpack.config.js"))
   ? require(path.resolve("webpack.config"))
   : {}
 const mergedWebpackConfig = merge(webpackConfig, userWebpackConfig)
+
+const htmlPlugins = mergedWebpackConfig.plugins.filter(
+  (plugin) => plugin.constructor === HtmlWebpackPlugin
+)
+const otherPlugins = mergedWebpackConfig.plugins.filter(
+  (plugin) => plugin.constructor !== HtmlWebpackPlugin
+)
+const mergedHtmlPlugins = [
+  ...new Map(
+    htmlPlugins.map((plugin) => [plugin.userOptions?.template, plugin])
+  ).values(),
+]
+const mergedPlugins = [...mergedHtmlPlugins, ...otherPlugins]
+mergedWebpackConfig.plugins = mergedPlugins
+
 const webpackCompiler = webpack(mergedWebpackConfig)
 const devServerOptions = Object.assign({}, mergedWebpackConfig.devServer)
 
