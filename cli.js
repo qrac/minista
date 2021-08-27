@@ -38,7 +38,7 @@ const otherPlugins = mergedWebpackConfig.plugins.filter(
 )
 const mergedHtmlPlugins = [
   ...new Map(
-    htmlPlugins.map((plugin) => [plugin.userOptions?.filename, plugin])
+    htmlPlugins.map((plugin) => [plugin.userOptions.filename, plugin])
   ).values(),
 ]
 const mergedPlugins = [...mergedHtmlPlugins, ...otherPlugins]
