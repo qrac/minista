@@ -3,9 +3,8 @@ const fs = require("fs")
 const path = require("path")
 const glob = require("glob")
 const webpack = require("webpack")
-const { merge } = require("webpack-merge")
+const { mergeWithCustomize, unique } = require("webpack-merge")
 const webpackDevServer = require("webpack-dev-server")
-const HtmlWebpackPlugin = require("html-webpack-plugin")
 const beautify = require("js-beautify")
 
 function getWebpackConfig() {
@@ -21,27 +20,47 @@ function getUserWebpackConfig() {
 }
 
 function getMergedWebpackConfig({ config, userConfig }) {
-  const mergedConfig = merge(config, userConfig)
-  const filterdPlugins = filterHtmlWebpackPlugins({
+  const mergedConfig = mergeWithCustomize({
+    customizeArray: unique(
+      "plugins",
+      ["MiniCssExtractPlugin", "CopyPlugin"],
+      (plugin) => plugin.constructor && plugin.constructor.name
+    ),
+  })(config, userConfig)
+  const filterdPlugins = filterWebpackPlugins({
     plugins: mergedConfig.plugins,
   })
   mergedConfig.plugins = filterdPlugins
   return mergedConfig
 }
 
+function filterWebpackPlugins({ plugins }) {
+  const filterdHtmlWebpackPlugins = filterHtmlWebpackPlugins({
+    plugins: plugins,
+  })
+  const filteredOtherWebpackPlugins = filterOtherWebpackPlugins({
+    plugins: plugins,
+  })
+  return [...filterdHtmlWebpackPlugins, ...filteredOtherWebpackPlugins]
+}
+
 function filterHtmlWebpackPlugins({ plugins }) {
   const htmlWebpackPlugins = plugins.filter(
-    (plugin) => plugin.constructor === HtmlWebpackPlugin
-  )
-  const otherPlugins = plugins.filter(
-    (plugin) => plugin.constructor !== HtmlWebpackPlugin
+    (plugin) => plugin.constructor.name === "HtmlWebpackPlugin"
   )
   const mergedHtmlWebpackPlugins = [
     ...new Map(
       htmlWebpackPlugins.map((plugin) => [plugin.userOptions.filename, plugin])
     ).values(),
   ]
-  return [...mergedHtmlWebpackPlugins, ...otherPlugins]
+  return mergedHtmlWebpackPlugins
+}
+
+function filterOtherWebpackPlugins({ plugins }) {
+  const otherPlugins = plugins.filter(
+    (plugin) => plugin.constructor.name !== "HtmlWebpackPlugin"
+  )
+  return otherPlugins
 }
 
 function beautifyHtmlFiles({

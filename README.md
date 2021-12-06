@@ -123,7 +123,31 @@ export default Home
 
 ### webpack
 
-プロジェクトの root に `webpack.config.js` を配置することで設定を追加できます。
+プロジェクトの root に `webpack.config.js` を配置することで設定をマージできます。
+
+```js
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const CopyPlugin = require("copy-webpack-plugin")
+
+const webpackConfig = {
+  // Example: Override devServer Setting
+  devServer: {
+    open: ["/index.html"],
+  },
+  plugins: [
+    // Example: Override MiniCssExtractPlugin Setting
+    new MiniCssExtractPlugin({
+      filename: "assets/custom.css",
+    }),
+    // Example: Override CopyPlugin Setting
+    new CopyPlugin({
+      patterns: [{ from: "./static", to: "./", noErrorOnMissing: true }],
+    }),
+  ],
+}
+
+module.exports = webpackConfig
+```
 
 ### PostCSS
 
