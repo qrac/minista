@@ -3,7 +3,7 @@ const fs = require("fs")
 const path = require("path")
 const glob = require("glob")
 const webpack = require("webpack")
-const { mergeWithCustomize, unique } = require("webpack-merge")
+const { mergeWithRules, unique } = require("webpack-merge")
 const webpackDevServer = require("webpack-dev-server")
 const beautify = require("js-beautify")
 
@@ -20,13 +20,17 @@ function getUserWebpackConfig() {
 }
 
 function getMergedWebpackConfig({ config, userConfig }) {
-  const mergedConfig = mergeWithCustomize({
+  const mergedConfig = mergeWithRules({
+    optimization: {
+      minimizer: "replace",
+    },
     customizeArray: unique(
       "plugins",
       ["MiniCssExtractPlugin", "CopyPlugin"],
       (plugin) => plugin.constructor && plugin.constructor.name
     ),
   })(config, userConfig)
+  console.log(mergedConfig)
   const filterdPlugins = filterWebpackPlugins({
     plugins: mergedConfig.plugins,
   })
