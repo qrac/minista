@@ -1,78 +1,57 @@
 #!/usr/bin/env node
-
-//----------------------------------------------------
-// Global Require
-//----------------------------------------------------
-
 const fs = require("fs")
 const path = require("path")
 const glob = require("glob")
-
-//----------------------------------------------------
-// Variables
-//----------------------------------------------------
-
-const isDev = process.argv[2] !== "build"
-process.env.NODE_ENV = isDev ? "development" : "production"
-
-//----------------------------------------------------
-// webpack
-//----------------------------------------------------
-
 const webpack = require("webpack")
 const { merge } = require("webpack-merge")
 const webpackDevServer = require("webpack-dev-server")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
-
-const webpackConfig = require("./webpack.config")
-const userWebpackConfig = fs.existsSync(path.resolve("webpack.config.js"))
-  ? require(path.resolve("webpack.config"))
-  : {}
-const mergedWebpackConfig = merge(webpackConfig, userWebpackConfig)
-
-const htmlPlugins = mergedWebpackConfig.plugins.filter(
-  (plugin) => plugin.constructor === HtmlWebpackPlugin
-)
-const otherPlugins = mergedWebpackConfig.plugins.filter(
-  (plugin) => plugin.constructor !== HtmlWebpackPlugin
-)
-const mergedHtmlPlugins = [
-  ...new Map(
-    htmlPlugins.map((plugin) => [plugin.userOptions.filename, plugin])
-  ).values(),
-]
-const mergedPlugins = [...mergedHtmlPlugins, ...otherPlugins]
-mergedWebpackConfig.plugins = mergedPlugins
-
-const webpackCompiler = webpack(mergedWebpackConfig)
-const devServerOptions = Object.assign({}, mergedWebpackConfig.devServer)
-
-const webpackDev = () => new webpackDevServer(webpackCompiler, devServerOptions)
-
-const webpackBuild = () =>
-  webpackCompiler.run((err, stats) => {
-    err && console.log(err)
-    stats &&
-      console.log(
-        stats.toString({
-          colors: true,
-        })
-      )
-    beautifyHTML()
-  })
-
-//----------------------------------------------------
-// Beautify
-//----------------------------------------------------
-
 const beautify = require("js-beautify")
-const beautifyOptions = {
-  indent_size: 2,
-  max_preserve_newlines: 0,
+
+function getWebpackConfig() {
+  return require("./webpack.config")
 }
 
-const beautifyHTML = () => {
-  glob.sync("dist/**/*.html").forEach((file) => {
+function getUserWebpackConfig() {
+  if (fs.existsSync(path.resolve("webpack.config.js"))) {
+    return require(path.resolve("webpack.config"))
+  } else {
+    return {}
+  }
+}
+
+function getMergedWebpackConfig({ config, userConfig }) {
+  const mergedConfig = merge(config, userConfig)
+  const filterdPlugins = filterHtmlWebpackPlugins({
+    plugins: mergedConfig.plugins,
+  })
+  mergedConfig.plugins = filterdPlugins
+  return mergedConfig
+}
+
+function filterHtmlWebpackPlugins({ plugins }) {
+  const htmlWebpackPlugins = plugins.filter(
+    (plugin) => plugin.constructor === HtmlWebpackPlugin
+  )
+  const otherPlugins = plugins.filter(
+    (plugin) => plugin.constructor !== HtmlWebpackPlugin
+  )
+  const mergedHtmlWebpackPlugins = [
+    ...new Map(
+      htmlWebpackPlugins.map((plugin) => [plugin.userOptions.filename, plugin])
+    ).values(),
+  ]
+  return [...mergedHtmlWebpackPlugins, ...otherPlugins]
+}
+
+function beautifyHtmlFiles({
+  htmlFilesPath,
+  beautifyOptions = {
+    indent_size: 2,
+    max_preserve_newlines: 0,
+  },
+}) {
+  glob.sync(htmlFilesPath).forEach((file) => {
     fs.readFile(file, "utf8", (err, html) => {
       if (err) console.log(err)
       if (err) return
@@ -86,16 +65,63 @@ const beautifyHTML = () => {
   })
 }
 
-//----------------------------------------------------
-// Actions
-//----------------------------------------------------
-
-switch (process.argv[2]) {
-  case undefined:
-  case "dev":
-    return webpackDev().listen(8080)
-  case "build":
-    return webpackBuild()
-  default:
-    return console.log("Command error!\nminista dev or minista build")
+function webpackBuildWithBeautify({
+  webpackCompiler,
+  runBeautify = true,
+  htmlFilesPath,
+}) {
+  webpackCompiler.run((err, stats) => {
+    err && console.log(err)
+    stats &&
+      console.log(
+        stats.toString({
+          colors: true,
+        })
+      )
+    runBeautify && beautifyHtmlFiles({ htmlFilesPath: htmlFilesPath })
+  })
 }
+
+function ministaCommand({
+  process,
+  webpackCompiler,
+  webpackDevServerOptions,
+  runBeautify,
+  htmlFilesPath,
+}) {
+  if (process.argv[2] === undefined || process.argv[2] === "dev") {
+    const webpackDev = new webpackDevServer(
+      webpackDevServerOptions,
+      webpackCompiler
+    )
+    return webpackDev.start()
+  } else if (process.argv[2] === "build") {
+    return webpackBuildWithBeautify({
+      webpackCompiler: webpackCompiler,
+      runBeautify: runBeautify,
+      htmlFilesPath: htmlFilesPath,
+    })
+  } else {
+    return console.log("Command error!\nminista dev or minista build")
+  }
+}
+
+const isDev = process.argv[2] !== "build"
+process.env.NODE_ENV = isDev ? "development" : "production"
+
+const webpackConfig = getWebpackConfig()
+const userWebpackConfig = getUserWebpackConfig()
+const mergedWebpackConfig = getMergedWebpackConfig({
+  config: webpackConfig,
+  userConfig: userWebpackConfig,
+})
+const webpackCompiler = webpack(mergedWebpackConfig)
+const webpackDevServerOptions = Object.assign({}, mergedWebpackConfig.devServer)
+
+ministaCommand({
+  process: process,
+  webpackCompiler: webpackCompiler,
+  webpackDevServerOptions: webpackDevServerOptions,
+  runBeautify: true,
+  htmlFilesPath: "dist/**/*.html",
+})
