@@ -142,10 +142,9 @@ const webpackConfig = {
       patterns: [{ from: "./static", to: "./", noErrorOnMissing: true }],
     }),
   ],
+  /* All replacements */
   optimization: {
-    minimizer: [
-      /* All replacements */
-    ],
+    minimizer: [],
   },
 }
 
