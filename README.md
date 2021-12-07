@@ -126,25 +126,39 @@ export default Home
 プロジェクトの root に `webpack.config.js` を配置することで設定をマージできます。
 
 ```js
+//----------------------------------------------------
 // Example: User > webpack.config.js
+//----------------------------------------------------
+
+// No installation required.
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
 
+// Example of dev mode
+const isDev = process.env.NODE_ENV !== "production"
+
 const webpackConfig = {
+  // Merge
   devServer: {
     open: ["/index.html"],
   },
   plugins: [
+    // Replace
     new MiniCssExtractPlugin({
-      filename: "assets/custom.css",
+      filename: "assets/[name].css",
     }),
+    // Replace
     new CopyPlugin({
       patterns: [{ from: "./static", to: "./", noErrorOnMissing: true }],
     }),
   ],
-  /* All replacements */
+
+  // All optimization is replaced.
   optimization: {
-    minimizer: [],
+    minimize: !isDev,
+    minimizer: [
+      /* Replace plugins */
+    ],
   },
 }
 
