@@ -1,7 +1,7 @@
 {
   "name": "minista",
   "description": "Mini static site generator that can be written in React (JSX) for web coding",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "bin": {
     "minista": "cli.js"
   },

@@ -30,7 +30,6 @@ function getMergedWebpackConfig({ config, userConfig }) {
       (plugin) => plugin.constructor && plugin.constructor.name
     ),
   })(config, userConfig)
-  console.log(mergedConfig)
   const filterdPlugins = filterWebpackPlugins({
     plugins: mergedConfig.plugins,
   })
