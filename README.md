@@ -126,7 +126,10 @@ export default Home
 プロジェクトの root に `webpack.config.js` を配置することで設定をマージできます。
 
 ```js
-// Example
+// Example: User > webpack.config.js
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const CopyPlugin = require("copy-webpack-plugin")
+
 const webpackConfig = {
   devServer: {
     open: ["/index.html"],
