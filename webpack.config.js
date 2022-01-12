@@ -15,7 +15,7 @@ const isDev = process.env.NODE_ENV !== "production"
 
 function switchPostcssConfig() {
   const filename = "postcss.config.js"
-  fs.existsSync(path.resolve(__dirname, filename)) ? undefined : filename
+  fs.existsSync(path.resolve(filename)) ? undefined : filename
 }
 
 const webpackConfig = {
