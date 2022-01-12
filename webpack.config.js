@@ -6,6 +6,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin")
 const HtmlReplaceWebpackPlugin = require("html-replace-webpack-plugin")
 const RemoveEmptyScriptsPlugin = require("webpack-remove-empty-scripts")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const SpriteLoaderPlugin = require("svg-sprite-loader/plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const TerserPlugin = require("terser-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
@@ -122,6 +123,19 @@ const webpackConfig = {
           filename: "assets/fonts/[name].[ext]",
         },
       },
+      {
+        test: /icons\/.*\.svg$/,
+        use: [
+          {
+            loader: "svg-sprite-loader",
+            options: {
+              extract: true,
+              spriteFilename: "assets/icons.svg",
+              runtimeCompat: true,
+            },
+          },
+        ],
+      },
     ],
   },
   plugins: [
@@ -134,6 +148,9 @@ const webpackConfig = {
     new RemoveEmptyScriptsPlugin(),
     new MiniCssExtractPlugin({
       filename: "assets/styles.css",
+    }),
+    new SpriteLoaderPlugin({
+      plainSprite: true,
     }),
     new CopyPlugin({
       patterns: [
