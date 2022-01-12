@@ -46,6 +46,7 @@ const webpackConfig = {
     path: path.resolve("dist"),
     publicPath: "/",
     filename: "assets/scripts.js",
+    assetModuleFilename: "assets/images/[name].[ext]",
   },
   module: {
     rules: [
