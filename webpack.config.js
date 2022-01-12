@@ -143,7 +143,19 @@ const webpackConfig = {
   ],
   optimization: {
     minimize: !isDev,
-    minimizer: [new CssMinimizerPlugin({}), new TerserPlugin({})],
+    minimizer: [
+      new CssMinimizerPlugin({
+        minimizerOptions: {
+          preset: [
+            "default",
+            {
+              cssDeclarationSorter: false,
+            },
+          ],
+        },
+      }),
+      new TerserPlugin({}),
+    ],
   },
   resolve: {
     extensions: [".js", ".jsx"],
