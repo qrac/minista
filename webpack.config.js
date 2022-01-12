@@ -43,11 +43,11 @@ const webpackConfig = {
   watchOptions: {
     ignored: ["**/.git/**", "**/node_modules/**"],
   },
-  entry: "./src/assets/index.js",
+  entry: { bundle: "./src/assets/index.js" },
   output: {
     path: path.resolve("dist"),
     publicPath: "/",
-    filename: "assets/scripts.js",
+    filename: "assets/[name].js",
     assetModuleFilename: "assets/images/[name].[ext]",
   },
   module: {
@@ -147,7 +147,7 @@ const webpackConfig = {
     ]),
     new RemoveEmptyScriptsPlugin(),
     new MiniCssExtractPlugin({
-      filename: "assets/styles.css",
+      filename: "assets/[name].css",
     }),
     new SpriteLoaderPlugin({
       plainSprite: true,
