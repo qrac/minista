@@ -13,8 +13,10 @@ const CopyPlugin = require("copy-webpack-plugin")
 
 const isDev = process.env.NODE_ENV !== "production"
 
-const switchConfigFile = (filename) =>
+function switchPostcssConfig() {
+  const filename = "postcss.config.js"
   fs.existsSync(path.resolve(__dirname, filename)) ? undefined : filename
+}
 
 const webpackConfig = {
   target: "web",
@@ -72,7 +74,7 @@ const webpackConfig = {
             loader: "postcss-loader",
             options: {
               sourceMap: isDev,
-              postcssOptions: { config: switchConfigFile("postcss.config.js") },
+              postcssOptions: { config: switchPostcssConfig() },
             },
           },
         ],
@@ -92,7 +94,7 @@ const webpackConfig = {
             loader: "postcss-loader",
             options: {
               sourceMap: isDev,
-              postcssOptions: { config: switchConfigFile("postcss.config.js") },
+              postcssOptions: { config: switchPostcssConfig() },
             },
           },
           {
