@@ -13,14 +13,8 @@ const CopyPlugin = require("copy-webpack-plugin")
 
 const isDev = process.env.NODE_ENV !== "production"
 
-const postcssOptions = {
-  plugins: {
-    "postcss-import": {},
-    "postcss-flexbugs-fixes": {},
-    "postcss-sort-media-queries": {},
-    "postcss-preset-env": {},
-  },
-}
+const switchConfigFile = (filename) =>
+  fs.existsSync(path.resolve(__dirname, filename)) ? undefined : filename
 
 const webpackConfig = {
   target: "web",
@@ -76,12 +70,10 @@ const webpackConfig = {
           },
           {
             loader: "postcss-loader",
-            options: fs.existsSync(path.resolve("postcss.config.js"))
-              ? { sourceMap: isDev }
-              : {
-                  sourceMap: isDev,
-                  postcssOptions: postcssOptions,
-                },
+            options: {
+              sourceMap: isDev,
+              postcssOptions: { config: switchConfigFile("postcss.config.js") },
+            },
           },
         ],
       },
@@ -98,12 +90,10 @@ const webpackConfig = {
           },
           {
             loader: "postcss-loader",
-            options: fs.existsSync(path.resolve("postcss.config.js"))
-              ? { sourceMap: isDev }
-              : {
-                  sourceMap: isDev,
-                  postcssOptions: postcssOptions,
-                },
+            options: {
+              sourceMap: isDev,
+              postcssOptions: { config: switchConfigFile("postcss.config.js") },
+            },
           },
           {
             loader: "sass-loader",
