@@ -69,6 +69,7 @@
     "react-helmet": "^6.1.0",
     "webpack": "^5.66.0",
     "webpack-dev-server": "^4.7.3",
-    "webpack-merge": "^5.8.0"
+    "webpack-merge": "^5.8.0",
+    "webpack-remove-empty-scripts": "^0.7.2"
   }
 }

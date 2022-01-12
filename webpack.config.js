@@ -4,6 +4,7 @@ const glob = require("glob")
 
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const HtmlReplaceWebpackPlugin = require("html-replace-webpack-plugin")
+const RemoveEmptyScriptsPlugin = require("webpack-remove-empty-scripts")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const TerserPlugin = require("terser-webpack-plugin")
@@ -130,6 +131,7 @@ const webpackConfig = {
         replacement: "<!-- $1 -->",
       },
     ]),
+    new RemoveEmptyScriptsPlugin(),
     new MiniCssExtractPlugin({
       filename: "assets/styles.css",
     }),
