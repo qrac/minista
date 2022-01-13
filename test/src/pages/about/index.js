@@ -3,7 +3,7 @@ import { render } from "minista"
 
 import AppLayout from "../../components/app-layout"
 
-const Home = () => {
+const PageAbout = () => {
   return render(
     <AppLayout>
       <Helmet>
@@ -14,4 +14,4 @@ const Home = () => {
   )
 }
 
-export default Home
+export default PageAbout
