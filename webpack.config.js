@@ -18,6 +18,21 @@ function switchPostcssConfig() {
   fs.existsSync(path.resolve(filename)) ? undefined : filename
 }
 
+function switchBabelOptions() {
+  const filename1 = "babel.config.js"
+  const filename2 = ".babelrc"
+  const check1 = fs.existsSync(path.resolve(filename1))
+  const check2 = fs.existsSync(path.resolve(filename2))
+
+  if (check1) {
+    return require(path.resolve(filename1))
+  } else if (check2) {
+    return JSON.parse(fs.readFileSync(path.resolve(filename2), "utf8"))
+  } else {
+    return JSON.parse(fs.readFileSync(__dirname + "/" + filename2, "utf8"))
+  }
+}
+
 const webpackConfig = {
   target: "web",
   mode: isDev ? "development" : "production",
@@ -53,9 +68,7 @@ const webpackConfig = {
         use: [
           {
             loader: "babel-loader",
-            options: {
-              presets: ["@babel/preset-env", "@babel/react"],
-            },
+            options: switchBabelOptions(),
           },
         ],
       },
