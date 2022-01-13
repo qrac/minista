@@ -11,7 +11,7 @@
     "yakuhanjp": "^3.4.1"
   },
   "devDependencies": {
-    "minista": "file:..",
+    "minista": "file:../..",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "sass": "^1.47.0",
