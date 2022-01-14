@@ -10,6 +10,7 @@
   "files": [
     "main.js",
     "cli.js",
+    "index.d.ts",
     "postcss.config.js",
     "webpack.config.js"
   ],
