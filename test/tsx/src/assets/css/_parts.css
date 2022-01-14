@@ -1,0 +1,7 @@
+.test-parts-css {
+  color: yellow;
+}
+
+.test-parts-css-backdrop-filter {
+  backdrop-filter: blur(12px);
+}

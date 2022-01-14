@@ -6,10 +6,10 @@
     "minista": "cli.js"
   },
   "main": "./main.js",
+  "types": "./index.d.ts",
   "files": [
     "main.js",
     "cli.js",
-    ".babelrc",
     "postcss.config.js",
     "webpack.config.js"
   ],
@@ -28,6 +28,8 @@
     "coding",
     "react",
     "jsx",
+    "tsx",
+    "typescript",
     "webpack",
     "japanese",
     "minista"
@@ -52,6 +54,7 @@
     "@babel/core": "^7.16.7",
     "@babel/preset-env": "^7.16.8",
     "@babel/preset-react": "^7.16.7",
+    "@babel/preset-typescript": "^7.16.7",
     "babel-loader": "^8.2.3",
     "copy-webpack-plugin": "^10.2.0",
     "css-loader": "^6.5.1",
@@ -69,6 +72,7 @@
     "postcss-sort-media-queries": "^4.2.1",
     "react-helmet": "^6.1.0",
     "svg-sprite-loader": "^6.0.11",
+    "ts-loader": "^9.2.6",
     "webpack": "^5.66.0",
     "webpack-dev-server": "^4.7.3",
     "webpack-merge": "^5.8.0",

@@ -1,0 +1,23 @@
+@import "./_parts.css";
+
+@media (min-width: 800px) {
+  .test-css-media-1 {
+    color: red;
+  }
+}
+
+.test-css {
+  color: black;
+}
+
+@media (min-width: 400px) {
+  .test-css-media-2 {
+    color: blue;
+  }
+}
+
+@media (min-width: 800px) {
+  .test-css-media-3 {
+    color: red;
+  }
+}

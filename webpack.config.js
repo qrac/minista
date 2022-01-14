@@ -13,23 +13,50 @@ const CopyPlugin = require("copy-webpack-plugin")
 
 const isDev = process.env.NODE_ENV !== "production"
 
+const babelJsxOptions = {
+  presets: [
+    "@babel/preset-env",
+    [
+      "@babel/preset-react",
+      {
+        runtime: "automatic",
+      },
+    ],
+  ],
+}
+
+const babelTsxOptions = {
+  presets: [
+    "@babel/preset-env",
+    [
+      "@babel/preset-react",
+      {
+        runtime: "automatic",
+      },
+    ],
+    ["@babel/preset-typescript"],
+  ],
+}
+
 function switchPostcssConfig() {
   const filename = "postcss.config.js"
   fs.existsSync(path.resolve(filename)) ? undefined : filename
 }
 
-function switchBabelOptions() {
+function switchBabelOptions(useTsx) {
   const filename1 = "babel.config.js"
   const filename2 = ".babelrc"
   const check1 = fs.existsSync(path.resolve(filename1))
   const check2 = fs.existsSync(path.resolve(filename2))
+
+  const defaultOptions = useTsx ? babelTsxOptions : babelJsxOptions
 
   if (check1) {
     return require(path.resolve(filename1))
   } else if (check2) {
     return JSON.parse(fs.readFileSync(path.resolve(filename2), "utf8"))
   } else {
-    return JSON.parse(fs.readFileSync(__dirname + "/" + filename2, "utf8"))
+    return defaultOptions
   }
 }
 
@@ -69,6 +96,20 @@ const webpackConfig = {
           {
             loader: "babel-loader",
             options: switchBabelOptions(),
+          },
+        ],
+      },
+      {
+        test: /\.ts(|x)$/,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: "babel-loader",
+            options: switchBabelOptions(true),
+          },
+          {
+            loader: "ts-loader",
+            options: { transpileOnly: true },
           },
         ],
       },
@@ -180,12 +221,12 @@ const webpackConfig = {
     ],
   },
   resolve: {
-    extensions: [".js", ".jsx"],
+    extensions: [".js", ".jsx", ".ts", ".tsx"],
   },
 }
 
 glob
-  .sync("**/*.js", {
+  .sync("**/*.{js,jsx,ts,tsx}", {
     cwd: "src/pages",
   })
   .forEach((file) => {

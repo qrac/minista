@@ -1,0 +1,23 @@
+@use "./parts";
+
+@media (min-width: 800px) {
+  .test-scss-media-1 {
+    color: red;
+  }
+}
+
+.test-scss {
+  color: black;
+}
+
+@media (min-width: 400px) {
+  .test-scss-media-2 {
+    color: blue;
+  }
+}
+
+@media (min-width: 800px) {
+  .test-scss-media-3 {
+    color: red;
+  }
+}
