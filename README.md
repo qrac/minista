@@ -14,10 +14,10 @@
 
 ## About
 
-minista（ミニスタ）は、React(JSX)で書ける web コーディング用の小さいスタティックサイトジェネレーターです。
+minista（ミニスタ）は、React (TSX/JSX)で書ける web コーディング用の小さいスタティックサイトジェネレーターです。
 
 - ゼロコンフィグで始められる
-- React(JSX)から静的な HTML を出力
+- React (TSX/JSX)から静的な HTML を出力
 - CSS と JavaScript を Minify 出力
 - Next.js 風のディレクトリ構成
 
@@ -54,7 +54,6 @@ src
 // Page Example
 //----------------------------------------------------
 
-import React from "react" // Required!
 import { render } from "minista" // Required!
 
 const Home = () => {
@@ -89,7 +88,6 @@ $ minista build
 #### Input
 
 ```js
-import React from "react"
 import { render, Comment } from "minista"
 
 const Home = () => {
@@ -165,18 +163,85 @@ const webpackConfig = {
 module.exports = webpackConfig
 ```
 
+### TypeScript
+
+TypeScript `.tsx` でページを作成する場合はモジュールを追加し `tsconfig.json` をプロジェクトの root に配置します。
+
+```bash
+$ npm install --save-dev typescript @types/react @types/react-dom
+```
+
+```json
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "baseUrl": ".",
+    "allowJs": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "isolatedModules": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist", "webpack.config.js"]
+}
+```
+
+### Babel
+
+Babel はプロジェクトの root に `.babelrc` もしくは `babel.config.js` を配置することで設定を上書きできます。カスタマイズしない場合は以下の設定が適応されます。
+
+```js
+// JavaScript
+const babelJsxOptions = {
+  presets: [
+    "@babel/preset-env",
+    [
+      "@babel/preset-react",
+      {
+        runtime: "automatic",
+      },
+    ],
+  ],
+}
+
+// TypeScript
+const babelTsxOptions = {
+  presets: [
+    "@babel/preset-env",
+    [
+      "@babel/preset-react",
+      {
+        runtime: "automatic",
+      },
+    ],
+    ["@babel/preset-typescript"],
+  ],
+}
+```
+
 ### PostCSS
 
 PostCSS はゼロコンフィグで以下のプラグインが適応されますが、プロジェクトの root に `postcss.config.js` を配置することで設定を上書きできます。
 
 ```js
 module.exports = {
-  plugins: {
-    "postcss-import": {},
-    "postcss-flexbugs-fixes": {},
-    "postcss-sort-media-queries": {},
-    "postcss-preset-env": {},
-  },
+  plugins: [
+    "postcss-import",
+    "postcss-flexbugs-fixes",
+    "postcss-sort-media-queries",
+    "postcss-preset-env",
+  ],
 }
 ```
 
