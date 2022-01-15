@@ -3,7 +3,7 @@ import { render } from "minista"
 
 import { AppLayout } from "../../components/app-layout"
 
-const PageAbout = () => {
+export default () => {
   return render(
     <AppLayout>
       <Helmet>
@@ -13,5 +13,3 @@ const PageAbout = () => {
     </AppLayout>
   )
 }
-
-export default PageAbout
