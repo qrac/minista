@@ -47,6 +47,18 @@ const postcssOptions = {
   ],
 }
 
+function switchEntry() {
+  const filepath1 = "src/assets/index.js"
+  const filepath2 = "src/assets/index.ts"
+  const check = fs.existsSync(path.resolve(filepath1))
+
+  if (check) {
+    return "./" + filepath1
+  } else {
+    return "./" + filepath2
+  }
+}
+
 function switchBabelOptions(useTsx) {
   const filename1 = "babel.config.js"
   const filename2 = ".babelrc"
@@ -98,7 +110,7 @@ const webpackConfig = {
   watchOptions: {
     ignored: ["**/.git/**", "**/node_modules/**"],
   },
-  entry: { bundle: "./src/assets/index.js" },
+  entry: { bundle: switchEntry() },
   output: {
     path: path.resolve("dist"),
     publicPath: "/",

@@ -165,7 +165,7 @@ module.exports = webpackConfig
 
 ### TypeScript
 
-TypeScript `.tsx` でページを作成する場合はモジュールを追加し `tsconfig.json` をプロジェクトの root に配置します。
+TypeScript `.tsx` でページを作成する場合はモジュールを追加し `tsconfig.json` をプロジェクトの root に配置。エントリーポイントとして `src/assets/index.ts` があれば `src/assets/index.js` の代わりに使用します。
 
 ```bash
 $ npm install --save-dev typescript @types/react @types/react-dom
@@ -195,6 +195,23 @@ $ npm install --save-dev typescript @types/react @types/react-dom
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "dist", "webpack.config.js"]
 }
+```
+
+```bash
+# ----------------------------------------------------
+# Directory Example
+# ----------------------------------------------------
+
+public # Copy root
+src
+├── assets
+│   └── index.ts (or index.js)  # Required!
+├── components
+│   └── layout.js
+└── pages # Required!
+    ├── about
+    │   └── index.tsx
+    └── index.tsx
 ```
 
 ### Babel
