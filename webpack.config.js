@@ -38,9 +38,13 @@ const babelTsxOptions = {
   ],
 }
 
-function switchPostcssConfig() {
-  const filename = "postcss.config.js"
-  fs.existsSync(path.resolve(filename)) ? undefined : filename
+const postcssOptions = {
+  plugins: [
+    "postcss-import",
+    "postcss-flexbugs-fixes",
+    "postcss-sort-media-queries",
+    "postcss-preset-env",
+  ],
 }
 
 function switchBabelOptions(useTsx) {
@@ -55,6 +59,19 @@ function switchBabelOptions(useTsx) {
     return require(path.resolve(filename1))
   } else if (check2) {
     return JSON.parse(fs.readFileSync(path.resolve(filename2), "utf8"))
+  } else {
+    return defaultOptions
+  }
+}
+
+function switchPostcssOptions() {
+  const filename = "postcss.config.js"
+  const check = fs.existsSync(path.resolve(filename))
+
+  const defaultOptions = postcssOptions
+
+  if (check) {
+    return require(path.resolve(filename))
   } else {
     return defaultOptions
   }
@@ -128,7 +145,7 @@ const webpackConfig = {
             loader: "postcss-loader",
             options: {
               sourceMap: isDev,
-              postcssOptions: { config: switchPostcssConfig() },
+              postcssOptions: switchPostcssOptions(),
             },
           },
         ],
@@ -148,7 +165,7 @@ const webpackConfig = {
             loader: "postcss-loader",
             options: {
               sourceMap: isDev,
-              postcssOptions: { config: switchPostcssConfig() },
+              postcssOptions: switchPostcssOptions(),
             },
           },
           {
