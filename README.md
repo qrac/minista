@@ -286,6 +286,33 @@ const webpackConfig = {
 module.exports = webpackConfig
 ```
 
+### SVG sprite icons
+
+`src/assets/icons` ディレクトリに SVG ファイルを置くと SVG スプライトアイコンの `dist/assets/icons.svg` が生成されます。以下のようなコンポーネントを作ることでアイコンを呼び出せます。
+
+```js
+// Example: ./src/components/svg-sprite-icon.tsx
+export interface SvgSpriteIconProps {
+  iconId?: string;
+}
+
+export const SvgSpriteIcon = (props: SvgSpriteIconProps) => {
+  const { iconId } = props
+  return (
+    <svg className="icon" role="img">
+      <use xlinkHref={`/assets/icons.svg#${iconId}`} />
+    </svg>
+  )
+}
+```
+
+```html
+<!-- dist html -->
+<svg role="img" class="icon">
+  <use xlink:href="/assets/icons.svg#star"></use>
+</svg>
+```
+
 ## Media
 
 - [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
