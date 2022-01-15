@@ -58,12 +58,12 @@ src
 import { render } from "minista" // Required!
 
 const PageHome = () => {
-  return (
+  return render( // Required!
     <h1>Hello</h1>
   )
 }
 
-export default render(PageHome)  // Required!
+export default PageHome
 ```
 
 #### Develop
@@ -88,11 +88,12 @@ $ minista build
 
 #### Input
 
+<!-- prettier-ignore -->
 ```js
 import { render, Comment } from "minista"
 
 const PageHome = () => {
-  return (
+  return render( // Required!
     <>
       <Comment text="Comment Test" />
       <h1>Hello</h1>
@@ -100,7 +101,7 @@ const PageHome = () => {
   )
 }
 
-export default render(PageHome)
+export default PageHome
 ```
 
 #### output

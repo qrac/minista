@@ -4,7 +4,7 @@ import { render, Comment } from "minista"
 import { AppLayout } from "../components/app-layout"
 
 const PageHome = () => {
-  return (
+  return render(
     <AppLayout>
       <Helmet>
         <title>Home</title>
@@ -16,4 +16,4 @@ const PageHome = () => {
   )
 }
 
-export default render(PageHome)
+export default PageHome
