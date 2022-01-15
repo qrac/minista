@@ -270,6 +270,22 @@ module.exports = {
 $ npm install --save-dev sass-loader sass
 ```
 
+### Style only
+
+プロジェクトに JavaScript が全く必要ない場合はエントリーポイントを CSS ファイルに変更します。これにより空の JavaScript ファイルを出力することなく納品用データを生成できます。
+
+```js
+//----------------------------------------------------
+// Example: User > webpack.config.js
+//----------------------------------------------------
+
+const webpackConfig = {
+  entry: { bundle: "./src/assets/index.css" },
+}
+
+module.exports = webpackConfig
+```
+
 ## Media
 
 - [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
