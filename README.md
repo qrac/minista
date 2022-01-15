@@ -14,11 +14,12 @@
 
 ## About
 
-minista（ミニスタ）は、React (TSX/JSX)で書ける web コーディング用の小さいスタティックサイトジェネレーターです。
+minista（ミニスタ）は、React (TSX/JSX)で書けるスタティックサイトジェネレーターです。SaaS の web テンプレートコーディング業務を想定し、ビルド時の納品用データが綺麗（ヒューマンリーダブル）であることを重視しています。
 
 - ゼロコンフィグで始められる
-- React (TSX/JSX)から静的な HTML を出力
-- CSS と JavaScript を Minify 出力
+- React (TSX/JSX)から 100%静的な HTML を出力
+- CSS と JavaScript を個別に Minify 出力
+- SVG スプライトアイコンを自動生成
 - Next.js 風のディレクトリ構成
 
 ## How To Use
@@ -319,12 +320,17 @@ export const SvgSpriteIcon = (props: SvgSpriteIconProps) => {
 
 ## Respect
 
-- [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
 - [Next.js by Vercel - The React Framework](https://nextjs.org/)
+- [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
+- [Eleventy, a simpler static site generator.](https://www.11ty.dev/)
 - [Node Interface | webpack](https://webpack.js.org/api/node/)
+- [natemoo-re/microsite](https://github.com/natemoo-re/microsite)
+- [Astro](https://astro.build/)
 - [テンプレートエンジンに React を使いつつ、きれいな HTML を生成したいんじゃ！！](https://zenn.dev/otsukayuhi/articles/e52651b4e2c5ae7c4a17)
 - [EJS をやめて React で HTML を書く](https://zenn.dev/hisho/scraps/4ef6c6106a6395)
 - [MPA(マルチページアプリ)で webpack を使う](https://www.key-p.com/blog/staff/archives/107125)
+- [HTML コーディングでも React+TypeScript の開発体験を得る](https://zenn.dev/nanaki14/articles/html-template-react)
+- [Astro と microCMS でポートフォリオサイトを作る](https://zenn.dev/takanorip/articles/c75717c280c81d)
 
 ## License
 
