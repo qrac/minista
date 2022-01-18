@@ -6,7 +6,7 @@ import AppLayout from "../../components/app-layout"
 const PageAbout = () => {
   return render(
     <AppLayout>
-      <Helmet>
+      <Helmet bodyAttributes={{ class: "page-about" }}>
         <title>About</title>
       </Helmet>
       <h1>About</h1>
