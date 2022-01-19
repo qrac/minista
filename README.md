@@ -14,7 +14,7 @@
 
 ## About
 
-minista（ミニスタ）は、React (TSX/JSX)で書けるスタティックサイトジェネレーターです。SaaS の web テンプレートコーディング業務を想定し、ビルド時の納品用データが綺麗（ヒューマンリーダブル）であることを重視しています。
+minista（ミニスタ）は、React (TSX/JSX)で書けるスタティックサイトジェネレーターです。SaaS の web テンプレートコーディング業務を想定し、ビルド時の納品用データが綺麗（ヒューマンリーダブル）であることを重視しています。CSS と JavaScript は個別に出力されます。
 
 - ゼロコンフィグで始められる
 - React (TSX/JSX)から 100%静的な HTML を出力
@@ -24,9 +24,29 @@ minista（ミニスタ）は、React (TSX/JSX)で書けるスタティックサ�
 
 ## How To Use
 
-### [npm](https://www.npmjs.com/package/minista)
+### Automatic
 
-#### Setup
+コマンド `npm init minista` を入力するだけでいくつかのテンプレートから選び始められます。テンプレートは[オフィシャル](https://github.com/qrac/create-minista/tree/main/templates)以外にも任意の GitHub パブリックリポジトリに対応していますので、自分用のテンプレートを作っておくと効率的です。
+
+```bash
+# Use interactive CLI
+npm init minista
+
+# Use Official Template
+npm init minista -- --template [OFFICIAL_TEMPLATE_NAME]
+
+# Use GitHub Template
+npm init minista -- --template [GITHUB_USER]/[REPO_NAME]
+npm init minista -- --template [GITHUB_USER]/[REPO_NAME]/path/to/example
+```
+
+- `create-minista`: [repo](https://github.com/qrac/create-minista) / [npm](https://www.npmjs.com/package/create-minista)
+
+### Manual
+
+手動でセッティングする場合は `minista` `react` `react-dom` をインストールしてください。
+
+- `minista`: [npm](https://www.npmjs.com/package/minista)
 
 ```bash
 $ npm install --save-dev minista react react-dom
@@ -66,7 +86,11 @@ const PageHome = () => {
 export default PageHome
 ```
 
-#### Develop
+## Commands
+
+### Develop
+
+`webpack-dev-server` でプレビューします。
 
 ```bash
 # Start
@@ -76,7 +100,9 @@ $ minista
 Press Ctrl+C
 ```
 
-#### Build
+### Build
+
+納品用にビルド。HTML には `js-beautify` 処理が施され見やすくなります。
 
 ```bash
 $ minista build
@@ -86,14 +112,14 @@ $ minista build
 
 ### Comment
 
-#### Input
+`<Comment text="" />` を使うと React では作りにくい HTML コメントが残せます。
 
 <!-- prettier-ignore -->
 ```js
 import { render, Comment } from "minista"
 
 const PageHome = () => {
-  return render( // Required!
+  return render(
     <>
       <Comment text="Comment Test" />
       <h1>Hello</h1>
@@ -103,8 +129,6 @@ const PageHome = () => {
 
 export default PageHome
 ```
-
-#### output
 
 ```html
 <body>
@@ -117,7 +141,7 @@ export default PageHome
 
 納品用のサイトマップを簡単に作るコンポーネントを npm で追加可能です。納品物に追加の CSS や JavaScript をバンドルさせません。
 
-- minista sitemap: [repo](https://github.com/qrac/minista-sitemap) / [npm](https://www.npmjs.com/package/minista-sitemap)
+- `minista-sitemap`: [repo](https://github.com/qrac/minista-sitemap) / [npm](https://www.npmjs.com/package/minista-sitemap)
 
 ## Customize
 
@@ -145,7 +169,7 @@ const webpackConfig = {
   plugins: [
     // Replace
     new MiniCssExtractPlugin({
-      filename: "assets/[name].css",
+      filename: "assets/css/[name].css",
     }),
     // Replace
     new CopyPlugin({
