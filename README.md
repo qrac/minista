@@ -166,6 +166,8 @@ const webpackConfig = {
   devServer: {
     open: ["/index.html"],
   },
+  // Replace
+  entry: { custom: "./src/assets/index.js" },
   plugins: [
     // Replace
     new MiniCssExtractPlugin({

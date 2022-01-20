@@ -22,6 +22,7 @@ function getUserWebpackConfig() {
 function getMergedWebpackConfig({ config, userConfig }) {
   const mergedConfig = mergeWithCustomize({
     customizeObject: customizeObject({
+      entry: "replace",
       optimization: "replace",
     }),
     customizeArray: unique(
