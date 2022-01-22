@@ -78,12 +78,12 @@ src
 import { render } from "minista" // Required!
 
 const PageHome = () => {
-  return render( // Required!
+  return (
     <h1>Hello</h1>
   )
 }
 
-export default PageHome
+export default render(<PageHome />) // Required!
 ```
 
 ## Commands
@@ -119,7 +119,7 @@ $ minista build
 import { render, Comment } from "minista"
 
 const PageHome = () => {
-  return render(
+  return (
     <>
       <Comment text="Comment Test" />
       <h1>Hello</h1>
@@ -127,7 +127,7 @@ const PageHome = () => {
   )
 }
 
-export default PageHome
+export default render(<PageHome />)
 ```
 
 ```html
