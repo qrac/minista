@@ -229,7 +229,12 @@ const webpackConfig = {
     }),
     new CopyPlugin({
       patterns: [
-        { from: "./public", to: path.resolve("dist"), noErrorOnMissing: true },
+        {
+          from: "./public",
+          to: path.resolve("dist"),
+          noErrorOnMissing: true,
+          info: { minimized: true },
+        },
       ],
     }),
   ],
