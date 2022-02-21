@@ -1,17 +1,16 @@
 {
   "name": "minista",
-  "description": "Mini static site generator that can be written in React (JSX) for web coding",
-  "version": "1.1.1",
+  "version": "2.0.0-alpha.1",
+  "private": true,
   "bin": {
-    "minista": "cli.js"
+    "minista": "./bin/minista.js"
   },
-  "main": "./main.js",
-  "types": "./index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "files": [
-    "main.js",
-    "cli.js",
-    "index.d.ts",
-    "webpack.config.js"
+    "dist",
+    "lib"
   ],
   "license": "MIT",
   "homepage": "https://github.com/qrac/minista",
@@ -30,7 +29,8 @@
     "jsx",
     "tsx",
     "typescript",
-    "webpack",
+    "esbuild",
+    "vite",
     "japanese",
     "minista"
   ],
@@ -42,7 +42,17 @@
     "name": "QRANOKO",
     "url": "https://qranoko.jp"
   },
-  "scripts": {},
+  "scripts": {
+    "build": "tsup",
+    "build:all": "tsup && tsc",
+    "build:tsc": "tsc",
+    "test": "cd ./test && npx minista",
+    "test:dev": "cd ./test && npx minista",
+    "test:build": "cd ./test && npx minista build",
+    "test:v": "cd ./test && npx minista -v",
+    "test:h": "cd ./test && npx minista -h",
+    "clean": "trash ./dist ./test/dist ./test/node_modules/.minista"
+  },
   "prettier": {
     "semi": false
   },
@@ -51,31 +61,35 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
-    "@babel/core": "^7.16.7",
-    "@babel/preset-env": "^7.16.8",
-    "@babel/preset-react": "^7.16.7",
-    "@babel/preset-typescript": "^7.16.7",
-    "babel-loader": "^8.2.3",
-    "copy-webpack-plugin": "^10.2.0",
-    "css-loader": "^6.5.1",
-    "css-minimizer-webpack-plugin": "^3.3.1",
-    "glob": "^7.2.0",
-    "html-replace-webpack-plugin": "^2.6.0",
-    "html-webpack-plugin": "^5.5.0",
+    "@mdx-js/esbuild": "^2.0.0",
+    "@mdx-js/react": "^2.0.0",
+    "@mdx-js/rollup": "^2.0.0",
+    "@vitejs/plugin-react": "^1.2.0",
+    "cac": "^6.7.12",
+    "esbuild": "^0.14.23",
+    "fs-extra": "^10.0.0",
     "js-beautify": "^1.14.0",
-    "mini-css-extract-plugin": "^2.5.2",
-    "postcss": "^8.4.5",
-    "postcss-flexbugs-fixes": "^5.0.2",
-    "postcss-import": "^14.0.2",
-    "postcss-loader": "^6.2.1",
-    "postcss-preset-env": "^7.2.1",
-    "postcss-sort-media-queries": "^4.2.1",
+    "node-fetch": "^3.2.0",
+    "picocolors": "^1.0.0",
     "react-helmet": "^6.1.0",
-    "svg-sprite-loader": "^6.0.11",
-    "ts-loader": "^9.2.6",
-    "webpack": "^5.66.0",
-    "webpack-dev-server": "^4.7.3",
-    "webpack-merge": "^5.8.0",
-    "webpack-remove-empty-scripts": "^0.7.2"
+    "react-router-dom": "^6.2.1",
+    "remark-frontmatter": "^4.0.1",
+    "remark-gfm": "^3.0.1",
+    "remark-highlight.js": "^7.0.1",
+    "remark-mdx-frontmatter": "^1.1.1",
+    "tiny-glob": "^0.2.9",
+    "vite": "^2.8.4"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.13",
+    "@types/js-beautify": "^1.13.3",
+    "@types/node": "^17.0.18",
+    "@types/react": "^17.0.39",
+    "@types/react-dom": "^17.0.11",
+    "@types/react-helmet": "^6.1.5",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "tsup": "^5.11.13",
+    "typescript": "^4.5.5"
   }
 }

@@ -1,0 +1,29 @@
+body {
+  margin: 20px;
+  background-color: #282a37;
+  color: #f7f6f4;
+}
+
+a {
+  color: #96f8f7;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 8px 12px;
+  border: 1px solid #f7f6f4;
+}
+
+pre {
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, monospace, serif;
+  word-break: normal;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
