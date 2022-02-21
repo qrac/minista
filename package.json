@@ -51,6 +51,7 @@
     "test:build": "cd ./test && npx minista build",
     "test:v": "cd ./test && npx minista -v",
     "test:h": "cd ./test && npx minista -h",
+    "prepublishOnly": "npm run build:all",
     "clean": "trash ./dist ./test/dist ./test/node_modules/.minista"
   },
   "prettier": {
