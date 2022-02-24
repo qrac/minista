@@ -115,7 +115,7 @@ const webpackConfig = {
     path: path.resolve("dist"),
     publicPath: "/",
     filename: "assets/[name].js",
-    assetModuleFilename: "assets/images/[name].[ext]",
+    assetModuleFilename: "assets/images/[name][ext]",
   },
   module: {
     rules: [
@@ -195,7 +195,7 @@ const webpackConfig = {
         test: /\.(woff2?|eot|ttf|otf)$/i,
         type: "asset/resource",
         generator: {
-          filename: "assets/fonts/[name].[ext]",
+          filename: "assets/fonts/[name][ext]",
         },
       },
       {
