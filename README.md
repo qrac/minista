@@ -158,9 +158,6 @@ export default render(<PageHome />)
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
 
-// Example of dev mode
-const isDev = process.env.NODE_ENV !== "production"
-
 const webpackConfig = {
   // Merge
   devServer: {
@@ -168,6 +165,22 @@ const webpackConfig = {
   },
   // Replace
   entry: { custom: "./src/assets/index.js" },
+  module: {
+    rules: [
+      // Merge: loader options
+      {
+        test: /\.css$/,
+        use: [
+          {
+            loader: "css-loader",
+            options: {
+              url: false,
+            },
+          },
+        ],
+      },
+    ],
+  },
   plugins: [
     // Replace
     new MiniCssExtractPlugin({
@@ -178,10 +191,7 @@ const webpackConfig = {
       patterns: [{ from: "./static", to: "./", noErrorOnMissing: true }],
     }),
   ],
-
-  // All optimization is replaced.
   optimization: {
-    minimize: !isDev,
     minimizer: [
       /* Replace plugins */
     ],

@@ -3,7 +3,7 @@ const fs = require("fs")
 const path = require("path")
 const glob = require("glob")
 const webpack = require("webpack")
-const { mergeWithCustomize, customizeObject, unique } = require("webpack-merge")
+const { mergeWithRules, unique } = require("webpack-merge")
 const webpackDevServer = require("webpack-dev-server")
 const beautify = require("js-beautify")
 
@@ -20,17 +20,30 @@ function getUserWebpackConfig() {
 }
 
 function getMergedWebpackConfig({ config, userConfig }) {
-  const mergedConfig = mergeWithCustomize({
-    customizeObject: customizeObject({
+  const mergedConfig = mergeWithRules(
+    {
       entry: "replace",
-      optimization: "replace",
-    }),
-    customizeArray: unique(
-      "plugins",
-      ["MiniCssExtractPlugin", "CopyPlugin"],
-      (plugin) => plugin.constructor && plugin.constructor.name
-    ),
-  })(config, userConfig)
+      module: {
+        rules: {
+          test: "match",
+          use: {
+            loader: "match",
+            options: "merge",
+          },
+        },
+      },
+      optimization: {
+        minimizer: "replace",
+      },
+    },
+    {
+      customizeArray: unique(
+        "plugins",
+        ["MiniCssExtractPlugin", "CopyPlugin"],
+        (plugin) => plugin.constructor && plugin.constructor.name
+      ),
+    }
+  )(config, userConfig)
   const filterdPlugins = filterWebpackPlugins({
     plugins: mergedConfig.plugins,
   })
