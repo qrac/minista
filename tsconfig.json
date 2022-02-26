@@ -8,7 +8,7 @@
     "emitDeclarationOnly": true,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "noErrorTruncation": true,
