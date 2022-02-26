@@ -254,8 +254,8 @@ export async function buildTempCss(
   const result: any = await viteBuild(viteConfig)
 
   if (Array.isArray(result.output) && result.output.length > 0) {
-    const pagesCss = result.output.find(
-      (item: any) => item.name === "pages.css"
+    const pagesCss = result.output.find((item: any) =>
+      item.fileName.match(/pages\.css/)
     )
     const pagesCssFileName = `${buildOptions.outdir}/${buildOptions.fileName}.css`
     pagesCss?.source && fs.outputFile(pagesCssFileName, pagesCss?.source)
