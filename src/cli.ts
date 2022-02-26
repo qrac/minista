@@ -7,12 +7,13 @@ import { getMdxConfig } from "./mdx.js"
 import { getFilePath, getFilePaths, getSameFilePaths } from "./path.js"
 import { emptyResolveDir } from "./empty.js"
 import { cleanHtmlPages } from "./clean.js"
+import { optimizeCommentOutStyleImport } from "./optimize.js"
 import { createDevServer } from "./server.js"
 import {
   buildTempPages,
   buildStaticPages,
   buildCopyDir,
-  buildTempCss,
+  buildTempAssets,
   buildAssetsTagStr,
 } from "./build.js"
 
@@ -71,6 +72,19 @@ cli.command("build [root]").action(async () => {
       })
     }
 
+    const generateAssets = async () => {
+      await buildTempAssets(viteConfig, {
+        fileName: config.autoAssetsName,
+        outdir: config.tempAssetsDir,
+        assetDir: config.assetsDir,
+      })
+      await buildCopyDir(
+        config.tempAssetsDir,
+        `${config.outDir}/${config.assetsDir}`,
+        "assets"
+      )
+    }
+
     const generateHtmlPages = async () => {
       const tempPageFilePaths = await getFilePaths(config.tempPagesDir, "mjs")
       const tempRootFilePath = getFilePath(
@@ -97,18 +111,6 @@ cli.command("build [root]").action(async () => {
       )
     }
 
-    const generateAssets = async () => {
-      await buildTempCss(viteConfig, {
-        fileName: config.autoAssetsName,
-        outdir: config.tempAssetsDir,
-      })
-      await buildCopyDir(
-        config.tempAssetsDir,
-        `${config.outDir}/${config.assetsDir}`,
-        "assets"
-      )
-    }
-
     const generatePublic = async () => {
       await buildCopyDir(config.publicDir, config.outDir, "public")
     }
@@ -119,11 +121,16 @@ cli.command("build [root]").action(async () => {
       emptyResolveDir(config.tempPagesDir),
       emptyResolveDir(config.outDir),
     ])
+
     await Promise.all([
       generateTempRoot(),
       generateTempPages(),
       generateAssets(),
     ])
+
+    const tempMjsFiles = await getFilePaths(config.tempDir, "mjs")
+    await optimizeCommentOutStyleImport(tempMjsFiles)
+
     await Promise.all([generateHtmlPages(), generatePublic()])
 
     const htmlPageFilePaths = await getFilePaths(config.outDir, "html")

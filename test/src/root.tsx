@@ -1,6 +1,7 @@
 import { Head } from "minista"
 
 import "highlight.js/styles/nord.css"
+import "@fontsource/montserrat/800.css"
 import "./assets/style.css"
 
 export const getStaticData = async () => {

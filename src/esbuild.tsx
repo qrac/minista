@@ -6,13 +6,13 @@ export function resolvePlugin(options: { [key: string]: string }): Plugin {
     name: "esbuild-resolve",
     setup: (build: PluginBuild) => {
       for (const moduleName of Object.keys(options)) {
-        intercept(build, moduleName, options[moduleName])
+        resolvePluginIntercept(build, moduleName, options[moduleName])
       }
     },
   }
 }
 
-function intercept(
+function resolvePluginIntercept(
   build: PluginBuild,
   moduleName: string,
   moduleTarget: string

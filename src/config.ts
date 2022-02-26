@@ -2,6 +2,7 @@ export const defaultConfig = {
   entries: [],
   outDir: "dist",
   publicDir: "public",
+  tempDir: "node_modules/.minista",
   assetsDir: "assets",
   autoAssetsName: "bundle",
   tempAssetsDir: "node_modules/.minista/bundled-react-assets",

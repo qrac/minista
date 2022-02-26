@@ -6,7 +6,7 @@ import { Fragment } from "react"
 import { build as esBuild } from "esbuild"
 import mdx from "@mdx-js/esbuild"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
-import { build as viteBuild } from "vite"
+import { build as viteBuild, mergeConfig } from "vite"
 import type { InlineConfig } from "vite"
 
 import type {
@@ -50,6 +50,9 @@ export async function buildTempPages(
     ...Object.keys(userPkg.dependencies || {}),
     ...Object.keys(userPkg.devDependencies || {}),
     ...Object.keys(userPkg.peerDependencies || {}),
+    "*.css",
+    "*.scss",
+    "*.sass",
   ]
 
   await esBuild({
@@ -244,21 +247,49 @@ export async function buildHtmlPage(
     })
 }
 
-export async function buildTempCss(
+export async function buildTempAssets(
   viteConfig: InlineConfig,
   buildOptions: {
     fileName: string
     outdir: string
+    assetDir: string
   }
 ) {
-  const result: any = await viteBuild(viteConfig)
+  const customConfig = {
+    build: {
+      write: false,
+      rollupOptions: {
+        input: {
+          __minista_auto_bundle_asset_pages: path.resolve(
+            __dirname + "/../dist/pages.js"
+          ),
+        },
+      },
+    },
+  }
+  const mergedConfig = mergeConfig(viteConfig, customConfig)
 
-  if (Array.isArray(result.output) && result.output.length > 0) {
-    const pagesCss = result.output.find((item: any) =>
-      item.fileName.match(/pages\.css/)
-    )
-    const pagesCssFileName = `${buildOptions.outdir}/${buildOptions.fileName}.css`
-    pagesCss?.source && fs.outputFile(pagesCssFileName, pagesCss?.source)
+  const result: any = await viteBuild(mergedConfig)
+  const items = result.output
+
+  if (Array.isArray(items) && items.length > 0) {
+    items.map((item) => {
+      if (item.fileName.match(/__minista_auto_bundle_asset_pages\.css/)) {
+        const customFileName = `${buildOptions.outdir}/${buildOptions.fileName}.css`
+        return item?.source && fs.outputFile(customFileName, item?.source)
+      } else if (item.fileName.match(/__minista_auto_bundle_asset_pages\.js/)) {
+        return
+      } else {
+        const customFileName =
+          buildOptions.outdir + item.fileName.replace(buildOptions.assetDir, "")
+        const customCode = item?.source
+          ? item?.source
+          : item?.code
+          ? item?.code
+          : ""
+        return customCode && fs.outputFile(customFileName, customCode)
+      }
+    })
   }
 }
 

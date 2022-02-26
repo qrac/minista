@@ -4,6 +4,10 @@ body {
   color: #f7f6f4;
 }
 
+h1 {
+  font-family: Montserrat, sans-serif;
+}
+
 a {
   color: #96f8f7;
 }

@@ -13,9 +13,8 @@ const __dirname = path.dirname(__filename)
 
 export const defaultViteConfig = {
   build: {
-    write: false,
+    assetsInlineLimit: 0,
     rollupOptions: {
-      input: path.resolve(__dirname + "/../dist/pages.js"),
       output: {
         manualChunks: undefined,
         entryFileNames: `assets/[name].js`,
