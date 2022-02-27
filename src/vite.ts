@@ -1,8 +1,8 @@
 import fs from "fs-extra"
 import path from "path"
 import url from "url"
-import { searchForWorkspaceRoot } from "vite"
-import type { Plugin, InlineConfig } from "vite"
+import { defineConfig, searchForWorkspaceRoot } from "vite"
+import type { Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import mdx from "@mdx-js/rollup"
 
@@ -11,7 +11,7 @@ import { defaultMdxConfig } from "./mdx.js"
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export const defaultViteConfig = {
+export const defaultViteConfig = defineConfig({
   build: {
     assetsInlineLimit: 0,
     rollupOptions: {
@@ -54,7 +54,7 @@ export const defaultViteConfig = {
       "react-helmet",
     ],
   },
-}
+})
 
 export async function getViteConfig() {
   return defaultViteConfig
