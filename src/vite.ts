@@ -1,7 +1,7 @@
 import fs from "fs-extra"
 import path from "path"
 import url from "url"
-import { defineConfig, searchForWorkspaceRoot } from "vite"
+import { defineConfig, searchForWorkspaceRoot, createLogger } from "vite"
 import type { Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import mdx from "@mdx-js/rollup"
@@ -54,6 +54,7 @@ export const defaultViteConfig = defineConfig({
       "react-helmet",
     ],
   },
+  customLogger: createLogger("info", { prefix: "[minista]" }),
 })
 
 export async function getViteConfig() {
