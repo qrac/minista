@@ -16,6 +16,7 @@ import {
   buildTempAssets,
   buildAssetsTagStr,
 } from "./build.js"
+import { serveLocal } from "./serve.js"
 
 function printVersion() {
   const pkgURL = new URL("../package.json", import.meta.url)
@@ -140,6 +141,19 @@ cli.command("build [root]").action(async () => {
     process.exit(1)
   }
 })
+
+cli
+  .command("serve [root]")
+  .alias("preview")
+  .action(async () => {
+    try {
+      const viteConfig = await getViteConfig()
+      await serveLocal(viteConfig)
+    } catch (err) {
+      console.log(err)
+      process.exit(1)
+    }
+  })
 
 cli.help()
 cli.version(printVersion())
