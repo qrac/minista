@@ -45,6 +45,15 @@ export const defaultViteConfig = {
     ],
   },
   plugins: [react(), mdx(defaultMdxConfig), virtualHtml()],
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "react/jsx-runtime.js",
+      "react-helmet",
+    ],
+  },
 }
 
 export async function getViteConfig() {
