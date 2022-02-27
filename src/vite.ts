@@ -68,7 +68,6 @@ export function virtualHtml(): Plugin {
           "<!-- VIRTUAL_HTML_ASSETS_TAG -->",
           assetTagStr
         )
-        console.log(server.config.inlineConfig.build?.rollupOptions?.input)
 
         server.middlewares.use((req, res, next) => {
           if (req.url!.endsWith(".html")) {
