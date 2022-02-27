@@ -1,7 +1,12 @@
 import fs from "fs-extra"
 import path from "path"
 import url from "url"
-import { defineConfig, searchForWorkspaceRoot, createLogger } from "vite"
+import {
+  defineConfig,
+  searchForWorkspaceRoot,
+  createLogger,
+  mergeConfig,
+} from "vite"
 import type { Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import mdx from "@mdx-js/rollup"
@@ -58,7 +63,7 @@ export const defaultViteConfig = defineConfig({
 })
 
 export async function getViteConfig() {
-  return defaultViteConfig
+  return mergeConfig(defaultViteConfig, {})
 }
 
 export function virtualHtml(): Plugin {
