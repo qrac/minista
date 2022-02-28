@@ -17,7 +17,7 @@ import {
   buildTempAssets,
   buildAssetsTagStr,
 } from "./build.js"
-import { serveLocal } from "./serve.js"
+import { previewLocal } from "./preview.js"
 
 function printVersion() {
   const pkgURL = new URL("../package.json", import.meta.url)
@@ -148,20 +148,17 @@ cli.command("build [root]").action(async () => {
   }
 })
 
-cli
-  .command("serve [root]")
-  .alias("preview")
-  .action(async () => {
-    try {
-      const userConfig = await getUserConfig()
-      const viteConfig = await getViteConfig(userConfig)
+cli.command("preview [root]").action(async () => {
+  try {
+    const userConfig = await getUserConfig()
+    const viteConfig = await getViteConfig(userConfig)
 
-      await serveLocal(viteConfig)
-    } catch (err) {
-      console.log(err)
-      process.exit(1)
-    }
-  })
+    await previewLocal(viteConfig)
+  } catch (err) {
+    console.log(err)
+    process.exit(1)
+  }
+})
 
 cli.help()
 cli.version(printVersion())

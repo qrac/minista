@@ -48,7 +48,7 @@
     "test": "cd ./test && npx minista",
     "test:dev": "cd ./test && npx minista",
     "test:build": "cd ./test && npx minista build",
-    "test:serve": "cd ./test && npx minista serve",
+    "test:preview": "cd ./test && npx minista preview",
     "test:v": "cd ./test && npx minista -v",
     "test:h": "cd ./test && npx minista -h",
     "prepublishOnly": "npm run build:all",
