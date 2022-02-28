@@ -2,7 +2,7 @@ import { Head } from "minista"
 
 import "highlight.js/styles/nord.css"
 import "@fontsource/montserrat/800.css"
-import "./assets/style.css"
+import "./root.css"
 
 export const getStaticData = async () => {
   const apiUrl = "https://api.github.com/repos/qrac/minista"
