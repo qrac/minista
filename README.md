@@ -14,25 +14,21 @@
 
 ## About
 
-minista（ミニスタ）は、React (TSX/JSX)で書けるスタティックサイトジェネレーターです。SaaS の web テンプレートコーディング業務を想定し、ビルド時の納品用データが綺麗（ヒューマンリーダブル）であることを重視しています。CSS と JavaScript は個別に出力されます。
+Next.js Like Development with 100% Static Generate.
 
 ## How To Use
 
-### Automatic
+### Automatic Setup
 
 not supported
 
-### Manual
+### Manual Setup
 
 ```bash
 $ npm install --save-dev minista@next react react-dom
 ```
 
 ```bash
-# ----------------------------------------------------
-# Directory Example
-# ----------------------------------------------------
-
 public # Copy dist
 src
 └── pages # Required!
@@ -43,10 +39,6 @@ src
 
 <!-- prettier-ignore -->
 ```js
-//----------------------------------------------------
-// Page Example
-//----------------------------------------------------
-
 const PageHome = () => {
   return (
     <h1>Home</h1>
@@ -56,52 +48,40 @@ const PageHome = () => {
 export default PageHome
 ```
 
+Open `package.json` and add the following scripts:
+
+```json
+"scripts": {
+  "dev": "minista",
+  "build": "minista build",
+  "preview": "minista preview",
+}
+```
+
 ## Commands
 
-### Develop
-
-```bash
-# Start
-$ minista
-
-# Stop
-Press Ctrl+C
-```
-
-### Build
-
-```bash
-$ minista build
-```
-
-## Components
-
-undecided
+| command           | detail                                 |
+| ----------------- | -------------------------------------- |
+| `minista`         | Development mode, Press Ctrl+C to stop |
+| `minista build`   | Static site generate                   |
+| `minista preview` | Static data preview                    |
 
 ## Customize
 
-not supported
+```js
+// minista.config.ts
+import { defineMinistaUserConfig } from "minista"
 
-## Media
-
-- [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
-- [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
-
-## Respect
-
-- [Next.js by Vercel - The React Framework](https://nextjs.org/)
-- [Remix - Build Better Websites](https://remix.run/)
-- [Vite](https://vitejs.dev/)
-- [esbuild - An extremely fast JavaScript bundler](https://esbuild.github.io/)
-- [Astro](https://astro.build/)
-- [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
-- [Eleventy, a simpler static site generator.](https://www.11ty.dev/)
-- [natemoo-re/microsite](https://github.com/natemoo-re/microsite)
-- [テンプレートエンジンに React を使いつつ、きれいな HTML を生成したいんじゃ！！](https://zenn.dev/otsukayuhi/articles/e52651b4e2c5ae7c4a17)
-- [EJS をやめて React で HTML を書く](https://zenn.dev/hisho/scraps/4ef6c6106a6395)
-- [MPA(マルチページアプリ)で webpack を使う](https://www.key-p.com/blog/staff/archives/107125)
-- [HTML コーディングでも React+TypeScript の開発体験を得る](https://zenn.dev/nanaki14/articles/html-template-react)
-- [Astro と microCMS でポートフォリオサイトを作る](https://zenn.dev/takanorip/articles/c75717c280c81d)
+export default defineMinistaUserConfig({
+  entry: undefined, // string | string[] | { [key: string]: string }
+  outDir: "dist", // string
+  publicDir: "public", // string
+  assetsDir: "assets", // string
+  autoAssetsName: "bundle", // string
+  vite: undefined, // https://vitejs.dev/config/
+  markdown: { remarkPlugins: [] }, // https://mdxjs.com/packages/mdx/#optionsremarkplugins
+})
+```
 
 ## License
 
