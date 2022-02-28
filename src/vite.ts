@@ -10,8 +10,9 @@ import {
 import type { Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import mdx from "@mdx-js/rollup"
+import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
-import { defaultMdxConfig } from "./mdx.js"
+import type { MinistaUserConfig } from "./types.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -49,7 +50,7 @@ export const defaultViteConfig = defineConfig({
       },
     ],
   },
-  plugins: [react(), mdx(defaultMdxConfig), virtualHtml()],
+  plugins: [react(), virtualHtml()],
   optimizeDeps: {
     include: [
       "react",
@@ -62,8 +63,17 @@ export const defaultViteConfig = defineConfig({
   customLogger: createLogger("info", { prefix: "[minista]" }),
 })
 
-export async function getViteConfig() {
-  return mergeConfig(defaultViteConfig, {})
+export async function getViteConfig(
+  userConfig: MinistaUserConfig,
+  mdxConfig?: MdxOptions
+) {
+  const mergedConfig = userConfig.vite
+    ? mergeConfig(defaultViteConfig, userConfig.vite)
+    : defaultViteConfig
+  const mergedConfigWithMdx = mdxConfig
+    ? mergeConfig(mergedConfig, { plugins: [mdx(mdxConfig)] })
+    : mergedConfig
+  return mergedConfigWithMdx
 }
 
 export function virtualHtml(): Plugin {
@@ -124,9 +134,9 @@ function getAssetsTag(input: string) {
   !input && ""
 
   if (input.match(/\.(css|sass|scss)$/)) {
-    return `<link rel="stylesheet" href="${input}">`
+    return `<link rel="stylesheet" href="/${input}">`
   } else if (input.match(/\.(js|cjs|mjs|jsx|ts|tsx)$/)) {
-    return `<script defer src="${input}"></script>`
+    return `<script defer src="/${input}"></script>`
   } else {
     console.log(
       "Could not insert the entry [vite.build.rollupOptions.input] into the dev server."

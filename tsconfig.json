@@ -6,7 +6,6 @@
     "strict": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,

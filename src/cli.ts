@@ -1,6 +1,7 @@
 import fs from "fs-extra"
 import { cac } from "cac"
 
+import { getUserConfig } from "./user.js"
 import { getConfig } from "./config.js"
 import { getViteConfig } from "./vite.js"
 import { getMdxConfig } from "./mdx.js"
@@ -32,7 +33,11 @@ cli
   .alias("dev")
   .action(async () => {
     try {
-      const viteConfig = await getViteConfig()
+      const userConfig = await getUserConfig()
+      const mdxConfig = await getMdxConfig(userConfig)
+      const viteConfig = await getViteConfig(userConfig, mdxConfig)
+      console.log(viteConfig)
+
       await createDevServer(viteConfig)
     } catch (err) {
       console.log(err)
@@ -42,9 +47,10 @@ cli
 
 cli.command("build [root]").action(async () => {
   try {
-    const config = await getConfig()
-    const viteConfig = await getViteConfig()
-    const mdxConfig = await getMdxConfig()
+    const userConfig = await getUserConfig()
+    const config = await getConfig(userConfig)
+    const mdxConfig = await getMdxConfig(userConfig)
+    const viteConfig = await getViteConfig(userConfig, mdxConfig)
 
     const generateTempRoot = async () => {
       const srcRootFilePaths = await getSameFilePaths(
@@ -147,7 +153,9 @@ cli
   .alias("preview")
   .action(async () => {
     try {
-      const viteConfig = await getViteConfig()
+      const userConfig = await getUserConfig()
+      const viteConfig = await getViteConfig(userConfig)
+
       await serveLocal(viteConfig)
     } catch (err) {
       console.log(err)

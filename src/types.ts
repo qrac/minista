@@ -1,13 +1,15 @@
 import type { ExoticComponent } from "react"
 import type vite from "vite"
+import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
 export type MinistaUserConfig = {
+  entry?: string | string[] | { [key: string]: string }
   outDir?: string
   publicDir?: string
-  pageDir?: string
-  pageExt?: string[] | string
-  tempPageDir?: string
-  vite?: vite.InlineConfig
+  assetsDir?: string
+  autoAssetsName?: string
+  vite?: vite.UserConfig | vite.UserConfigFn
+  markdown?: MdxOptions
 }
 
 export type RootStaticContent = {

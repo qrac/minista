@@ -1,3 +1,5 @@
+import path from "path"
+
 export function valueToStringObject(obj: {} | any | undefined) {
   if (obj) {
     Object.keys(obj).forEach((key) => {
@@ -22,4 +24,15 @@ export function sortObject(obj: {} | undefined) {
     }
   }
   return sorted
+}
+
+export function getFilename(fullPath: string) {
+  const parsedFullPath = path.parse(fullPath)
+  return parsedFullPath.name
+}
+
+export function getFilenameObject(fullPaths: string[]) {
+  const list = fullPaths.map((item) => ({ [getFilename(item)]: item }))
+  const object = { ...list }
+  return object
 }

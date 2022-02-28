@@ -4,6 +4,8 @@ import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 import remarkGfm from "remark-gfm"
 import remarkHighlightjs from "remark-highlight.js"
 
+import type { MinistaUserConfig } from "./types.js"
+
 export const defaultMdxConfig: MdxOptions = {
   remarkPlugins: [
     remarkFrontmatter,
@@ -13,6 +15,9 @@ export const defaultMdxConfig: MdxOptions = {
   ],
 }
 
-export async function getMdxConfig() {
-  return defaultMdxConfig
+export async function getMdxConfig(userConfig: MinistaUserConfig) {
+  const mergedConfig = userConfig.markdown
+    ? { ...defaultMdxConfig, ...userConfig.markdown }
+    : defaultMdxConfig
+  return mergedConfig
 }

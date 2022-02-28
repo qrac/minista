@@ -1,20 +1,35 @@
+import type { MinistaUserConfig } from "./types.js"
+
 export const defaultConfig = {
-  entries: [],
   outDir: "dist",
   publicDir: "public",
-  tempDir: "node_modules/.minista",
   assetsDir: "assets",
   autoAssetsName: "bundle",
-  tempAssetsDir: "node_modules/.minista/bundled-react-assets",
   rootFileDir: "src",
   rootFileName: "root",
   rootFileExt: ["js", "jsx", "ts", "tsx"],
-  tempRootFileDir: "node_modules/.minista/bundled-react-root",
   pagesDir: "src/pages",
   pagesExt: ["js", "jsx", "ts", "tsx", "md", "mdx"],
+  tempDir: "node_modules/.minista",
+  tempConfigDir: "node_modules/.minista/optimized-config",
+  tempAssetsDir: "node_modules/.minista/bundled-react-assets",
+  tempRootFileDir: "node_modules/.minista/bundled-react-root",
   tempPagesDir: "node_modules/.minista/bundled-react-pages",
 }
 
-export async function getConfig() {
-  return defaultConfig
+export async function getConfig(userConfig: MinistaUserConfig) {
+  const mergedConfig = {
+    ...defaultConfig,
+    outDir: userConfig.outDir ? userConfig.outDir : defaultConfig.outDir,
+    publicDir: userConfig.publicDir
+      ? userConfig.publicDir
+      : defaultConfig.publicDir,
+    assetsDir: userConfig.assetsDir
+      ? userConfig.assetsDir
+      : defaultConfig.assetsDir,
+    autoAssetsName: userConfig.autoAssetsName
+      ? userConfig.autoAssetsName
+      : defaultConfig.autoAssetsName,
+  }
+  return mergedConfig
 }
