@@ -1,4 +1,4 @@
-import { Head } from "minista"
+import { Head, render } from "minista"
 
 import AppLayout from "../../components/app-layout"
 
@@ -13,4 +13,4 @@ const PageAbout = () => {
   )
 }
 
-export default PageAbout
+export default render(PageAbout)
