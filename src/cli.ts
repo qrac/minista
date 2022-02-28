@@ -36,7 +36,6 @@ cli
       const userConfig = await getUserConfig()
       const mdxConfig = await getMdxConfig(userConfig)
       const viteConfig = await getViteConfig(userConfig, mdxConfig)
-      console.log(viteConfig)
 
       await createDevServer(viteConfig)
     } catch (err) {
