@@ -17,6 +17,9 @@ import type { MinistaUserConfig } from "./types.js"
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+export const imgExt = ["jpg", "jpeg", "gif", "png", "webp", "svg"]
+export const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
+
 export const defaultViteConfig = defineConfig({
   build: {
     assetsInlineLimit: 0,
@@ -25,7 +28,19 @@ export const defaultViteConfig = defineConfig({
         manualChunks: undefined,
         entryFileNames: `assets/[name].js`,
         //chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/[name].[ext]`,
+        //assetFileNames: `assets/[name].[ext]`,
+        assetFileNames: (chunkInfo) => {
+          const fileExtname = chunkInfo.name && path.extname(chunkInfo.name)
+          const fileExt = fileExtname && fileExtname.slice(1)
+
+          if (fileExt && imgExt.includes(fileExt)) {
+            return "assets/images/[name].[ext]"
+          } else if (fileExt && fontExt.includes(fileExt)) {
+            return "assets/fonts/[name].[ext]"
+          } else {
+            return "assets/[name].[ext]"
+          }
+        },
       },
     },
   },
