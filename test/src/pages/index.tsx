@@ -19,6 +19,9 @@ const PageHome = () => {
         <li>
           <Link to="/markdown/">Markdown</Link>
         </li>
+        <li>
+          <Link to="/migrate/">Migrate</Link>
+        </li>
       </ul>
     </AppLayout>
   )
