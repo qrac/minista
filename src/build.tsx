@@ -367,21 +367,26 @@ export async function buildCopyDir(
   outDir: string,
   log?: "public" | "assets"
 ) {
-  return fs
-    .copy(targetDir, outDir)
-    .then(() => {
-      if (log === "public") {
-        console.log(
-          `${pc.bold(pc.green("BUILD"))} ${pc.bold(
-            targetDir + "/**/* -> " + outDir
-          )}`
-        )
-      }
-      if (log === "assets") {
-        console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(outDir)}`)
-      }
-    })
-    .catch((err) => {
-      console.error(err)
-    })
+  const checkTargetDir = await fs.pathExists(targetDir)
+  if (checkTargetDir) {
+    return await fs
+      .copy(targetDir, outDir)
+      .then(() => {
+        if (log === "public") {
+          console.log(
+            `${pc.bold(pc.green("BUILD"))} ${pc.bold(
+              targetDir + "/**/* -> " + outDir
+            )}`
+          )
+        }
+        if (log === "assets") {
+          console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(outDir)}`)
+        }
+      })
+      .catch((err) => {
+        console.error(err)
+      })
+  } else {
+    return
+  }
 }
