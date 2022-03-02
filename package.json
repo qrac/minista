@@ -5,7 +5,7 @@
   "bin": {
     "minista": "./bin/minista.js"
   },
-  "main": "dist/index.js",
+  "main": "dist/main.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "files": [
