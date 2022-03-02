@@ -68,6 +68,7 @@ export const defaultViteConfig = defineConfig({
   plugins: [react(), virtualHtml()],
   optimizeDeps: {
     include: [
+      "minista",
       "react",
       "react-dom",
       "react-router-dom",
