@@ -4,7 +4,7 @@ const AppHeader = () => {
   return (
     <header>
       <img
-        src="/assets/logo.svg"
+        src="/assets/images/logo.svg"
         alt="minista"
         className="app-header-logo"
         width={400}
