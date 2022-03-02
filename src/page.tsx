@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, Fragment } from "react"
 import { useMatch } from "react-router-dom"
 
 import type {
@@ -113,12 +113,12 @@ export const Page = ({
     <RootComponent
       {...globalStaticData?.props}
       {...staticProps}
-      frontmatter={frontmatter}
+      frontmatter={RootComponent !== Fragment && frontmatter}
     >
       <PageComponent
         {...globalStaticData?.props}
         {...staticProps}
-        frontmatter={frontmatter}
+        frontmatter={RootComponent !== Fragment && frontmatter}
       />
     </RootComponent>
   )
