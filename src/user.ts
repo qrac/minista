@@ -85,6 +85,7 @@ export async function resolveMinistaUserConfig(userConfig: MinistaUserConfig) {
     ...config,
     entry: mergedEntry,
     vite: {
+      ...config.vite,
       publicDir: config.publicDir
         ? config.publicDir
         : vitePublicDir
