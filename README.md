@@ -20,7 +20,9 @@ Next.js Like Development with 100% Static Generate.
 
 ### Automatic Setup
 
-not supported
+```bash
+$ npm init minista@next
+```
 
 ### Manual Setup
 
