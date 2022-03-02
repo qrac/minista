@@ -109,17 +109,46 @@ export const Page = ({
       return targetItem && setStaticProps((targetItem.props ??= {}))
     }
   }, [staticDataList])
-  return (
-    <RootComponent
-      {...globalStaticData?.props}
-      {...staticProps}
-      frontmatter={RootComponent !== Fragment && frontmatter}
-    >
-      <PageComponent
+
+  if (RootComponent === Fragment) {
+    return (
+      <Fragment>
+        {(() => {
+          if (PageComponent === Fragment) {
+            return <Fragment />
+          } else {
+            return (
+              <PageComponent
+                {...globalStaticData?.props}
+                {...staticProps}
+                frontmatter={RootComponent !== Fragment && frontmatter}
+              />
+            )
+          }
+        })()}
+      </Fragment>
+    )
+  } else {
+    return (
+      <RootComponent
         {...globalStaticData?.props}
         {...staticProps}
         frontmatter={RootComponent !== Fragment && frontmatter}
-      />
-    </RootComponent>
-  )
+      >
+        {(() => {
+          if (PageComponent === Fragment) {
+            return <Fragment />
+          } else {
+            return (
+              <PageComponent
+                {...globalStaticData?.props}
+                {...staticProps}
+                frontmatter={RootComponent !== Fragment && frontmatter}
+              />
+            )
+          }
+        })()}
+      </RootComponent>
+    )
+  }
 }
