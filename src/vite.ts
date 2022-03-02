@@ -152,7 +152,7 @@ function getAssetsTag(input: string) {
   if (input.match(/\.(css|sass|scss)$/)) {
     return `<link rel="stylesheet" href="/${input}">`
   } else if (input.match(/\.(js|cjs|mjs|jsx|ts|tsx)$/)) {
-    return `<script defer src="/${input}"></script>`
+    return `<script defer type="module" src="/${input}"></script>`
   } else {
     console.log(
       "Could not insert the entry [vite.build.rollupOptions.input] into the dev server."
