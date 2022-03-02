@@ -142,6 +142,9 @@ export async function buildStaticPage(
 ) {
   const pageEsmContent: PageEsmContent = await import(path.resolve(entryPoint))
   const pageJsxContent: PageJsxContent = pageEsmContent.default
+  const frontmatter = pageEsmContent.frontmatter
+    ? pageEsmContent.frontmatter
+    : undefined
   const defaultStaticDataItem = { props: {}, paths: {} }
 
   const staticData: StaticData = pageEsmContent.getStaticData
@@ -155,7 +158,8 @@ export async function buildStaticPage(
       staticDataItem,
       outFile,
       rootStaticContent,
-      assetsTagStr
+      assetsTagStr,
+      frontmatter
     )
   }
 
@@ -166,7 +170,8 @@ export async function buildStaticPage(
       staticDataItem,
       outFile,
       rootStaticContent,
-      assetsTagStr
+      assetsTagStr,
+      frontmatter
     )
   }
 
@@ -184,7 +189,8 @@ export async function buildStaticPage(
       staticDataItem,
       fixedOutfile,
       rootStaticContent,
-      assetsTagStr
+      assetsTagStr,
+      frontmatter
     )
   }
 
@@ -206,7 +212,8 @@ export async function buildStaticPage(
           staticDataItem,
           fixedOutfile,
           rootStaticContent,
-          assetsTagStr
+          assetsTagStr,
+          frontmatter
         )
       })
     )
@@ -223,19 +230,59 @@ export async function buildHtmlPage(
   staticDataItem: StaticDataItem,
   routePath: string,
   rootStaticContent: RootStaticContent,
-  assetsTagStr?: string
+  assetsTagStr?: string,
+  frontmatter?: {}
 ) {
   const RootComponent: any = rootStaticContent.component
   const globalStaticData = rootStaticContent.staticData
   const PageComponent: any = pageJsxContent
   const staticProps = staticDataItem.props
 
-  const html = await renderHtml(
-    <RootComponent {...globalStaticData?.props} {...staticProps}>
-      <PageComponent {...globalStaticData?.props} {...staticProps} />
-    </RootComponent>,
-    assetsTagStr
-  )
+  const RenderComponent = () => {
+    if (RootComponent === Fragment) {
+      return (
+        <Fragment>
+          {(() => {
+            if (PageComponent === Fragment) {
+              return <Fragment />
+            } else {
+              return (
+                <PageComponent
+                  {...globalStaticData?.props}
+                  {...staticProps}
+                  frontmatter={RootComponent !== Fragment && frontmatter}
+                />
+              )
+            }
+          })()}
+        </Fragment>
+      )
+    } else {
+      return (
+        <RootComponent
+          {...globalStaticData?.props}
+          {...staticProps}
+          frontmatter={RootComponent !== Fragment && frontmatter}
+        >
+          {(() => {
+            if (PageComponent === Fragment) {
+              return <Fragment />
+            } else {
+              return (
+                <PageComponent
+                  {...globalStaticData?.props}
+                  {...staticProps}
+                  frontmatter={RootComponent !== Fragment && frontmatter}
+                />
+              )
+            }
+          })()}
+        </RootComponent>
+      )
+    }
+  }
+
+  const html = await renderHtml(<RenderComponent />, assetsTagStr)
 
   await fs
     .outputFile(routePath, html)

@@ -29,6 +29,7 @@ export type GetGlobalStaticData = () => Promise<GlobalStaticData>
 export type PageEsmContent = {
   default: PageJsxContent
   getStaticData?: GetStaticData
+  frontmatter?: {}
 }
 export type PageJsxContent = React.ReactElement<
   any,
