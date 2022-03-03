@@ -45,7 +45,6 @@ export const defaultViteConfig = defineConfig({
     },
   },
   server: {
-    host: true,
     fs: {
       allow: [
         searchForWorkspaceRoot(process.cwd()),
