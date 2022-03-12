@@ -2,6 +2,18 @@
 title: MDX 2
 ---
 
+import { Head } from "minista"
+import AppLayout from "../../components/app-layout"
+
+export default ({ children }) => (
+  <AppLayout>
+    <Head>
+      <title>{frontmatter?.title}</title>
+    </Head>
+    {children}
+  </AppLayout>
+)
+
 # {props.frontmatter?.title}
 
 🌍 {props.global?.title} 🌍 {props.global?.description} 🌍
