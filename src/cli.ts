@@ -91,6 +91,11 @@ cli.command("build [root]").action(async () => {
       )
     }
 
+    const generateNoStyleTemp = async () => {
+      const tempMjsFiles = await getFilePaths(config.tempDir, "mjs")
+      await optimizeCommentOutStyleImport(tempMjsFiles)
+    }
+
     const generateHtmlPages = async () => {
       const tempPageFilePaths = await getFilePaths(config.tempPagesDir, "mjs")
       const tempRootFilePath = getFilePath(
@@ -121,26 +126,25 @@ cli.command("build [root]").action(async () => {
       await buildCopyDir(config.publicDir, config.outDir, "public")
     }
 
+    const generateCleanHtml = async () => {
+      const htmlPageFilePaths = await getFilePaths(config.outDir, "html")
+      await cleanHtmlPages(htmlPageFilePaths)
+    }
+
     await Promise.all([
       emptyResolveDir(config.tempRootFileDir),
       emptyResolveDir(config.tempAssetsDir),
       emptyResolveDir(config.tempPagesDir),
       emptyResolveDir(config.outDir),
     ])
-
     await Promise.all([
       generateTempRoot(),
       generateTempPages(),
       generateAssets(),
     ])
-
-    const tempMjsFiles = await getFilePaths(config.tempDir, "mjs")
-    await optimizeCommentOutStyleImport(tempMjsFiles)
-
+    await Promise.all([generateNoStyleTemp()])
     await Promise.all([generateHtmlPages(), generatePublic()])
-
-    const htmlPageFilePaths = await getFilePaths(config.outDir, "html")
-    await cleanHtmlPages(htmlPageFilePaths)
+    await Promise.all([generateCleanHtml()])
   } catch (err) {
     console.log(err)
     process.exit(1)
