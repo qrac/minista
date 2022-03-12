@@ -72,9 +72,9 @@ Open `package.json` and add the following scripts:
 
 ```js
 // minista.config.ts
-import { defineMinistaUserConfig } from "minista"
+import { defineConfig } from "minista"
 
-export default defineMinistaUserConfig({
+export default defineConfig({
   entry: undefined, // string | string[] | { [key: string]: string }
   outDir: "dist", // string
   publicDir: "public", // string

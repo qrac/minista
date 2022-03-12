@@ -1,7 +1,5 @@
 import type { MinistaUserConfig } from "./types.js"
 
-export function defineMinistaUserConfig(
-  config: MinistaUserConfig
-): MinistaUserConfig {
+export function defineConfig(config: MinistaUserConfig): MinistaUserConfig {
   return config
 }

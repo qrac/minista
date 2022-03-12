@@ -1,5 +1,5 @@
-import { defineMinistaUserConfig } from "minista"
+import { defineConfig } from "minista"
 
-export default defineMinistaUserConfig({
+export default defineConfig({
   entry: "src/assets/script.ts",
 })
