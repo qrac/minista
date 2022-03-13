@@ -43,8 +43,8 @@
     "url": "https://qranoko.jp"
   },
   "scripts": {
-    "dev": "cd ./test/tsx && npx minista",
-    "build": "cd ./test/tsx && npx minista build",
+    "test": "cd ./test/tsx && npx minista",
+    "test:build": "cd ./test/tsx && npx minista build",
     "clean": "trash ./test/tsx/dist"
   },
   "prettier": {
