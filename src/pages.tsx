@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { Page } from "./page.js"
 
 export const Pages = () => {
-  const ROOTS = import.meta.globEager("/src/root.{js,jsx,ts,tsx}")
+  const ROOTS = import.meta.globEager("/src/root.{jsx,tsx}")
   const roots =
     Object.keys(ROOTS).length === 0
       ? [{ RootComponent: Fragment, getGlobalStaticData: undefined }]
@@ -17,9 +17,7 @@ export const Pages = () => {
           }
         })
 
-  const ROUTES = import.meta.globEager(
-    "/src/pages/**/[a-z[]*.{js,jsx,ts,tsx,md,mdx}"
-  )
+  const ROUTES = import.meta.globEager("/src/pages/**/[a-z[]*.{jsx,tsx,md,mdx}")
   const routes = Object.keys(ROUTES).map((route) => {
     const routePath = route
       .replace(/\/src\/pages|index|\.js$/g, "")
