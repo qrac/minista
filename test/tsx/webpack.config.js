@@ -1,6 +1,6 @@
 const webpackConfig = {
   devServer: {
-    open: ["/index.html"],
+    //open: ["/index.html"],
   },
 }
 
