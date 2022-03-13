@@ -2,6 +2,23 @@ import type { ExoticComponent } from "react"
 import type vite from "vite"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
+export type MinistaConfig = {
+  outDir: string
+  publicDir: string
+  assetsDir: string
+  autoAssetsName: string
+  rootFileDir: string
+  rootFileName: string
+  rootFileExt: string[]
+  pagesDir: string
+  pagesExt: string[]
+  tempDir: string
+  tempConfigDir: string
+  tempAssetsDir: string
+  tempRootFileDir: string
+  tempPagesDir: string
+}
+
 export type MinistaUserConfig = {
   entry?: string | string[] | { [key: string]: string }
   outDir?: string

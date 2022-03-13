@@ -5,18 +5,17 @@ import { getUserConfig } from "./user.js"
 import { getConfig } from "./config.js"
 import { getViteConfig } from "./vite.js"
 import { getMdxConfig } from "./mdx.js"
-import { getFilePath, getFilePaths, getSameFilePaths } from "./path.js"
 import { emptyResolveDir } from "./empty.js"
-import { cleanHtmlPages } from "./clean.js"
-import { optimizeCommentOutStyleImport } from "./optimize.js"
 import { createDevServer } from "./server.js"
 import {
-  buildTempPages,
-  buildStaticPages,
-  buildCopyDir,
-  buildTempAssets,
-  buildAssetsTagStr,
-} from "./build.js"
+  generateTempRoot,
+  generateTempPages,
+  generateAssets,
+  generateNoStyleTemp,
+  generateHtmlPages,
+  generatePublic,
+  generateCleanHtml,
+} from "./generate.js"
 import { previewLocal } from "./preview.js"
 
 function printVersion() {
@@ -51,86 +50,6 @@ cli.command("build [root]").action(async () => {
     const mdxConfig = await getMdxConfig(userConfig)
     const viteConfig = await getViteConfig(userConfig, mdxConfig)
 
-    const generateTempRoot = async () => {
-      const srcRootFilePaths = await getSameFilePaths(
-        config.rootFileDir,
-        config.rootFileName,
-        config.rootFileExt
-      )
-      if (srcRootFilePaths.length > 0) {
-        await buildTempPages([srcRootFilePaths[0]], {
-          outbase: config.rootFileDir,
-          outdir: config.tempRootFileDir,
-          mdxConfig: mdxConfig,
-        })
-      }
-    }
-
-    const generateTempPages = async () => {
-      const srcPageFilePaths = await getFilePaths(
-        config.pagesDir,
-        config.pagesExt
-      )
-      await buildTempPages(srcPageFilePaths, {
-        outbase: config.pagesDir,
-        outdir: config.tempPagesDir,
-        mdxConfig: mdxConfig,
-      })
-    }
-
-    const generateAssets = async () => {
-      await buildTempAssets(viteConfig, {
-        fileName: config.autoAssetsName,
-        outdir: config.tempAssetsDir,
-        assetDir: config.assetsDir,
-      })
-      await buildCopyDir(
-        config.tempAssetsDir,
-        `${config.outDir}/${config.assetsDir}`,
-        "assets"
-      )
-    }
-
-    const generateNoStyleTemp = async () => {
-      const tempMjsFiles = await getFilePaths(config.tempDir, "mjs")
-      await optimizeCommentOutStyleImport(tempMjsFiles)
-    }
-
-    const generateHtmlPages = async () => {
-      const tempPageFilePaths = await getFilePaths(config.tempPagesDir, "mjs")
-      const tempRootFilePath = getFilePath(
-        config.tempRootFileDir,
-        config.rootFileName,
-        "mjs"
-      )
-      const tempAssetsFilePaths = await getFilePaths(config.tempAssetsDir, [
-        "css",
-        "js",
-      ])
-      const assetsTagStr = await buildAssetsTagStr(tempAssetsFilePaths, {
-        outbase: config.tempAssetsDir,
-        outdir: config.assetsDir,
-      })
-      await buildStaticPages(
-        tempPageFilePaths,
-        tempRootFilePath,
-        {
-          outbase: config.tempPagesDir,
-          outdir: config.outDir,
-        },
-        assetsTagStr
-      )
-    }
-
-    const generatePublic = async () => {
-      await buildCopyDir(config.publicDir, config.outDir, "public")
-    }
-
-    const generateCleanHtml = async () => {
-      const htmlPageFilePaths = await getFilePaths(config.outDir, "html")
-      await cleanHtmlPages(htmlPageFilePaths)
-    }
-
     await Promise.all([
       emptyResolveDir(config.tempRootFileDir),
       emptyResolveDir(config.tempAssetsDir),
@@ -138,13 +57,13 @@ cli.command("build [root]").action(async () => {
       emptyResolveDir(config.outDir),
     ])
     await Promise.all([
-      generateTempRoot(),
-      generateTempPages(),
-      generateAssets(),
+      generateTempRoot(config, mdxConfig),
+      generateTempPages(config, mdxConfig),
+      generateAssets(config, viteConfig),
     ])
-    await Promise.all([generateNoStyleTemp()])
-    await Promise.all([generateHtmlPages(), generatePublic()])
-    await Promise.all([generateCleanHtml()])
+    await Promise.all([generateNoStyleTemp(config)])
+    await Promise.all([generateHtmlPages(config), generatePublic(config)])
+    await Promise.all([generateCleanHtml(config)])
   } catch (err) {
     console.log(err)
     process.exit(1)
