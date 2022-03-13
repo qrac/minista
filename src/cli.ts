@@ -1,6 +1,8 @@
 import fs from "fs-extra"
 import { cac } from "cac"
 
+import { getConfig } from "./config.js"
+
 function printVersion() {
   const pkgURL = new URL("../package.json", import.meta.url)
   const pkg = JSON.parse(fs.readFileSync(pkgURL, "utf8"))
@@ -15,6 +17,8 @@ cli
   .alias("dev")
   .action(async () => {
     try {
+      const config = await getConfig()
+      console.log(config)
       console.log("DEV")
     } catch (err) {
       console.log(err)
