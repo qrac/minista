@@ -42,7 +42,11 @@
     "name": "QRANOKO",
     "url": "https://qranoko.jp"
   },
-  "scripts": {},
+  "scripts": {
+    "dev": "cd ./test/tsx && npx minista",
+    "build": "cd ./test/tsx && npx minista build",
+    "clean": "trash ./test/tsx/dist"
+  },
   "prettier": {
     "semi": false
   },
