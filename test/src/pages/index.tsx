@@ -17,9 +17,6 @@ const PageHome = () => {
           <Link to="/mdx2/">MDX 2</Link>
         </li>
         <li>
-          <Link to="/markdown/">Markdown</Link>
-        </li>
-        <li>
           <Link to="/migrate/">Migrate</Link>
         </li>
       </ul>
