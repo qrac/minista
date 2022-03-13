@@ -14,5 +14,5 @@
     "jsx": "react-jsx"
   },
   "include": ["src"],
-  "exclude": ["dist", "lib", "test", "node_modules"]
+  "exclude": ["dist", "lib", "test", "node_modules", "webpack.config.js"]
 }
