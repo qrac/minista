@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
     "target": "esnext",
     "module": "esnext",
+    "strict": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
@@ -9,5 +13,6 @@
     "noErrorTruncation": true,
     "jsx": "react-jsx"
   },
-  "include": ["./minista.config.ts", "src"]
+  "include": ["src"],
+  "exclude": ["dist", "lib", "test", "node_modules"]
 }

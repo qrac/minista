@@ -1,17 +1,15 @@
 {
   "name": "minista",
-  "description": "Mini static site generator that can be written in React (JSX) for web coding",
-  "version": "1.2.0",
+  "description": "Next.js Like Development with 100% Static Generate",
+  "version": "2.0.0-beta.0",
   "bin": {
-    "minista": "cli.js"
+    "minista": "./bin/minista.js"
   },
-  "main": "./main.js",
-  "types": "./index.d.ts",
+  "main": "dist/main.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "files": [
-    "main.js",
-    "cli.js",
-    "index.d.ts",
-    "webpack.config.js"
+    "dist"
   ],
   "license": "MIT",
   "homepage": "https://github.com/qrac/minista",
@@ -43,8 +41,18 @@
     "url": "https://qranoko.jp"
   },
   "scripts": {
+    "build": "tsup",
+    "build:all": "tsup && tsc",
+    "build:tsc": "tsc",
     "test": "cd ./test/tsx && npx minista",
     "test:build": "cd ./test/tsx && npx minista build",
+    "test:preview": "cd ./test/tsx && npx minista preview",
+    "test:jsx": "cd ./test/tsx && npx minista",
+    "test:jsx-build": "cd ./test/tsx && npx minista build",
+    "test:jsx-preview": "cd ./test/tsx && npx minista preview",
+    "test:v": "cd ./test/tsx && npx minista -v",
+    "test:h": "cd ./test/tsx && npx minista -h",
+    "prepublishOnly": "npm run build:all",
     "clean": "trash ./test/tsx/dist"
   },
   "prettier": {
@@ -60,14 +68,18 @@
     "@babel/preset-react": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
     "babel-loader": "^8.2.3",
+    "cac": "^6.7.12",
     "copy-webpack-plugin": "^10.2.4",
     "css-loader": "^6.7.1",
     "css-minimizer-webpack-plugin": "^3.4.1",
+    "esbuild": "^0.14.25",
+    "fs-extra": "^10.0.1",
     "glob": "^7.2.0",
     "html-replace-webpack-plugin": "^2.6.0",
     "html-webpack-plugin": "^5.5.0",
     "js-beautify": "^1.14.0",
     "mini-css-extract-plugin": "^2.6.0",
+    "picocolors": "^1.0.0",
     "postcss": "^8.4.8",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-import": "^14.0.2",
@@ -76,10 +88,23 @@
     "postcss-sort-media-queries": "^4.2.1",
     "react-helmet": "^6.1.0",
     "svg-sprite-loader": "^6.0.11",
+    "tiny-glob": "^0.2.9",
     "ts-loader": "^9.2.8",
     "webpack": "^5.70.0",
     "webpack-dev-server": "^4.7.4",
     "webpack-merge": "^5.8.0",
     "webpack-remove-empty-scripts": "^0.7.3"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.13",
+    "@types/js-beautify": "^1.13.3",
+    "@types/node": "^17.0.21",
+    "@types/react": "^17.0.40",
+    "@types/react-dom": "^17.0.13",
+    "@types/react-helmet": "^6.1.5",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "tsup": "^5.12.1",
+    "typescript": "^4.6.2"
   }
 }
