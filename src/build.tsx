@@ -320,8 +320,6 @@ export async function buildTempAssets(
   const result: any = await viteBuild(mergedConfig)
   const items = result.output
 
-  console.log(items)
-
   if (Array.isArray(items) && items.length > 0) {
     items.map((item) => {
       if (item.fileName.match(/__minista_auto_bundle_asset_pages\.css/)) {
