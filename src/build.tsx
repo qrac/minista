@@ -368,7 +368,8 @@ export async function buildViteImporterRoots(config: MinistaConfig) {
   const rootFileDir = config.rootFileDir
   const rootFileName = config.rootFileName
   const rootFileExtStr = config.rootFileExt.join()
-  const template = `export const getRoots = () => {
+  const template = `import { Fragment } from "react"
+export const getRoots = () => {
   const ROOTS = import.meta.globEager("/${rootFileDir}/${rootFileName}.{${rootFileExtStr}}")
   const roots =
     Object.keys(ROOTS).length === 0
