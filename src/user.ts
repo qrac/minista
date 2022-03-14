@@ -80,6 +80,12 @@ export async function resolveMinistaUserConfig(userConfig: MinistaUserConfig) {
         ? config.vite.publicDir
         : "public"
       : "public"
+  const viteBuildConfig =
+    typeof config.vite === "object"
+      ? config.vite.build
+        ? config.vite.build
+        : {}
+      : {}
 
   const resolved = {
     ...config,
@@ -92,6 +98,7 @@ export async function resolveMinistaUserConfig(userConfig: MinistaUserConfig) {
         ? vitePublicDir
         : "public",
       build: {
+        ...viteBuildConfig,
         rollupOptions: {
           input: mergedEntry,
         },
