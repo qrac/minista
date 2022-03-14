@@ -309,7 +309,7 @@ export async function buildTempAssets(
       rollupOptions: {
         input: {
           __minista_auto_bundle_asset_pages: path.resolve(
-            __dirname + "/../dist/pages.js"
+            __dirname + "/../dist/bundle.js"
           ),
         },
       },
@@ -319,6 +319,8 @@ export async function buildTempAssets(
 
   const result: any = await viteBuild(mergedConfig)
   const items = result.output
+
+  console.log(items)
 
   if (Array.isArray(items) && items.length > 0) {
     items.map((item) => {

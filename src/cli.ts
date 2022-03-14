@@ -59,8 +59,10 @@ cli.command("build [root]").action(async () => {
       emptyResolveDir(config.tempRootFileDir),
       emptyResolveDir(config.tempAssetsDir),
       emptyResolveDir(config.tempPagesDir),
+      emptyResolveDir(config.tempViteImporterDir),
       emptyResolveDir(config.outDir),
     ])
+    await Promise.all([generateViteImporters(config, userConfig)])
     await Promise.all([
       generateTempRoot(config, mdxConfig),
       generateTempPages(config, mdxConfig),
