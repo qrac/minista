@@ -1,4 +1,4 @@
-import { Head, Link } from "minista"
+import { Head } from "minista"
 
 import AppLayout from "../../components/app-layout"
 
