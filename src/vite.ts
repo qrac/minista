@@ -59,6 +59,10 @@ export const defaultViteConfig = defineConfig({
         replacement: path.resolve(__dirname + "/../"),
       },
       {
+        find: "/@minista-temp",
+        replacement: path.resolve("node_modules/.minista/"),
+      },
+      {
         find: "react/jsx-runtime",
         replacement: "react/jsx-runtime.js",
       },
@@ -142,7 +146,12 @@ function getAssetsTagStr(input: any) {
     })
   }
 
-  const sortedTags = tags.sort((a, b) => (a < b ? -1 : 1))
+  const sortedTags =
+    tags.length >= 2
+      ? tags
+          .filter((item): item is string => !!item)
+          .sort((a, b) => (a < b ? -1 : 1))
+      : tags
   return sortedTags.join("\n")
 }
 
@@ -152,7 +161,7 @@ function getAssetsTag(input: string) {
   if (input.match(/\.(css|sass|scss)$/)) {
     return `<link rel="stylesheet" href="/${input}">`
   } else if (input.match(/\.(js|cjs|mjs|jsx|ts|tsx)$/)) {
-    return `<script defer type="module" src="/${input}"></script>`
+    return //`<script defer type="module" src="/${input}"></script>`
   } else {
     console.log(
       "Could not insert the entry [vite.build.rollupOptions.input] into the dev server."

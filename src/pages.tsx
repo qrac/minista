@@ -1,44 +1,39 @@
-import { Fragment } from "react"
+import { useState, useEffect, Fragment } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 import { Page } from "./page.js"
 
 export const Pages = () => {
-  const ROOTS = import.meta.globEager("/src/root.{jsx,tsx}")
-  const roots =
-    Object.keys(ROOTS).length === 0
-      ? [{ RootComponent: Fragment, getGlobalStaticData: undefined }]
-      : Object.keys(ROOTS).map((root) => {
-          return {
-            RootComponent: ROOTS[root].default ? ROOTS[root].default : Fragment,
-            getGlobalStaticData: ROOTS[root].getStaticData
-              ? ROOTS[root].getStaticData
-              : undefined,
-          }
-        })
+  const [roots, setRoots] = useState([
+    { RootComponent: Fragment, getGlobalStaticData: undefined },
+  ])
+  const [routes, setRoutes] = useState([])
 
-  const ROUTES = import.meta.globEager("/src/pages/**/[a-z[]*.{jsx,tsx,md,mdx}")
-  const routes = Object.keys(ROUTES).map((route) => {
-    const routePath = route
-      .replace(/\/src\/pages|index|\.js$/g, "")
-      .replace(/\/src\/pages|index|\.jsx$/g, "")
-      .replace(/\/src\/pages|index|\.ts$/g, "")
-      .replace(/\/src\/pages|index|\.tsx$/g, "")
-      .replace(/\/src\/pages|index|\.md$/g, "")
-      .replace(/\/src\/pages|index|\.mdx$/g, "")
-      .replace(/\[\.{3}.+\]/, "*")
-      .replace(/\[(.+)\]/, ":$1")
-    return {
-      routePath: routePath,
-      PageComponent: ROUTES[route].default,
-      getStaticData: ROUTES[route].getStaticData
-        ? ROUTES[route].getStaticData
-        : undefined,
-      frontmatter: ROUTES[route].frontmatter
-        ? ROUTES[route].frontmatter
-        : undefined,
+  useEffect(() => {
+    const data = async () => {
+      const { getRoots } = await import(
+        //@ts-ignore
+        "/@minista-temp/vite-importer/roots.js"
+      )
+      const { getRoutes } = await import(
+        //@ts-ignore
+        "/@minista-temp/vite-importer/routes.js"
+      )
+      try {
+        const { getAssets } = await import(
+          //@ts-ignore
+          "/@minista-temp/vite-importer/assets.js"
+        )
+        getAssets()
+      } catch (err) {
+        //console.log(err)
+      }
+
+      setRoots(getRoots)
+      setRoutes(getRoutes)
     }
-  })
+    data()
+  }, [])
   return (
     <Fragment>
       {routes.length > 0 && (

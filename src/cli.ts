@@ -8,6 +8,7 @@ import { getMdxConfig } from "./mdx.js"
 import { emptyResolveDir } from "./empty.js"
 import { createDevServer } from "./server.js"
 import {
+  generateViteImporters,
   generateTempRoot,
   generateTempPages,
   generateAssets,
@@ -33,9 +34,13 @@ cli
   .action(async () => {
     try {
       const userConfig = await getUserConfig()
+      const config = await getConfig(userConfig)
       const mdxConfig = await getMdxConfig(userConfig)
       const viteConfig = await getViteConfig(userConfig, mdxConfig)
 
+      await Promise.all([emptyResolveDir(config.tempViteImporterDir)])
+
+      await generateViteImporters(config, userConfig)
       await createDevServer(viteConfig)
     } catch (err) {
       console.log(err)

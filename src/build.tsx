@@ -10,6 +10,7 @@ import { build as viteBuild, mergeConfig } from "vite"
 import type { InlineConfig } from "vite"
 
 import type {
+  MinistaConfig,
   RootStaticContent,
   RootEsmContent,
   RootJsxContent,
@@ -360,6 +361,86 @@ export async function buildAssetsTagStr(
   })
   const assetsTagStr = assetsTags.join("")
   return assetsTagStr
+}
+
+export async function buildViteImporterRoots(config: MinistaConfig) {
+  const outFile = config.tempViteImporterDir + "/roots.js"
+  const rootFileDir = config.rootFileDir
+  const rootFileName = config.rootFileName
+  const rootFileExtStr = config.rootFileExt.join()
+  const template = `export const getRoots = () => {
+  const ROOTS = import.meta.globEager("/${rootFileDir}/${rootFileName}.{${rootFileExtStr}}")
+  const roots =
+    Object.keys(ROOTS).length === 0
+      ? [{ RootComponent: Fragment, getGlobalStaticData: undefined }]
+      : Object.keys(ROOTS).map((root) => {
+          return {
+            RootComponent: ROOTS[root].default ? ROOTS[root].default : Fragment,
+            getGlobalStaticData: ROOTS[root].getStaticData
+              ? ROOTS[root].getStaticData
+              : undefined,
+          }
+        })
+  return roots
+}`
+  await fs.outputFile(outFile, template).catch((err) => {
+    console.error(err)
+  })
+}
+
+export async function buildViteImporterRoutes(config: MinistaConfig) {
+  const outFile = config.tempViteImporterDir + "/routes.js"
+  const pagesDir = config.pagesDir
+  const pagesExtStr = config.pagesExt.join()
+  const pagesDirRegStr = config.pagesDir.replace(/\//g, "\\/")
+  const replaceArray = config.pagesExt.map((ext) => {
+    return `.replace(/\\/${pagesDirRegStr}|index|\\.${ext}$/g, "")`
+  })
+  const replaceArrayStr = replaceArray.join("\n      ")
+  const template = `export const getRoutes = () => {
+  const ROUTES = import.meta.globEager("/${pagesDir}/**/[a-z[]*.{${pagesExtStr}}")
+  const routes = Object.keys(ROUTES).map((route) => {
+    const routePath = route
+      ${replaceArrayStr}
+      .replace(/\\[\\.{3}.+\\]/, "*")
+      .replace(/\\[(.+)\\]/, ":$1")
+    return {
+      routePath: routePath,
+      PageComponent: ROUTES[route].default,
+      getStaticData: ROUTES[route].getStaticData
+        ? ROUTES[route].getStaticData
+        : undefined,
+      frontmatter: ROUTES[route].frontmatter
+        ? ROUTES[route].frontmatter
+        : undefined,
+    }
+  })
+  return routes
+}`
+  await fs.outputFile(outFile, template).catch((err) => {
+    console.error(err)
+  })
+}
+
+export async function buildViteImporterAssets(
+  config: MinistaConfig,
+  entry: { [key: string]: string }
+) {
+  const outFile = config.tempViteImporterDir + "/assets.js"
+  const assetsPathArray = Object.values(entry)
+  const filteredAssetsPathArray = assetsPathArray.filter((path) =>
+    path.match(/\.(js|cjs|mjs|jsx|ts|tsx)$/)
+  )
+  const importArray = filteredAssetsPathArray.map((path) => {
+    return `import("/${path}")`
+  })
+  const importArrayStr = importArray.join("\n  ")
+  const template = `export const getAssets = () => {
+  ${importArrayStr}
+}`
+  await fs.outputFile(outFile, template).catch((err) => {
+    console.error(err)
+  })
 }
 
 export async function buildCopyDir(

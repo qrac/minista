@@ -12,6 +12,7 @@ export const defaultConfig = {
   pagesExt: ["jsx", "tsx", "md", "mdx"],
   tempDir: "node_modules/.minista",
   tempConfigDir: "node_modules/.minista/optimized-config",
+  tempViteImporterDir: "node_modules/.minista/vite-importer",
   tempAssetsDir: "node_modules/.minista/bundled-react-assets",
   tempRootFileDir: "node_modules/.minista/bundled-react-root",
   tempPagesDir: "node_modules/.minista/bundled-react-pages",

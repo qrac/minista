@@ -14,6 +14,7 @@ export type MinistaConfig = {
   pagesExt: string[]
   tempDir: string
   tempConfigDir: string
+  tempViteImporterDir: string
   tempAssetsDir: string
   tempRootFileDir: string
   tempPagesDir: string
