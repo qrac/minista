@@ -28,7 +28,7 @@ const PageIssues = (props: PageIssuesProps) => {
       <ul>
         {props.issues?.map((item, index) => (
           <li key={index}>
-            <Link to={`/issues/${item.number}/`}>{item.title}</Link>
+            <a href={`/issues/${item.number}/`}>{item.title}</a>
           </li>
         ))}
       </ul>

@@ -1,5 +1,3 @@
-import { Link } from "minista"
-
 import AppLayout from "../components/app-layout"
 
 const PageHome = () => {
@@ -8,16 +6,16 @@ const PageHome = () => {
       <h1>Home</h1>
       <ul>
         <li>
-          <Link to="/about/">About</Link>
+          <a href="/about/">About</a>
         </li>
         <li>
-          <Link to="/issues/">Issues</Link>
+          <a href="/issues/">Issues</a>
         </li>
         <li>
-          <Link to="/mdx2/">MDX 2</Link>
+          <a href="/mdx2/">MDX 2</a>
         </li>
         <li>
-          <Link to="/migrate/">Migrate</Link>
+          <a href="/migrate/">Migrate</a>
         </li>
       </ul>
     </AppLayout>

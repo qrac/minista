@@ -2,12 +2,12 @@ import { Link as ReactRouterDomLink } from "react-router-dom"
 import type { LinkProps as ReactRouterDomLinkProps } from "react-router-dom"
 
 type LinkProps = ReactRouterDomLinkProps &
-  React.RefAttributes<HTMLAnchorElement>
+  React.RefAttributes<HTMLAnchorElement> & { useDevOnlySpaLink?: boolean }
 
 export const Link = (props: LinkProps) => {
-  const { to, children, ...attribute } = props
+  const { useDevOnlySpaLink = false, to, children, ...attribute } = props
   const href = to.toString()
-  if (process.env.NODE_ENV === "development") {
+  if (useDevOnlySpaLink) {
     return (
       <ReactRouterDomLink to={to} {...attribute}>
         {children}
