@@ -9,6 +9,9 @@ const PageHome = () => {
           <a href="/about/">About</a>
         </li>
         <li>
+          <a href="/comment/">Comment</a>
+        </li>
+        <li>
           <a href="/issues/">Issues</a>
         </li>
         <li>
