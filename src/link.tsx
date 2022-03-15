@@ -4,6 +4,7 @@ import type { LinkProps as ReactRouterDomLinkProps } from "react-router-dom"
 type LinkProps = ReactRouterDomLinkProps &
   React.RefAttributes<HTMLAnchorElement> & { useDevOnlySpaLink?: boolean }
 
+// Deprecated components
 export const Link = (props: LinkProps) => {
   const { useDevOnlySpaLink = false, to, children, ...attribute } = props
   const href = to.toString()
