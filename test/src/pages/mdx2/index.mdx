@@ -2,17 +2,7 @@
 title: MDX 2
 ---
 
-import { Head } from "minista"
-import AppLayout from "../../components/app-layout"
-
-export default ({ children }) => (
-  <AppLayout>
-    <Head>
-      <title>{frontmatter?.title}</title>
-    </Head>
-    {children}
-  </AppLayout>
-)
+export { default } from "../../components/app-layout"
 
 # {props.frontmatter?.title}
 

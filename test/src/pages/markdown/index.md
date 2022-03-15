@@ -4,7 +4,7 @@ title: Markdown
 
 # Markdown
 
-Props cannot be passed on.
+Props cannot be passed on. Layout must be set by root.
 
 ## Table
 

@@ -23,16 +23,27 @@ export type GlobalProps = {
   description: string
 }
 
+export type FrontmatterProps = {
+  title?: string
+  layout?: string
+  draft?: boolean
+}
+
 type RootProps = {
   global: GlobalProps
+  frontmatter?: FrontmatterProps
   children: React.ReactNode
 }
 
-const Root = ({ global, children }: RootProps) => {
+const Root = ({ global, frontmatter, children }: RootProps) => {
   return (
     <>
       <Head>
-        <title>{global?.title}</title>
+        <title>
+          {frontmatter?.title
+            ? frontmatter?.title + " | " + global?.title
+            : global?.title}
+        </title>
         <meta property="description" content={global?.description}></meta>
       </Head>
       {children}
