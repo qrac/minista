@@ -232,8 +232,12 @@ export async function buildHtmlPage(
   routePath: string,
   rootStaticContent: RootStaticContent,
   assetsTagStr?: string,
-  frontmatter?: {}
+  frontmatter?: any
 ) {
+  if (frontmatter?.draft) {
+    return
+  }
+
   const RootComponent: any = rootStaticContent.component
   const globalStaticData = rootStaticContent.staticData
   const PageComponent: any = pageJsxContent
@@ -251,7 +255,7 @@ export async function buildHtmlPage(
                 <PageComponent
                   {...globalStaticData?.props}
                   {...staticProps}
-                  frontmatter={RootComponent !== Fragment && frontmatter}
+                  frontmatter={frontmatter}
                 />
               )
             }
@@ -263,7 +267,7 @@ export async function buildHtmlPage(
         <RootComponent
           {...globalStaticData?.props}
           {...staticProps}
-          frontmatter={RootComponent !== Fragment && frontmatter}
+          frontmatter={frontmatter}
         >
           {(() => {
             if (PageComponent === Fragment) {
@@ -273,7 +277,7 @@ export async function buildHtmlPage(
                 <PageComponent
                   {...globalStaticData?.props}
                   {...staticProps}
-                  frontmatter={RootComponent !== Fragment && frontmatter}
+                  frontmatter={frontmatter}
                 />
               )
             }

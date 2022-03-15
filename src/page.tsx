@@ -16,7 +16,7 @@ export type PageProps = {
   getGlobalStaticData?: GetGlobalStaticData
   PageComponent: any
   getStaticData?: GetStaticData
-  frontmatter?: {}
+  frontmatter?: any
 }
 
 export const Page = ({
@@ -121,7 +121,7 @@ export const Page = ({
               <PageComponent
                 {...globalStaticData?.props}
                 {...staticProps}
-                frontmatter={RootComponent !== Fragment && frontmatter}
+                frontmatter={frontmatter}
               />
             )
           }
@@ -133,7 +133,7 @@ export const Page = ({
       <RootComponent
         {...globalStaticData?.props}
         {...staticProps}
-        frontmatter={RootComponent !== Fragment && frontmatter}
+        frontmatter={frontmatter}
       >
         {(() => {
           if (PageComponent === Fragment) {
@@ -143,7 +143,7 @@ export const Page = ({
               <PageComponent
                 {...globalStaticData?.props}
                 {...staticProps}
-                frontmatter={RootComponent !== Fragment && frontmatter}
+                frontmatter={frontmatter}
               />
             )
           }
