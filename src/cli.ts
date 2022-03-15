@@ -5,6 +5,7 @@ import { getUserConfig } from "./user.js"
 import { getConfig } from "./config.js"
 import { getViteConfig } from "./vite.js"
 import { getMdxConfig } from "./mdx.js"
+import { getBeautifyConfig } from "./beautify.js"
 import { emptyResolveDir } from "./empty.js"
 import { createDevServer } from "./server.js"
 import {
@@ -15,7 +16,7 @@ import {
   generateNoStyleTemp,
   generateHtmlPages,
   generatePublic,
-  generateCleanHtml,
+  generateBeautify,
 } from "./generate.js"
 import { previewLocal } from "./preview.js"
 
@@ -54,6 +55,7 @@ cli.command("build [root]").action(async () => {
     const config = await getConfig(userConfig)
     const mdxConfig = await getMdxConfig(userConfig)
     const viteConfig = await getViteConfig(userConfig, mdxConfig)
+    const beautifyConfig = await getBeautifyConfig(userConfig)
 
     await Promise.all([
       emptyResolveDir(config.tempRootFileDir),
@@ -70,7 +72,11 @@ cli.command("build [root]").action(async () => {
     ])
     await Promise.all([generateNoStyleTemp(config)])
     await Promise.all([generateHtmlPages(config), generatePublic(config)])
-    await Promise.all([generateCleanHtml(config)])
+    await Promise.all([
+      generateBeautify(config, beautifyConfig, "html"),
+      generateBeautify(config, beautifyConfig, "css"),
+      generateBeautify(config, beautifyConfig, "js"),
+    ])
   } catch (err) {
     console.log(err)
     process.exit(1)

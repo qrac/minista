@@ -1,6 +1,11 @@
 import type { ExoticComponent } from "react"
 import type vite from "vite"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
+import type {
+  HTMLBeautifyOptions,
+  CSSBeautifyOptions,
+  JSBeautifyOptions,
+} from "js-beautify"
 
 export type MinistaConfig = {
   outDir: string
@@ -28,6 +33,16 @@ export type MinistaUserConfig = {
   autoAssetsName?: string
   vite?: vite.UserConfig | vite.UserConfigFn
   markdown?: MdxOptions
+  beautify?: MinistaBeautifyConfig
+}
+
+export type MinistaBeautifyConfig = {
+  useHtml?: boolean
+  useCss?: boolean
+  useJs?: boolean
+  htmlOptions?: HTMLBeautifyOptions
+  cssOptions?: CSSBeautifyOptions
+  jsOptions?: JSBeautifyOptions
 }
 
 export type RootStaticContent = {

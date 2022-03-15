@@ -2,7 +2,11 @@ import { defineConfig } from "minista"
 
 export default defineConfig({
   entry: "src/assets/script.ts",
-  /*vite: {
+  /*beautify: {
+    useCss: true,
+    useJs: true,
+  },
+  vite: {
     esbuild: {
       minify: false,
       minifySyntax: false,

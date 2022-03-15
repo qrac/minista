@@ -75,13 +75,23 @@ Open `package.json` and add the following scripts:
 import { defineConfig } from "minista"
 
 export default defineConfig({
-  entry: undefined, // string | string[] | { [key: string]: string }
+  entry: "", // string | string[] | { [key: string]: string }
   outDir: "dist", // string
   publicDir: "public", // string
   assetsDir: "assets", // string
   autoAssetsName: "bundle", // string
-  vite: undefined, // https://vitejs.dev/config/
-  markdown: { remarkPlugins: [] }, // https://mdxjs.com/packages/mdx/#optionsremarkplugins
+  vite: {}, // https://vitejs.dev/config/
+  markdown: {
+    remarkPlugins: [], // https://mdxjs.com/packages/mdx/#optionsremarkplugins
+  },
+  beautify: {
+    useHtml: true,
+    useCss: false,
+    useJs: false,
+    htmlOptions: {}, // https://github.com/beautify-web/js-beautify#css--html
+    cssOptions: {}, // https://github.com/beautify-web/js-beautify#css--html
+    jsOptions: {}, // https://github.com/beautify-web/js-beautify#options
+  },
 })
 ```
 

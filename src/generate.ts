@@ -1,7 +1,11 @@
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type { InlineConfig } from "vite"
 
-import { MinistaConfig, MinistaUserConfig } from "./types.js"
+import {
+  MinistaConfig,
+  MinistaUserConfig,
+  MinistaBeautifyConfig,
+} from "./types.js"
 import { getFilePath, getFilePaths, getSameFilePaths } from "./path.js"
 import {
   buildTempPages,
@@ -14,7 +18,7 @@ import {
   buildViteImporterAssets,
 } from "./build.js"
 import { optimizeCommentOutStyleImport } from "./optimize.js"
-import { cleanHtmlPages } from "./clean.js"
+import { beautifyFiles } from "./beautify.js"
 
 export async function generateViteImporters(
   config: MinistaConfig,
@@ -116,7 +120,34 @@ export async function generatePublic(config: MinistaConfig) {
   await buildCopyDir(config.publicDir, config.outDir, "public")
 }
 
-export async function generateCleanHtml(config: MinistaConfig) {
-  const htmlPageFilePaths = await getFilePaths(config.outDir, "html")
-  await cleanHtmlPages(htmlPageFilePaths)
+export async function generateBeautify(
+  config: MinistaConfig,
+  beautifyConfig: MinistaBeautifyConfig,
+  target: "html" | "css" | "js"
+) {
+  switch (target) {
+    case "html":
+      if (!beautifyConfig.useHtml) {
+        return
+      }
+      const htmlFilePaths = await getFilePaths(config.outDir, "html")
+      await beautifyFiles(htmlFilePaths, "html", beautifyConfig.htmlOptions)
+      break
+    case "css":
+      if (!beautifyConfig.useCss) {
+        return
+      }
+      const cssFilePaths = await getFilePaths(config.outDir, "css")
+      await beautifyFiles(cssFilePaths, "css", beautifyConfig.htmlOptions)
+      break
+    case "js":
+      if (!beautifyConfig.useJs) {
+        return
+      }
+      const jsFilePaths = await getFilePaths(config.outDir, "js")
+      await beautifyFiles(jsFilePaths, "js", beautifyConfig.htmlOptions)
+      break
+    default:
+      break
+  }
 }
