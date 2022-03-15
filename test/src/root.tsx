@@ -1,8 +1,11 @@
+import { Fragment } from "react"
 import { Head } from "minista"
 
 import "highlight.js/styles/nord.css"
 import "@fontsource/montserrat/800.css"
 import "./root.css"
+
+import AppLayout from "./components/app-layout"
 
 export const getStaticData = async () => {
   const apiUrl = "https://api.github.com/repos/qrac/minista"
@@ -36,6 +39,7 @@ type RootProps = {
 }
 
 const Root = ({ global, frontmatter, children }: RootProps) => {
+  const Layout = frontmatter?.layout === "AppLayout" ? AppLayout : Fragment
   return (
     <>
       <Head>
@@ -46,7 +50,7 @@ const Root = ({ global, frontmatter, children }: RootProps) => {
         </title>
         <meta property="description" content={global?.description}></meta>
       </Head>
-      {children}
+      <Layout>{children}</Layout>
     </>
   )
 }

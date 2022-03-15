@@ -1,5 +1,6 @@
 ---
 title: Markdown
+layout: AppLayout
 ---
 
 # Markdown
