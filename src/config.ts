@@ -1,4 +1,4 @@
-import type { MinistaUserConfig } from "./types.js"
+import type { MinistaConfig, MinistaUserConfig } from "./types.js"
 
 export const defaultConfig = {
   outDir: "dist",
@@ -18,7 +18,9 @@ export const defaultConfig = {
   tempPagesDir: "node_modules/.minista/bundled-react-pages",
 }
 
-export async function getConfig(userConfig: MinistaUserConfig) {
+export async function getConfig(
+  userConfig: MinistaUserConfig
+): Promise<MinistaConfig> {
   const mergedConfig = {
     ...defaultConfig,
     outDir: userConfig.outDir ? userConfig.outDir : defaultConfig.outDir,

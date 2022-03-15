@@ -6,7 +6,7 @@ import { defaultConfig } from "./config.js"
 import { getSameFilePaths } from "./path.js"
 import { getFilename, getFilenameObject } from "./utils.js"
 
-export async function getUserConfig() {
+export async function getUserConfig(): Promise<MinistaUserConfig> {
   const userConfigPaths = await getSameFilePaths(".", "minista.config", [
     "js",
     "cjs",
