@@ -16,6 +16,8 @@ export const defaultBeautifyConfig: MinistaBeautifyConfig = {
   htmlOptions: {
     indent_size: 2,
     max_preserve_newlines: 0,
+    indent_inner_html: true,
+    extra_liners: [],
   },
   cssOptions: {},
   jsOptions: {},
