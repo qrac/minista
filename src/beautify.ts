@@ -50,20 +50,13 @@ export async function beautifyFile(
   options?: HTMLBeautifyOptions | CSSBeautifyOptions | JSBeautifyOptions
 ) {
   const source = await fs.readFile(entryPoint, "utf8")
-  const fixdSource =
-    target === "html"
-      ? source.replace(
-          /<div class="minista-comment" hidden="">(.+?)<\/div>/g,
-          "\n<!-- $1 -->"
-        )
-      : source
   const runBeautify =
     target === "html"
       ? beautify.html
       : target === "css"
       ? beautify.css
       : beautify
-  const result = runBeautify(fixdSource, options)
+  const result = runBeautify(source, options)
 
   await fs
     .outputFile(entryPoint, result)

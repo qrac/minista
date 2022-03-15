@@ -284,9 +284,13 @@ export async function buildHtmlPage(
   }
 
   const html = await renderHtml(<RenderComponent />, assetsTagStr)
+  const replacedHtml = html.replace(
+    /<div class="minista-comment" hidden="">(.+?)<\/div>/g,
+    "\n<!-- $1 -->"
+  )
 
   await fs
-    .outputFile(routePath, html)
+    .outputFile(routePath, replacedHtml)
     .then(() => {
       console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(routePath)}`)
     })
