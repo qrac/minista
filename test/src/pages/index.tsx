@@ -15,6 +15,9 @@ const PageHome = () => {
           <a href="/issues/">Issues</a>
         </li>
         <li>
+          <a href="/markdown/">Markdown</a>
+        </li>
+        <li>
           <a href="/mdx2/">MDX 2</a>
         </li>
         <li>

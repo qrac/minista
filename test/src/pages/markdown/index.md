@@ -1,0 +1,27 @@
+---
+title: Markdown
+---
+
+# Markdown
+
+Props cannot be passed on.
+
+## Table
+
+| TR   | TR   | TR   |
+| ---- | ---- | ---- |
+| cell | cell | cell |
+
+## Code
+
+```css
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 8px 12px;
+  border: 1px solid #f7f6f4;
+}
+```
