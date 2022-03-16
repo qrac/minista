@@ -82,13 +82,24 @@ export default defineConfig({
   autoAssetsName: "bundle", // string
   vite: {}, // https://vitejs.dev/config/
   markdown: {
-    remarkPlugins: [], // https://mdxjs.com/packages/mdx/#optionsremarkplugins
+    remarkPlugins: [
+      remarkFrontmatter,
+      [remarkMdxFrontmatter, { name: "frontmatter" }],
+      remarkGfm,
+      remarkHighlightjs,
+    ], // https://mdxjs.com/packages/mdx/#optionsremarkplugins
+    rehypePlugins: [], // https://mdxjs.com/packages/mdx/#optionsrehypeplugins
   },
   beautify: {
-    useHtml: true,
-    useCss: false,
-    useJs: false,
-    htmlOptions: {}, // https://github.com/beautify-web/js-beautify#css--html
+    useHtml: true, // boolean
+    useCss: false, // boolean
+    useJs: false, // boolean
+    htmlOptions: {
+      indent_size: 2,
+      max_preserve_newlines: 0,
+      indent_inner_html: true,
+      extra_liners: [],
+    }, // https://github.com/beautify-web/js-beautify#css--html
     cssOptions: {}, // https://github.com/beautify-web/js-beautify#css--html
     jsOptions: {}, // https://github.com/beautify-web/js-beautify#options
   },
