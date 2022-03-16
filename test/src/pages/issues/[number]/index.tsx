@@ -16,7 +16,6 @@ export const getStaticData = async () => {
 type PageIssuesTemplateProps = {
   title: string
   number: number
-  body: string
 }
 
 const PageIssuesTemplate = (props: PageIssuesTemplateProps) => {
@@ -26,7 +25,6 @@ const PageIssuesTemplate = (props: PageIssuesTemplateProps) => {
         <title>{props.title}</title>
       </Head>
       <h1>{props.title}</h1>
-      <div>{props.body}</div>
     </AppLayout>
   )
 }
