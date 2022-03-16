@@ -86,9 +86,8 @@ export default defineConfig({
       remarkFrontmatter,
       [remarkMdxFrontmatter, { name: "frontmatter" }],
       remarkGfm,
-      remarkHighlightjs,
     ], // https://mdxjs.com/packages/mdx/#optionsremarkplugins
-    rehypePlugins: [], // https://mdxjs.com/packages/mdx/#optionsrehypeplugins
+    rehypePlugins: [rehypeHighlight], // https://mdxjs.com/packages/mdx/#optionsrehypeplugins
   },
   beautify: {
     useHtml: true, // boolean
