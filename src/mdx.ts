@@ -15,7 +15,6 @@ export const defaultMdxConfig: MdxOptions = {
   ],
   rehypePlugins: [rehypeHighlight],
   recmaPlugins: [],
-  allowDangerousRemoteMdx: false,
 }
 
 export async function getMdxConfig(userConfig: MinistaUserConfig) {
