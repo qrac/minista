@@ -1,12 +1,11 @@
 import { defineConfig } from "minista"
 
+//import remarkFrontmatter from "remark-frontmatter"
+//import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
+
 export default defineConfig({
   entry: "src/assets/script.ts",
-  /*beautify: {
-    useCss: true,
-    useJs: true,
-  },
-  vite: {
+  /*vite: {
     esbuild: {
       minify: false,
       minifySyntax: false,
@@ -14,5 +13,15 @@ export default defineConfig({
     build: {
       minify: false,
     },
+  },*/
+  /*markdown: {
+    remarkPlugins: [
+      remarkFrontmatter,
+      [remarkMdxFrontmatter, { name: "frontmatter" }],
+    ],
+  },*/
+  /*beautify: {
+    useCss: true,
+    useJs: true,
   },*/
 })
