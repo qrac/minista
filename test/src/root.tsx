@@ -18,6 +18,9 @@ export const getStaticData = async () => {
         title: data.name,
         description: data.description,
       },
+      components: {
+        h2: (props) => <h2 className="mdx-components-test" {...props} />,
+      },
     },
   }
 }
