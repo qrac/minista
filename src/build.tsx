@@ -11,6 +11,7 @@ import type { InlineConfig } from "vite"
 
 import type {
   MinistaConfig,
+  MinistaLocation,
   RootStaticContent,
   RootEsmContent,
   RootJsxContent,
@@ -85,7 +86,7 @@ export async function buildStaticPages(
     outbase: string
     outdir: string
   },
-  assetsTagStr?: string
+  assetsTagStr: string
 ) {
   const rootStaticContent = await buildRootEsmContent(tempRootFilePath)
   await Promise.all(
@@ -101,7 +102,8 @@ export async function buildStaticPages(
         entryPoint,
         filename,
         rootStaticContent,
-        assetsTagStr
+        assetsTagStr,
+        buildOptions.outdir
       )
     })
   )
@@ -139,7 +141,8 @@ export async function buildStaticPage(
   entryPoint: string,
   outFile: string,
   rootStaticContent: RootStaticContent,
-  assetsTagStr?: string
+  assetsTagStr: string,
+  outdir: string
 ) {
   const pageEsmContent: PageEsmContent = await import(path.resolve(entryPoint))
   const pageJsxContent: PageJsxContent = pageEsmContent.default
@@ -160,7 +163,8 @@ export async function buildStaticPage(
       outFile,
       rootStaticContent,
       assetsTagStr,
-      frontmatter
+      frontmatter,
+      outdir
     )
   }
 
@@ -172,7 +176,8 @@ export async function buildStaticPage(
       outFile,
       rootStaticContent,
       assetsTagStr,
-      frontmatter
+      frontmatter,
+      outdir
     )
   }
 
@@ -191,7 +196,8 @@ export async function buildStaticPage(
       fixedOutfile,
       rootStaticContent,
       assetsTagStr,
-      frontmatter
+      frontmatter,
+      outdir
     )
   }
 
@@ -214,7 +220,8 @@ export async function buildStaticPage(
           fixedOutfile,
           rootStaticContent,
           assetsTagStr,
-          frontmatter
+          frontmatter,
+          outdir
         )
       })
     )
@@ -231,8 +238,9 @@ export async function buildHtmlPage(
   staticDataItem: StaticDataItem,
   routePath: string,
   rootStaticContent: RootStaticContent,
-  assetsTagStr?: string,
-  frontmatter?: any
+  assetsTagStr: string,
+  frontmatter: any,
+  outdir: string
 ) {
   if (frontmatter?.draft) {
     return
@@ -242,6 +250,11 @@ export async function buildHtmlPage(
   const globalStaticData = rootStaticContent.staticData
   const PageComponent: any = pageJsxContent
   const staticProps = staticDataItem.props
+
+  const reg1 = new RegExp(`^${outdir}|index.html`, "g")
+  const reg2 = new RegExp(`.html`, "g")
+  const pathname = routePath.replace(reg1, "").replace(reg2, "")
+  const location: MinistaLocation = { pathname: pathname }
 
   const RenderComponent = () => {
     if (RootComponent === Fragment) {
@@ -256,6 +269,7 @@ export async function buildHtmlPage(
                   {...globalStaticData?.props}
                   {...staticProps}
                   frontmatter={frontmatter}
+                  location={location}
                 />
               )
             }
@@ -268,6 +282,7 @@ export async function buildHtmlPage(
           {...globalStaticData?.props}
           {...staticProps}
           frontmatter={frontmatter}
+          location={location}
         >
           {(() => {
             if (PageComponent === Fragment) {
@@ -278,6 +293,7 @@ export async function buildHtmlPage(
                   {...globalStaticData?.props}
                   {...staticProps}
                   frontmatter={frontmatter}
+                  location={location}
                 />
               )
             }

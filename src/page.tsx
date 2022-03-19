@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment } from "react"
 import { useMatch } from "react-router-dom"
 
 import type {
+  MinistaLocation,
   GlobalStaticData,
   GetGlobalStaticData,
   StaticDataList,
@@ -40,6 +41,8 @@ export const Page = ({
     defaultStaticDataItem,
   ])
   const [staticDataCache, setStaticDataCache] = useState<StaticDataCache>({})
+
+  const staticLocation: MinistaLocation = { pathname: location.pathname }
 
   useEffect(() => {
     const data = async () => {
@@ -122,6 +125,7 @@ export const Page = ({
                 {...globalStaticData?.props}
                 {...staticProps}
                 frontmatter={frontmatter}
+                location={staticLocation}
               />
             )
           }
@@ -134,6 +138,7 @@ export const Page = ({
         {...globalStaticData?.props}
         {...staticProps}
         frontmatter={frontmatter}
+        location={staticLocation}
       >
         {(() => {
           if (PageComponent === Fragment) {
@@ -144,6 +149,7 @@ export const Page = ({
                 {...globalStaticData?.props}
                 {...staticProps}
                 frontmatter={frontmatter}
+                location={staticLocation}
               />
             )
           }

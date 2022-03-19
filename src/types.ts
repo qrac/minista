@@ -45,6 +45,10 @@ export type MinistaBeautifyConfig = {
   jsOptions?: JSBeautifyOptions
 }
 
+export type MinistaLocation = {
+  pathname: string
+}
+
 export type RootStaticContent = {
   component: RootJsxContent
   staticData: GlobalStaticData

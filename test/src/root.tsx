@@ -1,5 +1,6 @@
 import { Fragment } from "react"
 import { Head } from "minista"
+import type { MinistaLocation } from "minista"
 
 import "highlight.js/styles/nord.css"
 import "@fontsource/montserrat/800.css"
@@ -35,10 +36,12 @@ export type FrontmatterProps = {
 type RootProps = {
   global: GlobalProps
   frontmatter?: FrontmatterProps
+  location: MinistaLocation
   children: React.ReactNode
 }
 
-const Root = ({ global, frontmatter, children }: RootProps) => {
+const Root = ({ global, frontmatter, location, children }: RootProps) => {
+  const ogType = location.pathname === "/" ? "website" : "article"
   const Layout = frontmatter?.layout === "AppLayout" ? AppLayout : Fragment
   return (
     <>
@@ -49,6 +52,7 @@ const Root = ({ global, frontmatter, children }: RootProps) => {
             : global?.title}
         </title>
         <meta property="description" content={global?.description}></meta>
+        <meta property="og:type" content={ogType} />
       </Head>
       <Layout>{children}</Layout>
     </>
