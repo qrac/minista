@@ -1,7 +1,7 @@
 {
   "name": "minista",
   "description": "Next.js Like Development with 100% Static Generate",
-  "version": "2.0.0-alpha.22",
+  "version": "2.0.0-alpha.23",
   "bin": {
     "minista": "./bin/minista.js"
   },
@@ -68,7 +68,6 @@
     "@mdx-js/esbuild": "^2.0.0",
     "@mdx-js/react": "^2.0.0",
     "@mdx-js/rollup": "^2.0.0",
-    "@qrac/rehype-prism": "^1.1.2",
     "@vitejs/plugin-react": "^1.2.0",
     "cac": "^6.7.12",
     "esbuild": "^0.14.25",
@@ -79,6 +78,7 @@
     "react-helmet": "^6.1.0",
     "react-router-dom": "^6.2.2",
     "rehype-highlight": "^5.0.2",
+    "rehype-prism": "^2.0.0",
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
     "remark-mdx-frontmatter": "^1.1.1",

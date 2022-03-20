@@ -4,7 +4,7 @@ import remarkFrontmatter from "remark-frontmatter"
 import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 import remarkGfm from "remark-gfm"
 import rehypeHighlight from "rehype-highlight"
-import rehypePrism from "@qrac/rehype-prism"
+import rehypePrism from "rehype-prism"
 import shiki from "shiki"
 import rehypeShiki from "@leafac/rehype-shiki"
 
