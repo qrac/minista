@@ -1,5 +1,7 @@
 import type { ExoticComponent } from "react"
 import type vite from "vite"
+import type { HighlighterOptions } from "shiki"
+//import type { Options as PrismOptions } from "@qrac/rehype-prism"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type {
   HTMLBeautifyOptions,
@@ -32,8 +34,15 @@ export type MinistaUserConfig = {
   assetsDir?: string
   autoAssetsName?: string
   vite?: vite.UserConfig | vite.UserConfigFn
-  markdown?: MdxOptions
+  markdown?: MinistaMarkdownConfig
   beautify?: MinistaBeautifyConfig
+}
+
+export type MinistaMarkdownConfig = {
+  syntaxHighlighter?: "shiki" | "prism" | "highlight"
+  shikiOptions?: HighlighterOptions
+  //prismOptions?: PrismOptions
+  mdxOptions?: MdxOptions
 }
 
 export type MinistaBeautifyConfig = {

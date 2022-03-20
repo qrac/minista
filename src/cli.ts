@@ -4,6 +4,7 @@ import { cac } from "cac"
 import { getUserConfig } from "./user.js"
 import { getConfig } from "./config.js"
 import { getViteConfig } from "./vite.js"
+import { getMarkdownConfig } from "./markdown.js"
 import { getMdxConfig } from "./mdx.js"
 import { getBeautifyConfig } from "./beautify.js"
 import { emptyResolveDir } from "./empty.js"
@@ -36,7 +37,8 @@ cli
     try {
       const userConfig = await getUserConfig()
       const config = await getConfig(userConfig)
-      const mdxConfig = await getMdxConfig(userConfig)
+      const markdownConfig = await getMarkdownConfig(userConfig)
+      const mdxConfig = await getMdxConfig(markdownConfig)
       const viteConfig = await getViteConfig(userConfig, mdxConfig)
 
       await Promise.all([emptyResolveDir(config.tempViteImporterDir)])
@@ -53,7 +55,8 @@ cli.command("build [root]").action(async () => {
   try {
     const userConfig = await getUserConfig()
     const config = await getConfig(userConfig)
-    const mdxConfig = await getMdxConfig(userConfig)
+    const markdownConfig = await getMarkdownConfig(userConfig)
+    const mdxConfig = await getMdxConfig(markdownConfig)
     const viteConfig = await getViteConfig(userConfig, mdxConfig)
     const beautifyConfig = await getBeautifyConfig(userConfig)
 

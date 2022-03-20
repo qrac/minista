@@ -4,22 +4,27 @@ import remarkFrontmatter from "remark-frontmatter"
 import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 import remarkGfm from "remark-gfm"
 import rehypeHighlight from "rehype-highlight"
+import rehypePrism from "@qrac/rehype-prism"
+import shiki from "shiki"
+import rehypeShiki from "@leafac/rehype-shiki"
 
-import type { MinistaUserConfig } from "./types.js"
+import type { MinistaMarkdownConfig } from "./types.js"
 
 export const defaultMdxConfig: MdxOptions = {
-  remarkPlugins: [
-    remarkFrontmatter,
-    [remarkMdxFrontmatter, { name: "frontmatter" }],
-    remarkGfm,
-  ],
-  rehypePlugins: [rehypeHighlight],
-  recmaPlugins: [],
+  remarkPlugins: [],
+  rehypePlugins: [],
 }
 
-export async function getMdxConfig(userConfig: MinistaUserConfig) {
-  const mergedConfig = userConfig.markdown
-    ? { ...defaultMdxConfig, ...userConfig.markdown }
+export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
+  const syntaxHighlighter = markdownConfig.syntaxHighlighter
+    ? markdownConfig.syntaxHighlighter
+    : "shiki"
+  const shikiOptions = markdownConfig.shikiOptions
+    ? markdownConfig.shikiOptions
+    : { theme: "dracula-soft" }
+
+  const mergedConfig = markdownConfig.mdxOptions
+    ? { ...defaultMdxConfig, ...markdownConfig.mdxOptions }
     : defaultMdxConfig
 
   function getPluginNames(plugins: PluggableList) {
@@ -35,15 +40,8 @@ export async function getMdxConfig(userConfig: MinistaUserConfig) {
   const rehypePluginNames = mergedConfig.rehypePlugins
     ? getPluginNames(mergedConfig.rehypePlugins)
     : []
-  const recmaPluginNames = mergedConfig.recmaPlugins
-    ? getPluginNames(mergedConfig.recmaPlugins)
-    : []
 
-  const pluginNames = [
-    ...remarkPluginNames,
-    ...rehypePluginNames,
-    ...recmaPluginNames,
-  ]
+  const pluginNames = [...remarkPluginNames, ...rehypePluginNames]
 
   if (!pluginNames.includes("remarkFrontmatter")) {
     mergedConfig.remarkPlugins?.push(remarkFrontmatter)
@@ -60,13 +58,23 @@ export async function getMdxConfig(userConfig: MinistaUserConfig) {
     mergedConfig.remarkPlugins?.push(remarkGfm)
   }
 
+  const highlighter = await shiki.getHighlighter(shikiOptions)
+
   if (
-    !pluginNames.includes("rehypeHighlight") &&
-    !pluginNames.includes("rehypePrism") &&
     !pluginNames.includes("remarkHighlightjs") &&
-    !pluginNames.includes("remarkPrism")
+    !pluginNames.includes("rehypeHighlight") &&
+    !pluginNames.includes("remarkPrism") &&
+    !pluginNames.includes("rehypePrism") &&
+    !pluginNames.includes("remarkShiki") &&
+    !pluginNames.includes("rehypeShiki")
   ) {
-    mergedConfig.rehypePlugins?.push(rehypeHighlight)
+    if (syntaxHighlighter === "shiki") {
+      mergedConfig.rehypePlugins?.push([rehypeShiki, { highlighter }])
+    } else if (syntaxHighlighter === "prism") {
+      mergedConfig.rehypePlugins?.push(rehypePrism)
+    } else {
+      mergedConfig.rehypePlugins?.push(rehypeHighlight)
+    }
   }
 
   return mergedConfig

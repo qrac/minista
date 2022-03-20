@@ -15,10 +15,14 @@ export default defineConfig({
     },
   },*/
   /*markdown: {
-    remarkPlugins: [
-      remarkFrontmatter,
-      [remarkMdxFrontmatter, { name: "frontmatter" }],
-    ],
+    syntaxHighlighter: "prism",
+    //syntaxHighlighter: "highlight",
+    //mdxOptions: {
+    //  remarkPlugins: [
+    //    remarkFrontmatter,
+    //    [remarkMdxFrontmatter, { name: "frontmatter" }],
+    //  ],
+    //}
   },*/
   /*beautify: {
     useCss: true,
