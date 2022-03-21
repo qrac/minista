@@ -70,9 +70,11 @@ export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
   ) {
     if (syntaxHighlighter === "shiki") {
       mergedConfig.rehypePlugins?.push([rehypeShiki, { highlighter }])
-    } else if (syntaxHighlighter === "prism") {
+    }
+    if (syntaxHighlighter === "prism") {
       mergedConfig.rehypePlugins?.push(rehypePrism)
-    } else {
+    }
+    if (syntaxHighlighter === "highlight") {
       mergedConfig.rehypePlugins?.push(rehypeHighlight)
     }
   }
