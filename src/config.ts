@@ -4,7 +4,7 @@ export const defaultConfig = {
   outDir: "dist",
   publicDir: "public",
   assetsDir: "assets",
-  autoAssetsName: "bundle",
+  bundleName: "bundle",
   rootFileDir: "src",
   rootFileName: "root",
   rootFileExt: ["jsx", "tsx"],
@@ -30,9 +30,9 @@ export async function getConfig(
     assetsDir: userConfig.assetsDir
       ? userConfig.assetsDir
       : defaultConfig.assetsDir,
-    autoAssetsName: userConfig.autoAssetsName
-      ? userConfig.autoAssetsName
-      : defaultConfig.autoAssetsName,
+    bundleName: userConfig.bundleName
+      ? userConfig.bundleName
+      : defaultConfig.bundleName,
   }
   return mergedConfig
 }

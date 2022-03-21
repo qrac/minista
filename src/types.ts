@@ -11,7 +11,7 @@ export type MinistaConfig = {
   outDir: string
   publicDir: string
   assetsDir: string
-  autoAssetsName: string
+  bundleName: string
   rootFileDir: string
   rootFileName: string
   rootFileExt: string[]
@@ -30,7 +30,7 @@ export type MinistaUserConfig = {
   outDir?: string
   publicDir?: string
   assetsDir?: string
-  autoAssetsName?: string
+  bundleName?: string
   vite?: vite.UserConfig | vite.UserConfigFn
   markdown?: MinistaMarkdownConfig
   beautify?: MinistaBeautifyConfig

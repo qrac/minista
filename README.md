@@ -79,7 +79,7 @@ export default defineConfig({
   outDir: "dist", // string
   publicDir: "public", // string
   assetsDir: "assets", // string
-  autoAssetsName: "bundle", // string
+  bundleName: "bundle", // string
   vite: {}, // https://vitejs.dev/config/
   markdown: {
     syntaxHighlighter: "highlight", // "highlight" | "prism"

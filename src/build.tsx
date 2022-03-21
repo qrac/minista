@@ -332,7 +332,7 @@ export async function buildTempAssets(
       write: false,
       rollupOptions: {
         input: {
-          __minista_auto_bundle_asset_pages: path.resolve(
+          __minista_bundle_assets: path.resolve(
             __dirname + "/../dist/bundle.js"
           ),
         },
@@ -346,10 +346,10 @@ export async function buildTempAssets(
 
   if (Array.isArray(items) && items.length > 0) {
     items.map((item) => {
-      if (item.fileName.match(/__minista_auto_bundle_asset_pages\.css/)) {
+      if (item.fileName.match(/__minista_bundle_assets\.css/)) {
         const customFileName = `${buildOptions.outdir}/${buildOptions.fileName}.css`
         return item?.source && fs.outputFile(customFileName, item?.source)
-      } else if (item.fileName.match(/__minista_auto_bundle_asset_pages\.js/)) {
+      } else if (item.fileName.match(/__minista_bundle_assets\.js/)) {
         return
       } else {
         const customFileName =
