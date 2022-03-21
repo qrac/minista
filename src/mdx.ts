@@ -3,8 +3,10 @@ import type { PluggableList, Pluggable } from "unified"
 import remarkFrontmatter from "remark-frontmatter"
 import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 import remarkGfm from "remark-gfm"
-import rehypeHighlight from "rehype-highlight"
+import shiki from "shiki"
+import rehypeShiki from "@leafac/rehype-shiki"
 import rehypePrism from "rehype-prism"
+import rehypeHighlight from "rehype-highlight"
 
 import type { MinistaMarkdownConfig } from "./types.js"
 
@@ -16,7 +18,10 @@ export const defaultMdxConfig: MdxOptions = {
 export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
   const syntaxHighlighter = markdownConfig.syntaxHighlighter
     ? markdownConfig.syntaxHighlighter
-    : "highlight"
+    : "shiki"
+  const shikiOptions = markdownConfig.shikiOptions
+    ? markdownConfig.shikiOptions
+    : { theme: "dracula-soft" }
 
   const mergedConfig = markdownConfig.mdxOptions
     ? { ...defaultMdxConfig, ...markdownConfig.mdxOptions }
@@ -53,16 +58,22 @@ export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
     mergedConfig.remarkPlugins?.push(remarkGfm)
   }
 
+  const highlighter = await shiki.getHighlighter(shikiOptions)
+
   if (
     !pluginNames.includes("remarkHighlightjs") &&
     !pluginNames.includes("rehypeHighlight") &&
     !pluginNames.includes("remarkPrism") &&
-    !pluginNames.includes("rehypePrism")
+    !pluginNames.includes("rehypePrism") &&
+    !pluginNames.includes("remarkShiki") &&
+    !pluginNames.includes("rehypeShiki")
   ) {
-    if (syntaxHighlighter === "highlight") {
-      mergedConfig.rehypePlugins?.push(rehypeHighlight)
-    } else {
+    if (syntaxHighlighter === "shiki") {
+      mergedConfig.rehypePlugins?.push([rehypeShiki, { highlighter }])
+    } else if (syntaxHighlighter === "prism") {
       mergedConfig.rehypePlugins?.push(rehypePrism)
+    } else {
+      mergedConfig.rehypePlugins?.push(rehypeHighlight)
     }
   }
 

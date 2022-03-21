@@ -1,7 +1,10 @@
 import type { MinistaMarkdownConfig, MinistaUserConfig } from "./types.js"
 
 export const defaultMarkdownConfig: MinistaMarkdownConfig = {
-  syntaxHighlighter: "highlight",
+  syntaxHighlighter: "shiki",
+  shikiOptions: {
+    theme: "nord",
+  },
 }
 
 export async function getMarkdownConfig(userConfig: MinistaUserConfig) {

@@ -64,6 +64,7 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
+    "@leafac/rehype-shiki": "^2.1.2",
     "@mdx-js/esbuild": "^2.0.0",
     "@mdx-js/react": "^2.0.0",
     "@mdx-js/rollup": "^2.0.0",
@@ -81,6 +82,7 @@
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
     "remark-mdx-frontmatter": "^1.1.1",
+    "shiki": "^0.10.1",
     "tiny-glob": "^0.2.9",
     "vite": "^2.8.6"
   },

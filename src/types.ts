@@ -1,5 +1,6 @@
 import type { ExoticComponent } from "react"
 import type vite from "vite"
+import type { HighlighterOptions } from "shiki"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type {
   HTMLBeautifyOptions,
@@ -37,7 +38,8 @@ export type MinistaUserConfig = {
 }
 
 export type MinistaMarkdownConfig = {
-  syntaxHighlighter?: "highlight" | "prism"
+  syntaxHighlighter?: "shiki" | "prism" | "highlight"
+  shikiOptions?: HighlighterOptions
   mdxOptions?: MdxOptions
 }
 
