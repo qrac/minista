@@ -21,7 +21,7 @@ export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
     : "shiki"
   const shikiOptions = markdownConfig.shikiOptions
     ? markdownConfig.shikiOptions
-    : { theme: "dracula-soft" }
+    : { theme: "nord" }
 
   const mergedConfig = markdownConfig.mdxOptions
     ? { ...defaultMdxConfig, ...markdownConfig.mdxOptions }
