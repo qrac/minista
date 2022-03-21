@@ -82,10 +82,7 @@ export default defineConfig({
   autoAssetsName: "bundle", // string
   vite: {}, // https://vitejs.dev/config/
   markdown: {
-    syntaxHighlighter: "shiki", // "shiki" | "prism" | "highlight"
-    shikiOptions: {
-      theme: "dracula-soft", // https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme
-    },
+    syntaxHighlighter: "highlight", // "highlight" | "prism"
     mdxOptions: {
       remarkPlugins: [], // https://mdxjs.com/packages/mdx/#optionsremarkplugins
       rehypePlugins: [], // https://mdxjs.com/packages/mdx/#optionsrehypeplugins
