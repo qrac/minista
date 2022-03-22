@@ -1,8 +1,6 @@
 import type { ExoticComponent } from "react"
 import type vite from "vite"
 import type { Options as HighlightOptions } from "rehype-highlight"
-//import type { HighlighterOptions as ShikiOptions } from "shiki"
-//import type { RehypePrismOptions as PrismOptions } from "rehype-prism"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type {
   HTMLBeautifyOptions,
@@ -42,8 +40,6 @@ export type MinistaUserConfig = {
 export type MinistaMarkdownConfig = {
   syntaxHighlighter?: "highlight" | "none"
   highlightOptions?: HighlightOptions
-  //shikiOptions?: ShikiOptions
-  //prismOptions?: PrismOptions
   mdxOptions?: MdxOptions
 }
 
