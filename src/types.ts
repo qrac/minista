@@ -40,7 +40,7 @@ export type MinistaUserConfig = {
 }
 
 export type MinistaMarkdownConfig = {
-  syntaxHighlighter?: "shiki" | "highlight" | "prism"
+  syntaxHighlighter?: "shiki" | "highlight" | "prism" | "none"
   shikiOptions?: ShikiOptions
   highlightOptions?: HighlightOptions
   prismOptions?: PrismOptions

@@ -82,7 +82,7 @@ export default defineConfig({
   bundleName: "bundle", // string
   vite: {}, // https://vitejs.dev/config/
   markdown: {
-    syntaxHighlighter: "shiki", // "shiki" | "highlight" | "prism"
+    syntaxHighlighter: "shiki", // "shiki" | "highlight" | "prism" | "none"
     shikiOptions: { theme: "nord" }, // https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme
     highlightOptions: {}, // https://github.com/rehypejs/rehype-highlight#options
     prismOptions: {}, // https://github.com/Val-istar-Guo/rehype-prism
