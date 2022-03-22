@@ -82,10 +82,10 @@ export default defineConfig({
   bundleName: "bundle", // string
   vite: {}, // https://vitejs.dev/config/
   markdown: {
-    syntaxHighlighter: "shiki", // "shiki" | "prism" | "highlight"
-    shikiOptions: {
-      theme: "nord", // https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme
-    },
+    syntaxHighlighter: "shiki", // "shiki" | "highlight" | "prism"
+    shikiOptions: { theme: "nord" }, // https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme
+    highlightOptions: {}, // https://github.com/rehypejs/rehype-highlight#options
+    prismOptions: {}, // https://github.com/Val-istar-Guo/rehype-prism
     mdxOptions: {
       remarkPlugins: [], // https://mdxjs.com/packages/mdx/#optionsremarkplugins
       rehypePlugins: [], // https://mdxjs.com/packages/mdx/#optionsrehypeplugins
