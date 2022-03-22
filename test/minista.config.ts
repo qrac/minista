@@ -15,7 +15,7 @@ export default defineConfig({
     },
   },*/
   /*markdown: {
-    syntaxHighlighter: "prism",
+    syntaxHighlighter: "none",
     //syntaxHighlighter: "highlight",
     //mdxOptions: {
     //  remarkPlugins: [

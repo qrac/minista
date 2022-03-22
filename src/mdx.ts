@@ -4,10 +4,10 @@ import remarkFrontmatter from "remark-frontmatter"
 import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 import remarkGfm from "remark-gfm"
 
-import shiki from "shiki"
-import rehypeShiki from "@leafac/rehype-shiki"
-import rehypePrism from "rehype-prism"
 import rehypeHighlight from "rehype-highlight"
+//import shiki from "shiki"
+//import rehypeShiki from "@leafac/rehype-shiki"
+//import rehypePrism from "rehype-prism"
 
 import type { MinistaMarkdownConfig } from "./types.js"
 
@@ -19,16 +19,16 @@ export const defaultMdxConfig: MdxOptions = {
 export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
   const syntaxHighlighter = markdownConfig.syntaxHighlighter
     ? markdownConfig.syntaxHighlighter
-    : "shiki"
-  const shikiOptions = markdownConfig.shikiOptions
-    ? markdownConfig.shikiOptions
-    : { theme: "nord" }
+    : "highlight"
   const highlightOptions = markdownConfig.highlightOptions
     ? markdownConfig.highlightOptions
     : {}
-  const prismOptions = markdownConfig.prismOptions
-    ? markdownConfig.prismOptions
-    : {}
+  //const shikiOptions = markdownConfig.shikiOptions
+  //  ? markdownConfig.shikiOptions
+  //  : { theme: "nord" }
+  //const prismOptions = markdownConfig.prismOptions
+  //  ? markdownConfig.prismOptions
+  //  : {}
 
   const mergedConfig = markdownConfig.mdxOptions
     ? { ...defaultMdxConfig, ...markdownConfig.mdxOptions }
@@ -65,25 +65,25 @@ export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
     mergedConfig.remarkPlugins?.push(remarkGfm)
   }
 
-  const highlighter = await shiki.getHighlighter(shikiOptions)
+  //const highlighter = await shiki.getHighlighter(shikiOptions)
 
   if (
-    !pluginNames.includes("remarkShiki") &&
-    !pluginNames.includes("rehypeShiki") &&
     !pluginNames.includes("remarkHighlightjs") &&
     !pluginNames.includes("rehypeHighlight") &&
+    !pluginNames.includes("remarkShiki") &&
+    !pluginNames.includes("rehypeShiki") &&
     !pluginNames.includes("remarkPrism") &&
     !pluginNames.includes("rehypePrism")
   ) {
-    if (syntaxHighlighter === "shiki") {
-      mergedConfig.rehypePlugins?.push([rehypeShiki, { highlighter }])
-    }
     if (syntaxHighlighter === "highlight") {
       mergedConfig.rehypePlugins?.push([rehypeHighlight, highlightOptions])
     }
-    if (syntaxHighlighter === "prism") {
-      mergedConfig.rehypePlugins?.push([rehypePrism, prismOptions])
-    }
+    //if (syntaxHighlighter === "shiki") {
+    //  mergedConfig.rehypePlugins?.push([rehypeShiki, { highlighter }])
+    //}
+    //if (syntaxHighlighter === "prism") {
+    //  mergedConfig.rehypePlugins?.push([rehypePrism, prismOptions])
+    //}
   }
 
   return mergedConfig
