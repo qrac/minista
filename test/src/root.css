@@ -12,6 +12,11 @@ a {
   color: #96f8f7;
 }
 
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 table {
   border-collapse: collapse;
 }
