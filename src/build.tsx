@@ -1,3 +1,6 @@
+import type { Options as MdxOptions } from "@mdx-js/esbuild"
+import type { InlineConfig } from "vite"
+
 import fs from "fs-extra"
 import path from "path"
 import url from "url"
@@ -5,9 +8,7 @@ import pc from "picocolors"
 import { Fragment } from "react"
 import { build as esBuild } from "esbuild"
 import mdx from "@mdx-js/esbuild"
-import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import { build as viteBuild, mergeConfig } from "vite"
-import type { InlineConfig } from "vite"
 
 import type {
   MinistaConfig,
@@ -23,6 +24,7 @@ import type {
   StaticDataItem,
   GetStaticData,
 } from "./types.js"
+
 import { resolvePlugin } from "./esbuild.js"
 import { renderHtml } from "./render.js"
 

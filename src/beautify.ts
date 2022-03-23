@@ -1,11 +1,12 @@
-import fs from "fs-extra"
-import pc from "picocolors"
-import beautify from "js-beautify"
 import type {
   HTMLBeautifyOptions,
   CSSBeautifyOptions,
   JSBeautifyOptions,
 } from "js-beautify"
+
+import fs from "fs-extra"
+import pc from "picocolors"
+import beautify from "js-beautify"
 
 import type { MinistaBeautifyConfig, MinistaUserConfig } from "./types.js"
 

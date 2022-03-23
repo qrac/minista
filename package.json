@@ -80,6 +80,7 @@
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
     "remark-mdx-frontmatter": "^1.1.1",
+    "svgstore": "^3.0.1",
     "tiny-glob": "^0.2.9",
     "vite": "^2.8.6"
   },

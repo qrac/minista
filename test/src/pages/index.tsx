@@ -21,6 +21,9 @@ const PageHome = () => {
           <a href="/mdx2/">MDX 2</a>
         </li>
         <li>
+          <a href="/icons/">Icons</a>
+        </li>
+        <li>
           <a href="/migrate/">Migrate</a>
         </li>
       </ul>

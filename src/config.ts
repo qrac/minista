@@ -1,10 +1,12 @@
 import type { MinistaConfig, MinistaUserConfig } from "./types.js"
 
-export const defaultConfig = {
+export const defaultConfig: MinistaConfig = {
   outDir: "dist",
-  publicDir: "public",
   assetsDir: "assets",
   bundleName: "bundle",
+  iconsDir: "src/assets/icons",
+  iconsName: "icons",
+  publicDir: "public",
   rootFileDir: "src",
   rootFileName: "root",
   rootFileExt: ["jsx", "tsx"],
@@ -16,6 +18,7 @@ export const defaultConfig = {
   tempAssetsDir: "node_modules/.minista/bundled-react-assets",
   tempRootFileDir: "node_modules/.minista/bundled-react-root",
   tempPagesDir: "node_modules/.minista/bundled-react-pages",
+  tempIconsDir: "node_modules/.minista/svg-sprite-icons",
 }
 
 export async function getConfig(
@@ -23,16 +26,12 @@ export async function getConfig(
 ): Promise<MinistaConfig> {
   const mergedConfig = {
     ...defaultConfig,
-    outDir: userConfig.outDir ? userConfig.outDir : defaultConfig.outDir,
-    publicDir: userConfig.publicDir
-      ? userConfig.publicDir
-      : defaultConfig.publicDir,
-    assetsDir: userConfig.assetsDir
-      ? userConfig.assetsDir
-      : defaultConfig.assetsDir,
-    bundleName: userConfig.bundleName
-      ? userConfig.bundleName
-      : defaultConfig.bundleName,
+    outDir: userConfig.outDir || defaultConfig.outDir,
+    assetsDir: userConfig.assetsDir || defaultConfig.assetsDir,
+    bundleName: userConfig.bundleName || defaultConfig.bundleName,
+    iconsDir: userConfig.iconsDir || defaultConfig.iconsDir,
+    iconsName: userConfig.iconsName || defaultConfig.iconsName,
+    publicDir: userConfig.publicDir || defaultConfig.publicDir,
   }
   return mergedConfig
 }

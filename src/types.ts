@@ -10,9 +10,11 @@ import type {
 
 export type MinistaConfig = {
   outDir: string
-  publicDir: string
   assetsDir: string
   bundleName: string
+  iconsDir: string
+  iconsName: string
+  publicDir: string
   rootFileDir: string
   rootFileName: string
   rootFileExt: string[]
@@ -24,14 +26,17 @@ export type MinistaConfig = {
   tempAssetsDir: string
   tempRootFileDir: string
   tempPagesDir: string
+  tempIconsDir: string
 }
 
 export type MinistaUserConfig = {
   entry?: string | string[] | { [key: string]: string }
   outDir?: string
-  publicDir?: string
   assetsDir?: string
   bundleName?: string
+  iconsDir?: string
+  iconsName?: string
+  publicDir?: string
   vite?: vite.UserConfig | vite.UserConfigFn
   markdown?: MinistaMarkdownConfig
   beautify?: MinistaBeautifyConfig

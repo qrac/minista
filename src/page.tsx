@@ -9,6 +9,7 @@ import type {
   StaticDataCache,
   GetStaticData,
 } from "./types.js"
+
 import { valueToStringObject, sortObject } from "./utils"
 
 export type PageProps = {

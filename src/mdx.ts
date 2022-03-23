@@ -1,11 +1,13 @@
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type { PluggableList, Pluggable } from "unified"
+
 import remarkFrontmatter from "remark-frontmatter"
 import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 import remarkGfm from "remark-gfm"
 import rehypeHighlight from "rehype-highlight"
 
 import type { MinistaMarkdownConfig } from "./types.js"
+import { defaultMarkdownConfig } from "./markdown.js"
 
 export const defaultMdxConfig: MdxOptions = {
   remarkPlugins: [],
@@ -13,12 +15,10 @@ export const defaultMdxConfig: MdxOptions = {
 }
 
 export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
-  const syntaxHighlighter = markdownConfig.syntaxHighlighter
-    ? markdownConfig.syntaxHighlighter
-    : "highlight"
-  const highlightOptions = markdownConfig.highlightOptions
-    ? markdownConfig.highlightOptions
-    : {}
+  const syntaxHighlighter =
+    markdownConfig.syntaxHighlighter || defaultMarkdownConfig.syntaxHighlighter
+  const highlightOptions =
+    markdownConfig.highlightOptions || defaultMarkdownConfig.highlightOptions
 
   const mergedConfig = markdownConfig.mdxOptions
     ? { ...defaultMdxConfig, ...markdownConfig.mdxOptions }

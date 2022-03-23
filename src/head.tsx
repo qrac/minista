@@ -1,5 +1,6 @@
-import { Helmet } from "react-helmet"
 import type { HelmetProps } from "react-helmet"
+
+import { Helmet } from "react-helmet"
 
 type HeadProps = HelmetProps
 

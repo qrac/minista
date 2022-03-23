@@ -1,4 +1,5 @@
 import { preview } from "vite"
+
 import type { InlineConfig } from "vite"
 
 export async function previewLocal(viteConfig: InlineConfig) {

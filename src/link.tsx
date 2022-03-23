@@ -1,5 +1,6 @@
-import { Link as ReactRouterDomLink } from "react-router-dom"
 import type { LinkProps as ReactRouterDomLinkProps } from "react-router-dom"
+
+import { Link as ReactRouterDomLink } from "react-router-dom"
 
 type LinkProps = ReactRouterDomLinkProps &
   React.RefAttributes<HTMLAnchorElement> & { useDevOnlySpaLink?: boolean }

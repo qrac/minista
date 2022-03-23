@@ -77,9 +77,11 @@ import { defineConfig } from "minista"
 export default defineConfig({
   entry: "", // string | string[] | { [key: string]: string }
   outDir: "dist", // string
-  publicDir: "public", // string
   assetsDir: "assets", // string
   bundleName: "bundle", // string
+  iconsDir: "src/assets/icons", // string
+  iconsName: "icons", // string
+  publicDir: "public", // string
   vite: {}, // https://vitejs.dev/config/
   markdown: {
     syntaxHighlighter: "highlight", // "highlight" | "none"

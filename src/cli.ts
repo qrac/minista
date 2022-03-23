@@ -41,8 +41,10 @@ cli
       const mdxConfig = await getMdxConfig(markdownConfig)
       const viteConfig = await getViteConfig(userConfig, mdxConfig)
 
-      await Promise.all([emptyResolveDir(config.tempViteImporterDir)])
-
+      await Promise.all([
+        emptyResolveDir(config.tempViteImporterDir),
+        emptyResolveDir(config.tempIconsDir),
+      ])
       await generateViteImporters(config, userConfig)
       await createDevServer(viteConfig)
     } catch (err) {

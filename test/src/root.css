@@ -36,3 +36,7 @@ pre {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+.inline-svg-icon {
+  fill: #f7f6f4;
+}
