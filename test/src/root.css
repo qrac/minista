@@ -37,6 +37,13 @@ pre {
   -webkit-overflow-scrolling: touch;
 }
 
-.inline-svg-icon {
+.svg-sprite-icon-solid {
   fill: #f7f6f4;
+}
+
+.svg-sprite-icon-outline {
+  fill: none;
+  stroke: #f7f6f4;
+  stroke-linejoin: round;
+  stroke-width: 20;
 }

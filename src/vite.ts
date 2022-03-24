@@ -54,6 +54,7 @@ export const defaultViteConfig = defineConfig({
       allow: [
         searchForWorkspaceRoot(process.cwd()),
         path.resolve(__dirname + "/../"),
+        path.resolve(defaultConfig.tempIconsDir),
       ],
     },
   },
@@ -65,7 +66,7 @@ export const defaultViteConfig = defineConfig({
       },
       {
         find: "/@minista-temp",
-        replacement: path.resolve("node_modules/.minista/"),
+        replacement: path.resolve(defaultConfig.tempDir),
       },
       {
         find: "react/jsx-runtime",
@@ -112,6 +113,16 @@ export async function getViteConfig(
         `${tempIconsDir}/${assetsDir}/${iconsName}.svg`
       ),
     ],
+    resolve: {
+      alias: [
+        {
+          find: `/${assetsDir}/${iconsName}.svg`,
+          replacement: path.resolve(
+            `${tempIconsDir}/${assetsDir}/${iconsName}.svg`
+          ),
+        },
+      ],
+    },
   })
   const mergedConfigWithMdx = mdxConfig
     ? mergeConfig(mergedConfigWithIcons, { plugins: [mdx(mdxConfig)] })
@@ -205,9 +216,16 @@ export function vitePluginMinistaSvgSpriteIcons(
       const filepath = path.join(icons_dir, file)
       const svgid = path.parse(file).name
       let code = fs.readFileSync(filepath, { encoding: "utf-8" })
-      sprites.add(svgid, code)
+      sprites.add(svgid, code, {
+        cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
+      })
     }
-    return sprites.toString()
+    return sprites
+      .toString({ inline: true })
+      .replace(
+        `<svg>`,
+        `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`
+      )
   }
 
   let config: ResolvedConfig

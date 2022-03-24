@@ -9,10 +9,10 @@ const PageIcons = () => {
         <title>Icons</title>
       </Head>
       <h1>Icons</h1>
-      <svg className="inline-svg-icon">
+      <svg className="svg-sprite-icon-solid">
         <use href="/assets/icons.svg#brand"></use>
       </svg>
-      <svg className="inline-svg-icon">
+      <svg className="svg-sprite-icon-outline">
         <use href="/assets/icons.svg#brand-alt"></use>
       </svg>
     </AppLayout>
