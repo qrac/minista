@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup"
 
 export default defineConfig({
-  entryPoints: ["src/*.ts", "src/*.tsx"],
+  entryPoints: ["src/*.{ts,tsx}"],
   target: "node14", // needed for working ESM
   format: ["esm"],
   clean: false,

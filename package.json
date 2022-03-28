@@ -46,15 +46,19 @@
     "build": "tsup",
     "build:all": "tsup && tsc",
     "build:tsc": "tsc",
-    "test": "cd ./test && npx minista",
-    "test:dev": "cd ./test && npx minista",
-    "test:build": "cd ./test && npx minista build",
-    "test:preview": "cd ./test && npx minista preview",
-    "test:v": "cd ./test && npx minista -v",
-    "test:h": "cd ./test && npx minista -h",
-    "prepublishOnly": "npm run build:all",
-    "clean": "trash ./dist ./test/dist ./test/node_modules/.minista ./test/node_modules/.vite",
-    "clean:vite": "trash ./test/node_modules/.vite"
+    "test": "vitest run",
+    "test:dev": "vitest watch",
+    "user": "cd ./user && npx minista",
+    "user:dev": "cd ./user && npx minista",
+    "user:build": "cd ./user && npx minista build",
+    "user:preview": "cd ./user && npx minista preview",
+    "user:v": "cd ./user && npx minista -v",
+    "user:h": "cd ./user && npx minista -h",
+    "prepublishOnly": "npm run clean:dist && npm run build:all",
+    "clean": "npm run clean:dist && npm run clean:user",
+    "clean:dist": "trash ./dist",
+    "clean:user": "trash ./user/dist ./user/node_modules/.minista ./user/node_modules/.vite",
+    "clean:vite": "trash ./user/node_modules/.vite"
   },
   "prettier": {
     "semi": false
@@ -94,6 +98,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "tsup": "^5.12.1",
-    "typescript": "^4.6.2"
+    "typescript": "^4.6.2",
+    "vitest": "^0.7.12"
   }
 }
