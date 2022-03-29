@@ -32,7 +32,7 @@ export function getFilename(fullPath: string) {
 }
 
 export function getFilenameObject(fullPaths: string[]) {
-  const list = fullPaths.map((item) => ({ [getFilename(item)]: item }))
-  const object = { ...list }
+  const list = fullPaths.map((item) => [getFilename(item), item])
+  const object = Object.fromEntries(list)
   return object
 }
