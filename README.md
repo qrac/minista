@@ -75,13 +75,46 @@ Open `package.json` and add the following scripts:
 import { defineConfig } from "minista"
 
 export default defineConfig({
-  entry: "", // string | string[] | { [key: string]: string }
-  outDir: "dist", // string
-  assetsDir: "assets", // string
-  bundleName: "bundle", // string
-  iconsDir: "src/assets/icons", // string
-  iconsName: "icons", // string
-  publicDir: "public", // string
+  base: "/", // string
+  public: "public", // string
+  src: "src", // string
+  out: "dist", // string
+  root: {
+    srcDir: "", // string
+    srcName: "root", // string
+    srcExt: ["tsx", "jsx"], // string[]
+  },
+  pages: {
+    srcDir: "pages", // string
+    srcExt: ["tsx", "jsx", "md", "mdx"], // string[]
+  },
+  assets: {
+    entry: "", // string | string[] | { [key: string]: string }
+    srcDir: "assets", // string
+    outDir: "assets", // string
+    bundle: {
+      outDir: "", // string
+      outName: "bundle", // string
+    },
+    images: {
+      useDownload: false, // boolean
+      outDir: "images", // string
+      outName: "[name]", // string
+    },
+    fonts: {
+      outDir: "fonts", // string
+      outName: "[name]", // string
+    },
+    icons: {
+      useSprite: true, // boolean
+      srcDir: "icons", // string
+      outDir: "images", // string
+      outName: "icons", // string
+      svgstoreOptions: {
+        cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
+      }, // https://github.com/svgstore/svgstore#svgstore-options
+    },
+  },
   vite: {}, // https://vitejs.dev/config/
   markdown: {
     syntaxHighlighter: "highlight", // "highlight" | "none"

@@ -73,6 +73,7 @@
     "@mdx-js/rollup": "^2.1.0",
     "@vitejs/plugin-react": "^1.2.0",
     "cac": "^6.7.12",
+    "deepmerge-ts": "^4.0.1",
     "esbuild": "^0.14.27",
     "fs-extra": "^10.0.1",
     "js-beautify": "^1.14.0",

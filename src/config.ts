@@ -1,37 +1,114 @@
-import type { MinistaConfig, MinistaUserConfig } from "./types.js"
+import { deepmergeCustom } from "deepmerge-ts"
+
+import type {
+  MinistaConfig,
+  MinistaUserConfig,
+  MinistaTempConfig,
+} from "./types.js"
 
 export const defaultConfig: MinistaConfig = {
-  outDir: "dist",
-  assetsDir: "assets",
-  bundleName: "bundle",
-  iconsDir: "src/assets/icons",
-  iconsName: "icons",
-  publicDir: "public",
-  rootFileDir: "src",
-  rootFileName: "root",
-  rootFileExt: ["jsx", "tsx"],
-  pagesDir: "src/pages",
-  pagesExt: ["jsx", "tsx", "md", "mdx"],
-  tempDir: "node_modules/.minista",
-  tempConfigDir: "node_modules/.minista/optimized-config",
-  tempViteImporterDir: "node_modules/.minista/vite-importer",
-  tempAssetsDir: "node_modules/.minista/bundled-react-assets",
-  tempRootFileDir: "node_modules/.minista/bundled-react-root",
-  tempPagesDir: "node_modules/.minista/bundled-react-pages",
-  tempIconsDir: "node_modules/.minista/svg-sprite-icons",
+  base: "/",
+  public: "public",
+  src: "src",
+  out: "dist",
+  root: {
+    srcDir: "",
+    srcName: "root",
+    srcExt: ["tsx", "jsx"],
+  },
+  pages: {
+    srcDir: "pages",
+    srcExt: ["tsx", "jsx", "md", "mdx"],
+  },
+  assets: {
+    entry: "",
+    srcDir: "assets",
+    outDir: "assets",
+    bundle: {
+      outDir: "",
+      outName: "bundle",
+    },
+    images: {
+      useDownload: false,
+      outDir: "images",
+      outName: "[name]",
+    },
+    fonts: {
+      outDir: "fonts",
+      outName: "[name]",
+    },
+    icons: {
+      useSprite: true,
+      srcDir: "icons",
+      outDir: "images",
+      outName: "icons",
+      svgstoreOptions: {
+        cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
+      },
+    },
+  },
+  vite: {},
+  markdown: {
+    syntaxHighlighter: "highlight",
+    highlightOptions: {},
+    mdxOptions: {
+      remarkPlugins: [],
+      rehypePlugins: [],
+    },
+  },
+  beautify: {
+    useHtml: true,
+    useCss: false,
+    useJs: false,
+    htmlOptions: {
+      indent_size: 2,
+      max_preserve_newlines: 0,
+      indent_inner_html: true,
+      extra_liners: [],
+    },
+    cssOptions: {},
+    jsOptions: {},
+  },
+}
+
+export const tempConfig: MinistaTempConfig = {
+  out: "node_modules/.minista",
+  config: {
+    outDir: "node_modules/.minista/optimized-config",
+  },
+  viteImporter: {
+    outDir: "node_modules/.minista/vite-importer",
+  },
+  root: {
+    outDir: "node_modules/.minista/bundled-react-root",
+  },
+  pages: {
+    outDir: "node_modules/.minista/bundled-react-pages",
+  },
+  assets: {
+    outDir: "node_modules/.minista/bundled-react-assets",
+  },
+  icons: {
+    outDir: "node_modules/.minista/svg-sprite-icons",
+  },
+}
+
+export async function mergeConfig(
+  userConfig: MinistaUserConfig
+): Promise<MinistaConfig> {
+  const customDeepmerge = deepmergeCustom({
+    mergeArrays: false,
+  })
+  const mergedConfig = customDeepmerge(
+    defaultConfig,
+    userConfig
+  ) as MinistaConfig
+  return mergedConfig
 }
 
 export async function getConfig(
   userConfig: MinistaUserConfig
 ): Promise<MinistaConfig> {
-  const mergedConfig = {
-    ...defaultConfig,
-    outDir: userConfig.outDir || defaultConfig.outDir,
-    assetsDir: userConfig.assetsDir || defaultConfig.assetsDir,
-    bundleName: userConfig.bundleName || defaultConfig.bundleName,
-    iconsDir: userConfig.iconsDir || defaultConfig.iconsDir,
-    iconsName: userConfig.iconsName || defaultConfig.iconsName,
-    publicDir: userConfig.publicDir || defaultConfig.publicDir,
-  }
+  const mergedConfig = await mergeConfig(userConfig)
   return mergedConfig
 }

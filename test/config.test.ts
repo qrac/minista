@@ -1,13 +1,21 @@
 import { describe, expect, it } from "vitest"
 
-import { getConfig } from "../src/config"
+import { mergeConfig } from "../src/config"
 
-describe("getConfig", () => {
-  it("Merge outDir", async () => {
-    const userConfig = { outDir: "out" }
-    const result = await getConfig(userConfig)
+describe("mergeConfig", () => {
+  it("Test: merge config", async () => {
+    const userConfig = { out: "out" }
+    const result = await mergeConfig(userConfig)
 
     //console.log(result)
-    expect(result.outDir).toEqual(userConfig.outDir)
+    expect(result.out).toEqual(userConfig.out)
+  })
+
+  it("Test: deep merge config with override array", async () => {
+    const userConfig = { pages: { srcExt: ["tsx"] } }
+    const result = await mergeConfig(userConfig)
+
+    //console.log(result)
+    expect(result.pages.srcExt).toEqual(userConfig.pages.srcExt)
   })
 })

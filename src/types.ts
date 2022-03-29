@@ -9,52 +9,144 @@ import type {
 } from "js-beautify"
 
 export type MinistaConfig = {
-  outDir: string
-  assetsDir: string
-  bundleName: string
-  iconsDir: string
-  iconsName: string
-  publicDir: string
-  rootFileDir: string
-  rootFileName: string
-  rootFileExt: string[]
-  pagesDir: string
-  pagesExt: string[]
-  tempDir: string
-  tempConfigDir: string
-  tempViteImporterDir: string
-  tempAssetsDir: string
-  tempRootFileDir: string
-  tempPagesDir: string
-  tempIconsDir: string
+  base: string
+  public: string
+  src: string
+  out: string
+  root: {
+    srcDir: string
+    srcName: string
+    srcExt: string[]
+  }
+  pages: {
+    srcDir: string
+    srcExt: string[]
+  }
+  assets: {
+    entry: string | string[] | { [key: string]: string }
+    srcDir: string
+    outDir: string
+    bundle: {
+      outDir: string
+      outName: string
+    }
+    images: {
+      useDownload: boolean
+      outDir: string
+      outName: string
+    }
+    fonts: {
+      outDir: string
+      outName: string
+    }
+    icons: {
+      useSprite: boolean
+      srcDir: string
+      outDir: string
+      outName: string
+      svgstoreOptions: MinistaSvgstoreOptions
+    }
+  }
+  vite: vite.UserConfig | vite.UserConfigFn | vite.UserConfigExport
+  markdown: {
+    syntaxHighlighter: "highlight" | "none"
+    highlightOptions: HighlightOptions
+    mdxOptions: MdxOptions
+  }
+  beautify: {
+    useHtml: boolean
+    useCss: boolean
+    useJs: boolean
+    htmlOptions: HTMLBeautifyOptions
+    cssOptions: CSSBeautifyOptions
+    jsOptions: JSBeautifyOptions
+  }
 }
 
 export type MinistaUserConfig = {
-  entry?: string | string[] | { [key: string]: string }
-  outDir?: string
-  assetsDir?: string
-  bundleName?: string
-  iconsDir?: string
-  iconsName?: string
-  publicDir?: string
-  vite?: vite.UserConfig | vite.UserConfigFn
-  markdown?: MinistaMarkdownConfig
-  beautify?: MinistaBeautifyConfig
+  base?: string
+  public?: string
+  src?: string
+  out?: string
+  root?: {
+    srcDir?: string
+    srcName?: string
+    srcExt?: string[]
+  }
+  pages?: {
+    srcDir?: string
+    srcExt?: string[]
+  }
+  assets?: {
+    entry?: string | string[] | { [key: string]: string }
+    srcDir?: string
+    outDir?: string
+    bundle?: {
+      outDir?: string
+      outName?: string
+    }
+    images?: {
+      useDownload?: boolean
+      outDir?: string
+      outName?: string
+    }
+    fonts?: {
+      outDir?: string
+      outName?: string
+    }
+    icons?: {
+      useSprite?: boolean
+      srcDir?: string
+      outDir?: string
+      outName?: string
+      svgstoreOptions?: MinistaSvgstoreOptions
+    }
+  }
+  vite?: vite.UserConfig | vite.UserConfigFn | vite.UserConfigExport
+  markdown?: {
+    syntaxHighlighter?: "highlight" | "none"
+    highlightOptions?: HighlightOptions
+    mdxOptions?: MdxOptions
+  }
+  beautify?: {
+    useHtml?: boolean
+    useCss?: boolean
+    useJs?: boolean
+    htmlOptions?: HTMLBeautifyOptions
+    cssOptions?: CSSBeautifyOptions
+    jsOptions?: JSBeautifyOptions
+  }
 }
 
-export type MinistaMarkdownConfig = {
-  syntaxHighlighter?: "highlight" | "none"
-  highlightOptions?: HighlightOptions
-  mdxOptions?: MdxOptions
+export type MinistaSvgstoreOptions = {
+  cleanDefs?: Boolean | string[]
+  cleanSymbols?: Boolean | string[]
+  svgAttrs?: Boolean | { [key: string]: string }
+  symbolAttrs?: Boolean | { [key: string]: string }
+  copyAttrs?: Boolean | string[]
+  renameDefs?: Boolean
 }
 
-export type MinistaBeautifyConfig = {
-  useHtml?: boolean
-  useCss?: boolean
-  useJs?: boolean
-  htmlOptions?: HTMLBeautifyOptions
-  cssOptions?: CSSBeautifyOptions
-  jsOptions?: JSBeautifyOptions
+export type MinistaTempConfig = {
+  out: string
+  config: {
+    outDir: string
+  }
+  viteImporter: {
+    outDir: string
+  }
+  root: {
+    outDir: string
+  }
+  pages: {
+    outDir: string
+  }
+  assets: {
+    outDir: string
+  }
+  icons: {
+    outDir: string
+  }
 }
 
 export type MinistaLocation = {

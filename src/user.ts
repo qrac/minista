@@ -1,8 +1,9 @@
 import path from "path"
 import { build as esBuild } from "esbuild"
 
-import { MinistaUserConfig } from "./types.js"
-import { defaultConfig } from "./config.js"
+import type { MinistaUserConfig } from "./types.js"
+
+import { tempConfig } from "./config.js"
 import { getSameFilePaths } from "./path.js"
 import { getFilename, getFilenameObject } from "./utils.js"
 
@@ -20,13 +21,13 @@ export async function getUserConfig(): Promise<MinistaUserConfig> {
     await esBuild({
       entryPoints: [userConfigPaths[0]],
       outExtension: { ".js": ".mjs" },
-      outdir: defaultConfig.tempConfigDir,
+      outdir: tempConfig.config.outDir,
       bundle: false,
       format: "esm",
       platform: "node",
     }).catch(() => process.exit(1))
     const { default: userConfig } = await import(
-      path.resolve(`${defaultConfig.tempConfigDir}/minista.config.mjs`)
+      path.resolve(`${tempConfig.config.outDir}/minista.config.mjs`)
     )
     return userConfig ? resolveMinistaUserConfig(userConfig) : {}
   } else {
@@ -35,8 +36,6 @@ export async function getUserConfig(): Promise<MinistaUserConfig> {
 }
 
 export async function resolveMinistaUserConfig(userConfig: MinistaUserConfig) {
-  let config = userConfig
-
   function resolveEntry(entry: string | string[] | {}) {
     const result1 =
       typeof entry === "object"
@@ -63,37 +62,37 @@ export async function resolveMinistaUserConfig(userConfig: MinistaUserConfig) {
     return result4
   }
 
-  const entry = config.entry ? config.entry : {}
+  const entry = userConfig.entry ? userConfig.entry : {}
   const resolvedEntry = resolveEntry(entry)
   const viteEntry =
-    typeof config.vite === "object"
-      ? config.vite?.build?.rollupOptions?.input
-        ? config.vite?.build?.rollupOptions?.input
+    typeof userConfig.vite === "object"
+      ? userConfig.vite?.build?.rollupOptions?.input
+        ? userConfig.vite?.build?.rollupOptions?.input
         : {}
       : {}
   const resolvedViteEntry = resolveEntry(viteEntry)
   const mergedEntry = { ...resolvedEntry, ...resolvedViteEntry }
 
   const vitePublicDir =
-    typeof config.vite === "object"
-      ? config.vite.publicDir
-        ? config.vite.publicDir
+    typeof userConfig.vite === "object"
+      ? userConfig.vite.publicDir
+        ? userConfig.vite.publicDir
         : "public"
       : "public"
   const viteBuildConfig =
-    typeof config.vite === "object"
-      ? config.vite.build
-        ? config.vite.build
+    typeof userConfig.vite === "object"
+      ? userConfig.vite.build
+        ? userConfig.vite.build
         : {}
       : {}
 
   const resolved = {
-    ...config,
+    ...userConfig,
     entry: mergedEntry,
     vite: {
-      ...config.vite,
-      publicDir: config.publicDir
-        ? config.publicDir
+      ...userConfig.vite,
+      publicDir: userConfig.publicDir
+        ? userConfig.publicDir
         : vitePublicDir
         ? vitePublicDir
         : "public",
