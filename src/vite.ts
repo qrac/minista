@@ -16,8 +16,8 @@ import svgstore from "svgstore"
 
 import type { MinistaConfig, MinistaSvgstoreOptions } from "./types.js"
 
-import { defaultConfig } from "./config.js"
 import { systemConfig } from "./system.js"
+import { getFilename, getFilenameObject } from "./utils.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,6 +34,11 @@ export async function getViteConfig(
     build: {
       assetsInlineLimit: 0,
       rollupOptions: {
+        input: config.assets.entry
+          ? resolveEntry(config.assets.entry)
+          : config.vite.build?.rollupOptions?.input
+          ? resolveEntry(config.vite.build?.rollupOptions?.input)
+          : "",
         output: {
           manualChunks: undefined,
           entryFileNames: `${config.assets.outDir}/${config.assets.outName}.js`,
@@ -103,36 +108,64 @@ export async function getViteConfig(
     },
     customLogger: createLogger("info", { prefix: "[minista]" }),
   })
+
   const mergedViteConfig = mergeViteConfig(viteConfig, config.vite)
 
-  const assetsOutDir = config.assets.outDir
-  const iconsOutDir = config.assets.icons.outDir
-  const iconsName = config.assets.icons.outName
-  const iconsOutputPath = `${config.base}${assetsOutDir && assetsOutDir + "/"}${
-    iconsOutDir && iconsOutDir + "/"
-  }${iconsName}.svg`
-  const iconsTempOutputPath = `${systemConfig.temp.icons.outDir}/${
-    assetsOutDir && assetsOutDir + "/"
-  }${iconsOutDir && iconsOutDir + "/"}${iconsName}.svg`
+  if (config.assets.icons.useSprite) {
+    const assetsOutDir = config.assets.outDir
+    const iconsOutDir = config.assets.icons.outDir
+    const iconsName = config.assets.icons.outName
+    const iconsOutputPath = `${config.base}${
+      assetsOutDir && assetsOutDir + "/"
+    }${iconsOutDir && iconsOutDir + "/"}${iconsName}.svg`
+    const iconsTempOutputPath = `${systemConfig.temp.icons.outDir}/${
+      assetsOutDir && assetsOutDir + "/"
+    }${iconsOutDir && iconsOutDir + "/"}${iconsName}.svg`
 
-  const iconsPlugin = vitePluginMinistaSvgSpriteIcons(
-    config.assets.icons.srcDir,
-    config.out + iconsOutputPath,
-    config.assets.icons.svgstoreOptions,
-    iconsTempOutputPath
-  )
-  const iconsResolveAlias = {
-    find: iconsOutputPath,
-    replacement: path.resolve(iconsTempOutputPath),
-  }
-  const mdxPlugin = mdx(config.markdown.mdxOptions)
-
-  config.assets.icons.useSprite && mergedViteConfig.plugins.push(iconsPlugin)
-  config.assets.icons.useSprite &&
+    const iconsPlugin = vitePluginMinistaSvgSpriteIcons(
+      config.assets.icons.srcDir,
+      config.out + iconsOutputPath,
+      config.assets.icons.svgstoreOptions,
+      iconsTempOutputPath
+    )
+    const iconsResolveAlias = {
+      find: iconsOutputPath,
+      replacement: path.resolve(iconsTempOutputPath),
+    }
+    mergedViteConfig.plugins.push(iconsPlugin)
     mergedViteConfig.resolve.alias.push(iconsResolveAlias)
+  }
+
+  const mdxPlugin = mdx(config.markdown.mdxOptions)
   mergedViteConfig.plugins.push(mdxPlugin)
 
   return mergedViteConfig
+}
+
+export function resolveEntry(entry: string | string[] | {}): {} {
+  const result1 =
+    typeof entry === "object"
+      ? entry
+      : typeof entry === "string"
+      ? { [getFilename(entry)]: entry }
+      : Array.isArray(entry)
+      ? getFilenameObject(entry)
+      : {}
+  const result2 = Object.entries(result1)
+  const result3 =
+    result2.length > 0
+      ? result2.map((item) => {
+          const strUrl = item[1] as string
+          const rootUrl = strUrl.startsWith("./")
+            ? strUrl.replace(/^\.\//, "")
+            : strUrl.startsWith("/")
+            ? strUrl.replace(/^\//, "")
+            : strUrl
+          return [item[0], rootUrl]
+        })
+      : result2
+  const result4 = Object.fromEntries(result3)
+  return result4
 }
 
 export function vitePluginMinistaVirtualHtml(): Plugin {

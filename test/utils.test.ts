@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  valueToStringObject,
-  sortObject,
-  getFilename,
-  getFilenameObject,
-} from "../src/utils"
+import { getFilename, getFilenameObject } from "../src/utils"
 
 describe("getFilename", () => {
   it("Test: getFilename", () => {
