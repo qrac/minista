@@ -419,7 +419,7 @@ export const getRoots = () => {
 
 export async function buildViteImporterRoutes(config: MinistaConfig) {
   const outFile = systemConfig.temp.viteImporter.outDir + "/routes.js"
-  const pagesDir = config.pages.srcDir
+  const pagesDir = slashEnd(config.root.srcDir) + slashEnd(config.pages.srcDir)
   const pagesExtStr = config.pages.srcExt.join()
   const pagesDirRegStr = config.pages.srcDir.replace(/\//g, "\\/")
   const replaceArray = config.pages.srcExt.map((ext) => {
@@ -427,7 +427,7 @@ export async function buildViteImporterRoutes(config: MinistaConfig) {
   })
   const replaceArrayStr = replaceArray.join("\n      ")
   const template = `export const getRoutes = () => {
-  const ROUTES = import.meta.globEager("/${pagesDir}/**/[a-z[]*.{${pagesExtStr}}")
+  const ROUTES = import.meta.globEager("/${pagesDir}**/[a-z[]*.{${pagesExtStr}}")
   const routes = Object.keys(ROUTES).map((route) => {
     const routePath = route
       ${replaceArrayStr}
