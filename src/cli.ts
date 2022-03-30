@@ -9,6 +9,7 @@ import { getMdxConfig } from "./mdx.js"
 import { getBeautifyConfig } from "./beautify.js"
 import { emptyResolveDir } from "./empty.js"
 import { createDevServer } from "./server.js"
+import { previewLocal } from "./preview.js"
 import {
   generateViteImporters,
   generateTempRoot,
@@ -19,7 +20,6 @@ import {
   generatePublic,
   generateBeautify,
 } from "./generate.js"
-import { previewLocal } from "./preview.js"
 
 function printVersion() {
   const pkgURL = new URL("../package.json", import.meta.url)
