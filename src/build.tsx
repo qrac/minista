@@ -28,6 +28,7 @@ import type {
 import { systemConfig } from "./system.js"
 import { resolvePlugin } from "./esbuild.js"
 import { renderHtml } from "./render.js"
+import { slashEnd } from "./utils.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -392,7 +393,7 @@ export async function buildAssetsTagStr(
 
 export async function buildViteImporterRoots(config: MinistaConfig) {
   const outFile = systemConfig.temp.viteImporter.outDir + "/roots.js"
-  const rootSrcDir = config.root.srcDir && config.root.srcDir + "/"
+  const rootSrcDir = slashEnd(config.root.srcDir)
   const rootSrcName = config.root.srcName
   const rootExtStr = config.root.srcExt.join()
   const template = `import { Fragment } from "react"
