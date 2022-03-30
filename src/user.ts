@@ -23,7 +23,7 @@ export async function getUserConfig(
     await esBuild({
       entryPoints: [userConfigPaths[0]],
       outExtension: { ".js": ".mjs" },
-      outdir: systemConfig.temp.config.outDir,
+      outdir: path.resolve(systemConfig.temp.config.outDir),
       bundle: false,
       format: "esm",
       platform: "node",

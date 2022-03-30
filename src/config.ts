@@ -1,10 +1,6 @@
 import { deepmergeCustom } from "deepmerge-ts"
 
-import type {
-  MinistaConfig,
-  MinistaUserConfig,
-  MinistaSystemConfig,
-} from "./types.js"
+import type { MinistaConfig, MinistaUserConfig } from "./types.js"
 
 export const defaultConfig: MinistaConfig = {
   base: "/",
