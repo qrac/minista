@@ -112,18 +112,22 @@ export async function getViteConfig(
   const mergedViteConfig = mergeViteConfig(viteConfig, config.vite)
 
   if (config.assets.icons.useSprite) {
-    const assetsOutDir = config.assets.outDir
-    const iconsOutDir = config.assets.icons.outDir
-    const iconsName = config.assets.icons.outName
+    const iconSrcDir = `${config.src && config.src + "/"}${
+      config.assets.srcDir && config.assets.srcDir + "/"
+    }${config.assets.icons.srcDir}`
     const iconsOutputPath = `${config.base}${
-      assetsOutDir && assetsOutDir + "/"
-    }${iconsOutDir && iconsOutDir + "/"}${iconsName}.svg`
+      config.assets.outDir && config.assets.outDir + "/"
+    }${config.assets.icons.outDir && config.assets.icons.outDir + "/"}${
+      config.assets.icons.outName
+    }.svg`
     const iconsTempOutputPath = `${systemConfig.temp.icons.outDir}/${
-      assetsOutDir && assetsOutDir + "/"
-    }${iconsOutDir && iconsOutDir + "/"}${iconsName}.svg`
+      config.assets.outDir && config.assets.outDir + "/"
+    }${config.assets.icons.outDir && config.assets.icons.outDir + "/"}${
+      config.assets.icons.outName
+    }.svg`
 
     const iconsPlugin = vitePluginMinistaSvgSpriteIcons(
-      config.assets.icons.srcDir,
+      iconSrcDir,
       config.out + iconsOutputPath,
       config.assets.icons.svgstoreOptions,
       iconsTempOutputPath
