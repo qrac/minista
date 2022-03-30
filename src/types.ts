@@ -26,6 +26,7 @@ export type MinistaConfig = {
     entry: string | string[] | { [key: string]: string }
     srcDir: string
     outDir: string
+    outName: string
     bundle: {
       outDir: string
       outName: string
@@ -81,6 +82,7 @@ export type MinistaUserConfig = {
     entry?: string | string[] | { [key: string]: string }
     srcDir?: string
     outDir?: string
+    outName?: string
     bundle?: {
       outDir?: string
       outName?: string

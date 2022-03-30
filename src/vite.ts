@@ -1,133 +1,138 @@
-import type { Plugin, ResolvedConfig } from "vite"
-import type { Options as MdxOptions } from "@mdx-js/esbuild"
+import type { UserConfig as ViteConfig, Plugin, ResolvedConfig } from "vite"
 
 import fs from "fs-extra"
 import path from "path"
 import url from "url"
 import {
-  defineConfig,
+  defineConfig as defineViteConfig,
   searchForWorkspaceRoot,
   createLogger,
-  mergeConfig,
+  mergeConfig as mergeViteConfig,
 } from "vite"
 import react from "@vitejs/plugin-react"
 import mdx from "@mdx-js/rollup"
 //@ts-ignore
 import svgstore from "svgstore"
 
-import type { MinistaUserConfig } from "./types.js"
+import type { MinistaConfig, MinistaSvgstoreOptions } from "./types.js"
 
 import { defaultConfig } from "./config.js"
+import { systemConfig } from "./system.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export const imgExt = ["jpg", "jpeg", "gif", "png", "webp", "svg"]
-export const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
-
-export const defaultViteConfig = defineConfig({
-  build: {
-    assetsInlineLimit: 0,
-    rollupOptions: {
-      output: {
-        manualChunks: undefined,
-        entryFileNames: `${defaultConfig.assetsDir}/[name].js`,
-        //chunkFileNames: `${defaultConfig.assetsDir}/[name].js`,
-        //assetFileNames: `${defaultConfig.assetsDir}/[name].[ext]`,
-        assetFileNames: (chunkInfo) => {
-          const fileExtname = chunkInfo.name && path.extname(chunkInfo.name)
-          const fileExt = fileExtname && fileExtname.slice(1)
-
-          if (fileExt && imgExt.includes(fileExt)) {
-            return `${defaultConfig.assetsDir}/images/[name].[ext]`
-          } else if (fileExt && fontExt.includes(fileExt)) {
-            return `${defaultConfig.assetsDir}/fonts/[name].[ext]`
-          } else {
-            return `${defaultConfig.assetsDir}/[name].[ext]`
-          }
-        },
-      },
-    },
-  },
-  server: {
-    fs: {
-      allow: [
-        searchForWorkspaceRoot(process.cwd()),
-        path.resolve(__dirname + "/../"),
-        path.resolve(defaultConfig.tempIconsDir),
-      ],
-    },
-  },
-  resolve: {
-    alias: [
-      {
-        find: "/@minista",
-        replacement: path.resolve(__dirname + "/../"),
-      },
-      {
-        find: "/@minista-temp",
-        replacement: path.resolve(defaultConfig.tempDir),
-      },
-      {
-        find: "react/jsx-runtime",
-        replacement: "react/jsx-runtime.js",
-      },
-    ],
-  },
-  plugins: [react(), vitePluginMinistaVirtualHtml()],
-  optimizeDeps: {
-    //entries: path.resolve(__dirname + "/../lib/index.html"),
-    include: [
-      "minista",
-      "react",
-      "react-dom",
-      "react-router-dom",
-      "react/jsx-runtime.js",
-      "react-helmet",
-    ],
-  },
-  customLogger: createLogger("info", { prefix: "[minista]" }),
-})
-
 export async function getViteConfig(
-  userConfig: MinistaUserConfig,
-  mdxConfig?: MdxOptions
-) {
-  const mergedConfig = userConfig.vite
-    ? mergeConfig(defaultViteConfig, userConfig.vite)
-    : defaultViteConfig
+  config: MinistaConfig
+): Promise<ViteConfig> {
+  const imgExt = ["jpg", "jpeg", "gif", "png", "webp", "svg"]
+  const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
 
-  const outDir = userConfig.outDir || defaultConfig.outDir
-  const assetsDir = userConfig.assetsDir || defaultConfig.assetsDir
-  const iconsDir = userConfig.iconsDir || defaultConfig.iconsDir
-  const iconsName = userConfig.iconsName || defaultConfig.iconsName
-  const tempIconsDir = defaultConfig.tempIconsDir
+  const viteConfig = defineViteConfig({
+    base: config.base || "/",
+    publicDir: config.public || "public",
+    build: {
+      assetsInlineLimit: 0,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+          entryFileNames: `${config.assets.outDir}/${config.assets.outName}.js`,
+          //chunkFileNames: `${config.assets.outDir}/${config.assets.outName}.js`,
+          //assetFileNames: `${config.assets.outDir}/${config.assets.outName}.[ext]`,
+          assetFileNames: (chunkInfo) => {
+            const fileExtname = chunkInfo.name && path.extname(chunkInfo.name)
+            const fileExt = fileExtname && fileExtname.slice(1)
 
-  const mergedConfigWithIcons = mergeConfig(mergedConfig, {
-    plugins: [
-      vitePluginMinistaSvgSpriteIcons(
-        {
-          inputFolder: iconsDir,
-          output: `${outDir}/${assetsDir}/${iconsName}.svg`,
+            if (fileExt && imgExt.includes(fileExt)) {
+              const _out = config.assets.outDir
+              const _out2 = config.assets.images.outDir
+              const _name = config.assets.images.outName
+              //prettier-ignore
+              return `${_out && _out + "/"}${_out2 && _out2 + "/"}${_name}.[ext]`
+            } else if (fileExt && fontExt.includes(fileExt)) {
+              const _out = config.assets.outDir
+              const _out2 = config.assets.fonts.outDir
+              const _name = config.assets.fonts.outName
+              //prettier-ignore
+              return `${_out && _out + "/"}${_out2 && _out2 + "/"}${_name}.[ext]`
+            } else {
+              const _out = config.assets.outDir
+              const _name = config.assets.outName
+              return `${_out && _out + "/"}${_name}.[ext]`
+            }
+          },
         },
-        `${tempIconsDir}/${assetsDir}/${iconsName}.svg`
-      ),
-    ],
+      },
+    },
+    server: {
+      fs: {
+        allow: [
+          searchForWorkspaceRoot(process.cwd()),
+          path.resolve(__dirname + "/../"),
+          path.resolve(systemConfig.temp.icons.outDir),
+        ],
+      },
+    },
     resolve: {
       alias: [
         {
-          find: `/${assetsDir}/${iconsName}.svg`,
-          replacement: path.resolve(
-            `${tempIconsDir}/${assetsDir}/${iconsName}.svg`
-          ),
+          find: "/@minista",
+          replacement: path.resolve(__dirname + "/../"),
+        },
+        {
+          find: "/@minista-temp",
+          replacement: path.resolve(systemConfig.temp.out),
+        },
+        {
+          find: "react/jsx-runtime",
+          replacement: "react/jsx-runtime.js",
         },
       ],
     },
+    plugins: [react(), vitePluginMinistaVirtualHtml()],
+    optimizeDeps: {
+      //entries: path.resolve(__dirname + "/../lib/index.html"),
+      include: [
+        "minista",
+        "react",
+        "react-dom",
+        "react-router-dom",
+        "react/jsx-runtime.js",
+        "react-helmet",
+      ],
+    },
+    customLogger: createLogger("info", { prefix: "[minista]" }),
   })
-  const mergedConfigWithMdx = mdxConfig
-    ? mergeConfig(mergedConfigWithIcons, { plugins: [mdx(mdxConfig)] })
-    : mergedConfig
-  return mergedConfigWithMdx
+  const mergedViteConfig = mergeViteConfig(viteConfig, config.vite)
+
+  const assetsOutDir = config.assets.outDir
+  const iconsOutDir = config.assets.icons.outDir
+  const iconsName = config.assets.icons.outName
+  const iconsOutputPath = `${config.base}${assetsOutDir && assetsOutDir + "/"}${
+    iconsOutDir && iconsOutDir + "/"
+  }${iconsName}.svg`
+  const iconsTempOutputPath = `${systemConfig.temp.icons.outDir}/${
+    assetsOutDir && assetsOutDir + "/"
+  }${iconsOutDir && iconsOutDir + "/"}${iconsName}.svg`
+
+  const iconsPlugin = vitePluginMinistaSvgSpriteIcons(
+    config.assets.icons.srcDir,
+    config.out + iconsOutputPath,
+    config.assets.icons.svgstoreOptions,
+    iconsTempOutputPath
+  )
+  const iconsResolveAlias = {
+    find: iconsOutputPath,
+    replacement: path.resolve(iconsTempOutputPath),
+  }
+  const mdxPlugin = mdx(config.markdown.mdxOptions)
+
+  config.assets.icons.useSprite && mergedViteConfig.plugins.push(iconsPlugin)
+  config.assets.icons.useSprite &&
+    mergedViteConfig.resolve.alias.push(iconsResolveAlias)
+  mergedViteConfig.plugins.push(mdxPlugin)
+
+  return mergedViteConfig
 }
 
 export function vitePluginMinistaVirtualHtml(): Plugin {
@@ -202,23 +207,20 @@ export function vitePluginMinistaVirtualHtml(): Plugin {
 
 /*! Fork: rollup-plugin-svg-icons | https://github.com/AlexxNB/rollup-plugin-svg-icons */
 export function vitePluginMinistaSvgSpriteIcons(
-  options: {
-    inputFolder: string
-    output: string
-  },
+  inputFolder: string,
+  output: string,
+  options: MinistaSvgstoreOptions = {},
   tempOutput: string
 ): Plugin {
   function getSprite() {
-    const sprites = svgstore(options)
-    const icons_dir = path.resolve(options.inputFolder)
+    const sprites = svgstore({ inputFolder, output })
+    const icons_dir = path.resolve(inputFolder)
 
     for (const file of fs.readdirSync(icons_dir)) {
       const filepath = path.join(icons_dir, file)
       const svgid = path.parse(file).name
       let code = fs.readFileSync(filepath, { encoding: "utf-8" })
-      sprites.add(svgid, code, {
-        cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
-      })
+      sprites.add(svgid, code, options)
     }
     return sprites
       .toString({ inline: true })
@@ -238,7 +240,7 @@ export function vitePluginMinistaSvgSpriteIcons(
       if (config.command === "serve") {
         fs.outputFileSync(path.resolve(tempOutput), getSprite())
       } else {
-        fs.outputFileSync(path.resolve(options.output), getSprite())
+        fs.outputFileSync(path.resolve(output), getSprite())
       }
     },
   }
