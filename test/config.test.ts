@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { mergeConfig } from "../src/config"
+import { mergeConfig, resolveConfig, defaultConfig } from "../src/config"
 
 describe("mergeConfig", () => {
   it("Test: mergeConfig", async () => {
@@ -17,5 +17,23 @@ describe("mergeConfig", () => {
 
     //console.log(result)
     expect(result.pages.srcExt).toEqual(userConfig.pages.srcExt)
+  })
+})
+
+describe("resolveConfig", () => {
+  it("Test: resolveConfig", async () => {
+    const result = await resolveConfig(defaultConfig)
+
+    //console.log(result)
+    expect(result.viteAssetsOutput).toEqual("assets/[name].[ext]")
+    expect(result.viteAssetsImagesOutput).toEqual("assets/images/[name].[ext]")
+    expect(result.viteAssetsFontsOutput).toEqual("assets/fonts/[name].[ext]")
+    expect(result.vitePluginSvgSpriteIconsSrcDir).toEqual("src/assets/icons")
+    expect(result.vitePluginSvgSpriteIconsOutput).toEqual(
+      "/assets/images/icons.svg"
+    )
+    expect(result.vitePluginSvgSpriteIconsTempOutput).toEqual(
+      "node_modules/.minista/svg-sprite-icons/assets/images/icons.svg"
+    )
   })
 })

@@ -1,6 +1,13 @@
 import { deepmergeCustom } from "deepmerge-ts"
 
-import type { MinistaConfig, MinistaUserConfig } from "./types.js"
+import type {
+  MinistaConfig,
+  MinistaUserConfig,
+  MinistaResolveConfig,
+} from "./types.js"
+
+import { systemConfig } from "./system.js"
+import { slashEnd, noSlashEnd } from "./utils.js"
 
 export const defaultConfig: MinistaConfig = {
   base: "/",
@@ -81,9 +88,49 @@ export async function mergeConfig(
   return mergedConfig
 }
 
+export async function resolveConfig(
+  config: MinistaConfig
+): Promise<MinistaResolveConfig> {
+  const resolvedConfig = {
+    ...config,
+    viteAssetsOutput:
+      slashEnd(config.assets.outDir) +
+      noSlashEnd(config.assets.outName) +
+      ".[ext]",
+    viteAssetsImagesOutput:
+      slashEnd(config.assets.outDir) +
+      slashEnd(config.assets.images.outDir) +
+      noSlashEnd(config.assets.images.outName) +
+      ".[ext]",
+    viteAssetsFontsOutput:
+      slashEnd(config.assets.outDir) +
+      slashEnd(config.assets.fonts.outDir) +
+      noSlashEnd(config.assets.fonts.outName) +
+      ".[ext]",
+    vitePluginSvgSpriteIconsSrcDir:
+      slashEnd(config.src) +
+      slashEnd(config.assets.srcDir) +
+      noSlashEnd(config.assets.icons.srcDir),
+    vitePluginSvgSpriteIconsOutput:
+      slashEnd(config.base) +
+      slashEnd(config.assets.outDir) +
+      slashEnd(config.assets.icons.outDir) +
+      noSlashEnd(config.assets.icons.outName) +
+      ".svg",
+    vitePluginSvgSpriteIconsTempOutput:
+      slashEnd(systemConfig.temp.icons.outDir) +
+      slashEnd(config.assets.outDir) +
+      slashEnd(config.assets.icons.outDir) +
+      noSlashEnd(config.assets.icons.outName) +
+      ".svg",
+  }
+  return resolvedConfig
+}
+
 export async function getConfig(
   userConfig: MinistaUserConfig
-): Promise<MinistaConfig> {
+): Promise<MinistaResolveConfig> {
   const mergedConfig = await mergeConfig(userConfig)
-  return mergedConfig
+  const resolvedConfig = await resolveConfig(mergedConfig)
+  return resolvedConfig
 }

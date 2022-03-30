@@ -129,6 +129,17 @@ export type MinistaSvgstoreOptions = {
   renameDefs?: Boolean
 }
 
+export type MinistaResolveConfig = MinistaConfig & MinistaResolvePathConfig
+
+export type MinistaResolvePathConfig = {
+  viteAssetsOutput: string
+  viteAssetsImagesOutput: string
+  viteAssetsFontsOutput: string
+  vitePluginSvgSpriteIconsSrcDir: string
+  vitePluginSvgSpriteIconsOutput: string
+  vitePluginSvgSpriteIconsTempOutput: string
+}
+
 export type MinistaSystemConfig = {
   temp: {
     out: string

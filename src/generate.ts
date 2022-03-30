@@ -1,7 +1,7 @@
 import type { UserConfig as ViteConfig, InlineConfig } from "vite"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
-import type { MinistaConfig, MinistaUserConfig } from "./types.js"
+import type { MinistaConfig } from "./types.js"
 
 import { getFilePath, getFilePaths, getSameFilePaths } from "./path.js"
 import {

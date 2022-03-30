@@ -14,7 +14,7 @@ import mdx from "@mdx-js/rollup"
 //@ts-ignore
 import svgstore from "svgstore"
 
-import type { MinistaConfig, MinistaSvgstoreOptions } from "./types.js"
+import type { MinistaResolveConfig, MinistaSvgstoreOptions } from "./types.js"
 
 import { systemConfig } from "./system.js"
 import { getFilename, getFilenameObject } from "./utils.js"
@@ -23,7 +23,7 @@ const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export async function getViteConfig(
-  config: MinistaConfig
+  config: MinistaResolveConfig
 ): Promise<ViteConfig> {
   const imgExt = ["jpg", "jpeg", "gif", "png", "webp", "svg"]
   const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
@@ -32,6 +32,7 @@ export async function getViteConfig(
     base: config.base || "/",
     publicDir: config.public || "public",
     build: {
+      outDir: config.out || config.vite.build?.outDir || "dist",
       assetsInlineLimit: 0,
       rollupOptions: {
         input: config.assets.entry
@@ -49,21 +50,11 @@ export async function getViteConfig(
             const fileExt = fileExtname && fileExtname.slice(1)
 
             if (fileExt && imgExt.includes(fileExt)) {
-              const _out = config.assets.outDir
-              const _out2 = config.assets.images.outDir
-              const _name = config.assets.images.outName
-              //prettier-ignore
-              return `${_out && _out + "/"}${_out2 && _out2 + "/"}${_name}.[ext]`
+              return config.viteAssetsImagesOutput
             } else if (fileExt && fontExt.includes(fileExt)) {
-              const _out = config.assets.outDir
-              const _out2 = config.assets.fonts.outDir
-              const _name = config.assets.fonts.outName
-              //prettier-ignore
-              return `${_out && _out + "/"}${_out2 && _out2 + "/"}${_name}.[ext]`
+              return config.viteAssetsFontsOutput
             } else {
-              const _out = config.assets.outDir
-              const _name = config.assets.outName
-              return `${_out && _out + "/"}${_name}.[ext]`
+              return config.viteAssetsOutput
             }
           },
         },
@@ -112,29 +103,15 @@ export async function getViteConfig(
   const mergedViteConfig = mergeViteConfig(viteConfig, config.vite)
 
   if (config.assets.icons.useSprite) {
-    const iconSrcDir = `${config.src && config.src + "/"}${
-      config.assets.srcDir && config.assets.srcDir + "/"
-    }${config.assets.icons.srcDir}`
-    const iconsOutputPath = `${config.base}${
-      config.assets.outDir && config.assets.outDir + "/"
-    }${config.assets.icons.outDir && config.assets.icons.outDir + "/"}${
-      config.assets.icons.outName
-    }.svg`
-    const iconsTempOutputPath = `${systemConfig.temp.icons.outDir}/${
-      config.assets.outDir && config.assets.outDir + "/"
-    }${config.assets.icons.outDir && config.assets.icons.outDir + "/"}${
-      config.assets.icons.outName
-    }.svg`
-
     const iconsPlugin = vitePluginMinistaSvgSpriteIcons(
-      iconSrcDir,
-      config.out + iconsOutputPath,
+      config.vitePluginSvgSpriteIconsSrcDir,
+      config.out + config.vitePluginSvgSpriteIconsOutput,
       config.assets.icons.svgstoreOptions,
-      iconsTempOutputPath
+      config.vitePluginSvgSpriteIconsTempOutput
     )
     const iconsResolveAlias = {
-      find: iconsOutputPath,
-      replacement: path.resolve(iconsTempOutputPath),
+      find: config.vitePluginSvgSpriteIconsOutput,
+      replacement: path.resolve(config.vitePluginSvgSpriteIconsTempOutput),
     }
     mergedViteConfig.plugins.push(iconsPlugin)
     mergedViteConfig.resolve.alias.push(iconsResolveAlias)
