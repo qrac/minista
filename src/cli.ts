@@ -38,7 +38,7 @@ cli
       const userConfig = await getUserConfig()
       const config = await getConfig(userConfig)
       const mdxConfig = await getMdxConfig(config)
-      const viteConfig = await getViteConfig(userConfig, mdxConfig)
+      const viteConfig = await getViteConfig(config)
 
       await Promise.all([
         emptyResolveDir(systemConfig.temp.viteImporter.outDir),
@@ -57,7 +57,7 @@ cli.command("build [root]").action(async () => {
     const userConfig = await getUserConfig()
     const config = await getConfig(userConfig)
     const mdxConfig = await getMdxConfig(config)
-    const viteConfig = await getViteConfig(userConfig, mdxConfig)
+    const viteConfig = await getViteConfig(config)
     const beautifyConfig = await getBeautifyConfig(userConfig)
 
     await Promise.all([
@@ -89,7 +89,8 @@ cli.command("build [root]").action(async () => {
 cli.command("preview [root]").action(async () => {
   try {
     const userConfig = await getUserConfig()
-    const viteConfig = await getViteConfig(userConfig)
+    const config = await getConfig(userConfig)
+    const viteConfig = await getViteConfig(config)
 
     await previewLocal(viteConfig)
   } catch (err) {
