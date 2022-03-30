@@ -3,8 +3,8 @@ import { cac } from "cac"
 
 import { getUserConfig } from "./user.js"
 import { getConfig } from "./config.js"
+import { systemConfig } from "./system.js"
 import { getViteConfig } from "./vite.js"
-import { getMarkdownConfig } from "./markdown.js"
 import { getMdxConfig } from "./mdx.js"
 import { getBeautifyConfig } from "./beautify.js"
 import { emptyResolveDir } from "./empty.js"
@@ -37,13 +37,12 @@ cli
     try {
       const userConfig = await getUserConfig()
       const config = await getConfig(userConfig)
-      const markdownConfig = await getMarkdownConfig(userConfig)
-      const mdxConfig = await getMdxConfig(markdownConfig)
+      const mdxConfig = await getMdxConfig(config)
       const viteConfig = await getViteConfig(userConfig, mdxConfig)
 
       await Promise.all([
-        emptyResolveDir(config.tempViteImporterDir),
-        emptyResolveDir(config.tempIconsDir),
+        emptyResolveDir(systemConfig.temp.viteImporter.outDir),
+        emptyResolveDir(systemConfig.temp.icons.outDir),
       ])
       await generateViteImporters(config, userConfig)
       await createDevServer(viteConfig)
@@ -57,17 +56,16 @@ cli.command("build [root]").action(async () => {
   try {
     const userConfig = await getUserConfig()
     const config = await getConfig(userConfig)
-    const markdownConfig = await getMarkdownConfig(userConfig)
-    const mdxConfig = await getMdxConfig(markdownConfig)
+    const mdxConfig = await getMdxConfig(config)
     const viteConfig = await getViteConfig(userConfig, mdxConfig)
     const beautifyConfig = await getBeautifyConfig(userConfig)
 
     await Promise.all([
-      emptyResolveDir(config.tempRootFileDir),
-      emptyResolveDir(config.tempAssetsDir),
-      emptyResolveDir(config.tempPagesDir),
-      emptyResolveDir(config.tempViteImporterDir),
-      emptyResolveDir(config.outDir),
+      emptyResolveDir(systemConfig.temp.root.outDir),
+      emptyResolveDir(systemConfig.temp.assets.outDir),
+      emptyResolveDir(systemConfig.temp.pages.outDir),
+      emptyResolveDir(systemConfig.temp.viteImporter.outDir),
+      emptyResolveDir(config.out),
     ])
     await Promise.all([generateViteImporters(config, userConfig)])
     await Promise.all([

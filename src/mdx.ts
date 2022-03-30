@@ -1,4 +1,3 @@
-import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type { PluggableList, Pluggable } from "unified"
 
 import remarkFrontmatter from "remark-frontmatter"
@@ -6,53 +5,35 @@ import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 import remarkGfm from "remark-gfm"
 import rehypeHighlight from "rehype-highlight"
 
-import type { MinistaMarkdownConfig } from "./types.js"
-import { defaultMarkdownConfig } from "./markdown.js"
+import type { MinistaConfig } from "./types.js"
 
-export const defaultMdxConfig: MdxOptions = {
-  remarkPlugins: [],
-  rehypePlugins: [],
-}
+export async function getMdxConfig(config: MinistaConfig) {
+  const syntaxHighlighter = config.markdown.syntaxHighlighter
+  const highlightOptions = config.markdown.highlightOptions
+  const mdxConfig = config.markdown.mdxOptions
 
-export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
-  const syntaxHighlighter =
-    markdownConfig.syntaxHighlighter || defaultMarkdownConfig.syntaxHighlighter
-  const highlightOptions =
-    markdownConfig.highlightOptions || defaultMarkdownConfig.highlightOptions
-
-  const mergedConfig = markdownConfig.mdxOptions
-    ? { ...defaultMdxConfig, ...markdownConfig.mdxOptions }
-    : defaultMdxConfig
-
-  function getPluginNames(plugins: PluggableList) {
-    return plugins?.map((plugin: Pluggable<any[]>) =>
-      //@ts-ignore
-      plugin.name ? plugin.name : plugin[0].name
-    )
-  }
-
-  const remarkPluginNames = mergedConfig.remarkPlugins
-    ? getPluginNames(mergedConfig.remarkPlugins)
+  const remarkPluginNames = mdxConfig.remarkPlugins
+    ? getMdxPluginNames(mdxConfig.remarkPlugins)
     : []
-  const rehypePluginNames = mergedConfig.rehypePlugins
-    ? getPluginNames(mergedConfig.rehypePlugins)
+  const rehypePluginNames = mdxConfig.rehypePlugins
+    ? getMdxPluginNames(mdxConfig.rehypePlugins)
     : []
 
   const pluginNames = [...remarkPluginNames, ...rehypePluginNames]
 
   if (!pluginNames.includes("remarkFrontmatter")) {
-    mergedConfig.remarkPlugins?.push(remarkFrontmatter)
+    mdxConfig.remarkPlugins?.push(remarkFrontmatter)
   }
 
   if (!pluginNames.includes("remarkMdxFrontmatter")) {
-    mergedConfig.remarkPlugins?.push([
+    mdxConfig.remarkPlugins?.push([
       remarkMdxFrontmatter,
       { name: "frontmatter" },
     ])
   }
 
   if (!pluginNames.includes("remarkGfm")) {
-    mergedConfig.remarkPlugins?.push(remarkGfm)
+    mdxConfig.remarkPlugins?.push(remarkGfm)
   }
 
   if (
@@ -64,9 +45,15 @@ export async function getMdxConfig(markdownConfig: MinistaMarkdownConfig) {
     !pluginNames.includes("rehypePrism")
   ) {
     if (syntaxHighlighter === "highlight") {
-      mergedConfig.rehypePlugins?.push([rehypeHighlight, highlightOptions])
+      mdxConfig.rehypePlugins?.push([rehypeHighlight, highlightOptions])
     }
   }
+  return mdxConfig
+}
 
-  return mergedConfig
+export function getMdxPluginNames(plugins: PluggableList) {
+  return plugins?.map((plugin: Pluggable<any[]>) =>
+    //@ts-ignore
+    plugin.name ? plugin.name : plugin[0].name
+  )
 }
