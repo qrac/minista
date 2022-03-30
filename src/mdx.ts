@@ -1,4 +1,5 @@
 import type { PluggableList, Pluggable } from "unified"
+import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
 import remarkFrontmatter from "remark-frontmatter"
 import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
@@ -7,7 +8,7 @@ import rehypeHighlight from "rehype-highlight"
 
 import type { MinistaConfig } from "./types.js"
 
-export async function getMdxConfig(config: MinistaConfig) {
+export async function getMdxConfig(config: MinistaConfig): Promise<MdxOptions> {
   const syntaxHighlighter = config.markdown.syntaxHighlighter
   const highlightOptions = config.markdown.highlightOptions
   const mdxConfig = config.markdown.mdxOptions
@@ -51,7 +52,7 @@ export async function getMdxConfig(config: MinistaConfig) {
   return mdxConfig
 }
 
-export function getMdxPluginNames(plugins: PluggableList) {
+export function getMdxPluginNames(plugins: PluggableList): string[] {
   return plugins?.map((plugin: Pluggable<any[]>) =>
     //@ts-ignore
     plugin.name ? plugin.name : plugin[0].name
