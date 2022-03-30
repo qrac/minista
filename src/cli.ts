@@ -6,7 +6,6 @@ import { getConfig } from "./config.js"
 import { systemConfig } from "./system.js"
 import { getViteConfig } from "./vite.js"
 import { getMdxConfig } from "./mdx.js"
-import { getBeautifyConfig } from "./beautify.js"
 import { emptyResolveDir } from "./empty.js"
 import { createDevServer } from "./server.js"
 import { previewLocal } from "./preview.js"
@@ -58,7 +57,6 @@ cli.command("build [root]").action(async () => {
     const config = await getConfig(userConfig)
     const mdxConfig = await getMdxConfig(config)
     const viteConfig = await getViteConfig(config)
-    const beautifyConfig = await getBeautifyConfig(userConfig)
 
     await Promise.all([
       emptyResolveDir(systemConfig.temp.root.outDir),
@@ -76,9 +74,9 @@ cli.command("build [root]").action(async () => {
     await Promise.all([generateNoStyleTemp(config)])
     await Promise.all([generateHtmlPages(config), generatePublic(config)])
     await Promise.all([
-      generateBeautify(config, beautifyConfig, "html"),
-      generateBeautify(config, beautifyConfig, "css"),
-      generateBeautify(config, beautifyConfig, "js"),
+      generateBeautify(config, "html"),
+      generateBeautify(config, "css"),
+      generateBeautify(config, "js"),
     ])
   } catch (err) {
     console.log(err)

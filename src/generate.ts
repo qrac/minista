@@ -122,30 +122,29 @@ export async function generatePublic(config: MinistaConfig) {
 
 export async function generateBeautify(
   config: MinistaConfig,
-  beautifyConfig: MinistaBeautifyConfig,
   target: "html" | "css" | "js"
 ) {
   switch (target) {
     case "html":
-      if (!beautifyConfig.useHtml) {
+      if (!config.beautify.useHtml) {
         return
       }
-      const htmlFilePaths = await getFilePaths(config.outDir, "html")
-      await beautifyFiles(htmlFilePaths, "html", beautifyConfig.htmlOptions)
+      const htmlFilePaths = await getFilePaths(config.out, "html")
+      await beautifyFiles(htmlFilePaths, "html", config.beautify.htmlOptions)
       break
     case "css":
-      if (!beautifyConfig.useCss) {
+      if (!config.beautify.useCss) {
         return
       }
-      const cssFilePaths = await getFilePaths(config.outDir, "css")
-      await beautifyFiles(cssFilePaths, "css", beautifyConfig.htmlOptions)
+      const cssFilePaths = await getFilePaths(config.out, "css")
+      await beautifyFiles(cssFilePaths, "css", config.beautify.htmlOptions)
       break
     case "js":
-      if (!beautifyConfig.useJs) {
+      if (!config.beautify.useJs) {
         return
       }
-      const jsFilePaths = await getFilePaths(config.outDir, "js")
-      await beautifyFiles(jsFilePaths, "js", beautifyConfig.htmlOptions)
+      const jsFilePaths = await getFilePaths(config.out, "js")
+      await beautifyFiles(jsFilePaths, "js", config.beautify.htmlOptions)
       break
     default:
       break
