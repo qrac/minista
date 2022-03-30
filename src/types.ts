@@ -1,5 +1,5 @@
 import type { ExoticComponent } from "react"
-import type vite from "vite"
+import type { UserConfig as ViteUserConfig } from "vite"
 import type { Options as HighlightOptions } from "rehype-highlight"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type {
@@ -47,7 +47,7 @@ export type MinistaConfig = {
       svgstoreOptions: MinistaSvgstoreOptions
     }
   }
-  vite: vite.UserConfig | vite.UserConfigFn | vite.UserConfigExport
+  vite: ViteUserConfig
   markdown: {
     syntaxHighlighter: "highlight" | "none"
     highlightOptions: HighlightOptions
@@ -102,7 +102,7 @@ export type MinistaUserConfig = {
       svgstoreOptions?: MinistaSvgstoreOptions
     }
   }
-  vite?: vite.UserConfig | vite.UserConfigFn | vite.UserConfigExport
+  vite?: ViteUserConfig
   markdown?: {
     syntaxHighlighter?: "highlight" | "none"
     highlightOptions?: HighlightOptions
@@ -127,25 +127,27 @@ export type MinistaSvgstoreOptions = {
   renameDefs?: Boolean
 }
 
-export type MinistaTempConfig = {
-  out: string
-  config: {
-    outDir: string
-  }
-  viteImporter: {
-    outDir: string
-  }
-  root: {
-    outDir: string
-  }
-  pages: {
-    outDir: string
-  }
-  assets: {
-    outDir: string
-  }
-  icons: {
-    outDir: string
+export type MinistaSystemConfig = {
+  temp: {
+    out: string
+    config: {
+      outDir: string
+    }
+    viteImporter: {
+      outDir: string
+    }
+    root: {
+      outDir: string
+    }
+    pages: {
+      outDir: string
+    }
+    assets: {
+      outDir: string
+    }
+    icons: {
+      outDir: string
+    }
   }
 }
 

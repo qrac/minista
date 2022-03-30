@@ -26,7 +26,7 @@ export function sortObject(obj: {} | undefined) {
   return sorted
 }
 
-export function getFilename(fullPath: string) {
+export function getFilename(fullPath: string): string {
   const parsedFullPath = path.parse(fullPath)
   return parsedFullPath.name
 }

@@ -20,7 +20,7 @@ describe("getFilenameObject", () => {
   it("Test: getFilenameObject", () => {
     const result = getFilenameObject(["entry1.js", "entry2.js"])
 
-    console.log(result)
+    //console.log(result)
     expect(result).toEqual({ entry1: "entry1.js", entry2: "entry2.js" })
   })
 })
