@@ -25,6 +25,7 @@ import type {
   GetStaticData,
 } from "./types.js"
 
+import { systemConfig } from "./system.js"
 import { resolvePlugin } from "./esbuild.js"
 import { renderHtml } from "./render.js"
 
@@ -390,13 +391,13 @@ export async function buildAssetsTagStr(
 }
 
 export async function buildViteImporterRoots(config: MinistaConfig) {
-  const outFile = config.tempViteImporterDir + "/roots.js"
-  const rootFileDir = config.rootFileDir
-  const rootFileName = config.rootFileName
-  const rootFileExtStr = config.rootFileExt.join()
+  const outFile = systemConfig.temp.viteImporter.outDir + "/roots.js"
+  const rootSrcDir = config.root.srcDir && config.root.srcDir + "/"
+  const rootSrcName = config.root.srcName
+  const rootExtStr = config.root.srcExt.join()
   const template = `import { Fragment } from "react"
 export const getRoots = () => {
-  const ROOTS = import.meta.globEager("/${rootFileDir}/${rootFileName}.{${rootFileExtStr}}")
+  const ROOTS = import.meta.globEager("/${rootSrcDir}${rootSrcName}.{${rootExtStr}}")
   const roots =
     Object.keys(ROOTS).length === 0
       ? [{ RootComponent: Fragment, getGlobalStaticData: undefined }]
@@ -416,11 +417,11 @@ export const getRoots = () => {
 }
 
 export async function buildViteImporterRoutes(config: MinistaConfig) {
-  const outFile = config.tempViteImporterDir + "/routes.js"
-  const pagesDir = config.pagesDir
-  const pagesExtStr = config.pagesExt.join()
-  const pagesDirRegStr = config.pagesDir.replace(/\//g, "\\/")
-  const replaceArray = config.pagesExt.map((ext) => {
+  const outFile = systemConfig.temp.viteImporter.outDir + "/routes.js"
+  const pagesDir = config.pages.srcDir
+  const pagesExtStr = config.pages.srcExt.join()
+  const pagesDirRegStr = config.pages.srcDir.replace(/\//g, "\\/")
+  const replaceArray = config.pages.srcExt.map((ext) => {
     return `.replace(/\\/${pagesDirRegStr}|index|\\.${ext}$/g, "")`
   })
   const replaceArrayStr = replaceArray.join("\n      ")
@@ -449,11 +450,10 @@ export async function buildViteImporterRoutes(config: MinistaConfig) {
   })
 }
 
-export async function buildViteImporterAssets(
-  config: MinistaConfig,
-  entry: { [key: string]: string }
-) {
-  const outFile = config.tempViteImporterDir + "/assets.js"
+export async function buildViteImporterAssets(entry: {
+  [key: string]: string
+}) {
+  const outFile = systemConfig.temp.viteImporter.outDir + "/assets.js"
   const assetsPathArray = Object.values(entry)
   const filteredAssetsPathArray = assetsPathArray.filter((path) =>
     path.match(/\.(js|cjs|mjs|jsx|ts|tsx)$/)

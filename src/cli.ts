@@ -42,7 +42,7 @@ cli
         emptyResolveDir(systemConfig.temp.viteImporter.outDir),
         emptyResolveDir(systemConfig.temp.icons.outDir),
       ])
-      await generateViteImporters(config, userConfig)
+      await generateViteImporters(config, viteConfig)
 
       await createDevServer(viteConfig)
     } catch (err) {
@@ -65,7 +65,7 @@ cli.command("build [root]").action(async () => {
       emptyResolveDir(systemConfig.temp.viteImporter.outDir),
       emptyResolveDir(config.out),
     ])
-    await Promise.all([generateViteImporters(config, userConfig)])
+    await Promise.all([generateViteImporters(config, viteConfig)])
     await Promise.all([
       generateTempRoot(config, mdxConfig),
       generateTempPages(config, mdxConfig),

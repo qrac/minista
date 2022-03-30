@@ -1,11 +1,8 @@
+import type { UserConfig as ViteConfig, InlineConfig } from "vite"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
-import type { InlineConfig } from "vite"
 
-import {
-  MinistaConfig,
-  MinistaUserConfig,
-  MinistaBeautifyConfig,
-} from "./types.js"
+import type { MinistaConfig, MinistaUserConfig } from "./types.js"
+
 import { getFilePath, getFilePaths, getSameFilePaths } from "./path.js"
 import {
   buildTempPages,
@@ -22,20 +19,17 @@ import { beautifyFiles } from "./beautify.js"
 
 export async function generateViteImporters(
   config: MinistaConfig,
-  userConfig: MinistaUserConfig
+  viteConfig: ViteConfig
 ) {
-  const viteEntry =
-    typeof userConfig.vite === "object"
-      ? userConfig.vite?.build?.rollupOptions?.input
-        ? userConfig.vite?.build?.rollupOptions?.input
-        : {}
-      : {}
+  const viteEntry = viteConfig.build?.rollupOptions?.input || {}
+
   await Promise.all([
     buildViteImporterRoots(config),
     buildViteImporterRoutes(config),
     typeof viteEntry === "object" &&
+      Object.keys(viteEntry).length > 0 &&
       !Array.isArray(viteEntry) &&
-      buildViteImporterAssets(config, viteEntry),
+      buildViteImporterAssets(viteEntry),
   ])
 }
 
