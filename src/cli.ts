@@ -37,7 +37,6 @@ cli
     try {
       const userConfig = await getUserConfig()
       const config = await getConfig(userConfig)
-      const mdxConfig = await getMdxConfig(config)
       const viteConfig = await getViteConfig(config)
 
       await Promise.all([
@@ -45,6 +44,7 @@ cli
         emptyResolveDir(systemConfig.temp.icons.outDir),
       ])
       await generateViteImporters(config, userConfig)
+
       await createDevServer(viteConfig)
     } catch (err) {
       console.log(err)
