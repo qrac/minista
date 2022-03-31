@@ -8,7 +8,7 @@ import pc from "picocolors"
 import { Fragment } from "react"
 import { build as esBuild } from "esbuild"
 import mdx from "@mdx-js/esbuild"
-import { build as viteBuild, mergeConfig } from "vite"
+import { build as viteBuild, mergeConfig as mergeViteConfig } from "vite"
 
 import type {
   MinistaConfig,
@@ -36,8 +36,8 @@ const __dirname = path.dirname(__filename)
 export async function buildTempPages(
   entryPoints: string[],
   buildOptions: {
-    outbase: string
-    outdir: string
+    outBase: string
+    outDir: string
     mdxConfig: MdxOptions
   }
 ) {
@@ -63,8 +63,8 @@ export async function buildTempPages(
 
   await esBuild({
     entryPoints: entryPoints,
-    outbase: buildOptions.outbase,
-    outdir: buildOptions.outdir,
+    outbase: buildOptions.outBase,
+    outdir: buildOptions.outDir,
     outExtension: { ".js": ".mjs" },
     bundle: true,
     format: "esm",
@@ -87,8 +87,8 @@ export async function buildStaticPages(
   entryPoints: string[],
   tempRootFilePath: string,
   buildOptions: {
-    outbase: string
-    outdir: string
+    outBase: string
+    outDir: string
   },
   assetsTagStr: string
 ) {
@@ -99,7 +99,7 @@ export async function buildStaticPages(
       const basename = path.basename(entryPoint, extname)
       const dirname = path
         .dirname(entryPoint)
-        .replace(buildOptions.outbase, buildOptions.outdir)
+        .replace(buildOptions.outBase, buildOptions.outDir)
       const filename = path.join(dirname, basename + ".html")
 
       await buildStaticPage(
@@ -107,7 +107,7 @@ export async function buildStaticPages(
         filename,
         rootStaticContent,
         assetsTagStr,
-        buildOptions.outdir
+        buildOptions.outDir
       )
     })
   )
@@ -146,7 +146,7 @@ export async function buildStaticPage(
   outFile: string,
   rootStaticContent: RootStaticContent,
   assetsTagStr: string,
-  outdir: string
+  outDir: string
 ) {
   const pageEsmContent: PageEsmContent = await import(path.resolve(entryPoint))
   const pageJsxContent: PageJsxContent = pageEsmContent.default
@@ -168,7 +168,7 @@ export async function buildStaticPage(
       rootStaticContent,
       assetsTagStr,
       frontmatter,
-      outdir
+      outDir
     )
   }
 
@@ -181,7 +181,7 @@ export async function buildStaticPage(
       rootStaticContent,
       assetsTagStr,
       frontmatter,
-      outdir
+      outDir
     )
   }
 
@@ -201,7 +201,7 @@ export async function buildStaticPage(
       rootStaticContent,
       assetsTagStr,
       frontmatter,
-      outdir
+      outDir
     )
   }
 
@@ -225,7 +225,7 @@ export async function buildStaticPage(
           rootStaticContent,
           assetsTagStr,
           frontmatter,
-          outdir
+          outDir
         )
       })
     )
@@ -244,7 +244,7 @@ export async function buildHtmlPage(
   rootStaticContent: RootStaticContent,
   assetsTagStr: string,
   frontmatter: any,
-  outdir: string
+  outDir: string
 ) {
   if (frontmatter?.draft) {
     return
@@ -255,7 +255,7 @@ export async function buildHtmlPage(
   const PageComponent: any = pageJsxContent
   const staticProps = staticDataItem.props
 
-  const reg1 = new RegExp(`^${outdir}|index.html`, "g")
+  const reg1 = new RegExp(`^${outDir}|index.html`, "g")
   const reg2 = new RegExp(`.html`, "g")
   const pathname = routePath.replace(reg1, "").replace(reg2, "")
   const location: MinistaLocation = { pathname: pathname }
@@ -326,8 +326,9 @@ export async function buildHtmlPage(
 export async function buildTempAssets(
   viteConfig: InlineConfig,
   buildOptions: {
-    fileName: string
-    outdir: string
+    bundleOutName: string
+    bundleOutDir: string
+    outDir: string
     assetDir: string
   }
 ) {
@@ -343,7 +344,7 @@ export async function buildTempAssets(
       },
     },
   }
-  const mergedConfig = mergeConfig(viteConfig, customConfig)
+  const mergedConfig = mergeViteConfig(viteConfig, customConfig)
 
   const result: any = await viteBuild(mergedConfig)
   const items = result.output
@@ -351,13 +352,17 @@ export async function buildTempAssets(
   if (Array.isArray(items) && items.length > 0) {
     items.map((item) => {
       if (item.fileName.match(/__minista_bundle_assets\.css/)) {
-        const customFileName = `${buildOptions.outdir}/${buildOptions.fileName}.css`
+        const customFileName =
+          slashEnd(buildOptions.outDir) +
+          slashEnd(buildOptions.bundleOutDir) +
+          buildOptions.bundleOutName +
+          ".css"
         return item?.source && fs.outputFile(customFileName, item?.source)
       } else if (item.fileName.match(/__minista_bundle_assets\.js/)) {
         return
       } else {
         const customFileName =
-          buildOptions.outdir + item.fileName.replace(buildOptions.assetDir, "")
+          buildOptions.outDir + item.fileName.replace(buildOptions.assetDir, "")
         const customCode = item?.source
           ? item?.source
           : item?.code
@@ -372,19 +377,19 @@ export async function buildTempAssets(
 export async function buildAssetsTagStr(
   entryPoints: string[],
   buildOptions: {
-    outbase: string
-    outdir: string
+    outBase: string
+    outDir: string
   }
 ) {
   const assetsTags = entryPoints.map((entryPoint) => {
     const assetPath = entryPoint.replace(
-      buildOptions.outbase,
-      buildOptions.outdir
+      buildOptions.outBase,
+      buildOptions.outDir
     )
     if (assetPath.endsWith(".css")) {
-      return `<link rel="stylesheet" href="/${assetPath}">`
+      return `<link rel="stylesheet" href="${assetPath}">`
     } else if (assetPath.endsWith(".js")) {
-      return `<script defer src="/${assetPath}"></script>`
+      return `<script defer src="${assetPath}"></script>`
     }
   })
   const assetsTagStr = assetsTags.join("")

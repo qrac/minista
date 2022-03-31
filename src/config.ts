@@ -93,6 +93,11 @@ export async function resolveConfig(
 ): Promise<MinistaResolveConfig> {
   const resolvedConfig = {
     ...config,
+    rootSrcDir: slashEnd(config.src) + noSlashEnd(config.root.srcDir),
+    pagesSrcDir: slashEnd(config.src) + noSlashEnd(config.pages.srcDir),
+    publicOutDir: slashEnd(config.out) + noSlashEnd(config.base),
+    pagesOutDir: slashEnd(config.out) + noSlashEnd(config.base),
+    assetsOutHref: slashEnd(config.base) + noSlashEnd(config.assets.outDir),
     viteAssetsOutput:
       slashEnd(config.assets.outDir) +
       noSlashEnd(config.assets.outName) +

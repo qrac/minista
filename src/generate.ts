@@ -1,9 +1,11 @@
 import type { UserConfig as ViteConfig, InlineConfig } from "vite"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
-import type { MinistaConfig } from "./types.js"
+import type { MinistaResolveConfig } from "./types.js"
 
+import { systemConfig } from "./system.js"
 import { getFilePath, getFilePaths, getSameFilePaths } from "./path.js"
+import { slashEnd, noSlashEnd } from "./utils.js"
 import {
   buildTempPages,
   buildStaticPages,
@@ -18,7 +20,7 @@ import { optimizeCommentOutStyleImport } from "./optimize.js"
 import { beautifyFiles } from "./beautify.js"
 
 export async function generateViteImporters(
-  config: MinistaConfig,
+  config: MinistaResolveConfig,
   viteConfig: ViteConfig
 ) {
   const viteEntry = viteConfig.build?.rollupOptions?.input || {}
@@ -34,88 +36,97 @@ export async function generateViteImporters(
 }
 
 export async function generateTempRoot(
-  config: MinistaConfig,
+  config: MinistaResolveConfig,
   mdxConfig: MdxOptions
 ) {
   const srcRootFilePaths = await getSameFilePaths(
-    config.rootFileDir,
-    config.rootFileName,
-    config.rootFileExt
+    config.rootSrcDir,
+    config.root.srcName,
+    config.root.srcExt
   )
   if (srcRootFilePaths.length > 0) {
     await buildTempPages([srcRootFilePaths[0]], {
-      outbase: config.rootFileDir,
-      outdir: config.tempRootFileDir,
+      outBase: config.rootSrcDir,
+      outDir: systemConfig.temp.root.outDir,
       mdxConfig: mdxConfig,
     })
   }
 }
 
 export async function generateTempPages(
-  config: MinistaConfig,
+  config: MinistaResolveConfig,
   mdxConfig: MdxOptions
 ) {
-  const srcPageFilePaths = await getFilePaths(config.pagesDir, config.pagesExt)
+  const srcPageFilePaths = await getFilePaths(
+    config.pagesSrcDir,
+    config.pages.srcExt
+  )
   await buildTempPages(srcPageFilePaths, {
-    outbase: config.pagesDir,
-    outdir: config.tempPagesDir,
+    outBase: config.pagesSrcDir,
+    outDir: systemConfig.temp.pages.outDir,
     mdxConfig: mdxConfig,
   })
 }
 
 export async function generateAssets(
-  config: MinistaConfig,
+  config: MinistaResolveConfig,
   viteConfig: InlineConfig
 ) {
   await buildTempAssets(viteConfig, {
-    fileName: config.bundleName,
-    outdir: config.tempAssetsDir,
-    assetDir: config.assetsDir,
+    bundleOutName: config.assets.bundle.outName,
+    bundleOutDir: config.assets.bundle.outName,
+    outDir: systemConfig.temp.assets.outDir,
+    assetDir: config.assets.outDir,
   })
   await buildCopyDir(
-    config.tempAssetsDir,
-    `${config.outDir}/${config.assetsDir}`,
+    systemConfig.temp.assets.outDir,
+    slashEnd(config.out) + noSlashEnd(config.assets.outDir),
     "assets"
   )
 }
 
-export async function generateNoStyleTemp(config: MinistaConfig) {
-  const tempMjsFiles = await getFilePaths(config.tempDir, "mjs")
-  await optimizeCommentOutStyleImport(tempMjsFiles)
+export async function generateNoStyleTemp() {
+  const tempRootOutDir = systemConfig.temp.root.outDir
+  const tempPagesOutDir = systemConfig.temp.pages.outDir
+  const tempRootFiles = await getFilePaths(tempRootOutDir, "mjs")
+  const tempPagesFiles = await getFilePaths(tempPagesOutDir, "mjs")
+  await optimizeCommentOutStyleImport(tempRootFiles)
+  await optimizeCommentOutStyleImport(tempPagesFiles)
 }
 
-export async function generateHtmlPages(config: MinistaConfig) {
-  const tempPageFilePaths = await getFilePaths(config.tempPagesDir, "mjs")
-  const tempRootFilePath = getFilePath(
-    config.tempRootFileDir,
-    config.rootFileName,
-    "mjs"
-  )
-  const tempAssetsFilePaths = await getFilePaths(config.tempAssetsDir, [
+export async function generateHtmlPages(config: MinistaResolveConfig) {
+  const tempRootName = config.root.srcName
+  const tempRootOutDir = systemConfig.temp.root.outDir
+  const tempPagesOutDir = systemConfig.temp.pages.outDir
+  const tempAssetsOutDir = systemConfig.temp.assets.outDir
+
+  const tempRootFilePath = getFilePath(tempRootOutDir, tempRootName, "mjs")
+  const tempPageFilePaths = await getFilePaths(tempPagesOutDir, "mjs")
+  const tempAssetsFilePaths = await getFilePaths(tempAssetsOutDir, [
     "css",
     "js",
   ])
   const assetsTagStr = await buildAssetsTagStr(tempAssetsFilePaths, {
-    outbase: config.tempAssetsDir,
-    outdir: config.assetsDir,
+    outBase: tempAssetsOutDir,
+    outDir: config.assetsOutHref,
   })
   await buildStaticPages(
     tempPageFilePaths,
     tempRootFilePath,
     {
-      outbase: config.tempPagesDir,
-      outdir: config.outDir,
+      outBase: tempPagesOutDir,
+      outDir: config.pagesOutDir,
     },
     assetsTagStr
   )
 }
 
-export async function generatePublic(config: MinistaConfig) {
-  await buildCopyDir(config.publicDir, config.outDir, "public")
+export async function generatePublic(config: MinistaResolveConfig) {
+  await buildCopyDir(config.public, config.publicOutDir, "public")
 }
 
 export async function generateBeautify(
-  config: MinistaConfig,
+  config: MinistaResolveConfig,
   target: "html" | "css" | "js"
 ) {
   switch (target) {

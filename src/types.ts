@@ -132,6 +132,11 @@ export type MinistaSvgstoreOptions = {
 export type MinistaResolveConfig = MinistaConfig & MinistaResolvePathConfig
 
 export type MinistaResolvePathConfig = {
+  rootSrcDir: string
+  pagesSrcDir: string
+  publicOutDir: string
+  pagesOutDir: string
+  assetsOutHref: string
   viteAssetsOutput: string
   viteAssetsImagesOutput: string
   viteAssetsFontsOutput: string

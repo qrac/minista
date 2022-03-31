@@ -71,7 +71,7 @@ cli.command("build [root]").action(async () => {
       generateTempPages(config, mdxConfig),
       generateAssets(config, viteConfig),
     ])
-    await Promise.all([generateNoStyleTemp(config)])
+    await Promise.all([generateNoStyleTemp()])
     await Promise.all([generateHtmlPages(config), generatePublic(config)])
     await Promise.all([
       generateBeautify(config, "html"),
