@@ -11,7 +11,7 @@ import mdx from "@mdx-js/esbuild"
 import { build as viteBuild, mergeConfig as mergeViteConfig } from "vite"
 
 import type {
-  MinistaConfig,
+  MinistaResolveConfig,
   MinistaLocation,
   RootStaticContent,
   RootEsmContent,
@@ -396,9 +396,9 @@ export async function buildAssetsTagStr(
   return assetsTagStr
 }
 
-export async function buildViteImporterRoots(config: MinistaConfig) {
+export async function buildViteImporterRoots(config: MinistaResolveConfig) {
   const outFile = systemConfig.temp.viteImporter.outDir + "/roots.js"
-  const rootSrcDir = slashEnd(config.root.srcDir)
+  const rootSrcDir = slashEnd(config.rootSrcDir)
   const rootSrcName = config.root.srcName
   const rootExtStr = config.root.srcExt.join()
   const template = `import { Fragment } from "react"
@@ -422,11 +422,11 @@ export const getRoots = () => {
   })
 }
 
-export async function buildViteImporterRoutes(config: MinistaConfig) {
+export async function buildViteImporterRoutes(config: MinistaResolveConfig) {
   const outFile = systemConfig.temp.viteImporter.outDir + "/routes.js"
-  const pagesDir = slashEnd(config.root.srcDir) + slashEnd(config.pages.srcDir)
+  const pagesDir = slashEnd(config.pagesSrcDir)
   const pagesExtStr = config.pages.srcExt.join()
-  const pagesDirRegStr = config.pages.srcDir.replace(/\//g, "\\/")
+  const pagesDirRegStr = config.pagesSrcDir.replace(/\//g, "\\/")
   const replaceArray = config.pages.srcExt.map((ext) => {
     return `.replace(/\\/${pagesDirRegStr}|index|\\.${ext}$/g, "")`
   })

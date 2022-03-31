@@ -4,7 +4,7 @@ import { defineConfig } from "minista"
 //import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 
 export default defineConfig({
-  entry: "src/assets/entry.ts",
+  assets: { entry: "src/assets/entry.ts" },
   /*vite: {
     esbuild: {
       minify: false,
