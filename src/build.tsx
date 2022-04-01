@@ -427,15 +427,17 @@ export async function buildViteImporterRoutes(config: MinistaResolveConfig) {
   const pagesDir = slashEnd(config.pagesSrcDir)
   const pagesExtStr = config.pages.srcExt.join()
   const pagesDirRegStr = config.pagesSrcDir.replace(/\//g, "\\/")
-  const replaceArray = config.pages.srcExt.map((ext) => {
-    return `.replace(/\\/${pagesDirRegStr}|index|\\.${ext}$/g, "")`
+  const replacePagesStr = `.replace(/^\\/${pagesDirRegStr}\\//g, "${config.base}")`
+  const replaceFileNameArray = config.pages.srcExt.map((ext) => {
+    return `.replace(/\\index|\\.${ext}$/g, "")`
   })
-  const replaceArrayStr = replaceArray.join("\n      ")
+  const replaceFileNameArrayStr = replaceFileNameArray.join("\n      ")
   const template = `export const getRoutes = () => {
   const ROUTES = import.meta.globEager("/${pagesDir}**/[a-z[]*.{${pagesExtStr}}")
   const routes = Object.keys(ROUTES).map((route) => {
     const routePath = route
-      ${replaceArrayStr}
+      ${replacePagesStr}
+      ${replaceFileNameArrayStr}
       .replace(/\\[\\.{3}.+\\]/, "*")
       .replace(/\\[(.+)\\]/, ":$1")
     return {

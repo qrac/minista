@@ -95,8 +95,8 @@ export async function resolveConfig(
     ...config,
     rootSrcDir: slashEnd(config.src) + noSlashEnd(config.root.srcDir),
     pagesSrcDir: slashEnd(config.src) + noSlashEnd(config.pages.srcDir),
-    publicOutDir: slashEnd(config.out) + noSlashEnd(config.base),
-    pagesOutDir: slashEnd(config.out) + noSlashEnd(config.base),
+    publicOutDir: noSlashEnd(config.out),
+    pagesOutDir: noSlashEnd(config.out),
     assetsOutHref: slashEnd(config.base) + noSlashEnd(config.assets.outDir),
     viteAssetsOutput:
       slashEnd(config.assets.outDir) +
@@ -117,7 +117,6 @@ export async function resolveConfig(
       slashEnd(config.assets.srcDir) +
       noSlashEnd(config.assets.icons.srcDir),
     vitePluginSvgSpriteIconsOutput:
-      slashEnd(config.base) +
       slashEnd(config.assets.outDir) +
       slashEnd(config.assets.icons.outDir) +
       noSlashEnd(config.assets.icons.outName) +
