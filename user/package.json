@@ -5,7 +5,7 @@
     "build": "minista build"
   },
   "dependencies": {
-    "@fontsource/montserrat": "^4.5.5"
+    "@fontsource/montserrat": "^4.5.7"
   },
   "devDependencies": {
     "minista": "file:..",
