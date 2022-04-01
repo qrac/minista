@@ -1,4 +1,5 @@
 import type { UserConfig as ViteConfig, Plugin, ResolvedConfig } from "vite"
+import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
 import fs from "fs-extra"
 import path from "path"
@@ -25,7 +26,8 @@ const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export async function getViteConfig(
-  config: MinistaResolveConfig
+  config: MinistaResolveConfig,
+  mdxConfig: MdxOptions
 ): Promise<ViteConfig> {
   const imgExt = ["jpg", "jpeg", "gif", "png", "webp", "svg"]
   const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
@@ -119,7 +121,7 @@ export async function getViteConfig(
     mergedViteConfig.resolve.alias.push(iconsResolveAlias)
   }
 
-  const mdxPlugin = mdx(config.markdown.mdxOptions)
+  const mdxPlugin = mdx(mdxConfig)
   mergedViteConfig.plugins.push(mdxPlugin)
 
   return mergedViteConfig

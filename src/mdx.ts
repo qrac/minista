@@ -6,9 +6,11 @@ import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 import remarkGfm from "remark-gfm"
 import rehypeHighlight from "rehype-highlight"
 
-import type { MinistaConfig } from "./types.js"
+import type { MinistaResolveConfig } from "./types.js"
 
-export async function getMdxConfig(config: MinistaConfig): Promise<MdxOptions> {
+export async function getMdxConfig(
+  config: MinistaResolveConfig
+): Promise<MdxOptions> {
   const syntaxHighlighter = config.markdown.syntaxHighlighter
   const highlightOptions = config.markdown.highlightOptions
   const mdxConfig = config.markdown.mdxOptions
