@@ -89,7 +89,8 @@ cli.command("preview [root]").action(async () => {
   try {
     const userConfig = await getUserConfig()
     const config = await getConfig(userConfig)
-    const viteConfig = await getViteConfig(config)
+    const mdxConfig = await getMdxConfig(config)
+    const viteConfig = await getViteConfig(config, mdxConfig)
 
     await previewLocal(viteConfig)
   } catch (err) {
