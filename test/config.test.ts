@@ -30,7 +30,7 @@ describe("resolveConfig", () => {
     expect(result.viteAssetsFontsOutput).toEqual("assets/fonts/[name].[ext]")
     expect(result.vitePluginSvgSpriteIconsSrcDir).toEqual("src/assets/icons")
     expect(result.vitePluginSvgSpriteIconsOutput).toEqual(
-      "assets/images/icons.svg"
+      "/assets/images/icons.svg"
     )
     expect(result.vitePluginSvgSpriteIconsTempOutput).toEqual(
       "node_modules/.minista/svg-sprite-icons/assets/images/icons.svg"

@@ -117,6 +117,7 @@ export async function resolveConfig(
       slashEnd(config.assets.srcDir) +
       noSlashEnd(config.assets.icons.srcDir),
     vitePluginSvgSpriteIconsOutput:
+      slashEnd("/") +
       slashEnd(config.assets.outDir) +
       slashEnd(config.assets.icons.outDir) +
       noSlashEnd(config.assets.icons.outName) +

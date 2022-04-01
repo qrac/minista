@@ -20,7 +20,7 @@ import type { MinistaResolveConfig, MinistaSvgstoreOptions } from "./types.js"
 
 import { systemConfig } from "./system.js"
 import { getFilePaths } from "./path.js"
-import { slashEnd, getFilename, getFilenameObject } from "./utils.js"
+import { getFilename, getFilenameObject } from "./utils.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -110,7 +110,7 @@ export async function getViteConfig(
     const iconsPlugin = vitePluginMinistaSvgSpriteIcons(
       config.vitePluginSvgSpriteIconsSrcDir,
       config.assets.icons.svgstoreOptions,
-      slashEnd(config.out) + config.vitePluginSvgSpriteIconsOutput,
+      config.out + config.vitePluginSvgSpriteIconsOutput,
       config.vitePluginSvgSpriteIconsTempOutput
     )
     const iconsResolveAlias = {
