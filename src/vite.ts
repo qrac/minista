@@ -3,6 +3,7 @@ import type { UserConfig as ViteConfig, Plugin, ResolvedConfig } from "vite"
 import fs from "fs-extra"
 import path from "path"
 import url from "url"
+import chokidar from "chokidar"
 import {
   defineConfig as defineViteConfig,
   searchForWorkspaceRoot,
@@ -17,6 +18,7 @@ import svgstore from "svgstore"
 import type { MinistaResolveConfig, MinistaSvgstoreOptions } from "./types.js"
 
 import { systemConfig } from "./system.js"
+import { getFilePaths } from "./path.js"
 import { getFilename, getFilenameObject } from "./utils.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
@@ -105,8 +107,8 @@ export async function getViteConfig(
   if (config.assets.icons.useSprite) {
     const iconsPlugin = vitePluginMinistaSvgSpriteIcons(
       config.vitePluginSvgSpriteIconsSrcDir,
-      config.out + config.vitePluginSvgSpriteIconsOutput,
       config.assets.icons.svgstoreOptions,
+      config.out + config.vitePluginSvgSpriteIconsOutput,
       config.vitePluginSvgSpriteIconsTempOutput
     )
     const iconsResolveAlias = {
@@ -219,22 +221,28 @@ export function vitePluginMinistaVirtualHtml(): Plugin {
   }
 }
 
-/*! Fork: rollup-plugin-svg-icons | https://github.com/AlexxNB/rollup-plugin-svg-icons */
 export function vitePluginMinistaSvgSpriteIcons(
-  inputFolder: string,
-  output: string,
+  srcDir: string,
   options: MinistaSvgstoreOptions = {},
+  output: string,
   tempOutput: string
 ): Plugin {
-  function getSprite() {
-    const sprites = svgstore({ inputFolder, output })
-    const icons_dir = path.resolve(inputFolder)
+  async function getSvgSpriteFile(spriteOutput: string) {
+    const svgFiles = await getFilePaths(srcDir, "svg")
 
-    for (const file of fs.readdirSync(icons_dir)) {
-      const filepath = path.join(icons_dir, file)
-      const svgid = path.parse(file).name
-      let code = fs.readFileSync(filepath, { encoding: "utf-8" })
-      sprites.add(svgid, code, options)
+    if (svgFiles.length > 0) {
+      const data = await getSvgSprite(svgFiles)
+      return fs.outputFileSync(path.resolve(spriteOutput), data)
+    }
+  }
+
+  async function getSvgSprite(entryPoints: string[]) {
+    const sprites = svgstore()
+
+    for (const entryPoint of entryPoints) {
+      const svgId = path.parse(entryPoint).name
+      const code = fs.readFileSync(entryPoint, { encoding: "utf-8" })
+      sprites.add(svgId, code, options)
     }
     return sprites
       .toString({ inline: true })
@@ -245,16 +253,27 @@ export function vitePluginMinistaSvgSpriteIcons(
   }
 
   let config: ResolvedConfig
+
   return {
     name: "vite-plugin-minista-svg-sprite-icons",
     configResolved(resolvedConfig) {
       config = resolvedConfig
     },
-    buildStart() {
+    async buildStart() {
       if (config.command === "serve") {
-        fs.outputFileSync(path.resolve(tempOutput), getSprite())
+        if (!fs.existsSync(srcDir)) {
+          return
+        }
+        await getSvgSpriteFile(tempOutput)
+        const watcher = chokidar.watch(srcDir)
+        watcher.on("all", async function () {
+          await getSvgSpriteFile(tempOutput)
+        })
       } else {
-        fs.outputFileSync(path.resolve(output), getSprite())
+        if (!fs.existsSync(srcDir)) {
+          return
+        }
+        await getSvgSpriteFile(output)
       }
     },
   }
