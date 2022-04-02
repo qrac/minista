@@ -4,7 +4,7 @@ import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import fs from "fs-extra"
 import path from "path"
 import url from "url"
-import chokidar from "chokidar"
+import pc from "picocolors"
 import {
   defineConfig as defineViteConfig,
   searchForWorkspaceRoot,
@@ -261,16 +261,34 @@ export function vitePluginMinistaSvgSpriteIcons(
     configResolved(resolvedConfig) {
       config = resolvedConfig
     },
+    async configureServer(server) {
+      if (!fs.existsSync(srcDir)) {
+        return
+      }
+      const watcher = server.watcher.add(srcDir)
+      const logger = createLogger()
+
+      watcher.on("all", async function (eventName, path) {
+        const triggers = ["change", "unlink"]
+        if (triggers.includes(eventName) && path.includes(srcDir)) {
+          await getSvgSpriteFile(tempOutput)
+          //console.log(path)
+          //console.log(srcDir)
+          //console.log(eventName)
+          //logger.clearScreen
+          server.ws.send({ type: "full-reload" })
+          logger.info(
+            `${pc.bold(pc.green("BUILD"))} ${pc.bold("SVG Sprite Icons")}`
+          )
+        }
+      })
+    },
     async buildStart() {
       if (config.command === "serve") {
         if (!fs.existsSync(srcDir)) {
           return
         }
         await getSvgSpriteFile(tempOutput)
-        const watcher = chokidar.watch(srcDir)
-        watcher.on("all", async function () {
-          await getSvgSpriteFile(tempOutput)
-        })
       } else {
         if (!fs.existsSync(srcDir)) {
           return
