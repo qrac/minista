@@ -93,12 +93,12 @@ export async function getViteConfig(
     optimizeDeps: {
       //entries: path.resolve(__dirname + "/../lib/index.html"),
       include: [
-        //"minista",
-        //"react",
-        //"react-dom",
-        //"react-router-dom",
-        //"react/jsx-runtime.js",
-        //"react-helmet",
+        "minista",
+        "react",
+        "react-dom",
+        "react-router-dom",
+        "react/jsx-runtime.js",
+        "react-helmet",
       ],
     },
     customLogger: createLogger("info", { prefix: "[minista]" }),
@@ -187,9 +187,7 @@ export function vitePluginMinistaVirtualHtml(): Plugin {
     } else if (input.match(/\.(js|cjs|mjs|jsx|ts|tsx)$/)) {
       return //`<script defer type="module" src="/${input}"></script>`
     } else {
-      console.log(
-        "Could not insert the entry [vite.build.rollupOptions.input] into the dev server."
-      )
+      //console.log("Could not insert the entry [vite.build.rollupOptions.input] into the dev server.")
       return ""
     }
   }
