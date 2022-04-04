@@ -7,12 +7,12 @@ export default defineConfig({
   //base: "/test/",
   assets: { entry: "src/assets/entry.ts" },
   /*vite: {
+    build: {
+      minify: false,
+    },
     esbuild: {
       minify: false,
       minifySyntax: false,
-    },
-    build: {
-      minify: false,
     },
   },*/
   /*markdown: {
@@ -25,8 +25,8 @@ export default defineConfig({
     //  ],
     //}
   },*/
-  /*beautify: {
-    useCss: true,
-    useJs: true,
-  },*/
+  beautify: {
+    //useHtml: false,
+    //useAssets: true,
+  },
 })

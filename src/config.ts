@@ -60,8 +60,7 @@ export const defaultConfig: MinistaConfig = {
   },
   beautify: {
     useHtml: true,
-    useCss: false,
-    useJs: false,
+    useAssets: false,
     htmlOptions: {
       indent_size: 2,
       max_preserve_newlines: 0,

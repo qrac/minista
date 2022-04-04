@@ -124,8 +124,7 @@ export default defineConfig({
   },
   beautify: {
     useHtml: true, // boolean
-    useCss: false, // boolean
-    useJs: false, // boolean
+    useAssets: false, // boolean
     htmlOptions: {
       indent_size: 2,
       max_preserve_newlines: 0,

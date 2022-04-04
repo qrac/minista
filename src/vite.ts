@@ -38,6 +38,7 @@ export async function getViteConfig(
     build: {
       outDir: config.out || config.vite.build?.outDir || "dist",
       assetsInlineLimit: 0,
+      minify: !config.beautify.useAssets,
       rollupOptions: {
         input: config.assets.entry
           ? resolveEntry(config.assets.entry)
@@ -63,6 +64,10 @@ export async function getViteConfig(
           },
         },
       },
+    },
+    esbuild: {
+      minify: !config.beautify.useAssets,
+      minifySyntax: !config.beautify.useAssets,
     },
     server: {
       fs: {

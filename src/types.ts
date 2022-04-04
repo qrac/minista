@@ -54,8 +54,7 @@ export type MinistaConfig = {
   }
   beautify: {
     useHtml: boolean
-    useCss: boolean
-    useJs: boolean
+    useAssets: boolean
     htmlOptions: HTMLBeautifyOptions
     cssOptions: CSSBeautifyOptions
     jsOptions: JSBeautifyOptions
@@ -108,8 +107,7 @@ export type MinistaUserConfig = {
   }
   beautify?: {
     useHtml?: boolean
-    useCss?: boolean
-    useJs?: boolean
+    useAssets?: boolean
     htmlOptions?: HTMLBeautifyOptions
     cssOptions?: CSSBeautifyOptions
     jsOptions?: JSBeautifyOptions

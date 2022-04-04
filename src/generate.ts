@@ -138,14 +138,14 @@ export async function generateBeautify(
       await beautifyFiles(htmlFilePaths, "html", config.beautify.htmlOptions)
       break
     case "css":
-      if (!config.beautify.useCss) {
+      if (!config.beautify.useAssets) {
         return
       }
       const cssFilePaths = await getFilePaths(config.out, "css")
       await beautifyFiles(cssFilePaths, "css", config.beautify.htmlOptions)
       break
     case "js":
-      if (!config.beautify.useJs) {
+      if (!config.beautify.useAssets) {
         return
       }
       const jsFilePaths = await getFilePaths(config.out, "js")
