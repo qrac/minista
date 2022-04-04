@@ -11,7 +11,6 @@ import type {
 export type MinistaConfig = {
   base: string
   public: string
-  src: string
   out: string
   root: {
     srcDir: string
@@ -24,7 +23,6 @@ export type MinistaConfig = {
   }
   assets: {
     entry: string | string[] | { [key: string]: string }
-    srcDir: string
     outDir: string
     outName: string
     bundle: {
@@ -67,7 +65,6 @@ export type MinistaConfig = {
 export type MinistaUserConfig = {
   base?: string
   public?: string
-  src?: string
   out?: string
   root?: {
     srcDir?: string
@@ -80,7 +77,6 @@ export type MinistaUserConfig = {
   }
   assets?: {
     entry?: string | string[] | { [key: string]: string }
-    srcDir?: string
     outDir?: string
     outName?: string
     bundle?: {

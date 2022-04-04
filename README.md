@@ -77,38 +77,36 @@ import { defineConfig } from "minista"
 export default defineConfig({
   base: "/", // string
   public: "public", // string
-  src: "src", // string
   out: "dist", // string
   root: {
-    srcDir: "", // string
+    srcDir: "src", // string
     srcName: "root", // string
     srcExt: ["tsx", "jsx"], // string[]
   },
   pages: {
-    srcDir: "pages", // string
+    srcDir: "src/pages", // string
     srcExt: ["tsx", "jsx", "md", "mdx"], // string[]
   },
   assets: {
     entry: "", // string | string[] | { [key: string]: string }
-    srcDir: "assets", // string
     outDir: "assets", // string
     bundle: {
-      outDir: "", // string
+      outDir: "assets", // string
       outName: "bundle", // string
     },
     images: {
       useDownload: false, // boolean
-      outDir: "images", // string
+      outDir: "assets/images", // string
       outName: "[name]", // string
     },
     fonts: {
-      outDir: "fonts", // string
+      outDir: "assets/fonts", // string
       outName: "[name]", // string
     },
     icons: {
       useSprite: true, // boolean
-      srcDir: "icons", // string
-      outDir: "images", // string
+      srcDir: "src/assets/icons", // string
+      outDir: "assets/images", // string
       outName: "icons", // string
       svgstoreOptions: {
         cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
