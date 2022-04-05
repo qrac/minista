@@ -74,7 +74,6 @@ export async function generateAssets(
 ) {
   await buildTempAssets(viteConfig, {
     bundleOutName: config.assets.bundle.outName,
-    bundleOutDir: config.assets.bundle.outDir,
     outDir: systemConfig.temp.assets.outDir,
     assetDir: config.assets.outDir,
   })

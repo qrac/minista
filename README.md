@@ -91,7 +91,6 @@ export default defineConfig({
     entry: "", // string | string[] | { [key: string]: string }
     outDir: "assets", // string
     bundle: {
-      outDir: "assets", // string
       outName: "bundle", // string
     },
     images: {

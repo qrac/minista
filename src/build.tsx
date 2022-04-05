@@ -327,7 +327,6 @@ export async function buildTempAssets(
   viteConfig: InlineConfig,
   buildOptions: {
     bundleOutName: string
-    bundleOutDir: string
     outDir: string
     assetDir: string
   }
@@ -353,10 +352,7 @@ export async function buildTempAssets(
     items.map((item) => {
       if (item.fileName.match(/__minista_bundle_assets\.css/)) {
         const customFileName =
-          slashEnd(buildOptions.outDir) +
-          slashEnd(buildOptions.bundleOutDir) +
-          buildOptions.bundleOutName +
-          ".css"
+          slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".css"
         return item?.source && fs.outputFile(customFileName, item?.source)
       } else if (item.fileName.match(/__minista_bundle_assets\.js/)) {
         return

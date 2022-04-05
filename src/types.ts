@@ -26,7 +26,6 @@ export type MinistaConfig = {
     outDir: string
     outName: string
     bundle: {
-      outDir: string
       outName: string
     }
     images: {
@@ -79,7 +78,6 @@ export type MinistaUserConfig = {
     outDir?: string
     outName?: string
     bundle?: {
-      outDir?: string
       outName?: string
     }
     images?: {
