@@ -98,12 +98,12 @@ export async function getViteConfig(
     optimizeDeps: {
       //entries: path.resolve(__dirname + "/../lib/index.html"),
       include: [
+        "minista",
         "react/jsx-runtime.js",
         "react",
         "react-dom",
         "react-router-dom",
-        //"minista",
-        //"react-helmet",
+        "react-helmet",
       ],
     },
     customLogger: createLogger("info", { prefix: "[minista]" }),
