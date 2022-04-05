@@ -98,11 +98,11 @@ export async function getViteConfig(
     optimizeDeps: {
       //entries: path.resolve(__dirname + "/../lib/index.html"),
       include: [
-        //"minista",
+        "react/jsx-runtime.js",
         "react",
         "react-dom",
         "react-router-dom",
-        "react/jsx-runtime.js",
+        //"minista",
         //"react-helmet",
       ],
     },
