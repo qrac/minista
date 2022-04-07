@@ -5,7 +5,12 @@ import { defineConfig } from "minista"
 
 export default defineConfig({
   //base: "/test/",
-  assets: { entry: "src/assets/entry.ts" },
+  //assets: { entry: "src/assets/entry.ts" },
+  /*assets: {
+    download: {
+      useRemote: true,
+    },
+  },*/
   /*vite: {
     build: {
       minify: false,

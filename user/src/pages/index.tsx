@@ -24,6 +24,9 @@ const PageHome = () => {
           <a href="/icons/">Icons</a>
         </li>
         <li>
+          <a href="/download/">Download</a>
+        </li>
+        <li>
           <a href="/migrate/">Migrate</a>
         </li>
       </ul>

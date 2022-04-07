@@ -17,6 +17,7 @@ import {
   buildViteImporterAssets,
 } from "./build.js"
 import { optimizeCommentOutStyleImport } from "./optimize.js"
+import { downloadFiles } from "./download.js"
 import { beautifyFiles } from "./beautify.js"
 
 export async function generateViteImporters(
@@ -122,6 +123,20 @@ export async function generateHtmlPages(config: MinistaResolveConfig) {
 
 export async function generatePublic(config: MinistaResolveConfig) {
   await buildCopyDir(config.public, config.publicOutDir, "public")
+}
+
+export async function generateDownload(config: MinistaResolveConfig) {
+  if (config.assets.download.useRemote && config.assets.download.remoteUrl) {
+    const htmlFilePaths = await getFilePaths(config.out, "html")
+    await downloadFiles(
+      htmlFilePaths,
+      config.assets.download.remoteUrl,
+      config.assets.download.remoteName,
+      config.downloadOutDir,
+      config.downloadOutHref
+    )
+  }
+  return
 }
 
 export async function generateBeautify(

@@ -94,7 +94,6 @@ export default defineConfig({
       outName: "bundle", // string
     },
     images: {
-      useDownload: false, // boolean
       outDir: "assets/images", // string
       outName: "[name]", // string
     },
@@ -110,6 +109,12 @@ export default defineConfig({
       svgstoreOptions: {
         cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
       }, // https://github.com/svgstore/svgstore#svgstore-options
+    },
+    download: {
+      useRemote: false, // boolean
+      remoteUrl: ["https://", "http://"], // string[]
+      remoteName: "remote-[index]", // string
+      outDir: "assets/images", // string
     },
   },
   vite: {}, // https://vitejs.dev/config/

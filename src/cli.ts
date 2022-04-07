@@ -17,6 +17,7 @@ import {
   generateNoStyleTemp,
   generateHtmlPages,
   generatePublic,
+  generateDownload,
   generateBeautify,
 } from "./generate.js"
 
@@ -74,6 +75,7 @@ cli.command("build [root]").action(async () => {
     ])
     await Promise.all([generateNoStyleTemp()])
     await Promise.all([generateHtmlPages(config), generatePublic(config)])
+    await Promise.all([generateDownload(config)])
     await Promise.all([
       generateBeautify(config, "html"),
       generateBeautify(config, "css"),

@@ -77,7 +77,9 @@
     "esbuild": "^0.14.29",
     "fs-extra": "^10.0.1",
     "js-beautify": "^1.14.2",
+    "mime-types": "^2.1.35",
     "node-fetch": "^3.2.3",
+    "node-html-parser": "^5.3.3",
     "picocolors": "^1.0.0",
     "react-helmet": "^6.1.0",
     "react-router-dom": "^6.3.0",
@@ -85,6 +87,7 @@
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
     "remark-mdx-frontmatter": "^1.1.1",
+    "srcset": "^5.0.0",
     "svgstore": "^3.0.1",
     "tiny-glob": "^0.2.9",
     "vite": "^2.9.1"
@@ -92,6 +95,7 @@
   "devDependencies": {
     "@types/fs-extra": "^9.0.13",
     "@types/js-beautify": "^1.13.3",
+    "@types/mime-types": "^2.1.1",
     "@types/node": "^17.0.23",
     "@types/react": "^17.0.43",
     "@types/react-dom": "^17.0.14",

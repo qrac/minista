@@ -30,7 +30,6 @@ export const defaultConfig: MinistaConfig = {
       outName: "bundle",
     },
     images: {
-      useDownload: false,
       outDir: "assets/images",
       outName: "[name]",
     },
@@ -46,6 +45,12 @@ export const defaultConfig: MinistaConfig = {
       svgstoreOptions: {
         cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
       },
+    },
+    download: {
+      useRemote: false,
+      remoteUrl: ["https://", "http://"],
+      remoteName: "remote-[index]",
+      outDir: "assets/images",
     },
   },
   vite: {},
@@ -94,6 +99,10 @@ export async function resolveConfig(
     publicOutDir: noSlashEnd(config.out),
     pagesOutDir: noSlashEnd(config.out),
     assetsOutHref: slashEnd(config.base) + noSlashEnd(config.assets.outDir),
+    downloadOutDir:
+      slashEnd(config.out) + noSlashEnd(config.assets.download.outDir),
+    downloadOutHref:
+      slashEnd(config.base) + noSlashEnd(config.assets.download.outDir),
     viteAssetsOutput:
       slashEnd(config.assets.outDir) +
       noSlashEnd(config.assets.outName) +

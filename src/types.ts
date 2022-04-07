@@ -29,7 +29,6 @@ export type MinistaConfig = {
       outName: string
     }
     images: {
-      useDownload: boolean
       outDir: string
       outName: string
     }
@@ -43,6 +42,12 @@ export type MinistaConfig = {
       outDir: string
       outName: string
       svgstoreOptions: MinistaSvgstoreOptions
+    }
+    download: {
+      useRemote: boolean
+      remoteUrl: string[]
+      remoteName: string
+      outDir: string
     }
   }
   vite: ViteUserConfig
@@ -81,7 +86,6 @@ export type MinistaUserConfig = {
       outName?: string
     }
     images?: {
-      useDownload?: boolean
       outDir?: string
       outName?: string
     }
@@ -95,6 +99,12 @@ export type MinistaUserConfig = {
       outDir?: string
       outName?: string
       svgstoreOptions?: MinistaSvgstoreOptions
+    }
+    download?: {
+      useRemote?: boolean
+      remoteUrl?: string[]
+      remoteName?: string
+      outDir?: string
     }
   }
   vite?: ViteUserConfig
@@ -129,6 +139,8 @@ export type MinistaResolvePathConfig = {
   publicOutDir: string
   pagesOutDir: string
   assetsOutHref: string
+  downloadOutDir: string
+  downloadOutHref: string
   viteAssetsOutput: string
   viteAssetsImagesOutput: string
   viteAssetsFontsOutput: string
