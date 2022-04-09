@@ -15,6 +15,7 @@ import {
   buildViteImporterRoots,
   buildViteImporterRoutes,
   buildViteImporterAssets,
+  buildViteImporterBlankAssets,
 } from "./build.js"
 import { optimizeCommentOutStyleImport } from "./optimize.js"
 import { downloadFiles } from "./download.js"
@@ -29,11 +30,17 @@ export async function generateViteImporters(
   await Promise.all([
     buildViteImporterRoots(config),
     buildViteImporterRoutes(config),
-    typeof viteEntry === "object" &&
-      Object.keys(viteEntry).length > 0 &&
-      !Array.isArray(viteEntry) &&
-      buildViteImporterAssets(viteEntry),
   ])
+
+  if (
+    typeof viteEntry === "object" &&
+    Object.keys(viteEntry).length > 0 &&
+    !Array.isArray(viteEntry)
+  ) {
+    await buildViteImporterAssets(viteEntry)
+  } else {
+    await buildViteImporterBlankAssets()
+  }
 }
 
 export async function generateTempRoot(

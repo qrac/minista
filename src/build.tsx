@@ -474,6 +474,15 @@ export async function buildViteImporterAssets(entry: {
   })
 }
 
+export async function buildViteImporterBlankAssets() {
+  const outFile = systemConfig.temp.viteImporter.outDir + "/assets.js"
+  const template = `export const getAssets = () => {
+}`
+  await fs.outputFile(outFile, template).catch((err) => {
+    console.error(err)
+  })
+}
+
 export async function buildCopyDir(
   targetDir: string,
   outDir: string,
