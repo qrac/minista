@@ -134,6 +134,7 @@ export default defineConfig({
       max_preserve_newlines: 0,
       indent_inner_html: true,
       extra_liners: [],
+      inline: ["span", "b", "br", "code", "del", "s", "small", "strong", "wbr"],
     }, // https://github.com/beautify-web/js-beautify#css--html
     cssOptions: {}, // https://github.com/beautify-web/js-beautify#css--html
     jsOptions: {}, // https://github.com/beautify-web/js-beautify#options
