@@ -1,13 +1,5 @@
 import { Head } from "minista"
 
-/*import { createElement } from "react"
-import { unified } from "unified"
-import remarkParse from "remark-parse"
-import remarkRehype from "remark-rehype"
-import rehypeHighlight from "rehype-highlight"
-import rehypeRaw from "rehype-raw"
-import rehypeReact from "rehype-react"*/
-
 import AppLayout from "../../../components/app-layout"
 
 export const getStaticData = async () => {
@@ -20,15 +12,6 @@ export const getStaticData = async () => {
     paths: { number: item.number },
   }))
 }
-
-/*const processor = unified()
-  .use(remarkParse)
-  .use(remarkRehype)
-  .use(rehypeHighlight)
-  .use(rehypeRaw)
-  .use(rehypeReact, {
-    createElement: createElement,
-  })*/
 
 type PageIssuesTemplateProps = {
   title: string
@@ -44,7 +27,7 @@ const PageIssuesTemplate = (props: PageIssuesTemplateProps) => {
       </Head>
       <h1>{props.title}</h1>
       <div>{props.body}</div>
-      {/*<div>{processor.processSync(props.body).result}</div>*/}
+      {/*<Markdown content={props.body} />*/}
     </AppLayout>
   )
 }
