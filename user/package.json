@@ -1,0 +1,15 @@
+{
+  "name": "test",
+  "private": true,
+  "scripts": {
+    "build": "minista build"
+  },
+  "dependencies": {
+    "@fontsource/montserrat": "^4.5.7"
+  },
+  "devDependencies": {
+    "minista": "file:..",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}

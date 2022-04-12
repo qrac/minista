@@ -4,4 +4,4 @@ db.json
 *.log
 node_modules
 dist
-test/**/package-lock.json
+user/**/package-lock.json
