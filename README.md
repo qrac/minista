@@ -12,22 +12,26 @@
   </a>
 </p>
 
+## Site & Documentation
+
+https://minista.qranoko.jp
+
 ## About
 
-Next.js Like Development with 100% Static Generate.
+minista（ミニスタ）は、React の JSX で書けるスタティックサイトジェネレーターです。Next.js 風の快適な環境で開発しながら 100% 静的な出力を行えます。SaaS の web テンプレートコーディング業務を想定しているため、ビルド後のデータが綺麗（ヒューマンリーダブル）です。
 
 ## How To Use
 
 ### Automatic Setup
 
 ```bash
-$ npm init minista@next
+$ npm init minista@latest
 ```
 
 ### Manual Setup
 
 ```bash
-$ npm install --save-dev minista@next react react-dom
+$ npm install --save-dev minista react react-dom
 ```
 
 ```bash
@@ -50,7 +54,7 @@ const PageHome = () => {
 export default PageHome
 ```
 
-Open `package.json` and add the following scripts:
+`package.json` を開き、以下のスクリプトを追加します。
 
 ```json
 "scripts": {
@@ -141,6 +145,31 @@ export default defineConfig({
   },
 })
 ```
+
+## Libraries
+
+- `minista-sitemap`: [repo](https://github.com/qrac/minista-sitemap) / [npm](https://www.npmjs.com/package/minista-sitemap)
+- `minista-markdown`: [repo](https://github.com/qrac/minista-markdown) / [npm](https://www.npmjs.com/package/minista-markdown)
+
+## Media
+
+- v1
+  - [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
+  - [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
+
+## Respect
+
+- [Next.js by Vercel - The React Framework](https://nextjs.org/)
+- [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
+- [Eleventy, a simpler static site generator.](https://www.11ty.dev/)
+- [Node Interface | webpack](https://webpack.js.org/api/node/)
+- [natemoo-re/microsite](https://github.com/natemoo-re/microsite)
+- [Astro](https://astro.build/)
+- [テンプレートエンジンに React を使いつつ、きれいな HTML を生成したいんじゃ！！](https://zenn.dev/otsukayuhi/articles/e52651b4e2c5ae7c4a17)
+- [EJS をやめて React で HTML を書く](https://zenn.dev/hisho/scraps/4ef6c6106a6395)
+- [MPA(マルチページアプリ)で webpack を使う](https://www.key-p.com/blog/staff/archives/107125)
+- [HTML コーディングでも React+TypeScript の開発体験を得る](https://zenn.dev/nanaki14/articles/html-template-react)
+- [Astro と microCMS でポートフォリオサイトを作る](https://zenn.dev/takanorip/articles/c75717c280c81d)
 
 ## License
 
