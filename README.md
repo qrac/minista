@@ -39,8 +39,8 @@ public # Copy dist
 src
 └── pages # Required!
     ├── about
-    │   └── index.tsx
-    └── index.tsx
+    │   └── index.jsx
+    └── index.jsx
 ```
 
 <!-- prettier-ignore -->
@@ -153,9 +153,9 @@ export default defineConfig({
 
 ## Media
 
-- v1
-  - [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
-  - [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
+- [Vite と esbuild を組み込み React 製 SSG を再構築 - minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
+- [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
+- [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
 
 ## Respect
 
