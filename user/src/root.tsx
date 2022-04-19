@@ -54,7 +54,7 @@ const Root = ({ global, frontmatter, location, children }: RootProps) => {
             ? frontmatter?.title + " | " + global?.title
             : global?.title}
         </title>
-        <meta property="description" content={global?.description}></meta>
+        <meta name="description" content={global?.description}></meta>
         <meta property="og:type" content={ogType} />
       </Head>
       <Layout>{children}</Layout>
