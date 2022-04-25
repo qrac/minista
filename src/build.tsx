@@ -429,7 +429,7 @@ export async function buildViteImporterRoutes(config: MinistaResolveConfig) {
   })
   const replaceFileNameArrayStr = replaceFileNameArray.join("\n      ")
   const template = `export const getRoutes = () => {
-  const ROUTES = import.meta.globEager("/${pagesDir}**/[a-z[]*.{${pagesExtStr}}")
+  const ROUTES = import.meta.globEager("/${pagesDir}**/*.{${pagesExtStr}}")
   const routes = Object.keys(ROUTES).map((route) => {
     const routePath = route
       ${replacePagesStr}
