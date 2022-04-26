@@ -1,7 +1,7 @@
 {
   "name": "minista",
   "description": "Next.js Like Development with 100% Static Generate",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "bin": {
     "minista": "./bin/minista.js"
   },
@@ -10,7 +10,8 @@
   "type": "module",
   "files": [
     "dist",
-    "lib"
+    "lib",
+    "client.d.ts"
   ],
   "license": "MIT",
   "homepage": "https://github.com/qrac/minista",

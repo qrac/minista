@@ -26,7 +26,7 @@ import type {
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
-import { resolvePlugin } from "./esbuild.js"
+import { resolvePlugin, rawPlugin } from "./esbuild.js"
 import { renderHtml } from "./render.js"
 import { slashEnd } from "./utils.js"
 
@@ -79,6 +79,7 @@ export async function buildTempPages(
       resolvePlugin({
         "react/jsx-runtime": "react/jsx-runtime.js",
       }),
+      rawPlugin(),
     ],
   }).catch(() => process.exit(1))
 }

@@ -1,3 +1,5 @@
+import path from "path"
+import { readFile } from "fs/promises"
 import type { Plugin, PluginBuild } from "esbuild"
 
 /*! Fork: esbuild-plugin-resolve | https://github.com/markwylde/esbuild-plugin-resolve */
@@ -47,4 +49,30 @@ function resolvePluginIntercept(
     `
     return { contents: importerCode, resolveDir: args.pluginData.resolveDir }
   })
+}
+
+/*! Fork: esbuild-plugin-resolve | https://github.com/hannoeru/esbuild-plugin-raw */
+export function rawPlugin(): Plugin {
+  return {
+    name: "esbuild-raw",
+    setup(build) {
+      build.onResolve({ filter: /\?raw$/ }, (args) => {
+        return {
+          path: path.isAbsolute(args.path)
+            ? args.path
+            : path.join(args.resolveDir, args.path),
+          namespace: "raw-loader",
+        }
+      })
+      build.onLoad(
+        { filter: /\?raw$/, namespace: "raw-loader" },
+        async (args) => {
+          return {
+            contents: await readFile(args.path.replace(/\?raw$/, "")),
+            loader: "text",
+          }
+        }
+      )
+    },
+  }
 }
