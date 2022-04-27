@@ -21,10 +21,13 @@ const PageHome = () => {
           <a href="/mdx2/">MDX 2</a>
         </li>
         <li>
-          <a href="/icons/">Icons</a>
+          <a href="/svgr/">SVGR</a>
         </li>
         <li>
           <a href="/raw/">Raw</a>
+        </li>
+        <li>
+          <a href="/icons/">Icons</a>
         </li>
         <li>
           <a href="/download/">Download</a>

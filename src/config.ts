@@ -37,6 +37,9 @@ export const defaultConfig: MinistaConfig = {
       outDir: "assets/fonts",
       outName: "[name]",
     },
+    svgr: {
+      svgrOptions: {},
+    },
     icons: {
       useSprite: true,
       srcDir: "src/assets/icons",

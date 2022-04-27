@@ -1,6 +1,8 @@
-import path from "path"
-import { readFile } from "fs/promises"
 import type { Plugin, PluginBuild } from "esbuild"
+import type { Config as SvgrOptions } from "@svgr/core"
+
+import fs from "fs-extra"
+import path from "path"
 
 /*! Fork: esbuild-plugin-resolve | https://github.com/markwylde/esbuild-plugin-resolve */
 export function resolvePlugin(options: { [key: string]: string }): Plugin {
@@ -51,6 +53,28 @@ function resolvePluginIntercept(
   })
 }
 
+/*! Fork: esbuild-plugin-svgr | https://github.com/kazijawad/esbuild-plugin-svgr */
+export function svgrPlugin(options: SvgrOptions): Plugin {
+  return {
+    name: "esbuild-svgr",
+    setup(build) {
+      build.onLoad({ filter: /\.svg$/ }, async (args) => {
+        const { transform: transformSvgr } = await import("@svgr/core")
+        const svg = await fs.promises.readFile(args.path, "utf8")
+        const contents = await transformSvgr(
+          svg,
+          { ...options },
+          { filePath: args.path }
+        )
+        return {
+          contents,
+          loader: options.typescript ? "tsx" : "jsx",
+        }
+      })
+    },
+  }
+}
+
 /*! Fork: esbuild-plugin-resolve | https://github.com/hannoeru/esbuild-plugin-raw */
 export function rawPlugin(): Plugin {
   return {
@@ -68,7 +92,9 @@ export function rawPlugin(): Plugin {
         { filter: /\?raw$/, namespace: "raw-loader" },
         async (args) => {
           return {
-            contents: await readFile(args.path.replace(/\?raw$/, "")),
+            contents: await fs.promises.readFile(
+              args.path.replace(/\?raw$/, "")
+            ),
             loader: "text",
           }
         }

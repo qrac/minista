@@ -1,4 +1,5 @@
 import type { UserConfig as ViteConfig, Plugin, ResolvedConfig } from "vite"
+import type { Config as SvgrOptions } from "@svgr/core"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
 import fs from "fs-extra"
@@ -10,6 +11,7 @@ import {
   searchForWorkspaceRoot,
   createLogger,
   mergeConfig as mergeViteConfig,
+  transformWithEsbuild,
 } from "vite"
 import react from "@vitejs/plugin-react"
 import mdx from "@mdx-js/rollup"
@@ -110,6 +112,9 @@ export async function getViteConfig(
   })
 
   const mergedViteConfig = mergeViteConfig(viteConfig, config.vite)
+
+  const svgrPlugin = vitePluginMinistaSvgr(config.assets.svgr.svgrOptions)
+  mergedViteConfig.plugins.push(svgrPlugin)
 
   if (config.assets.icons.useSprite) {
     const iconsPlugin = vitePluginMinistaSvgSpriteIcons(
@@ -221,6 +226,30 @@ export function vitePluginMinistaVirtualHtml(): Plugin {
           }
           next()
         })
+      }
+    },
+  }
+}
+
+/*! Fork: vite-plugin-svgr | https://github.com/pd4d10/vite-plugin-svgr */
+export function vitePluginMinistaSvgr(svgrOptions: SvgrOptions): Plugin {
+  return {
+    name: "vite-plugin-minista-svgr",
+    async transform(code, id) {
+      if (id.endsWith(".svg")) {
+        const { transform: transformSvgr } = await import("@svgr/core")
+        const svgCode = await fs.promises.readFile(id, "utf8")
+        const componentCode = await transformSvgr(svgCode, svgrOptions, {
+          componentName: "ReactComponent",
+          filePath: id,
+        })
+        const res = await transformWithEsbuild(componentCode, id, {
+          loader: "jsx",
+        })
+        return {
+          code: res.code,
+          map: null,
+        }
       }
     },
   }

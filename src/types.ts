@@ -1,5 +1,6 @@
 import type { ExoticComponent } from "react"
 import type { UserConfig as ViteUserConfig } from "vite"
+import type { Config as SvgrOptions } from "@svgr/core"
 import type { Options as HighlightOptions } from "rehype-highlight"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type {
@@ -35,6 +36,9 @@ export type MinistaConfig = {
     fonts: {
       outDir: string
       outName: string
+    }
+    svgr: {
+      svgrOptions: SvgrOptions
     }
     icons: {
       useSprite: boolean
@@ -92,6 +96,9 @@ export type MinistaUserConfig = {
     fonts?: {
       outDir?: string
       outName?: string
+    }
+    svgr?: {
+      svgrOptions?: SvgrOptions
     }
     icons?: {
       useSprite?: boolean

@@ -105,6 +105,9 @@ export default defineConfig({
       outDir: "assets/fonts", // string
       outName: "[name]", // string
     },
+    svgr: {
+      svgrOptions: {}, // https://react-svgr.com/docs/options/
+    },
     icons: {
       useSprite: true, // boolean
       srcDir: "src/assets/icons", // string

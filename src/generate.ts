@@ -57,6 +57,7 @@ export async function generateTempRoot(
       outBase: config.rootSrcDir,
       outDir: systemConfig.temp.root.outDir,
       mdxConfig: mdxConfig,
+      svgrOptions: config.assets.svgr.svgrOptions,
     })
   }
 }
@@ -73,6 +74,7 @@ export async function generateTempPages(
     outBase: config.pagesSrcDir,
     outDir: systemConfig.temp.pages.outDir,
     mdxConfig: mdxConfig,
+    svgrOptions: config.assets.svgr.svgrOptions,
   })
 }
 

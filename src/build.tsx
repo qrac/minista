@@ -1,4 +1,5 @@
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
+import type { Config as SvgrOptions } from "@svgr/core"
 import type { InlineConfig } from "vite"
 
 import fs from "fs-extra"
@@ -26,7 +27,7 @@ import type {
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
-import { resolvePlugin, rawPlugin } from "./esbuild.js"
+import { resolvePlugin, svgrPlugin, rawPlugin } from "./esbuild.js"
 import { renderHtml } from "./render.js"
 import { slashEnd } from "./utils.js"
 
@@ -39,6 +40,7 @@ export async function buildTempPages(
     outBase: string
     outDir: string
     mdxConfig: MdxOptions
+    svgrOptions: SvgrOptions
   }
 ) {
   const ministaPkgURL = new URL(
@@ -79,6 +81,7 @@ export async function buildTempPages(
       resolvePlugin({
         "react/jsx-runtime": "react/jsx-runtime.js",
       }),
+      svgrPlugin(buildOptions.svgrOptions),
       rawPlugin(),
     ],
   }).catch(() => process.exit(1))
