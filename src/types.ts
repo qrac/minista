@@ -1,5 +1,8 @@
 import type { ExoticComponent } from "react"
-import type { UserConfig as ViteUserConfig } from "vite"
+import type {
+  UserConfig as ViteUserConfig,
+  CorsOptions as ViteCorsOptions,
+} from "vite"
 import type { Config as SvgrOptions } from "@svgr/core"
 import type { Options as HighlightOptions } from "rehype-highlight"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
@@ -178,6 +181,23 @@ export type MinistaSystemConfig = {
       outDir: string
     }
   }
+}
+
+export type MinistaCliDevOptions = {
+  host?: string | boolean
+  port?: number
+  strictPort?: boolean
+  https?: boolean
+  open?: boolean | string
+  cors?: boolean | ViteCorsOptions
+}
+
+export type MinistaCliPreviewOptions = {
+  host?: string | boolean
+  port?: number
+  strictPort?: boolean
+  https?: boolean
+  open?: boolean | string
 }
 
 export type MinistaLocation = {

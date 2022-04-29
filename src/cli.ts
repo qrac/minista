@@ -1,6 +1,8 @@
 import fs from "fs-extra"
 import { cac } from "cac"
 
+import { MinistaCliDevOptions, MinistaCliPreviewOptions } from "./types.js"
+
 import { getUserConfig } from "./user.js"
 import { getConfig } from "./config.js"
 import { systemConfig } from "./system.js"
@@ -21,6 +23,20 @@ import {
   generateBeautify,
 } from "./generate.js"
 
+const cli = cac("minista")
+
+interface GlobalCLIOptions {
+  "--"?: string[]
+}
+
+function cleanOptions<Options extends GlobalCLIOptions>(
+  options: Options
+): Omit<Options, keyof GlobalCLIOptions> {
+  const ret = { ...options }
+  delete ret["--"]
+  return ret
+}
+
 function printVersion() {
   const pkgURL = new URL("../package.json", import.meta.url)
   const pkg = JSON.parse(fs.readFileSync(pkgURL, "utf8"))
@@ -28,32 +44,39 @@ function printVersion() {
   return pkgVersion
 }
 
-const cli = cac("minista")
-
 cli
-  .command("[root]")
+  .command("[root]", "start dev server")
   .alias("dev")
-  .action(async () => {
-    try {
-      const userConfig = await getUserConfig()
-      const config = await getConfig(userConfig)
-      const mdxConfig = await getMdxConfig(config)
-      const viteConfig = await getViteConfig(config, mdxConfig)
+  .option("--host [host]", `[string] specify hostname`)
+  .option("--port <port>", `[number] specify port`)
+  .option("--strictPort", `[boolean] exit if specified port is already in use`)
+  .option("--https", `[boolean] use TLS + HTTP/2`)
+  .option("--open [path]", `[boolean | string] open browser on startup`)
+  .option("--cors", `[boolean] enable CORS`)
+  .action(
+    async (root: string, options: MinistaCliDevOptions & GlobalCLIOptions) => {
+      try {
+        const cliOptions = cleanOptions(options)
+        const userConfig = await getUserConfig()
+        const config = await getConfig(userConfig)
+        const mdxConfig = await getMdxConfig(config)
+        const viteConfig = await getViteConfig(config, mdxConfig, cliOptions)
 
-      await Promise.all([
-        emptyResolveDir(systemConfig.temp.viteImporter.outDir),
-        emptyResolveDir(systemConfig.temp.icons.outDir),
-      ])
-      await generateViteImporters(config, viteConfig)
+        await Promise.all([
+          emptyResolveDir(systemConfig.temp.viteImporter.outDir),
+          emptyResolveDir(systemConfig.temp.icons.outDir),
+        ])
+        await generateViteImporters(config, viteConfig)
 
-      await createDevServer(viteConfig)
-    } catch (err) {
-      console.log(err)
-      process.exit(1)
+        await createDevServer(viteConfig)
+      } catch (err) {
+        console.log(err)
+        process.exit(1)
+      }
     }
-  })
+  )
 
-cli.command("build [root]").action(async () => {
+cli.command("build [root]", "build for production").action(async () => {
   try {
     const userConfig = await getUserConfig()
     const config = await getConfig(userConfig)
@@ -87,19 +110,32 @@ cli.command("build [root]").action(async () => {
   }
 })
 
-cli.command("preview [root]").action(async () => {
-  try {
-    const userConfig = await getUserConfig()
-    const config = await getConfig(userConfig)
-    const mdxConfig = await getMdxConfig(config)
-    const viteConfig = await getViteConfig(config, mdxConfig)
+cli
+  .command("preview [root]", "locally preview production build")
+  .option("--host [host]", `[string] specify hostname`)
+  .option("--port <port>", `[number] specify port`)
+  .option("--strictPort", `[boolean] exit if specified port is already in use`)
+  .option("--https", `[boolean] use TLS + HTTP/2`)
+  .option("--open [path]", `[boolean | string] open browser on startup`)
+  .action(
+    async (
+      root: string,
+      options: MinistaCliPreviewOptions & GlobalCLIOptions
+    ) => {
+      try {
+        const cliOptions = cleanOptions(options)
+        const userConfig = await getUserConfig()
+        const config = await getConfig(userConfig)
+        const mdxConfig = await getMdxConfig(config)
+        const viteConfig = await getViteConfig(config, mdxConfig, cliOptions)
 
-    await previewLocal(viteConfig)
-  } catch (err) {
-    console.log(err)
-    process.exit(1)
-  }
-})
+        await previewLocal(viteConfig)
+      } catch (err) {
+        console.log(err)
+        process.exit(1)
+      }
+    }
+  )
 
 cli.help()
 cli.version(printVersion())

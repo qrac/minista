@@ -1,7 +1,7 @@
 {
   "name": "minista",
   "description": "Next.js Like Development with 100% Static Generate",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "bin": {
     "minista": "./bin/minista.js"
   },
@@ -51,8 +51,10 @@
     "test:dev": "vitest watch",
     "user": "cd ./user && npx minista",
     "user:dev": "cd ./user && npx minista",
+    "user:dev-h": "cd ./user && npx minista --host",
     "user:build": "cd ./user && npx minista build",
     "user:preview": "cd ./user && npx minista preview",
+    "user:preview-h": "cd ./user && npx minista preview --host",
     "user:v": "cd ./user && npx minista -v",
     "user:h": "cd ./user && npx minista -h",
     "prepublishOnly": "npm run clean:dist && npm run build:all",

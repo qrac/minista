@@ -18,7 +18,12 @@ import mdx from "@mdx-js/rollup"
 //@ts-ignore
 import svgstore from "svgstore"
 
-import type { MinistaResolveConfig, MinistaSvgstoreOptions } from "./types.js"
+import type {
+  MinistaResolveConfig,
+  MinistaSvgstoreOptions,
+  MinistaCliDevOptions,
+  MinistaCliPreviewOptions,
+} from "./types.js"
 
 import { systemConfig } from "./system.js"
 import { getFilePaths } from "./path.js"
@@ -29,12 +34,13 @@ const __dirname = path.dirname(__filename)
 
 export async function getViteConfig(
   config: MinistaResolveConfig,
-  mdxConfig: MdxOptions
+  mdxConfig: MdxOptions,
+  cliOptions?: MinistaCliDevOptions | MinistaCliPreviewOptions
 ): Promise<ViteConfig> {
   const imgExt = ["jpg", "jpeg", "gif", "png", "webp", "svg"]
   const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
 
-  const viteConfig = defineViteConfig({
+  const defaultViteConfig = defineViteConfig({
     base: config.base || "/",
     publicDir: config.public || "public",
     build: {
@@ -111,7 +117,7 @@ export async function getViteConfig(
     customLogger: createLogger("info", { prefix: "[minista]" }),
   })
 
-  const mergedViteConfig = mergeViteConfig(viteConfig, config.vite)
+  const mergedViteConfig = mergeViteConfig(defaultViteConfig, config.vite)
 
   const svgrPlugin = vitePluginMinistaSvgr(config.assets.svgr.svgrOptions)
   mergedViteConfig.plugins.push(svgrPlugin)
@@ -134,7 +140,9 @@ export async function getViteConfig(
   const mdxPlugin = mdx(mdxConfig)
   mergedViteConfig.plugins.push(mdxPlugin)
 
-  return mergedViteConfig
+  return cliOptions
+    ? mergeViteConfig(mergedViteConfig, { server: cliOptions })
+    : mergedViteConfig
 }
 
 export function resolveEntry(entry: string | string[] | {}): {} {
