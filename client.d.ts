@@ -1,3 +1,12 @@
+declare module "*.mdx" {
+  import { MDXProps } from "mdx/types"
+  export default function MDXContent(props: MDXProps): JSX.Element
+}
+
+declare module "*.md" {
+  export { default } from "*.mdx"
+}
+
 declare module "*.svg" {
   import * as React from "react"
 
