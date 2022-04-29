@@ -10,7 +10,12 @@ const PageSvgr = () => {
         <title>SVGR</title>
       </Head>
       <h1>SVGR</h1>
-      <Logo title="minista" className="svgr-logo" width={400} height={88} />
+      <Logo
+        aria-label="minista"
+        className="svgr-logo"
+        width={400}
+        height={88}
+      />
     </AppLayout>
   )
 }
