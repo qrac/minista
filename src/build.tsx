@@ -27,7 +27,12 @@ import type {
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
-import { resolvePlugin, svgrPlugin, rawPlugin } from "./esbuild.js"
+import {
+  resolvePlugin,
+  svgrPlugin,
+  rawPlugin,
+  partialHydrationPlugin,
+} from "./esbuild.js"
 import { renderHtml } from "./render.js"
 import { slashEnd } from "./utils.js"
 
@@ -83,8 +88,23 @@ export async function buildTempPages(
       }),
       svgrPlugin(buildOptions.svgrOptions),
       rawPlugin(),
+      partialHydrationPlugin(),
     ],
   }).catch(() => process.exit(1))
+}
+
+export async function buildPartialHydrationComponent(entryPoints: string[]) {
+  const data = await esBuild({
+    entryPoints: entryPoints,
+    format: "esm",
+    platform: "node",
+    inject: [
+      path.resolve(__dirname + "/../lib/shim-react.js"),
+      path.resolve(__dirname + "/../lib/shim-fetch.js"),
+    ],
+    write: false,
+  }).catch(() => process.exit(1))
+  return data
 }
 
 export async function buildStaticPages(

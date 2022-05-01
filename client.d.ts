@@ -16,6 +16,13 @@ declare module "*.svg" {
   export default ReactComponent
 }
 
+declare module "*?ph" {
+  import * as React from "react"
+
+  const ReactComponent: React.FunctionComponent<React.PropsWithChildren>
+  export default ReactComponent
+}
+
 declare module "*?raw" {
   const src: string
   export default src

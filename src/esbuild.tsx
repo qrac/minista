@@ -3,6 +3,9 @@ import type { Config as SvgrOptions } from "@svgr/core"
 
 import fs from "fs-extra"
 import path from "path"
+import { renderToString } from "react-dom/server.js"
+
+import { buildPartialHydrationComponent } from "./build.js"
 
 /*! Fork: esbuild-plugin-resolve | https://github.com/markwylde/esbuild-plugin-resolve */
 export function resolvePlugin(options: { [key: string]: string }): Plugin {
@@ -96,6 +99,52 @@ export function rawPlugin(): Plugin {
               args.path.replace(/\?raw$/, "")
             ),
             loader: "text",
+          }
+        }
+      )
+    },
+  }
+}
+
+export function partialHydrationPlugin(): Plugin {
+  return {
+    name: "esbuild-partial-hydration",
+    setup(build) {
+      build.onResolve({ filter: /\?ph$/ }, (args) => {
+        return {
+          path: path.isAbsolute(args.path)
+            ? args.path
+            : path.join(args.resolveDir, args.path),
+          namespace: "partial-hydration-loader",
+        }
+      })
+      build.onLoad(
+        { filter: /\?ph$/, namespace: "partial-hydration-loader" },
+        async (args) => {
+          console.log("args")
+          console.log(args)
+
+          const entryPoint = args.path.replace(/\?ph$/, "") + ".tsx"
+          const data = await buildPartialHydrationComponent([entryPoint])
+          const text = data.outputFiles[0].text
+          console.log(data.outputFiles[0].text)
+
+          //const { default: mod } = await import(`data:text/javascript;charset=utf-8;base64,${Buffer.from(text).toString("base64")}`)
+          //console.log(mod)
+          //const contents = await import(args.path + ".tsx")
+          //const renderedContents = renderToString(contents)
+
+          //console.log("args.path")
+          //console.log(args.path)
+          //console.log("contents")
+          //console.log(contents)
+          //console.log("renderedContents")
+          //console.log(renderedContents)
+          const dummy = "export default () => <p>test</p>"
+
+          return {
+            contents: dummy,
+            loader: "tsx",
           }
         }
       )
