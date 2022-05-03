@@ -9,6 +9,39 @@ import { buildPartialHydrationComponent } from "./build.js"
 
 /*! Fork: esbuild-plugin-resolve | https://github.com/markwylde/esbuild-plugin-resolve */
 export function resolvePlugin(options: { [key: string]: string }): Plugin {
+  function resolvePluginIntercept(
+    build: PluginBuild,
+    moduleName: string,
+    moduleTarget: string
+  ) {
+    const filter = new RegExp("^" + moduleName + "(?:\\/.*)?$")
+    build.onResolve({ filter }, async (args) => {
+      if (args.resolveDir === "") {
+        return
+      }
+      return {
+        path: args.path,
+        namespace: "esbuild-resolve",
+        pluginData: {
+          resolveDir: args.resolveDir,
+          moduleName,
+        },
+      }
+    })
+    build.onLoad({ filter, namespace: "esbuild-resolve" }, async (args) => {
+      const importerCode = `
+        export * from '${args.path.replace(
+          args.pluginData.moduleName,
+          moduleTarget
+        )}';
+        export { default } from '${args.path.replace(
+          args.pluginData.moduleName,
+          moduleTarget
+        )}';
+      `
+      return { contents: importerCode, resolveDir: args.pluginData.resolveDir }
+    })
+  }
   return {
     name: "esbuild-resolve",
     setup: (build: PluginBuild) => {
@@ -17,43 +50,6 @@ export function resolvePlugin(options: { [key: string]: string }): Plugin {
       }
     },
   }
-}
-
-function resolvePluginIntercept(
-  build: PluginBuild,
-  moduleName: string,
-  moduleTarget: string
-) {
-  const filter = new RegExp("^" + moduleName + "(?:\\/.*)?$")
-
-  build.onResolve({ filter }, async (args) => {
-    if (args.resolveDir === "") {
-      return
-    }
-
-    return {
-      path: args.path,
-      namespace: "esbuild-resolve",
-      pluginData: {
-        resolveDir: args.resolveDir,
-        moduleName,
-      },
-    }
-  })
-
-  build.onLoad({ filter, namespace: "esbuild-resolve" }, async (args) => {
-    const importerCode = `
-      export * from '${args.path.replace(
-        args.pluginData.moduleName,
-        moduleTarget
-      )}';
-      export { default } from '${args.path.replace(
-        args.pluginData.moduleName,
-        moduleTarget
-      )}';
-    `
-    return { contents: importerCode, resolveDir: args.pluginData.resolveDir }
-  })
 }
 
 /*! Fork: esbuild-plugin-svgr | https://github.com/kazijawad/esbuild-plugin-svgr */
