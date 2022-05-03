@@ -43,13 +43,10 @@ export async function buildTempPages(
     svgrOptions: SvgrOptions
   }
 ) {
-  const ministaPkgURL = new URL(
-    path.resolve(__dirname + "/../package.json"),
-    import.meta.url
-  )
-  const ministaPkg = JSON.parse(fs.readFileSync(ministaPkgURL, "utf8"))
-  const userPkgURL = new URL(path.resolve("package.json"), import.meta.url)
-  const userPkg = JSON.parse(fs.readFileSync(userPkgURL, "utf8"))
+  const ministaPkg = JSON.parse(fs.readFileSync("../package.json", "utf8"))
+  const userPkgPath = path.resolve("package.json")
+  const userPkgFilePath = path.relative(process.cwd(), userPkgPath)
+  const userPkg = JSON.parse(fs.readFileSync(userPkgFilePath, "utf8"))
 
   const esbuildExternal = [
     ...Object.keys(ministaPkg.dependencies || {}),
@@ -125,7 +122,8 @@ export async function buildRootEsmContent(tempRootFilePath: string) {
   if (!tempRootFilePath) {
     return defaultRootEsmContent
   } else {
-    const rootEsmContent: RootEsmContent = await import(tempRootFilePath)
+    const targetFilePath = url.pathToFileURL(tempRootFilePath).href
+    const rootEsmContent: RootEsmContent = await import(targetFilePath)
     const rootJsxContent: RootJsxContent = rootEsmContent.default
       ? rootEsmContent.default
       : Fragment
@@ -152,7 +150,8 @@ export async function buildStaticPage(
   assetsTagStr: string,
   outDir: string
 ) {
-  const pageEsmContent: PageEsmContent = await import(path.resolve(entryPoint))
+  const targetFilePath = url.pathToFileURL(entryPoint).href
+  const pageEsmContent: PageEsmContent = await import(targetFilePath)
   const pageJsxContent: PageJsxContent = pageEsmContent.default
   const frontmatter = pageEsmContent.frontmatter
     ? pageEsmContent.frontmatter

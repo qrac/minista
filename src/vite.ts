@@ -213,11 +213,7 @@ export function vitePluginMinistaVirtualHtml(): Plugin {
     name: "vite-plugin-minista-virtual-html",
     configureServer(server) {
       return () => {
-        const ministaHtmlURL = new URL(
-          path.resolve(__dirname + "/../lib/index.html"),
-          import.meta.url
-        )
-        const ministaHtml = fs.readFileSync(ministaHtmlURL, "utf8")
+        const ministaHtml = fs.readFileSync("../lib/index.html", "utf8")
         const assetTagStr = getAssetsTagStr(
           server.config.inlineConfig.build?.rollupOptions?.input
         )
