@@ -1,3 +1,4 @@
+import type { Loader as EsbuildLoader } from "esbuild"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type { Config as SvgrOptions } from "@svgr/core"
 import type { InlineConfig } from "vite"
@@ -7,7 +8,7 @@ import path from "path"
 import url from "url"
 import pc from "picocolors"
 import { Fragment } from "react"
-import { build as esBuild } from "esbuild"
+import { build as esBuild, Loader } from "esbuild"
 import mdx from "@mdx-js/esbuild"
 import { build as viteBuild, mergeConfig as mergeViteConfig } from "vite"
 
@@ -39,25 +40,22 @@ import { slashEnd } from "./utils.js"
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const ministaPkgURL = new URL(
-  path.resolve(__dirname + "/../package.json"),
-  import.meta.url
-)
-const ministaPkg = JSON.parse(fs.readFileSync(ministaPkgURL, "utf8"))
-const userPkgURL = new URL(path.resolve("package.json"), import.meta.url)
-const userPkg = JSON.parse(fs.readFileSync(userPkgURL, "utf8"))
-
-const esbuildExternal = [
-  ...Object.keys(ministaPkg.dependencies || {}),
-  ...Object.keys(ministaPkg.devDependencies || {}),
-  ...Object.keys(ministaPkg.peerDependencies || {}),
-  ...Object.keys(userPkg.dependencies || {}),
-  ...Object.keys(userPkg.devDependencies || {}),
-  ...Object.keys(userPkg.peerDependencies || {}),
-  "*.css",
-  "*.scss",
-  "*.sass",
+const externalExtentions = [
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "webp",
+  "avif",
+  "eot",
+  "woff",
+  "woff2",
 ]
+const externalExtentionArray: [string, EsbuildLoader][] =
+  externalExtentions.map((ext) => {
+    return ["." + ext, "file"]
+  })
+const externalFileLoader = Object.fromEntries(externalExtentionArray)
 
 export async function buildTempPages(
   entryPoints: string[],
@@ -80,7 +78,7 @@ export async function buildTempPages(
       path.resolve(__dirname + "/../lib/shim-react.js"),
       path.resolve(__dirname + "/../lib/shim-fetch.js"),
     ],
-    external: esbuildExternal,
+    loader: externalFileLoader,
     plugins: [
       mdx(buildOptions.mdxConfig),
       resolvePlugin({
