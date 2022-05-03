@@ -168,6 +168,9 @@ export type MinistaSystemConfig = {
     viteImporter: {
       outDir: string
     }
+    partialHydration: {
+      outDir: string
+    }
     root: {
       outDir: string
     }

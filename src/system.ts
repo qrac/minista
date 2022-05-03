@@ -9,6 +9,9 @@ export const systemConfig: MinistaSystemConfig = {
     viteImporter: {
       outDir: "node_modules/.minista/vite-importer",
     },
+    partialHydration: {
+      outDir: "node_modules/.minista/partial-hydration",
+    },
     root: {
       outDir: "node_modules/.minista/bundled-react-root",
     },

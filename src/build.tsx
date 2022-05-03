@@ -39,6 +39,26 @@ import { slashEnd } from "./utils.js"
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+const ministaPkgURL = new URL(
+  path.resolve(__dirname + "/../package.json"),
+  import.meta.url
+)
+const ministaPkg = JSON.parse(fs.readFileSync(ministaPkgURL, "utf8"))
+const userPkgURL = new URL(path.resolve("package.json"), import.meta.url)
+const userPkg = JSON.parse(fs.readFileSync(userPkgURL, "utf8"))
+
+const esbuildExternal = [
+  ...Object.keys(ministaPkg.dependencies || {}),
+  ...Object.keys(ministaPkg.devDependencies || {}),
+  ...Object.keys(ministaPkg.peerDependencies || {}),
+  ...Object.keys(userPkg.dependencies || {}),
+  ...Object.keys(userPkg.devDependencies || {}),
+  ...Object.keys(userPkg.peerDependencies || {}),
+  "*.css",
+  "*.scss",
+  "*.sass",
+]
+
 export async function buildTempPages(
   entryPoints: string[],
   buildOptions: {
@@ -48,26 +68,6 @@ export async function buildTempPages(
     svgrOptions: SvgrOptions
   }
 ) {
-  const ministaPkgURL = new URL(
-    path.resolve(__dirname + "/../package.json"),
-    import.meta.url
-  )
-  const ministaPkg = JSON.parse(fs.readFileSync(ministaPkgURL, "utf8"))
-  const userPkgURL = new URL(path.resolve("package.json"), import.meta.url)
-  const userPkg = JSON.parse(fs.readFileSync(userPkgURL, "utf8"))
-
-  const esbuildExternal = [
-    ...Object.keys(ministaPkg.dependencies || {}),
-    ...Object.keys(ministaPkg.devDependencies || {}),
-    ...Object.keys(ministaPkg.peerDependencies || {}),
-    ...Object.keys(userPkg.dependencies || {}),
-    ...Object.keys(userPkg.devDependencies || {}),
-    ...Object.keys(userPkg.peerDependencies || {}),
-    "*.css",
-    "*.scss",
-    "*.sass",
-  ]
-
   await esBuild({
     entryPoints: entryPoints,
     outbase: buildOptions.outBase,

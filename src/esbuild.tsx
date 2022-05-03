@@ -124,10 +124,10 @@ export function partialHydrationPlugin(): Plugin {
           console.log("args")
           console.log(args)
 
-          const entryPoint = args.path.replace(/\?ph$/, "") + ".tsx"
-          const data = await buildPartialHydrationComponent([entryPoint])
-          const text = data.outputFiles[0].text
-          console.log(data.outputFiles[0].text)
+          //const entryPoint = args.path.replace(/\?ph$/, "") + ".tsx"
+          //const data = await buildPartialHydrationComponent([entryPoint])
+          //const text = data.outputFiles[0].text
+          //console.log(data.outputFiles[0].text)
 
           //const { default: mod } = await import(`data:text/javascript;charset=utf-8;base64,${Buffer.from(text).toString("base64")}`)
           //console.log(mod)
