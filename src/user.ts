@@ -28,7 +28,8 @@ export async function getUserConfig(
       platform: "node",
     }).catch(() => process.exit(1))
     const { default: userConfig } = await import(
-      path.resolve(`${systemConfig.temp.config.outDir}/minista.config.mjs`)
+      "file://" +
+        path.resolve(`${systemConfig.temp.config.outDir}/minista.config.mjs`)
     )
     return userConfig || {}
   } else {

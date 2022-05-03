@@ -214,7 +214,7 @@ export function vitePluginMinistaVirtualHtml(): Plugin {
     configureServer(server) {
       return () => {
         const ministaHtmlURL = new URL(
-          path.resolve(__dirname + "/../lib/index.html"),
+          "file://" + path.resolve(__dirname + "/../lib/index.html"),
           import.meta.url
         )
         const ministaHtml = fs.readFileSync(ministaHtmlURL, "utf8")

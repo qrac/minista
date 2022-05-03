@@ -30,6 +30,7 @@ import { systemConfig } from "./system.js"
 import { resolvePlugin, svgrPlugin, rawPlugin } from "./esbuild.js"
 import { renderHtml } from "./render.js"
 import { slashEnd } from "./utils.js"
+import { normalizePath } from "./path.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -44,11 +45,14 @@ export async function buildTempPages(
   }
 ) {
   const ministaPkgURL = new URL(
-    path.resolve(__dirname + "/../package.json"),
+    "file://" + path.resolve(__dirname + "/../package.json"),
     import.meta.url
   )
   const ministaPkg = JSON.parse(fs.readFileSync(ministaPkgURL, "utf8"))
-  const userPkgURL = new URL(path.resolve("package.json"), import.meta.url)
+  const userPkgURL = new URL(
+    "file://" + path.resolve("package.json"),
+    import.meta.url
+  )
   const userPkg = JSON.parse(fs.readFileSync(userPkgURL, "utf8"))
 
   const esbuildExternal = [
@@ -101,9 +105,10 @@ export async function buildStaticPages(
     entryPoints.map(async (entryPoint) => {
       const extname = path.extname(entryPoint)
       const basename = path.basename(entryPoint, extname)
-      const dirname = path
-        .dirname(entryPoint)
-        .replace(buildOptions.outBase, buildOptions.outDir)
+      const dirname = normalizePath(path.dirname(entryPoint)).replace(
+        buildOptions.outBase,
+        buildOptions.outDir
+      )
       const filename = path.join(dirname, basename + ".html")
 
       await buildStaticPage(
@@ -125,7 +130,9 @@ export async function buildRootEsmContent(tempRootFilePath: string) {
   if (!tempRootFilePath) {
     return defaultRootEsmContent
   } else {
-    const rootEsmContent: RootEsmContent = await import(tempRootFilePath)
+    const rootEsmContent: RootEsmContent = await import(
+      "file://" + tempRootFilePath
+    )
     const rootJsxContent: RootJsxContent = rootEsmContent.default
       ? rootEsmContent.default
       : Fragment
@@ -152,7 +159,9 @@ export async function buildStaticPage(
   assetsTagStr: string,
   outDir: string
 ) {
-  const pageEsmContent: PageEsmContent = await import(path.resolve(entryPoint))
+  const pageEsmContent: PageEsmContent = await import(
+    "file://" + path.resolve(entryPoint)
+  )
   const pageJsxContent: PageJsxContent = pageEsmContent.default
   const frontmatter = pageEsmContent.frontmatter
     ? pageEsmContent.frontmatter
@@ -382,7 +391,7 @@ export async function buildAssetsTagStr(
   }
 ) {
   const assetsTags = entryPoints.map((entryPoint) => {
-    const assetPath = entryPoint.replace(
+    const assetPath = normalizePath(entryPoint).replace(
       buildOptions.outBase,
       buildOptions.outDir
     )

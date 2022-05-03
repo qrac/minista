@@ -2,6 +2,10 @@ import fs from "fs-extra"
 import path from "path"
 import glob from "tiny-glob"
 
+export const normalizePath = (filePath: string) => {
+  return filePath.split(path.sep).join(path.posix.sep)
+}
+
 export function getFilePath(
   targetDir: string,
   fileName: string,
@@ -22,7 +26,7 @@ export async function getFilePaths(
     typeof extensions === "string" ? extensions : extensions.join()
   const globPattern = `${targetDir}/**/*.{${strExtension}}`
   const files = await glob(globPattern)
-  return files
+  return files.map(normalizePath)
 }
 
 export async function getSameFilePaths(
@@ -34,5 +38,5 @@ export async function getSameFilePaths(
     typeof extensions === "string" ? extensions : extensions.join()
   const globPattern = `${targetDir}/${fileName}.{${strExtension}}`
   const files = await glob(globPattern)
-  return files
+  return files.map(normalizePath)
 }
