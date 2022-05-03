@@ -1,4 +1,5 @@
 import type { Plugin, PluginBuild } from "esbuild"
+import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type { Config as SvgrOptions } from "@svgr/core"
 
 import fs from "fs-extra"
@@ -102,7 +103,10 @@ export function rawPlugin(): Plugin {
   }
 }
 
-export function partialHydrationPlugin(): Plugin {
+export function partialHydrationPlugin(options: {
+  mdxConfig: MdxOptions
+  svgrOptions: SvgrOptions
+}): Plugin {
   return {
     name: "esbuild-partial-hydration",
     setup(build) {
@@ -117,27 +121,14 @@ export function partialHydrationPlugin(): Plugin {
       build.onLoad(
         { filter: /\?ph$/, namespace: "partial-hydration-loader" },
         async (args) => {
-          console.log("args")
-          console.log(args)
-
-          //const entryPoint = args.path.replace(/\?ph$/, "") + ".tsx"
-          //const data = await buildPartialHydrationComponent([entryPoint])
-          //const text = data.outputFiles[0].text
-          //console.log(data.outputFiles[0].text)
-
-          //const { default: mod } = await import(`data:text/javascript;charset=utf-8;base64,${Buffer.from(text).toString("base64")}`)
-          //console.log(mod)
+          const jsPath = args.path.replace(/\?ph$/, "")
+          await buildPartialHydrationComponent(entryPoint, {
+            mdxConfig: options.mdxConfig,
+            svgrOptions: options.svgrOptions,
+          })
           //const contents = await import(args.path + ".tsx")
           //const renderedContents = renderToString(contents)
-
-          //console.log("args.path")
-          //console.log(args.path)
-          //console.log("contents")
-          //console.log(contents)
-          //console.log("renderedContents")
-          //console.log(renderedContents)
           const dummy = "export default () => <p>test</p>"
-
           return {
             contents: dummy,
             loader: "tsx",

@@ -86,23 +86,38 @@ export async function buildTempPages(
       }),
       svgrPlugin(buildOptions.svgrOptions),
       rawPlugin(),
-      partialHydrationPlugin(),
+      partialHydrationPlugin({
+        mdxConfig: buildOptions.mdxConfig,
+        svgrOptions: buildOptions.svgrOptions,
+      }),
     ],
   }).catch(() => process.exit(1))
 }
 
-export async function buildPartialHydrationComponent(entryPoints: string[]) {
-  const data = await esBuild({
-    entryPoints: entryPoints,
+export async function buildPartialHydrationComponent(
+  entryPoint: string,
+  buildOptions: { mdxConfig: MdxOptions; svgrOptions: SvgrOptions }
+) {
+  await esBuild({
+    entryPoints: [entryPoint],
+    outExtension: { ".js": ".mjs" },
+    bundle: true,
     format: "esm",
     platform: "node",
     inject: [
       path.resolve(__dirname + "/../lib/shim-react.js"),
       path.resolve(__dirname + "/../lib/shim-fetch.js"),
     ],
-    write: false,
+    loader: externalFileLoader,
+    plugins: [
+      mdx(buildOptions.mdxConfig),
+      resolvePlugin({
+        "react/jsx-runtime": "react/jsx-runtime.js",
+      }),
+      svgrPlugin(buildOptions.svgrOptions),
+      rawPlugin(),
+    ],
   }).catch(() => process.exit(1))
-  return data
 }
 
 export async function buildStaticPages(
