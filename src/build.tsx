@@ -43,7 +43,9 @@ export async function buildTempPages(
     svgrOptions: SvgrOptions
   }
 ) {
-  const ministaPkg = JSON.parse(fs.readFileSync("../package.json", "utf8"))
+  const ministaPkgUrl = path.resolve(__dirname + "/../package.json")
+  const ministaPkgUrlRelative = path.relative(".", ministaPkgUrl)
+  const ministaPkg = JSON.parse(fs.readFileSync(ministaPkgUrlRelative, "utf8"))
   const userPkgPath = path.resolve("package.json")
   const userPkgFilePath = path.relative(process.cwd(), userPkgPath)
   const userPkg = JSON.parse(fs.readFileSync(userPkgFilePath, "utf8"))
@@ -387,6 +389,7 @@ export async function buildAssetsTagStr(
     const assetPath = entryPoint
       .replace(buildOptions.outBase, buildOptions.outDir)
       .replace(winOutBase, buildOptions.outDir)
+      .replaceAll("\\", "/")
     if (assetPath.endsWith(".css")) {
       return `<link rel="stylesheet" href="${assetPath}">`
     } else if (assetPath.endsWith(".js")) {
