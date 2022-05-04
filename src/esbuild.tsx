@@ -4,6 +4,7 @@ import type { Config as SvgrOptions } from "@svgr/core"
 
 import fs from "fs-extra"
 import path from "path"
+import { createRequire } from "module"
 import { renderToString } from "react-dom/server.js"
 
 import { buildPartialHydrationComponent } from "./build.js"
@@ -122,11 +123,16 @@ export function partialHydrationPlugin(options: {
         { filter: /\?ph$/, namespace: "partial-hydration-loader" },
         async (args) => {
           const jsPath = args.path.replace(/\?ph$/, "")
-          await buildPartialHydrationComponent(entryPoint, {
+          //const jsImportPath = await import.meta.resolve(jsPath)
+          //const require = createRequire(import.meta.url)
+          //const jsImportPath = require.resolve(args.path)
+          console.log(jsPath)
+          /*await buildPartialHydrationComponent(entryPoint, {
             mdxConfig: options.mdxConfig,
             svgrOptions: options.svgrOptions,
-          })
-          //const contents = await import(args.path + ".tsx")
+          })*/
+          //const contents = await import(jsPath)
+          //console.log(contents)
           //const renderedContents = renderToString(contents)
           const dummy = "export default () => <p>test</p>"
           return {
