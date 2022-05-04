@@ -94,6 +94,7 @@ export async function buildStaticPages(
   assetsTagStr: string
 ) {
   const rootStaticContent = await buildRootEsmContent(tempRootFilePath)
+  const winOutBase = buildOptions.outBase.replaceAll("/", "\\")
   await Promise.all(
     entryPoints.map(async (entryPoint) => {
       const extname = path.extname(entryPoint)
@@ -101,6 +102,7 @@ export async function buildStaticPages(
       const dirname = path
         .dirname(entryPoint)
         .replace(buildOptions.outBase, buildOptions.outDir)
+        .replace(winOutBase, buildOptions.outDir)
       const filename = path.join(dirname, basename + ".html")
 
       await buildStaticPage(
@@ -380,11 +382,11 @@ export async function buildAssetsTagStr(
     outDir: string
   }
 ) {
+  const winOutBase = buildOptions.outBase.replaceAll("/", "\\")
   const assetsTags = entryPoints.map((entryPoint) => {
-    const assetPath = entryPoint.replace(
-      buildOptions.outBase,
-      buildOptions.outDir
-    )
+    const assetPath = entryPoint
+      .replace(buildOptions.outBase, buildOptions.outDir)
+      .replace(winOutBase, buildOptions.outDir)
     if (assetPath.endsWith(".css")) {
       return `<link rel="stylesheet" href="${assetPath}">`
     } else if (assetPath.endsWith(".js")) {
