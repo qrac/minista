@@ -1,4 +1,5 @@
 import path from "path"
+import url from "url"
 import { build as esBuild } from "esbuild"
 
 import type { MinistaUserConfig } from "./types.js"
@@ -27,9 +28,11 @@ export async function getUserConfig(
       format: "esm",
       platform: "node",
     }).catch(() => process.exit(1))
-    const { default: userConfig } = await import(
-      path.resolve(`${systemConfig.temp.config.outDir}/minista.config.mjs`)
+    const userConfigPath = path.resolve(
+      `${systemConfig.temp.config.outDir}/minista.config.mjs`
     )
+    const userConfigFilePath = url.pathToFileURL(userConfigPath).href
+    const { default: userConfig } = await import(userConfigFilePath)
     return userConfig || {}
   } else {
     return {}
