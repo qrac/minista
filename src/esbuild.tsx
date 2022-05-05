@@ -4,10 +4,7 @@ import type { Config as SvgrOptions } from "@svgr/core"
 
 import fs from "fs-extra"
 import path from "path"
-import { createRequire } from "module"
-import { renderToString } from "react-dom/server.js"
 
-import { buildPartialHydrationComponent } from "./build.js"
 import { systemConfig } from "./system.js"
 
 /*! Fork: esbuild-plugin-resolve | https://github.com/markwylde/esbuild-plugin-resolve */
@@ -105,10 +102,7 @@ export function rawPlugin(): Plugin {
   }
 }
 
-export function partialHydrationPlugin(options: {
-  mdxConfig: MdxOptions
-  svgrOptions: SvgrOptions
-}): Plugin {
+export function partialHydrationPlugin(): Plugin {
   return {
     name: "esbuild-partial-hydration",
     setup(build) {

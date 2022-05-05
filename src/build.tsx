@@ -86,10 +86,7 @@ export async function buildTempPages(
       }),
       svgrPlugin(buildOptions.svgrOptions),
       rawPlugin(),
-      partialHydrationPlugin({
-        mdxConfig: buildOptions.mdxConfig,
-        svgrOptions: buildOptions.svgrOptions,
-      }),
+      partialHydrationPlugin(),
     ],
   }).catch(() => process.exit(1))
 }
