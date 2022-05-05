@@ -8,7 +8,7 @@ import path from "path"
 import url from "url"
 import pc from "picocolors"
 import { Fragment } from "react"
-import { build as esBuild, Loader } from "esbuild"
+import { build as esBuild } from "esbuild"
 import mdx from "@mdx-js/esbuild"
 import { build as viteBuild, mergeConfig as mergeViteConfig } from "vite"
 
