@@ -88,6 +88,7 @@ cli.command("build [root]", "build for production").action(async () => {
       emptyResolveDir(systemConfig.temp.assets.outDir),
       emptyResolveDir(systemConfig.temp.pages.outDir),
       emptyResolveDir(systemConfig.temp.viteImporter.outDir),
+      emptyResolveDir(systemConfig.temp.partialHydration.outDir),
       emptyResolveDir(config.out),
     ])
     await Promise.all([generateViteImporters(config, viteConfig)])

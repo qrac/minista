@@ -8,6 +8,7 @@ import { createRequire } from "module"
 import { renderToString } from "react-dom/server.js"
 
 import { buildPartialHydrationComponent } from "./build.js"
+import { systemConfig } from "./system.js"
 
 /*! Fork: esbuild-plugin-resolve | https://github.com/markwylde/esbuild-plugin-resolve */
 export function resolvePlugin(options: { [key: string]: string }): Plugin {
@@ -123,18 +124,16 @@ export function partialHydrationPlugin(options: {
         { filter: /\?ph$/, namespace: "partial-hydration-loader" },
         async (args) => {
           const jsPath = args.path.replace(/\?ph$/, "")
-          //const jsImportPath = await import.meta.resolve(jsPath)
-          //const require = createRequire(import.meta.url)
-          //const jsImportPath = require.resolve(args.path)
-          console.log(jsPath)
-          /*await buildPartialHydrationComponent(entryPoint, {
-            mdxConfig: options.mdxConfig,
-            svgrOptions: options.svgrOptions,
-          })*/
-          //const contents = await import(jsPath)
-          //console.log(contents)
-          //const renderedContents = renderToString(contents)
-          const dummy = "export default () => <p>test</p>"
+          const outDir = systemConfig.temp.partialHydration.outDir
+          const outList = await fs.readdir(outDir)
+          const outNum = outList.length + 1
+          const outFile = `${outDir}/${outNum}.js`
+          const template = `import PH${outNum} from "${jsPath}"`
+
+          await fs.outputFile(outFile, template).catch((err) => {
+            console.error(err)
+          })
+          const dummy = `export default () => <div data-partial-hydration="${outNum}"></div>`
           return {
             contents: dummy,
             loader: "tsx",

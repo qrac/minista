@@ -96,11 +96,15 @@ export async function buildTempPages(
 
 export async function buildPartialHydrationComponent(
   entryPoint: string,
-  buildOptions: { mdxConfig: MdxOptions; svgrOptions: SvgrOptions }
+  buildOptions: {
+    outFile: string
+    mdxConfig: MdxOptions
+    svgrOptions: SvgrOptions
+  }
 ) {
   await esBuild({
     entryPoints: [entryPoint],
-    outExtension: { ".js": ".mjs" },
+    outfile: buildOptions.outFile,
     bundle: true,
     format: "esm",
     platform: "node",

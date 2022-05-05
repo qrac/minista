@@ -2,15 +2,11 @@ import { useState } from "react"
 
 import "./block-toggle.css"
 
-type BlockToggleProps = {
-  title?: string
-}
-
-const BlockToggle = ({ title }: BlockToggleProps) => {
+const BlockToggle = () => {
   const [toggle, setToggle] = useState(false)
   return (
     <div className="block-toggle">
-      <h3 className="block-toggle-title">{title}</h3>
+      <h3 className="block-toggle-title">Block Toggle</h3>
       <div className="block-toggle-box">
         <button
           className="block-toggle-button"

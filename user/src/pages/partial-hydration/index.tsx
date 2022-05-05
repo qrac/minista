@@ -1,7 +1,7 @@
 import { Head } from "minista"
 
 import AppLayout from "../../components/app-layout"
-import BlockToggle from "../../components/block-toggle.js?ph"
+import BlockToggle from "../../components/block-toggle?ph"
 
 const PagePartialHydration = () => {
   return (
@@ -10,8 +10,8 @@ const PagePartialHydration = () => {
         <title>Partial Hydration</title>
       </Head>
       <h1>Partial Hydration</h1>
-      <BlockToggle title="State 1" />
-      <BlockToggle title="State 2" />
+      <BlockToggle />
+      <BlockToggle />
     </AppLayout>
   )
 }
