@@ -16,8 +16,10 @@ import {
   buildViteImporterRoutes,
   buildViteImporterAssets,
   buildViteImporterBlankAssets,
+  buildPartialHydrationIndex,
+  buildPartialHydrationBundle,
 } from "./build.js"
-import { optimizeCommentOutStyleImport } from "./optimize.js"
+//import { optimizeCommentOutStyleImport } from "./optimize.js"
 import { downloadFiles } from "./download.js"
 import { beautifyFiles } from "./beautify.js"
 
@@ -94,13 +96,36 @@ export async function generateAssets(
   )
 }
 
-export async function generateNoStyleTemp() {
+/*export async function generateNoStyleTemp() {
   const tempRootOutDir = systemConfig.temp.root.outDir
   const tempPagesOutDir = systemConfig.temp.pages.outDir
   const tempRootFiles = await getFilePaths(tempRootOutDir, "mjs")
   const tempPagesFiles = await getFilePaths(tempPagesOutDir, "mjs")
   await optimizeCommentOutStyleImport(tempRootFiles)
   await optimizeCommentOutStyleImport(tempPagesFiles)
+}*/
+
+export async function generatePartialHydration(
+  config: MinistaResolveConfig,
+  mdxConfig: MdxOptions,
+  viteConfig: InlineConfig
+) {
+  const outDir = systemConfig.temp.partialHydration.outDir
+  const moduleFilePaths = await getFilePaths(outDir, "js")
+
+  if (moduleFilePaths.length === 0) {
+    return
+  }
+
+  const indexFile = `${systemConfig.temp.partialHydration.outDir}/index.tsx`
+  const bundleFile = `${systemConfig.temp.partialHydration.outDir}/bundle.mjs`
+
+  await buildPartialHydrationIndex(moduleFilePaths, { outFile: indexFile })
+  await buildPartialHydrationBundle(indexFile, {
+    outFile: bundleFile,
+    mdxConfig: mdxConfig,
+    svgrOptions: config.assets.svgr.svgrOptions,
+  })
 }
 
 export async function generateHtmlPages(config: MinistaResolveConfig) {

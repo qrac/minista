@@ -91,36 +91,6 @@ export async function buildTempPages(
   }).catch(() => process.exit(1))
 }
 
-export async function buildPartialHydrationComponent(
-  entryPoint: string,
-  buildOptions: {
-    outFile: string
-    mdxConfig: MdxOptions
-    svgrOptions: SvgrOptions
-  }
-) {
-  await esBuild({
-    entryPoints: [entryPoint],
-    outfile: buildOptions.outFile,
-    bundle: true,
-    format: "esm",
-    platform: "node",
-    inject: [
-      path.resolve(__dirname + "/../lib/shim-react.js"),
-      path.resolve(__dirname + "/../lib/shim-fetch.js"),
-    ],
-    loader: externalFileLoader,
-    plugins: [
-      mdx(buildOptions.mdxConfig),
-      resolvePlugin({
-        "react/jsx-runtime": "react/jsx-runtime.js",
-      }),
-      svgrPlugin(buildOptions.svgrOptions),
-      rawPlugin(),
-    ],
-  }).catch(() => process.exit(1))
-}
-
 export async function buildStaticPages(
   entryPoints: string[],
   tempRootFilePath: string,
@@ -524,6 +494,64 @@ export async function buildViteImporterBlankAssets() {
   await fs.outputFile(outFile, template).catch((err) => {
     console.error(err)
   })
+}
+
+export async function buildPartialHydrationIndex(
+  entryPoints: string[],
+  buildOption: { outFile: string }
+) {
+  const entryPointsStrArray: string[] = []
+  const entryPointsNameArray: string[] = []
+
+  await Promise.all(
+    entryPoints.map(async (entryPoint, index) => {
+      const entryPointRelative = path.relative(".", entryPoint)
+      const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
+      entryPointsStrArray.push(entryPointStr)
+      entryPointsNameArray.push(`PH${index + 1}`)
+      return
+    })
+  )
+  const entryPointsStr = entryPointsStrArray.join("\n")
+  const entryPointsName = entryPointsNameArray.join(", ")
+
+  const outFile = buildOption.outFile
+  const template = `${entryPointsStr}
+export { ${entryPointsName} }`
+
+  await fs.outputFile(outFile, template).catch((err) => {
+    console.error(err)
+  })
+}
+
+export async function buildPartialHydrationBundle(
+  entryPoint: string,
+  buildOptions: {
+    outFile: string
+    mdxConfig: MdxOptions
+    svgrOptions: SvgrOptions
+  }
+) {
+  await esBuild({
+    entryPoints: [entryPoint],
+    outfile: buildOptions.outFile,
+    bundle: true,
+    format: "esm",
+    platform: "node",
+    inject: [
+      path.resolve(__dirname + "/../lib/shim-react.js"),
+      path.resolve(__dirname + "/../lib/shim-fetch.js"),
+    ],
+    loader: externalFileLoader,
+    plugins: [
+      mdx(buildOptions.mdxConfig),
+      resolvePlugin({
+        "react/jsx-runtime": "react/jsx-runtime.js",
+      }),
+      svgrPlugin(buildOptions.svgrOptions),
+      rawPlugin(),
+    ],
+  }).catch(() => process.exit(1))
 }
 
 export async function buildCopyDir(

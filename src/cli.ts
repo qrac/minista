@@ -16,7 +16,7 @@ import {
   generateTempRoot,
   generateTempPages,
   generateAssets,
-  generateNoStyleTemp,
+  generatePartialHydration,
   generateHtmlPages,
   generatePublic,
   generateDownload,
@@ -97,7 +97,7 @@ cli.command("build [root]", "build for production").action(async () => {
       generateTempPages(config, mdxConfig),
       generateAssets(config, viteConfig),
     ])
-    //await Promise.all([generateNoStyleTemp()])
+    await Promise.all([generatePartialHydration(config, mdxConfig, viteConfig)])
     await Promise.all([generateHtmlPages(config), generatePublic(config)])
     await Promise.all([generateDownload(config)])
     await Promise.all([
