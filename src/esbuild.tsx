@@ -59,7 +59,7 @@ export function svgrPlugin(options: SvgrOptions): Plugin {
     setup(build) {
       build.onLoad({ filter: /\.svg$/ }, async (args) => {
         const { transform: transformSvgr } = await import("@svgr/core")
-        const svg = await fs.promises.readFile(args.path, "utf8")
+        const svg = await fs.readFile(args.path, "utf8")
         const contents = await transformSvgr(
           svg,
           { ...options },
@@ -91,9 +91,7 @@ export function rawPlugin(): Plugin {
         { filter: /\?raw$/, namespace: "raw-loader" },
         async (args) => {
           return {
-            contents: await fs.promises.readFile(
-              args.path.replace(/\?raw$/, "")
-            ),
+            contents: await fs.readFile(args.path.replace(/\?raw$/, "")),
             loader: "text",
           }
         }
