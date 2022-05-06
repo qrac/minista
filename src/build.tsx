@@ -25,6 +25,7 @@ import type {
   StaticData,
   StaticDataItem,
   GetStaticData,
+  PartialString,
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
@@ -40,22 +41,35 @@ import { slashEnd } from "./utils.js"
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const externalExtentions = [
-  "jpg",
-  "jpeg",
-  "png",
-  "gif",
-  "webp",
-  "avif",
-  "eot",
-  "woff",
-  "woff2",
+const ministaPkgUrl = path.resolve(__dirname + "/../package.json")
+const ministaPkgUrlRelative = path.relative(".", ministaPkgUrl)
+const ministaPkg = JSON.parse(fs.readFileSync(ministaPkgUrlRelative, "utf8"))
+const userPkgPath = path.resolve("package.json")
+const userPkgFilePath = path.relative(process.cwd(), userPkgPath)
+const userPkg = JSON.parse(fs.readFileSync(userPkgFilePath, "utf8"))
+
+const esbuildExternals = [
+  ...Object.keys(ministaPkg.dependencies || {}),
+  ...Object.keys(ministaPkg.devDependencies || {}),
+  ...Object.keys(ministaPkg.peerDependencies || {}),
+  ...Object.keys(userPkg.dependencies || {}),
+  ...Object.keys(userPkg.devDependencies || {}),
+  ...Object.keys(userPkg.peerDependencies || {}),
+  "*.css",
+  "*.scss",
+  "*.sass",
 ]
-const externalExtentionArray: [string, EsbuildLoader][] =
-  externalExtentions.map((ext) => {
-    return ["." + ext, "file"]
-  })
-const externalFileLoader = Object.fromEntries(externalExtentionArray)
+const esbuildLoaders: { [key: string]: EsbuildLoader } = {
+  ".jpg": "file",
+  ".jpeg": "file",
+  ".png": "file",
+  ".gif": "file",
+  ".webp": "file",
+  ".avif": "file",
+  ".eot": "file",
+  ".woff": "file",
+  ".woff2": "file",
+}
 
 export async function buildTempPages(
   entryPoints: string[],
@@ -78,7 +92,8 @@ export async function buildTempPages(
       path.resolve(__dirname + "/../lib/shim-react.js"),
       path.resolve(__dirname + "/../lib/shim-fetch.js"),
     ],
-    loader: externalFileLoader,
+    external: esbuildExternals,
+    loader: esbuildLoaders,
     plugins: [
       mdx(buildOptions.mdxConfig),
       resolvePlugin({
@@ -496,27 +511,36 @@ export async function buildViteImporterBlankAssets() {
   })
 }
 
-export async function buildPartialHydrationIndex(
+export async function buildPartialStringIndex(
   entryPoints: string[],
-  buildOption: { outFile: string }
+  buildOptions: { outFile: string }
 ) {
   const entryPointsStrArray: string[] = []
+  const entryPointsRenderArray: string[] = []
   const entryPointsNameArray: string[] = []
 
   await Promise.all(
     entryPoints.map(async (entryPoint, index) => {
       const entryPointRelative = path.relative(".", entryPoint)
       const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
+      const entryPointRender = `const html${
+        index + 1
+      } = renderToString(React.createElement(PH${index + 1}, {}, null))`
+      const entryPointName = `html${index + 1}`
       entryPointsStrArray.push(entryPointStr)
-      entryPointsNameArray.push(`PH${index + 1}`)
+      entryPointsRenderArray.push(entryPointRender)
+      entryPointsNameArray.push(entryPointName)
       return
     })
   )
   const entryPointsStr = entryPointsStrArray.join("\n")
+  const entryPointsRender = entryPointsRenderArray.join("\n")
   const entryPointsName = entryPointsNameArray.join(", ")
 
-  const outFile = buildOption.outFile
-  const template = `${entryPointsStr}
+  const outFile = buildOptions.outFile
+  const template = `import { renderToString } from "react-dom/server.js"
+${entryPointsStr}
+${entryPointsRender}
 export { ${entryPointsName} }`
 
   await fs.outputFile(outFile, template).catch((err) => {
@@ -524,7 +548,7 @@ export { ${entryPointsName} }`
   })
 }
 
-export async function buildPartialHydrationBundle(
+export async function buildPartialStringBundle(
   entryPoint: string,
   buildOptions: {
     outFile: string
@@ -540,9 +564,10 @@ export async function buildPartialHydrationBundle(
     platform: "node",
     inject: [
       path.resolve(__dirname + "/../lib/shim-react.js"),
-      path.resolve(__dirname + "/../lib/shim-fetch.js"),
+      //path.resolve(__dirname + "/../lib/shim-fetch.js"),
     ],
-    loader: externalFileLoader,
+    external: esbuildExternals,
+    loader: esbuildLoaders,
     plugins: [
       mdx(buildOptions.mdxConfig),
       resolvePlugin({
@@ -552,6 +577,32 @@ export async function buildPartialHydrationBundle(
       rawPlugin(),
     ],
   }).catch(() => process.exit(1))
+}
+
+export async function buildPartialStringJson(
+  entryPoint: string,
+  buildOptions: {
+    outFile: string
+  }
+) {
+  const outFile = buildOptions.outFile
+  const targetFilePath = url.pathToFileURL(entryPoint).href
+  const partialString: PartialString = await import(targetFilePath)
+  const items: { id: string; html: string }[] = []
+
+  await Promise.all(
+    Object.keys(partialString).map(async (key) => {
+      if (key.includes("html")) {
+        const html = partialString[key]
+        return items.push({ id: key, html: html })
+      }
+    })
+  )
+
+  const template = `{ "items": ${items} }`
+  await fs.outputFile(outFile, template).catch((err) => {
+    console.error(err)
+  })
 }
 
 export async function buildCopyDir(

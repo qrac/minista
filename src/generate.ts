@@ -16,10 +16,11 @@ import {
   buildViteImporterRoutes,
   buildViteImporterAssets,
   buildViteImporterBlankAssets,
-  buildPartialHydrationIndex,
-  buildPartialHydrationBundle,
+  buildPartialStringIndex,
+  buildPartialStringBundle,
+  buildPartialStringJson,
 } from "./build.js"
-//import { optimizeCommentOutStyleImport } from "./optimize.js"
+import { optimizeCommentOutStyleImport } from "./optimize.js"
 import { downloadFiles } from "./download.js"
 import { beautifyFiles } from "./beautify.js"
 
@@ -96,15 +97,6 @@ export async function generateAssets(
   )
 }
 
-/*export async function generateNoStyleTemp() {
-  const tempRootOutDir = systemConfig.temp.root.outDir
-  const tempPagesOutDir = systemConfig.temp.pages.outDir
-  const tempRootFiles = await getFilePaths(tempRootOutDir, "mjs")
-  const tempPagesFiles = await getFilePaths(tempPagesOutDir, "mjs")
-  await optimizeCommentOutStyleImport(tempRootFiles)
-  await optimizeCommentOutStyleImport(tempPagesFiles)
-}*/
-
 export async function generatePartialHydration(
   config: MinistaResolveConfig,
   mdxConfig: MdxOptions,
@@ -112,20 +104,34 @@ export async function generatePartialHydration(
 ) {
   const outDir = systemConfig.temp.partialHydration.outDir
   const moduleFilePaths = await getFilePaths(outDir, "js")
+  const moduleCounts = moduleFilePaths.length
 
-  if (moduleFilePaths.length === 0) {
+  if (moduleCounts === 0) {
     return
   }
 
-  const indexFile = `${systemConfig.temp.partialHydration.outDir}/index.tsx`
-  const bundleFile = `${systemConfig.temp.partialHydration.outDir}/bundle.mjs`
+  const partialFile = `${systemConfig.temp.partialHydration.outDir}/partial.tsx`
+  const indexFile = `${systemConfig.temp.partialHydration.outDir}/string.tsx`
+  const bundleFile = `${systemConfig.temp.partialHydration.outDir}/string.mjs`
+  const jsonFile = `${systemConfig.temp.partialHydration.outDir}/string.json`
 
-  await buildPartialHydrationIndex(moduleFilePaths, { outFile: indexFile })
-  await buildPartialHydrationBundle(indexFile, {
+  await buildPartialStringIndex(moduleFilePaths, { outFile: indexFile })
+  await buildPartialStringBundle(indexFile, {
     outFile: bundleFile,
     mdxConfig: mdxConfig,
     svgrOptions: config.assets.svgr.svgrOptions,
   })
+  await optimizeCommentOutStyleImport([bundleFile])
+  await buildPartialStringJson(bundleFile, {
+    outFile: jsonFile,
+  })
+}
+
+export async function generateNoStyleTemp(targetDir: string) {
+  const targetFiles = await getFilePaths(targetDir, "mjs")
+  if (targetFiles.length !== 0) {
+    await optimizeCommentOutStyleImport(targetFiles)
+  }
 }
 
 export async function generateHtmlPages(config: MinistaResolveConfig) {
