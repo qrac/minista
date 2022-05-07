@@ -97,6 +97,9 @@ export default defineConfig({
     bundle: {
       outName: "bundle", // string
     },
+    partial: {
+      outName: "partial", // string
+    },
     images: {
       outDir: "assets/images", // string
       outName: "[name]", // string

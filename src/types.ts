@@ -32,6 +32,9 @@ export type MinistaConfig = {
     bundle: {
       outName: string
     }
+    partial: {
+      outName: string
+    }
     images: {
       outDir: string
       outName: string
@@ -90,6 +93,9 @@ export type MinistaUserConfig = {
     outDir?: string
     outName?: string
     bundle?: {
+      outName?: string
+    }
+    partial?: {
       outName?: string
     }
     images?: {

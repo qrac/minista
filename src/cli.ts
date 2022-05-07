@@ -15,10 +15,11 @@ import {
   generateViteImporters,
   generateTempRoot,
   generateTempPages,
-  generateAssets,
+  generateTempAssets,
   generatePartialHydration,
   generateNoStyleTemp,
   generateHtmlPages,
+  generateAssets,
   generatePublic,
   generateDownload,
   generateBeautify,
@@ -96,14 +97,18 @@ cli.command("build [root]", "build for production").action(async () => {
     await Promise.all([
       generateTempRoot(config, mdxConfig),
       generateTempPages(config, mdxConfig),
-      generateAssets(config, viteConfig),
+      generateTempAssets(config, viteConfig),
     ])
     await Promise.all([
       generateNoStyleTemp(systemConfig.temp.root.outDir),
       generateNoStyleTemp(systemConfig.temp.pages.outDir),
       generatePartialHydration(config, mdxConfig, viteConfig),
     ])
-    await Promise.all([generateHtmlPages(config), generatePublic(config)])
+    await Promise.all([
+      generateHtmlPages(config),
+      generateAssets(config),
+      generatePublic(config),
+    ])
     await Promise.all([generateDownload(config)])
     await Promise.all([
       generateBeautify(config, "html"),

@@ -1,6 +1,9 @@
 import type { UserConfig as ViteConfig, InlineConfig } from "vite"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
+import path from "path"
+import url from "url"
+
 import type { MinistaResolveConfig } from "./types.js"
 
 import { systemConfig } from "./system.js"
@@ -18,12 +21,16 @@ import {
   buildViteImporterBlankAssets,
   buildPartialStringIndex,
   buildPartialStringBundle,
-  buildPartialStringJson,
+  buildPartialStringInitial,
   buildPartialHydrateIndex,
+  buildPartialHydrateAssets,
 } from "./build.js"
 import { optimizeCommentOutStyleImport } from "./optimize.js"
 import { downloadFiles } from "./download.js"
 import { beautifyFiles } from "./beautify.js"
+
+const __filename = url.fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export async function generateViteImporters(
   config: MinistaResolveConfig,
@@ -82,14 +89,16 @@ export async function generateTempPages(
   })
 }
 
-export async function generateAssets(
+export async function generateTempAssets(
   config: MinistaResolveConfig,
   viteConfig: InlineConfig
 ) {
   await buildTempAssets(viteConfig, {
+    input: path.resolve(__dirname + "/../dist/bundle.js"),
     bundleOutName: config.assets.bundle.outName,
     outDir: systemConfig.temp.assets.outDir,
     assetDir: config.assets.outDir,
+    generateJs: false,
   })
   await buildCopyDir(
     systemConfig.temp.assets.outDir,
@@ -111,23 +120,30 @@ export async function generatePartialHydration(
     return
   }
 
-  const indexFile = `${systemConfig.temp.partialHydration.outDir}/string.tsx`
-  const bundleFile = `${systemConfig.temp.partialHydration.outDir}/string.mjs`
-  const jsonFile = `${systemConfig.temp.partialHydration.outDir}/string.json`
-  const partialFile = `${systemConfig.temp.partialHydration.outDir}/partial.tsx`
+  const stringIndex = `${systemConfig.temp.partialHydration.outDir}/string-index.mjs`
+  const stringBundle = `${systemConfig.temp.partialHydration.outDir}/string-bundle.mjs`
+  const stringInitial = `${systemConfig.temp.partialHydration.outDir}/string-initial.json`
+  const hydrateIndex = `${systemConfig.temp.partialHydration.outDir}/hydrate-index.mjs`
 
-  await buildPartialStringIndex(moduleFilePaths, { outFile: indexFile })
-  await buildPartialStringBundle(indexFile, {
-    outFile: bundleFile,
+  await buildPartialStringIndex(moduleFilePaths, { outFile: stringIndex })
+  await buildPartialStringBundle(stringIndex, {
+    outFile: stringBundle,
     mdxConfig: mdxConfig,
     svgrOptions: config.assets.svgr.svgrOptions,
   })
-  await optimizeCommentOutStyleImport([bundleFile])
-  await buildPartialStringJson(bundleFile, {
-    outFile: jsonFile,
+  await optimizeCommentOutStyleImport([stringBundle])
+  await buildPartialStringInitial(stringBundle, {
+    outFile: stringInitial,
     count: moduleCounts,
   })
-  await buildPartialHydrateIndex(moduleFilePaths, { outFile: partialFile })
+  await buildPartialHydrateIndex(moduleFilePaths, { outFile: hydrateIndex })
+  await buildPartialHydrateAssets(viteConfig, {
+    input: hydrateIndex,
+    bundleOutName: config.assets.partial.outName,
+    outDir: systemConfig.temp.assets.outDir,
+    assetDir: config.assets.outDir,
+    generateJs: true,
+  })
 }
 
 export async function generateNoStyleTemp(targetDir: string) {
@@ -161,6 +177,14 @@ export async function generateHtmlPages(config: MinistaResolveConfig) {
       outDir: config.pagesOutDir,
     },
     assetsTagStr
+  )
+}
+
+export async function generateAssets(config: MinistaResolveConfig) {
+  await buildCopyDir(
+    systemConfig.temp.assets.outDir,
+    slashEnd(config.out) + noSlashEnd(config.assets.outDir),
+    "assets"
   )
 }
 

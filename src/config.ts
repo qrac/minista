@@ -29,6 +29,9 @@ export const defaultConfig: MinistaConfig = {
     bundle: {
       outName: "bundle",
     },
+    partial: {
+      outName: "partial",
+    },
     images: {
       outDir: "assets/images",
       outName: "[name]",

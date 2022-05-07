@@ -10,7 +10,11 @@ import pc from "picocolors"
 import { Fragment } from "react"
 import { build as esBuild } from "esbuild"
 import mdx from "@mdx-js/esbuild"
-import { build as viteBuild, mergeConfig as mergeViteConfig } from "vite"
+import {
+  build as viteBuild,
+  defineConfig as defineViteConfig,
+  mergeConfig as mergeViteConfig,
+} from "vite"
 
 import type {
   MinistaResolveConfig,
@@ -353,23 +357,23 @@ export async function buildHtmlPage(
 export async function buildTempAssets(
   viteConfig: InlineConfig,
   buildOptions: {
+    input: string
     bundleOutName: string
     outDir: string
     assetDir: string
+    generateJs: boolean
   }
 ) {
-  const customConfig = {
+  const customConfig = defineViteConfig({
     build: {
       write: false,
       rollupOptions: {
         input: {
-          __minista_bundle_assets: path.resolve(
-            __dirname + "/../dist/bundle.js"
-          ),
+          __minista_bundle_assets: buildOptions.input,
         },
       },
     },
-  }
+  })
   const mergedConfig = mergeViteConfig(viteConfig, customConfig)
 
   const result: any = await viteBuild(mergedConfig)
@@ -382,6 +386,11 @@ export async function buildTempAssets(
           slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".css"
         return item?.source && fs.outputFile(customFileName, item?.source)
       } else if (item.fileName.match(/__minista_bundle_assets\.js/)) {
+        if (buildOptions.generateJs) {
+          const customFileName =
+            slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".js"
+          return item?.code && fs.outputFile(customFileName, item?.code)
+        }
         return
       } else {
         const customFileName =
@@ -522,12 +531,12 @@ export async function buildPartialStringIndex(
   await Promise.all(
     entryPoints.map(async (entryPoint, index) => {
       const phId = `PH${index + 1}`
+      const htmlId = `html${index + 1}`
       const entryPointRelative = path.relative(".", entryPoint)
       const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
-      const entryPointRender = `const html${
-        index + 1
-      } = renderToString(React.createElement(${phId}, {}, null))`
-      const entryPointName = `html${index + 1}`
+      const entryPointRender = `// ${phId}
+const ${htmlId} = renderToString(React.createElement(${phId}, {}, null))`
+      const entryPointName = `${htmlId}`
       entryPointsStrArray.push(entryPointStr)
       entryPointsRenderArray.push(entryPointRender)
       entryPointsNameArray.push(entryPointName)
@@ -580,7 +589,7 @@ export async function buildPartialStringBundle(
   }).catch(() => process.exit(1))
 }
 
-export async function buildPartialStringJson(
+export async function buildPartialStringInitial(
   entryPoint: string,
   buildOptions: {
     outFile: string
@@ -653,13 +662,82 @@ if (${targets}) {
   const entryPointsRender = entryPointsRenderArray.join("\n")
 
   const outFile = buildOptions.outFile
-  const template = `import { hydrateRoot } from "react-dom/client"
+  const template = `import React from "react"
+import { hydrateRoot } from "react-dom/client"
 ${entryPointsStr}
 ${entryPointsRender}`
 
   await fs.outputFile(outFile, template).catch((err) => {
     console.error(err)
   })
+}
+
+export async function buildPartialHydrateAssets(
+  viteConfig: InlineConfig,
+  buildOptions: {
+    input: string
+    bundleOutName: string
+    outDir: string
+    assetDir: string
+    generateJs: boolean
+  }
+) {
+  const customConfig = defineViteConfig({
+    base: viteConfig.base,
+    build: {
+      write: false,
+      assetsInlineLimit: 0,
+      minify: viteConfig.build?.minify,
+      rollupOptions: {
+        input: {
+          __minista_bundle_assets: buildOptions.input,
+        },
+        output: {
+          manualChunks: undefined,
+        },
+      },
+    },
+    esbuild: viteConfig.esbuild,
+    resolve: {
+      alias: [
+        {
+          find: "react-dom/client",
+          replacement: "react-dom/index.js",
+        },
+      ],
+    },
+    customLogger: viteConfig.customLogger,
+  })
+  const mergedConfig = mergeViteConfig({}, customConfig)
+
+  const result: any = await viteBuild(mergedConfig)
+  const items = result.output
+
+  if (Array.isArray(items) && items.length > 0) {
+    items.map((item) => {
+      if (item.fileName.match(/\.css/)) {
+        const customFileName =
+          slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".css"
+        return item?.source && fs.outputFile(customFileName, item?.source)
+      } else if (item.fileName.match(/\.js/)) {
+        if (buildOptions.generateJs) {
+          const customFileName =
+            slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".js"
+          return item?.code && fs.outputFile(customFileName, item?.code)
+        }
+        return
+      } else {
+        const customFileName =
+          buildOptions.outDir + item.fileName.replace(buildOptions.assetDir, "")
+        const customCode = item?.source
+          ? item?.source
+          : item?.code
+          ? item?.code
+          : ""
+        return customCode && fs.outputFile(customFileName, customCode)
+      }
+    })
+  }
 }
 
 export async function buildCopyDir(
