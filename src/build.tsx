@@ -33,6 +33,7 @@ import type {
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
+import { getFilePath } from "./path.js"
 import {
   resolvePlugin,
   svgrPlugin,
@@ -338,8 +339,29 @@ export async function buildHtmlPage(
     }
   }
 
-  const html = await renderHtml(<RenderComponent />, assetsTagStr)
-  const replacedHtml = html.replace(
+  const renderdHtml = await renderHtml(<RenderComponent />, assetsTagStr)
+
+  const html = [renderdHtml]
+
+  const stringInitial = getFilePath(
+    systemConfig.temp.partialHydration.outDir,
+    "string-initial",
+    "json"
+  )
+  if (stringInitial) {
+    const targetRelative = path.relative(".", stringInitial)
+    const targetJson = JSON.parse(fs.readFileSync(targetRelative, "utf8"))
+    const items: { id: string; html: string }[] = targetJson.items
+
+    items.map((item) => {
+      const dummy = `<div data-partial-hydration="${item.id}"></div>`
+      const reg = new RegExp(`${dummy}`, "g")
+      html[0] = html[0].replace(reg, item.html)
+      return
+    })
+  }
+
+  const replacedHtml = html[0].replace(
     /<div class="minista-comment" hidden="">(.+?)<\/div>/g,
     "\n<!-- $1 -->"
   )
@@ -529,13 +551,14 @@ export async function buildPartialStringIndex(
   const entryPointsNameArray: string[] = []
 
   await Promise.all(
-    entryPoints.map(async (entryPoint, index) => {
-      const phId = `PH${index + 1}`
-      const htmlId = `html${index + 1}`
+    entryPoints.map(async (entryPoint) => {
+      const fileId = path.parse(entryPoint).name
+      const phId = `PH_${fileId}`
+      const htmlId = `html_${fileId}`
       const entryPointRelative = path.relative(".", entryPoint)
       const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
       const entryPointRender = `// ${phId}
-const ${htmlId} = renderToString(React.createElement(${phId}, {}, null))`
+const ${htmlId} = renderToStaticMarkup(React.createElement(${phId}, {}, null))`
       const entryPointName = `${htmlId}`
       entryPointsStrArray.push(entryPointStr)
       entryPointsRenderArray.push(entryPointRender)
@@ -548,7 +571,7 @@ const ${htmlId} = renderToString(React.createElement(${phId}, {}, null))`
   const entryPointsName = entryPointsNameArray.join(", ")
 
   const outFile = buildOptions.outFile
-  const template = `import { renderToString } from "react-dom/server.js"
+  const template = `import { renderToStaticMarkup } from "react-dom/server.js"
 ${entryPointsStr}
 ${entryPointsRender}
 export { ${entryPointsName} }`
@@ -591,13 +614,12 @@ export async function buildPartialStringBundle(
 
 export async function buildPartialStringInitial(
   entryPoint: string,
+  ids: string[],
   buildOptions: {
     outFile: string
-    count: number
   }
 ) {
   const outFile = buildOptions.outFile
-  const ids = [...Array(buildOptions.count)].map((_, i) => `html${i + 1}`)
   const items: { id: string; html: string }[] = []
 
   const targetFilePath = url.pathToFileURL(entryPoint).href
@@ -605,11 +627,11 @@ export async function buildPartialStringInitial(
 
   await Promise.all(
     ids.map(async (id) => {
-      const phId = id.replace("html", "PH")
-      const html = partialString[id]
-      const replaceTarget = `data-reactroot=""`
-      const replacedStr = `${replaceTarget} data-reactroot-id="${phId}"`
-      const replacedHtml = html.replace(replaceTarget, replacedStr)
+      const htmlId = `html_${id}`
+      const html = partialString[htmlId]
+      const dataId = `data-reactroot-id="${id}"`
+      const style = `style="display: contents;"`
+      const replacedHtml = `<div ${dataId} ${style}>${html}</div>`
       const obj = { id: id, html: replacedHtml }
       items.push(obj)
       return
@@ -630,13 +652,14 @@ export async function buildPartialHydrateIndex(
   const entryPointsRenderArray: string[] = []
 
   await Promise.all(
-    entryPoints.map(async (entryPoint, index) => {
-      const phId = `PH${index + 1}`
-      const targets = `targets${phId}`
+    entryPoints.map(async (entryPoint) => {
+      const fileId = path.parse(entryPoint).name
+      const phId = `PH_${fileId}`
+      const targets = `targets_${fileId}`
       const entryPointRelative = path.relative(".", entryPoint)
       const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
       const entryPointRender = `// ${phId}
-const ${targets} = document.querySelectorAll('[data-reactroot-id="${phId}"]')
+const ${targets} = document.querySelectorAll('[data-reactroot-id="${fileId}"]')
 if (${targets}) {
   ${targets}.forEach(target => {
     const App = React.createElement(${phId}, {}, null)
@@ -648,7 +671,7 @@ if (${targets}) {
     observer.observe(target)
 
     function hydrate() {
-      ReactDOM.hydrateRoot(target, App)
+      ReactDOM.render(App, target)
       observer.unobserve(target)
     }
   })

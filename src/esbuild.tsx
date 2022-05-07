@@ -1,9 +1,9 @@
 import type { Plugin, PluginBuild } from "esbuild"
-import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type { Config as SvgrOptions } from "@svgr/core"
 
 import fs from "fs-extra"
 import path from "path"
+import { v4 as uuidv4 } from "uuid"
 
 import { systemConfig } from "./system.js"
 
@@ -116,16 +116,16 @@ export function partialHydrationPlugin(): Plugin {
         { filter: /\?ph$/, namespace: "partial-hydration-loader" },
         async (args) => {
           const jsPath = args.path.replace(/\?ph$/, "")
+          const uniqueId = uuidv4()
+          const underUniqueId = uniqueId.replace(/-/g, "_")
           const outDir = systemConfig.temp.partialHydration.outDir
-          const outList = await fs.readdir(outDir)
-          const outNum = outList.length + 1
-          const outFile = `${outDir}/${outNum}.js`
-          const template = `import PH${outNum} from "${jsPath}"`
+          const outFile = `${outDir}/modules/${underUniqueId}.js`
+          const template = `import PH_${underUniqueId} from "${jsPath}"`
 
           await fs.outputFile(outFile, template).catch((err) => {
             console.error(err)
           })
-          const dummy = `export default () => <div data-partial-hydration="${outNum}"></div>`
+          const dummy = `export default () => <div data-partial-hydration="${underUniqueId}"></div>`
           return {
             contents: dummy,
             loader: "tsx",

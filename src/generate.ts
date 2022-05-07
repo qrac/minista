@@ -114,6 +114,7 @@ export async function generatePartialHydration(
 ) {
   const outDir = systemConfig.temp.partialHydration.outDir
   const moduleFilePaths = await getFilePaths(outDir, "js")
+  const moduleIds = moduleFilePaths.map((item) => path.parse(item).name)
   const moduleCounts = moduleFilePaths.length
 
   if (moduleCounts === 0) {
@@ -132,9 +133,8 @@ export async function generatePartialHydration(
     svgrOptions: config.assets.svgr.svgrOptions,
   })
   await optimizeCommentOutStyleImport([stringBundle])
-  await buildPartialStringInitial(stringBundle, {
+  await buildPartialStringInitial(stringBundle, moduleIds, {
     outFile: stringInitial,
-    count: moduleCounts,
   })
   await buildPartialHydrateIndex(moduleFilePaths, { outFile: hydrateIndex })
   await buildPartialHydrateAssets(viteConfig, {

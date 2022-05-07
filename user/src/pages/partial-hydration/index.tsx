@@ -2,6 +2,7 @@ import { Head } from "minista"
 
 import AppLayout from "../../components/app-layout"
 import BlockToggle from "../../components/block-toggle?ph"
+import BlockCounter from "../../components/block-counter?ph"
 
 const PagePartialHydration = () => {
   return (
@@ -12,6 +13,8 @@ const PagePartialHydration = () => {
       <h1>Partial Hydration</h1>
       <BlockToggle />
       <BlockToggle />
+      <BlockCounter />
+      <BlockCounter />
     </AppLayout>
   )
 }
