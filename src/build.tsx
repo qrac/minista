@@ -631,13 +631,17 @@ const ${targets} = document.querySelectorAll(['data-reactroot-id="${phId}"'])
 if (${targets}) {
   ${targets}.forEach(target => {
     const app = React.createElement(${phId}, {}, null)
-    const hydrate = hydrateRoot(target, app)
     const options = {
       rootMargin: "0px",
       threshold: 1,
     }
     const observer = new IntersectionObserver(hydrate, options)
     observer.observe(target)
+
+    function hydrate() {
+      hydrateRoot(target, app)
+      observer.unobserve(target)
+    }
   })
 }`
       entryPointsStrArray.push(entryPointStr)
