@@ -636,10 +636,10 @@ export async function buildPartialHydrateIndex(
       const entryPointRelative = path.relative(".", entryPoint)
       const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
       const entryPointRender = `// ${phId}
-const ${targets} = document.querySelectorAll(['data-reactroot-id="${phId}"'])
+const ${targets} = document.querySelectorAll('[data-reactroot-id="${phId}"]')
 if (${targets}) {
   ${targets}.forEach(target => {
-    const app = React.createElement(${phId}, {}, null)
+    const App = React.createElement(${phId}, {}, null)
     const options = {
       rootMargin: "0px",
       threshold: 1,
@@ -648,7 +648,7 @@ if (${targets}) {
     observer.observe(target)
 
     function hydrate() {
-      hydrateRoot(target, app)
+      ReactDOM.hydrateRoot(target, App)
       observer.unobserve(target)
     }
   })
@@ -663,7 +663,7 @@ if (${targets}) {
 
   const outFile = buildOptions.outFile
   const template = `import React from "react"
-import { hydrateRoot } from "react-dom/client"
+import ReactDOM from "react-dom"
 ${entryPointsStr}
 ${entryPointsRender}`
 
@@ -698,14 +698,15 @@ export async function buildPartialHydrateAssets(
       },
     },
     esbuild: viteConfig.esbuild,
-    resolve: {
+    plugins: viteConfig.plugins,
+    /*resolve: {
       alias: [
         {
           find: "react-dom/client",
-          replacement: "react-dom/index.js",
+          replacement: "react-dom/client.js",
         },
       ],
-    },
+    },*/
     customLogger: viteConfig.customLogger,
   })
   const mergedConfig = mergeViteConfig({}, customConfig)
