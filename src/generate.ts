@@ -124,6 +124,7 @@ export async function generatePartialHydration(
   await optimizeCommentOutStyleImport([bundleFile])
   await buildPartialStringJson(bundleFile, {
     outFile: jsonFile,
+    count: moduleCounts,
   })
 }
 

@@ -583,23 +583,26 @@ export async function buildPartialStringJson(
   entryPoint: string,
   buildOptions: {
     outFile: string
+    count: number
   }
 ) {
   const outFile = buildOptions.outFile
-  const targetFilePath = url.pathToFileURL(entryPoint).href
-  const partialString: PartialString = await import(targetFilePath)
+  const ids = [...Array(buildOptions.count)].map((_, i) => `html${i + 1}`)
   const items: { id: string; html: string }[] = []
 
+  const targetFilePath = url.pathToFileURL(entryPoint).href
+  const partialString: PartialString = await import(targetFilePath)
+
   await Promise.all(
-    Object.keys(partialString).map(async (key) => {
-      if (key.includes("html")) {
-        const html = partialString[key]
-        return items.push({ id: key, html: html })
-      }
+    ids.map(async (id) => {
+      const html = partialString[id]
+      const obj = { id: id, html: html }
+      items.push(obj)
+      return
     })
   )
+  const template = JSON.stringify({ items: items })
 
-  const template = `{ "items": ${items} }`
   await fs.outputFile(outFile, template).catch((err) => {
     console.error(err)
   })
