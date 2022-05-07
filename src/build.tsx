@@ -521,11 +521,12 @@ export async function buildPartialStringIndex(
 
   await Promise.all(
     entryPoints.map(async (entryPoint, index) => {
+      const phId = `PH${index + 1}`
       const entryPointRelative = path.relative(".", entryPoint)
       const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
       const entryPointRender = `const html${
         index + 1
-      } = renderToString(React.createElement(PH${index + 1}, {}, null))`
+      } = renderToString(React.createElement(${phId}, {}, null))`
       const entryPointName = `html${index + 1}`
       entryPointsStrArray.push(entryPointStr)
       entryPointsRenderArray.push(entryPointRender)
@@ -595,13 +596,62 @@ export async function buildPartialStringJson(
 
   await Promise.all(
     ids.map(async (id) => {
+      const phId = id.replace("html", "PH")
       const html = partialString[id]
-      const obj = { id: id, html: html }
+      const replaceTarget = `data-reactroot=""`
+      const replacedStr = `${replaceTarget} data-reactroot-id="${phId}"`
+      const replacedHtml = html.replace(replaceTarget, replacedStr)
+      const obj = { id: id, html: replacedHtml }
       items.push(obj)
       return
     })
   )
   const template = JSON.stringify({ items: items })
+
+  await fs.outputFile(outFile, template).catch((err) => {
+    console.error(err)
+  })
+}
+
+export async function buildPartialHydrateIndex(
+  entryPoints: string[],
+  buildOptions: { outFile: string }
+) {
+  const entryPointsStrArray: string[] = []
+  const entryPointsRenderArray: string[] = []
+
+  await Promise.all(
+    entryPoints.map(async (entryPoint, index) => {
+      const phId = `PH${index + 1}`
+      const targets = `targets${phId}`
+      const entryPointRelative = path.relative(".", entryPoint)
+      const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
+      const entryPointRender = `// ${phId}
+const ${targets} = document.querySelectorAll(['data-reactroot-id="${phId}"'])
+if (${targets}) {
+  ${targets}.forEach(target => {
+    const app = React.createElement(${phId}, {}, null)
+    const hydrate = hydrateRoot(target, app)
+    const options = {
+      rootMargin: "0px",
+      threshold: 1,
+    }
+    const observer = new IntersectionObserver(hydrate, options)
+    observer.observe(target)
+  })
+}`
+      entryPointsStrArray.push(entryPointStr)
+      entryPointsRenderArray.push(entryPointRender)
+      return
+    })
+  )
+  const entryPointsStr = entryPointsStrArray.join("\n")
+  const entryPointsRender = entryPointsRenderArray.join("\n")
+
+  const outFile = buildOptions.outFile
+  const template = `import { hydrateRoot } from "react-dom/client"
+${entryPointsStr}
+${entryPointsRender}`
 
   await fs.outputFile(outFile, template).catch((err) => {
     console.error(err)

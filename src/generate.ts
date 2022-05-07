@@ -19,6 +19,7 @@ import {
   buildPartialStringIndex,
   buildPartialStringBundle,
   buildPartialStringJson,
+  buildPartialHydrateIndex,
 } from "./build.js"
 import { optimizeCommentOutStyleImport } from "./optimize.js"
 import { downloadFiles } from "./download.js"
@@ -110,10 +111,10 @@ export async function generatePartialHydration(
     return
   }
 
-  const partialFile = `${systemConfig.temp.partialHydration.outDir}/partial.tsx`
   const indexFile = `${systemConfig.temp.partialHydration.outDir}/string.tsx`
   const bundleFile = `${systemConfig.temp.partialHydration.outDir}/string.mjs`
   const jsonFile = `${systemConfig.temp.partialHydration.outDir}/string.json`
+  const partialFile = `${systemConfig.temp.partialHydration.outDir}/partial.tsx`
 
   await buildPartialStringIndex(moduleFilePaths, { outFile: indexFile })
   await buildPartialStringBundle(indexFile, {
@@ -126,6 +127,7 @@ export async function generatePartialHydration(
     outFile: jsonFile,
     count: moduleCounts,
   })
+  await buildPartialHydrateIndex(moduleFilePaths, { outFile: partialFile })
 }
 
 export async function generateNoStyleTemp(targetDir: string) {
