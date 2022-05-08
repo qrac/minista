@@ -143,6 +143,7 @@ export async function generatePartialHydration(
     outDir: systemConfig.temp.assets.outDir,
     assetDir: config.assets.outDir,
     generateJs: true,
+    usePreact: config.assets.partial.usePreact,
   })
 }
 

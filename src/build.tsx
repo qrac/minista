@@ -75,6 +75,10 @@ const esbuildLoaders: { [key: string]: EsbuildLoader } = {
   ".woff": "file",
   ".woff2": "file",
 }
+const userPkgHasPreact = [
+  ...Object.keys(userPkg.dependencies || {}),
+  ...Object.keys(userPkg.devDependencies || {}),
+].includes("preact")
 
 export async function buildTempPages(
   entryPoints: string[],
@@ -703,8 +707,14 @@ export async function buildPartialHydrateAssets(
     outDir: string
     assetDir: string
     generateJs: boolean
+    usePreact: boolean
   }
 ) {
+  const activePreact = buildOptions.usePreact && userPkgHasPreact
+  const resolveAliasPreact = {
+    react: "preact/compat",
+    "react-dom": "preact/compat",
+  }
   const customConfig = defineViteConfig({
     base: viteConfig.base,
     build: {
@@ -722,16 +732,12 @@ export async function buildPartialHydrateAssets(
     },
     esbuild: viteConfig.esbuild,
     plugins: viteConfig.plugins,
-    /*resolve: {
-      alias: [
-        {
-          find: "react-dom/client",
-          replacement: "react-dom/client.js",
-        },
-      ],
-    },*/
+    resolve: {
+      alias: activePreact ? resolveAliasPreact : {},
+    },
     customLogger: viteConfig.customLogger,
   })
+
   const mergedConfig = mergeViteConfig({}, customConfig)
 
   const result: any = await viteBuild(mergedConfig)

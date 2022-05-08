@@ -33,6 +33,7 @@ export type MinistaConfig = {
       outName: string
     }
     partial: {
+      usePreact: boolean
       outName: string
     }
     images: {
@@ -96,6 +97,7 @@ export type MinistaUserConfig = {
       outName?: string
     }
     partial?: {
+      usePreact?: boolean
       outName?: string
     }
     images?: {

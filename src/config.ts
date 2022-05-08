@@ -30,6 +30,7 @@ export const defaultConfig: MinistaConfig = {
       outName: "bundle",
     },
     partial: {
+      usePreact: false,
       outName: "partial",
     },
     images: {

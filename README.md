@@ -98,6 +98,7 @@ export default defineConfig({
       outName: "bundle", // string
     },
     partial: {
+      usePreact: false, // boolean
       outName: "partial", // string
     },
     images: {
