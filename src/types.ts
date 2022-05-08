@@ -247,10 +247,14 @@ export type StaticDataItem = {
 export type StaticDataCache = { key: [StaticDataList] } | {}
 export type GetStaticData = () => Promise<StaticData>
 
+export type PartialModules = {
+  id: string
+  phId: string
+  phDomId: string
+  htmlId: string
+  targetsId: string
+  importer: string
+}[]
 export type PartialString = {
   [key: string]: string
 }
-export type PartialHydrationComponent = React.ReactElement<
-  any,
-  string | React.JSXElementConstructor<any>
->

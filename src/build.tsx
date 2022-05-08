@@ -29,6 +29,7 @@ import type {
   StaticData,
   StaticDataItem,
   GetStaticData,
+  PartialModules,
   PartialString,
 } from "./types.js"
 
@@ -546,39 +547,67 @@ export async function buildViteImporterBlankAssets() {
   })
 }
 
-export async function buildPartialStringIndex(
-  entryPoints: string[],
-  buildOptions: { outFile: string }
-) {
-  const entryPointsStrArray: string[] = []
-  const entryPointsRenderArray: string[] = []
-  const entryPointsNameArray: string[] = []
+export async function buildPartialModules(
+  moduleFilePaths: string[]
+): Promise<PartialModules> {
+  const moduleData: { id: string; importer: string }[] = []
 
   await Promise.all(
-    entryPoints.map(async (entryPoint) => {
-      const fileId = path.parse(entryPoint).name
-      const phId = `PH_${fileId}`
-      const htmlId = `html_${fileId}`
+    moduleFilePaths.map(async (entryPoint) => {
       const entryPointRelative = path.relative(".", entryPoint)
-      const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
-      const entryPointRender = `// ${phId}
-const ${htmlId} = renderToString(React.createElement(${phId}, {}, null))`
-      const entryPointName = `${htmlId}`
-      entryPointsStrArray.push(entryPointStr)
-      entryPointsRenderArray.push(entryPointRender)
-      entryPointsNameArray.push(entryPointName)
+      const underUniqueId = path.parse(entryPoint).name
+      const importer = await fs.readFile(entryPointRelative, "utf8")
+      moduleData.push({ id: underUniqueId, importer: importer })
       return
     })
   )
-  const entryPointsStr = entryPointsStrArray.join("\n")
-  const entryPointsRender = entryPointsRenderArray.join("\n")
-  const entryPointsName = entryPointsNameArray.join(", ")
+  const sortedModuleData = moduleData.sort((a, b) => {
+    const nameA = a.importer.toUpperCase()
+    const nameB = b.importer.toUpperCase()
+    if (nameA < nameB) {
+      return -1
+    }
+    if (nameA > nameB) {
+      return 1
+    }
+    return 0
+  })
+
+  const partialModules: PartialModules = sortedModuleData.map((item, index) => {
+    return {
+      id: item.id,
+      phId: `PH_${index + 1}`,
+      phDomId: `ph-${index + 1}`,
+      htmlId: `html_${index + 1}`,
+      targetsId: `targets_${index + 1}`,
+      importer: item.importer,
+    }
+  })
+  return partialModules
+}
+
+export async function buildPartialStringIndex(
+  partialModules: PartialModules,
+  buildOptions: { outFile: string }
+) {
+  const tmpImporter: string[] = partialModules.map((module) => {
+    return `import ${module.phId} from "${module.importer}"`
+  })
+  const tmpRenders: string[] = partialModules.map((module) => {
+    return `// ${module.phId}
+const ${module.htmlId} = renderToString(React.createElement(${module.phId}))`
+  })
+  const tmpExports: string[] = partialModules.map((module) => module.htmlId)
+
+  const tmpImporterStr = tmpImporter.join("\n")
+  const tmpRendersStr = tmpRenders.join("\n")
+  const tmpExportsStr = tmpExports.join(", ")
 
   const outFile = buildOptions.outFile
   const template = `import { renderToString } from "react-dom/server.js"
-${entryPointsStr}
-${entryPointsRender}
-export { ${entryPointsName} }`
+${tmpImporterStr}
+${tmpRendersStr}
+export { ${tmpExportsStr} }`
 
   await fs.outputFile(outFile, template).catch((err) => {
     console.error(err)
@@ -618,29 +647,25 @@ export async function buildPartialStringBundle(
 
 export async function buildPartialStringInitial(
   entryPoint: string,
-  ids: string[],
+  partialModules: PartialModules,
   buildOptions: {
     outFile: string
   }
 ) {
   const outFile = buildOptions.outFile
-  const items: { id: string; html: string }[] = []
-
   const targetFilePath = url.pathToFileURL(entryPoint).href
   const partialString: PartialString = await import(targetFilePath)
 
-  await Promise.all(
-    ids.map(async (id) => {
-      const htmlId = `html_${id}`
-      const html = partialString[htmlId]
-      const dataId = `data-reactroot-id="${id}"`
-      const style = `style="display: contents;"`
-      const replacedHtml = `<div ${dataId} ${style}>${html}</div>`
-      const obj = { id: id, html: replacedHtml }
-      items.push(obj)
-      return
-    })
-  )
+  const items = partialModules.map((module) => {
+    const html = partialString[module.htmlId]
+    const dataId = `data-reactroot-id="${module.phDomId}"`
+    const style = `style="display: contents;"`
+    const replacedHtml = `<div ${dataId} ${style}>${html}</div>`
+    return {
+      id: module.id,
+      html: replacedHtml,
+    }
+  })
   const template = JSON.stringify({ items: items })
 
   await fs.outputFile(outFile, template).catch((err) => {
@@ -649,24 +674,18 @@ export async function buildPartialStringInitial(
 }
 
 export async function buildPartialHydrateIndex(
-  entryPoints: string[],
+  partialModules: PartialModules,
   buildOptions: { outFile: string }
 ) {
-  const entryPointsStrArray: string[] = []
-  const entryPointsRenderArray: string[] = []
-
-  await Promise.all(
-    entryPoints.map(async (entryPoint) => {
-      const fileId = path.parse(entryPoint).name
-      const phId = `PH_${fileId}`
-      const targets = `targets_${fileId}`
-      const entryPointRelative = path.relative(".", entryPoint)
-      const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
-      const entryPointRender = `// ${phId}
-const ${targets} = document.querySelectorAll('[data-reactroot-id="${fileId}"]')
-if (${targets}) {
-  ${targets}.forEach(target => {
-    const App = React.createElement(${phId}, {}, null)
+  const tmpImporter: string[] = partialModules.map((module) => {
+    return `import ${module.phId} from "${module.importer}"`
+  })
+  const tmpRenders: string[] = partialModules.map((module) => {
+    return `// ${module.phId}
+const ${module.targetsId} = document.querySelectorAll('[data-reactroot-id="${module.phDomId}"]')
+if (${module.targetsId}) {
+  ${module.targetsId}.forEach(target => {
+    const App = React.createElement(${module.phId})
     const options = {
       rootMargin: "0px",
       threshold: 1,
@@ -680,19 +699,16 @@ if (${targets}) {
     }
   })
 }`
-      entryPointsStrArray.push(entryPointStr)
-      entryPointsRenderArray.push(entryPointRender)
-      return
-    })
-  )
-  const entryPointsStr = entryPointsStrArray.join("\n")
-  const entryPointsRender = entryPointsRenderArray.join("\n")
+  })
+
+  const tmpImporterStr = tmpImporter.join("\n")
+  const tmpRendersStr = tmpRenders.join("\n")
 
   const outFile = buildOptions.outFile
   const template = `import React from "react"
 import ReactDOM from "react-dom"
-${entryPointsStr}
-${entryPointsRender}`
+${tmpImporterStr}
+${tmpRendersStr}`
 
   await fs.outputFile(outFile, template).catch((err) => {
     console.error(err)

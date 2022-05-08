@@ -119,8 +119,8 @@ export function partialHydrationPlugin(): Plugin {
           const uniqueId = uuidv4()
           const underUniqueId = uniqueId.replace(/-/g, "_")
           const outDir = systemConfig.temp.partialHydration.outDir
-          const outFile = `${outDir}/modules/${underUniqueId}.js`
-          const template = `import PH_${underUniqueId} from "${jsPath}"`
+          const outFile = `${outDir}/modules/${underUniqueId}.txt`
+          const template = `${jsPath}`
 
           await fs.outputFile(outFile, template).catch((err) => {
             console.error(err)

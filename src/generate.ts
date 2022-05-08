@@ -19,6 +19,7 @@ import {
   buildViteImporterRoutes,
   buildViteImporterAssets,
   buildViteImporterBlankAssets,
+  buildPartialModules,
   buildPartialStringIndex,
   buildPartialStringBundle,
   buildPartialStringInitial,
@@ -112,31 +113,32 @@ export async function generatePartialHydration(
   mdxConfig: MdxOptions,
   viteConfig: InlineConfig
 ) {
-  const outDir = systemConfig.temp.partialHydration.outDir
-  const moduleFilePaths = await getFilePaths(outDir, "js")
-  const moduleIds = moduleFilePaths.map((item) => path.parse(item).name)
-  const moduleCounts = moduleFilePaths.length
+  const moduleDir = systemConfig.temp.partialHydration.outDir + "/modules"
+  const moduleFilePaths = await getFilePaths(moduleDir, "txt")
 
-  if (moduleCounts === 0) {
+  if (moduleFilePaths.length === 0) {
     return
   }
 
-  const stringIndex = `${systemConfig.temp.partialHydration.outDir}/string-index.mjs`
-  const stringBundle = `${systemConfig.temp.partialHydration.outDir}/string-bundle.mjs`
-  const stringInitial = `${systemConfig.temp.partialHydration.outDir}/string-initial.json`
-  const hydrateIndex = `${systemConfig.temp.partialHydration.outDir}/hydrate-index.mjs`
+  const partialModules = await buildPartialModules(moduleFilePaths)
 
-  await buildPartialStringIndex(moduleFilePaths, { outFile: stringIndex })
+  const outDir = systemConfig.temp.partialHydration.outDir
+  const stringIndex = `${outDir}/string-index.mjs`
+  const stringBundle = `${outDir}/string-bundle.mjs`
+  const stringInitial = `${outDir}/string-initial.json`
+  const hydrateIndex = `${outDir}/hydrate-index.mjs`
+
+  await buildPartialStringIndex(partialModules, { outFile: stringIndex })
   await buildPartialStringBundle(stringIndex, {
     outFile: stringBundle,
     mdxConfig: mdxConfig,
     svgrOptions: config.assets.svgr.svgrOptions,
   })
   await optimizeCommentOutStyleImport([stringBundle])
-  await buildPartialStringInitial(stringBundle, moduleIds, {
+  await buildPartialStringInitial(stringBundle, partialModules, {
     outFile: stringInitial,
   })
-  await buildPartialHydrateIndex(moduleFilePaths, { outFile: hydrateIndex })
+  await buildPartialHydrateIndex(partialModules, { outFile: hydrateIndex })
   await buildPartialHydrateAssets(viteConfig, {
     input: hydrateIndex,
     bundleOutName: config.assets.partial.outName,
