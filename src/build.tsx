@@ -562,7 +562,7 @@ export async function buildPartialStringIndex(
       const entryPointRelative = path.relative(".", entryPoint)
       const entryPointStr = await fs.readFile(entryPointRelative, "utf8")
       const entryPointRender = `// ${phId}
-const ${htmlId} = renderToStaticMarkup(React.createElement(${phId}, {}, null))`
+const ${htmlId} = renderToString(React.createElement(${phId}, {}, null))`
       const entryPointName = `${htmlId}`
       entryPointsStrArray.push(entryPointStr)
       entryPointsRenderArray.push(entryPointRender)
@@ -575,7 +575,7 @@ const ${htmlId} = renderToStaticMarkup(React.createElement(${phId}, {}, null))`
   const entryPointsName = entryPointsNameArray.join(", ")
 
   const outFile = buildOptions.outFile
-  const template = `import { renderToStaticMarkup } from "react-dom/server.js"
+  const template = `import { renderToString } from "react-dom/server.js"
 ${entryPointsStr}
 ${entryPointsRender}
 export { ${entryPointsName} }`
@@ -675,7 +675,7 @@ if (${targets}) {
     observer.observe(target)
 
     function hydrate() {
-      ReactDOM.render(App, target)
+      ReactDOM.hydrate(App, target)
       observer.unobserve(target)
     }
   })
