@@ -31,7 +31,7 @@ $ npm init minista@latest
 ### Manual Setup
 
 ```bash
-$ npm install --save-dev minista react react-dom
+$ npm install --save-dev minista react@17 react-dom@17
 ```
 
 ```bash
