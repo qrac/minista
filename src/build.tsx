@@ -574,6 +574,8 @@ export async function buildPartialModules(
     return 0
   })
 
+  const rootStyle = config.assets.partial.rootStyle
+  const hasRootStyle = Object.entries(rootStyle).length !== 0
   const partialModules: PartialModules = sortedModuleData.map((item, index) => {
     return {
       id: item.id,
@@ -584,10 +586,7 @@ export async function buildPartialModules(
       importer: item.importer,
       rootAttr: `data-${config.assets.partial.rootAttrSuffix}`,
       rootDOMElement: config.assets.partial.rootDOMElement,
-      rootStyleStr:
-        config.assets.partial.rootStyle === {}
-          ? ""
-          : reactStylesToString(config.assets.partial.rootStyle),
+      rootStyleStr: hasRootStyle ? reactStylesToString(rootStyle) : "",
     }
   })
   return partialModules
