@@ -613,7 +613,9 @@ const ${module.htmlId} = renderToString(React.createElement(${module.phId}))`
   const outFile = buildOptions.outFile
   const template = `import { renderToString } from "react-dom/server.js"
 ${tmpImporterStr}
+
 ${tmpRendersStr}
+
 export { ${tmpExportsStr} }`
 
   await fs.outputFile(outFile, template).catch((err) => {
@@ -706,7 +708,8 @@ export async function buildPartialHydrateIndex(
     ? tempFunctionIntersectionObserver
     : tempFunctionImmediateExecution
   const tmpRenders: string[] = partialModules.map((module) => {
-    return `// ${module.phId}
+    return `
+// ${module.phId}
 const ${module.targetsId} = document.querySelectorAll('[${module.rootAttr}="${module.phDomId}"]')
 if (${module.targetsId}) {
   ${module.targetsId}.forEach(target => {
