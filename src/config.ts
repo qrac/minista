@@ -31,7 +31,17 @@ export const defaultConfig: MinistaConfig = {
     },
     partial: {
       usePreact: false,
+      useIntersectionObserver: true,
       outName: "partial",
+      rootAttrSuffix: "partial-hydration",
+      rootValuePrefix: "ph",
+      rootDOMElement: "div",
+      rootStyle: { display: "contents" },
+      intersectionObserverOptions: {
+        root: null,
+        rootMargin: "0px",
+        thresholds: [1],
+      },
     },
     images: {
       outDir: "assets/images",

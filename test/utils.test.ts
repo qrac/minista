@@ -5,6 +5,7 @@ import {
   noSlashEnd,
   getFilename,
   getFilenameObject,
+  reactStylesToString,
 } from "../src/utils"
 
 describe("slashEnd", () => {
@@ -82,5 +83,24 @@ describe("getFilenameObject", () => {
 
     //console.log(result)
     expect(result).toEqual({ entry1: "entry1.js", entry2: "entry2.js" })
+  })
+})
+
+describe("reactStylesToString", () => {
+  it("Test: reactStylesToString one", () => {
+    const result = reactStylesToString({ display: "contents" })
+
+    //console.log(result)
+    expect(result).toEqual("display:contents;")
+  })
+
+  it("Test: reactStylesToString twe", () => {
+    const result = reactStylesToString({
+      display: "contents",
+      marginTop: "12px",
+    })
+
+    //console.log(result)
+    expect(result).toEqual("display:contents;margin-top:12px;")
   })
 })

@@ -42,7 +42,7 @@ import {
   partialHydrationPlugin,
 } from "./esbuild.js"
 import { renderHtml } from "./render.js"
-import { slashEnd } from "./utils.js"
+import { slashEnd, reactStylesToString } from "./utils.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -548,7 +548,8 @@ export async function buildViteImporterBlankAssets() {
 }
 
 export async function buildPartialModules(
-  moduleFilePaths: string[]
+  moduleFilePaths: string[],
+  config: MinistaResolveConfig
 ): Promise<PartialModules> {
   const moduleData: { id: string; importer: string }[] = []
 
@@ -577,10 +578,16 @@ export async function buildPartialModules(
     return {
       id: item.id,
       phId: `PH_${index + 1}`,
-      phDomId: `ph-${index + 1}`,
+      phDomId: `${config.assets.partial.rootValuePrefix}-${index + 1}`,
       htmlId: `html_${index + 1}`,
       targetsId: `targets_${index + 1}`,
       importer: item.importer,
+      rootAttr: `data-${config.assets.partial.rootAttrSuffix}`,
+      rootDOMElement: config.assets.partial.rootDOMElement,
+      rootStyleStr:
+        config.assets.partial.rootStyle === {}
+          ? ""
+          : reactStylesToString(config.assets.partial.rootStyle),
     }
   })
   return partialModules
@@ -590,7 +597,7 @@ export async function buildPartialStringIndex(
   partialModules: PartialModules,
   buildOptions: { outFile: string }
 ) {
-  const tmpImporter: string[] = partialModules.map((module) => {
+  const tmpImporters: string[] = partialModules.map((module) => {
     return `import ${module.phId} from "${module.importer}"`
   })
   const tmpRenders: string[] = partialModules.map((module) => {
@@ -599,7 +606,7 @@ const ${module.htmlId} = renderToString(React.createElement(${module.phId}))`
   })
   const tmpExports: string[] = partialModules.map((module) => module.htmlId)
 
-  const tmpImporterStr = tmpImporter.join("\n")
+  const tmpImporterStr = tmpImporters.join("\n")
   const tmpRendersStr = tmpRenders.join("\n")
   const tmpExportsStr = tmpExports.join(", ")
 
@@ -658,9 +665,10 @@ export async function buildPartialStringInitial(
 
   const items = partialModules.map((module) => {
     const html = partialString[module.htmlId]
-    const dataId = `data-reactroot-id="${module.phDomId}"`
-    const style = `style="display: contents;"`
-    const replacedHtml = `<div ${dataId} ${style}>${html}</div>`
+    const dom = module.rootDOMElement
+    const dataId = `${module.rootAttr}="${module.phDomId}"`
+    const style = module.rootStyleStr ? ` style="${module.rootStyleStr}"` : ""
+    const replacedHtml = `<${dom} ${dataId}${style}>${html}</${dom}>`
     return {
       id: module.id,
       html: replacedHtml,
@@ -675,20 +683,16 @@ export async function buildPartialStringInitial(
 
 export async function buildPartialHydrateIndex(
   partialModules: PartialModules,
+  config: MinistaResolveConfig,
   buildOptions: { outFile: string }
 ) {
-  const tmpImporter: string[] = partialModules.map((module) => {
+  const tmpImporters: string[] = partialModules.map((module) => {
     return `import ${module.phId} from "${module.importer}"`
   })
-  const tmpRenders: string[] = partialModules.map((module) => {
-    return `// ${module.phId}
-const ${module.targetsId} = document.querySelectorAll('[data-reactroot-id="${module.phDomId}"]')
-if (${module.targetsId}) {
-  ${module.targetsId}.forEach(target => {
-    const App = React.createElement(${module.phId})
-    const options = {
-      rootMargin: "0px",
-      threshold: 1,
+  const tempFunctionIntersectionObserver = `const options = {
+      root: ${config.assets.partial.intersectionObserverOptions.root},
+      rootMargin: "${config.assets.partial.intersectionObserverOptions.rootMargin}",
+      thresholds: ${config.assets.partial.intersectionObserverOptions.thresholds},
     }
     const observer = new IntersectionObserver(hydrate, options)
     observer.observe(target)
@@ -696,12 +700,23 @@ if (${module.targetsId}) {
     function hydrate() {
       ReactDOM.hydrate(App, target)
       observer.unobserve(target)
-    }
+    }`
+  const tempFunctionImmediateExecution = `ReactDOM.hydrate(App, target)`
+  const tempFunction = config.assets.partial.useIntersectionObserver
+    ? tempFunctionIntersectionObserver
+    : tempFunctionImmediateExecution
+  const tmpRenders: string[] = partialModules.map((module) => {
+    return `// ${module.phId}
+const ${module.targetsId} = document.querySelectorAll('[${module.rootAttr}="${module.phDomId}"]')
+if (${module.targetsId}) {
+  ${module.targetsId}.forEach(target => {
+    const App = React.createElement(${module.phId})
+    ${tempFunction}
   })
 }`
   })
 
-  const tmpImporterStr = tmpImporter.join("\n")
+  const tmpImporterStr = tmpImporters.join("\n")
   const tmpRendersStr = tmpRenders.join("\n")
 
   const outFile = buildOptions.outFile

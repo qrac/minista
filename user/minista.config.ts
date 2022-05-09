@@ -9,6 +9,7 @@ export default defineConfig({
     entry: "src/assets/entry.ts",
     partial: {
       usePreact: true,
+      //useIntersectionObserver: false,
     },
   },
   /*assets: {

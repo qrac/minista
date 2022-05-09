@@ -34,7 +34,17 @@ export type MinistaConfig = {
     }
     partial: {
       usePreact: boolean
+      useIntersectionObserver: boolean
       outName: string
+      rootAttrSuffix: string
+      rootValuePrefix: string
+      rootDOMElement: "div" | "span"
+      rootStyle: React.CSSProperties
+      intersectionObserverOptions: {
+        root: Element | null
+        rootMargin: string
+        thresholds: ReadonlyArray<number>
+      }
     }
     images: {
       outDir: string
@@ -98,7 +108,17 @@ export type MinistaUserConfig = {
     }
     partial?: {
       usePreact?: boolean
+      useIntersectionObserver?: boolean
       outName?: string
+      rootAttrSuffix?: string
+      rootValuePrefix?: string
+      rootDOMElement?: "div" | "span"
+      rootStyle?: React.CSSProperties
+      intersectionObserverOptions?: {
+        root?: Element | null
+        rootMargin?: string
+        thresholds?: ReadonlyArray<number>
+      }
     }
     images?: {
       outDir?: string
@@ -254,6 +274,9 @@ export type PartialModules = {
   htmlId: string
   targetsId: string
   importer: string
+  rootAttr: string
+  rootDOMElement: string
+  rootStyleStr: string
 }[]
 export type PartialString = {
   [key: string]: string

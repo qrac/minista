@@ -120,7 +120,7 @@ export async function generatePartialHydration(
     return
   }
 
-  const partialModules = await buildPartialModules(moduleFilePaths)
+  const partialModules = await buildPartialModules(moduleFilePaths, config)
 
   const outDir = systemConfig.temp.partialHydration.outDir
   const stringIndex = `${outDir}/string-index.mjs`
@@ -138,7 +138,9 @@ export async function generatePartialHydration(
   await buildPartialStringInitial(stringBundle, partialModules, {
     outFile: stringInitial,
   })
-  await buildPartialHydrateIndex(partialModules, { outFile: hydrateIndex })
+  await buildPartialHydrateIndex(partialModules, config, {
+    outFile: hydrateIndex,
+  })
   await buildPartialHydrateAssets(viteConfig, {
     input: hydrateIndex,
     bundleOutName: config.assets.partial.outName,

@@ -99,7 +99,17 @@ export default defineConfig({
     },
     partial: {
       usePreact: false, // boolean
+      useIntersectionObserver: true, // boolean
       outName: "partial", // string
+      rootAttrSuffix: "partial-hydration", // string
+      rootValuePrefix: "ph", // string
+      rootDOMElement: "div", // "div" | "span"
+      rootStyle: { display: "contents" }, // React.CSSProperties
+      intersectionObserverOptions: {
+        root: null, // Element | null
+        rootMargin: "0px", // string
+        thresholds: [1], // ReadonlyArray<number>
+      },
     },
     images: {
       outDir: "assets/images", // string

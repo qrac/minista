@@ -60,3 +60,15 @@ export function sortObject(obj: {} | undefined) {
   }
   return sorted
 }
+
+export function reactStylesToString(styles: React.CSSProperties) {
+  const result = Object.entries(styles)
+    .map(([key, value]) => {
+      const reg = new RegExp(/[A-Z]/g)
+      const cssKey = key.replace(reg, (v) => `-${v.toLowerCase()}`)
+      const cssValue = value
+      return `${cssKey}:${cssValue};`
+    })
+    .join("")
+  return result
+}
