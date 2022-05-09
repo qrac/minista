@@ -25,7 +25,7 @@ export async function downloadFiles(
       const html = await fs.readFile(entryPoint, "utf8")
       const parsedHtml = parseHtml(html)
       const imgTags = parsedHtml.getElementsByTagName("img")
-      const sourseTags = parsedHtml.getElementsByTagName("sourse")
+      const sourceTags = parsedHtml.getElementsByTagName("source")
 
       if (imgTags.length > 0) {
         for (const item of imgTags) {
@@ -47,8 +47,8 @@ export async function downloadFiles(
         }
       }
 
-      if (sourseTags.length > 0) {
-        for (const item of sourseTags) {
+      if (sourceTags.length > 0) {
+        for (const item of sourceTags) {
           const itemSrc = item.getAttribute("src")
           const itemSrcset = item.getAttribute("srcset")
 
