@@ -1,6 +1,7 @@
 import type { UserConfig as ViteConfig, InlineConfig } from "vite"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
+import fs from "fs-extra"
 import path from "path"
 import url from "url"
 
@@ -114,6 +115,14 @@ export async function generatePartialHydration(
   viteConfig: InlineConfig
 ) {
   const moduleDir = systemConfig.temp.partialHydration.outDir + "/modules"
+
+  const moduleDirRelative = path.relative(".", moduleDir)
+  const moduleDirExists = fs.existsSync(moduleDirRelative)
+
+  if (!moduleDirExists) {
+    return
+  }
+
   const moduleFilePaths = await getFilePaths(moduleDir, "txt")
 
   if (moduleFilePaths.length === 0) {
