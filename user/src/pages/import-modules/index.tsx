@@ -1,5 +1,5 @@
 import { Head } from "minista"
-import pkg from "minista/package.json"
+import pkg from "../../../node_modules/minista/package.json"
 
 import AppLayout from "../../components/app-layout"
 

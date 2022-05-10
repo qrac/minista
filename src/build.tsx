@@ -47,29 +47,29 @@ import { slashEnd, reactStylesToString } from "./utils.js"
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-//const ministaPkgUrl = path.resolve(__dirname + "/../package.json")
-//const ministaPkgUrlRelative = path.relative(".", ministaPkgUrl)
-//const ministaPkg = JSON.parse(fs.readFileSync(ministaPkgUrlRelative, "utf8"))
+const ministaPkgUrl = path.resolve(__dirname + "/../package.json")
+const ministaPkgUrlRelative = path.relative(".", ministaPkgUrl)
+const ministaPkg = JSON.parse(fs.readFileSync(ministaPkgUrlRelative, "utf8"))
 const userPkgPath = path.resolve("package.json")
 const userPkgFilePath = path.relative(process.cwd(), userPkgPath)
 const userPkg = JSON.parse(fs.readFileSync(userPkgFilePath, "utf8"))
 
 const esbuildExternals = [
-  //...Object.keys(ministaPkg.dependencies || {}),
-  //...Object.keys(ministaPkg.devDependencies || {}),
-  //...Object.keys(ministaPkg.peerDependencies || {}),
-  //...Object.keys(userPkg.dependencies || {}),
-  //...Object.keys(userPkg.devDependencies || {}),
-  //...Object.keys(userPkg.peerDependencies || {}),
-  //"*.css",
-  //"*.scss",
-  //"*.sass",
-  "react",
-  "react/*",
-  "react-dom",
-  "react-dom/*",
-  "react-helmet",
-  "react-helmet/*",
+  ...Object.keys(ministaPkg.dependencies || {}),
+  ...Object.keys(ministaPkg.devDependencies || {}),
+  ...Object.keys(ministaPkg.peerDependencies || {}),
+  ...Object.keys(userPkg.dependencies || {}),
+  ...Object.keys(userPkg.devDependencies || {}),
+  ...Object.keys(userPkg.peerDependencies || {}),
+  "*.css",
+  "*.scss",
+  "*.sass",
+  //"react",
+  //"react/*",
+  //"react-dom",
+  //"react-dom/*",
+  //"react-helmet",
+  //"react-helmet/*",
 ]
 const esbuildLoaders: { [key: string]: EsbuildLoader } = {
   ".jpg": "file",
