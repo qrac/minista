@@ -100,7 +100,6 @@ export async function generateTempAssets(
     bundleOutName: config.assets.bundle.outName,
     outDir: systemConfig.temp.assets.outDir,
     assetDir: config.assets.outDir,
-    generateJs: false,
   })
   await buildCopyDir(
     systemConfig.temp.assets.outDir,
@@ -155,7 +154,6 @@ export async function generatePartialHydration(
     bundleOutName: config.assets.partial.outName,
     outDir: systemConfig.temp.assets.outDir,
     assetDir: config.assets.outDir,
-    generateJs: true,
     usePreact: config.assets.partial.usePreact,
   })
 }

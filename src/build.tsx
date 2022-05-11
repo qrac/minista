@@ -394,7 +394,6 @@ export async function buildTempAssets(
     bundleOutName: string
     outDir: string
     assetDir: string
-    generateJs: boolean
   }
 ) {
   const customConfig = defineViteConfig({
@@ -419,11 +418,6 @@ export async function buildTempAssets(
           slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".css"
         return item?.source && fs.outputFile(customFileName, item?.source)
       } else if (item.fileName.match(/__minista_bundle_assets\.js/)) {
-        if (buildOptions.generateJs) {
-          const customFileName =
-            slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".js"
-          return item?.code && fs.outputFile(customFileName, item?.code)
-        }
         return
       } else {
         const customFileName =
@@ -745,7 +739,6 @@ export async function buildPartialHydrateAssets(
     bundleOutName: string
     outDir: string
     assetDir: string
-    generateJs: boolean
     usePreact: boolean
   }
 ) {
@@ -785,16 +778,11 @@ export async function buildPartialHydrateAssets(
   if (Array.isArray(items) && items.length > 0) {
     items.map((item) => {
       if (item.fileName.match(/\.css/)) {
-        const customFileName =
-          slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".css"
-        return item?.source && fs.outputFile(customFileName, item?.source)
-      } else if (item.fileName.match(/\.js/)) {
-        if (buildOptions.generateJs) {
-          const customFileName =
-            slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".js"
-          return item?.code && fs.outputFile(customFileName, item?.code)
-        }
         return
+      } else if (item.fileName.match(/\.js/)) {
+        const customFileName =
+          slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".js"
+        return item?.code && fs.outputFile(customFileName, item?.code)
       } else {
         const customFileName =
           buildOptions.outDir + item.fileName.replace(buildOptions.assetDir, "")
