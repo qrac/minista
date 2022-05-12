@@ -106,9 +106,10 @@ export function partialHydrationPlugin(): Plugin {
     setup(build) {
       build.onResolve({ filter: /\?ph$/ }, (args) => {
         return {
-          path: path.isAbsolute(args.path)
+          path: (path.isAbsolute(args.path)
             ? args.path
-            : path.join(args.resolveDir, args.path),
+            : path.join(args.resolveDir, args.path)
+          ).replaceAll("\\", "/"),
           namespace: "partial-hydration-loader",
         }
       })
