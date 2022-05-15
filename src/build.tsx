@@ -300,7 +300,10 @@ export async function buildHtmlPage(
 
   const reg1 = new RegExp(`^${outDir}|index.html`, "g")
   const reg2 = new RegExp(`.html`, "g")
-  const pathname = routePath.replace(reg1, "").replace(reg2, "")
+  const pathname = routePath
+    .replace(reg1, "")
+    .replace(reg2, "")
+    .replaceAll("\\", "/")
   const location: MinistaLocation = { pathname: pathname }
 
   const RenderComponent = () => {
