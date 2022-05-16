@@ -12,6 +12,9 @@ import type {
   JSBeautifyOptions,
 } from "js-beautify"
 
+import type Sass from "sass"
+import type Stylus from "stylus"
+
 export type MinistaConfig = {
   base: string
   public: string
@@ -84,6 +87,7 @@ export type MinistaConfig = {
     cssOptions: CSSBeautifyOptions
     jsOptions: JSBeautifyOptions
   }
+  css: CssOptions
 }
 
 export type MinistaUserConfig = {
@@ -158,6 +162,7 @@ export type MinistaUserConfig = {
     cssOptions?: CSSBeautifyOptions
     jsOptions?: JSBeautifyOptions
   }
+  css?: CssUserOptions
 }
 
 export type MinistaSvgstoreOptions = {
@@ -280,4 +285,32 @@ export type PartialModules = {
 }[]
 export type PartialString = {
   [key: string]: string
+}
+
+export type CSSModulesOptions = {
+  cache: boolean
+  scopeBehaviour: "global" | "local"
+  globalModulePaths: RegExp[]
+  generateScopedName:
+    | undefined
+    | string
+    | ((name: string, filename: string, css: string) => string)
+  hashPrefix: string
+  localsConvention: "camelCase" | "camelCaseOnly" | "dashes" | "dashesOnly"
+}
+export type CssOptions = {
+  modules: CSSModulesOptions | false
+  preprocessorOptions: {
+    scss: Sass.Options<"async">
+    less: Less.Options
+    stylus: Stylus.RenderOptions
+  }
+}
+export type CssUserOptions = {
+  modules?: Partial<CSSModulesOptions> | false
+  preprocessorOptions?: {
+    scss?: Sass.Options<"async">
+    less?: Less.Options
+    stylus?: Stylus.RenderOptions
+  }
 }

@@ -31,6 +31,7 @@ import type {
   GetStaticData,
   PartialModules,
   PartialString,
+  CssOptions,
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
@@ -43,6 +44,7 @@ import {
 } from "./esbuild.js"
 import { renderHtml } from "./render.js"
 import { slashEnd, reactStylesToString } from "./utils.js"
+import { CssModulePlugin } from "./css.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -94,6 +96,7 @@ export async function buildTempPages(
     outDir: string
     mdxConfig: MdxOptions
     svgrOptions: SvgrOptions
+    cssOptions: CssOptions
   }
 ) {
   await esBuild({
@@ -111,6 +114,7 @@ export async function buildTempPages(
     external: esbuildExternals,
     loader: esbuildLoaders,
     plugins: [
+      CssModulePlugin(buildOptions.cssOptions),
       mdx(buildOptions.mdxConfig),
       resolvePlugin({
         "react/jsx-runtime": "react/jsx-runtime.js",
@@ -631,6 +635,7 @@ export async function buildPartialStringBundle(
     outFile: string
     mdxConfig: MdxOptions
     svgrOptions: SvgrOptions
+    cssOptions: CssOptions
   }
 ) {
   await esBuild({
@@ -646,6 +651,7 @@ export async function buildPartialStringBundle(
     external: esbuildExternals,
     loader: esbuildLoaders,
     plugins: [
+      CssModulePlugin(buildOptions.cssOptions),
       mdx(buildOptions.mdxConfig),
       resolvePlugin({
         "react/jsx-runtime": "react/jsx-runtime.js",
