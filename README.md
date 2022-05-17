@@ -138,7 +138,7 @@ export default defineConfig({
       outDir: "assets/images", // string
     },
   },
-  vite: {}, // https://vitejs.dev/config/
+  vite: {}, // https://ja.vitejs.dev/config/
   markdown: {
     syntaxHighlighter: "highlight", // "highlight" | "none"
     highlightOptions: {}, // https://github.com/rehypejs/rehype-highlight#options
@@ -159,6 +159,21 @@ export default defineConfig({
     }, // https://github.com/beautify-web/js-beautify#css--html
     cssOptions: {}, // https://github.com/beautify-web/js-beautify#css--html
     jsOptions: {}, // https://github.com/beautify-web/js-beautify#options
+  },
+  css: {
+    modules: {
+      generateScopedName: undefined,
+      globalModulePaths: [],
+      hashPrefix: "",
+      localsConvention: "camelCaseOnly",
+      scopeBehaviour: "local",
+      cache: true,
+    }, // https://ja.vitejs.dev/config/#css-modules
+    preprocessorOptions: {
+      scss: {},
+      less: {},
+      stylus: {},
+    }, // https://ja.vitejs.dev/config/#css-preprocessoroptions
   },
 })
 ```
