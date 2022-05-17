@@ -185,6 +185,7 @@ export default defineConfig({
 
 ## Media
 
+- [SSG + Partial Hydration (部分的な React App) - minista v2.4](https://zenn.dev/qrac/articles/b9c65c1c0be901)
 - [Vite と esbuild を組み込み React 製 SSG を再構築 - minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
 - [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
 - [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
