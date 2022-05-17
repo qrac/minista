@@ -92,6 +92,21 @@ export const defaultConfig: MinistaConfig = {
     cssOptions: {},
     jsOptions: {},
   },
+  css: {
+    modules: {
+      generateScopedName: undefined,
+      globalModulePaths: [],
+      hashPrefix: "",
+      localsConvention: "camelCaseOnly",
+      scopeBehaviour: "local",
+      cache: true,
+    },
+    preprocessorOptions: {
+      scss: {},
+      less: {},
+      stylus: {},
+    },
+  },
 }
 
 export async function mergeConfig(

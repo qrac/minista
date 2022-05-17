@@ -115,6 +115,7 @@ export async function getViteConfig(
       ],
     },
     customLogger: createLogger("info", { prefix: "[minista]" }),
+    css: config.css,
   })
 
   const mergedViteConfig = mergeViteConfig(defaultViteConfig, config.vite)
