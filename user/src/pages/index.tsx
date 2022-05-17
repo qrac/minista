@@ -30,6 +30,9 @@ const PageHome = () => {
           <a href="/import-modules/">import modules</a>
         </li>
         <li>
+          <a href="/css-modules/">CSS Modules</a>
+        </li>
+        <li>
           <a href="/svgr/">SVGR</a>
         </li>
         <li>
