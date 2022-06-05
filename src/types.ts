@@ -166,12 +166,12 @@ export type MinistaUserConfig = {
 }
 
 export type MinistaSvgstoreOptions = {
-  cleanDefs?: Boolean | string[]
-  cleanSymbols?: Boolean | string[]
-  svgAttrs?: Boolean | { [key: string]: string }
-  symbolAttrs?: Boolean | { [key: string]: string }
-  copyAttrs?: Boolean | string[]
-  renameDefs?: Boolean
+  cleanDefs?: boolean | string[]
+  cleanSymbols?: boolean | string[]
+  svgAttrs?: boolean | { [key: string]: string }
+  symbolAttrs?: boolean | { [key: string]: string }
+  copyAttrs?: boolean | string[]
+  renameDefs?: boolean
 }
 
 export type MinistaResolveConfig = MinistaConfig & MinistaResolvePathConfig

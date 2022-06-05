@@ -15,8 +15,7 @@ import {
 } from "vite"
 import react from "@vitejs/plugin-react"
 import mdx from "@mdx-js/rollup"
-//@ts-ignore
-import svgstore from "svgstore"
+import svgstore from "@qrac/svgstore"
 
 import type {
   MinistaResolveConfig,
