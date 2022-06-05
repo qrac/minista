@@ -5,11 +5,11 @@
     "build": "minista build"
   },
   "dependencies": {
-    "@fontsource/montserrat": "^4.5.10"
+    "@fontsource/montserrat": "^4.5.11"
   },
   "devDependencies": {
     "minista": "file:..",
-    "preact": "^10.7.2",
+    "preact": "^10.7.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   }
