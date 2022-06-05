@@ -17,7 +17,7 @@ describe("getFilePaths", () => {
     const result = await getFilePaths("./lib", "html")
 
     //console.log(result)
-    expect(result).toEqual(["lib/index.html"])
+    expect(result).toEqual(["./lib/index.html"])
   })
 })
 
@@ -26,6 +26,6 @@ describe("getSameFilePaths", () => {
     const result = await getSameFilePaths("./lib", "index", "html")
 
     //console.log(result)
-    expect(result).toEqual(["lib/index.html"])
+    expect(result).toEqual(["./lib/index.html"])
   })
 })

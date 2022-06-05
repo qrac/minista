@@ -1,6 +1,6 @@
 import fs from "fs-extra"
+import fg from "fast-glob"
 import path from "path"
-import glob from "tiny-glob"
 
 export function getFilePath(
   targetDir: string,
@@ -19,9 +19,9 @@ export async function getFilePaths(
   extensions: string | string[]
 ) {
   const strExtension =
-    typeof extensions === "string" ? extensions : extensions.join()
-  const globPattern = `${targetDir}/**/*.{${strExtension}}`
-  const files = await glob(globPattern)
+    typeof extensions === "string" ? extensions : extensions.join("|")
+  const globPattern = `${targetDir}/**/*.+(${strExtension})`
+  const files = await fg(globPattern, { extglob: true })
   return files
 }
 
@@ -31,8 +31,8 @@ export async function getSameFilePaths(
   extensions: string | string[]
 ) {
   const strExtension =
-    typeof extensions === "string" ? extensions : extensions.join()
-  const globPattern = `${targetDir}/${fileName}.{${strExtension}}`
-  const files = await glob(globPattern)
+    typeof extensions === "string" ? extensions : extensions.join("|")
+  const globPattern = `${targetDir}/${fileName}.+(${strExtension})`
+  const files = await fg(globPattern, { extglob: true })
   return files
 }
