@@ -4,6 +4,7 @@ import type {
   CorsOptions as ViteCorsOptions,
 } from "vite"
 import type { Config as SvgrOptions } from "@svgr/core"
+import type { SvgstoreAddOptions } from "@qrac/svgstore"
 import type { Options as HighlightOptions } from "rehype-highlight"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type {
@@ -11,7 +12,6 @@ import type {
   CSSBeautifyOptions,
   JSBeautifyOptions,
 } from "js-beautify"
-
 import type Sass from "sass"
 import type Stylus from "stylus"
 
@@ -65,7 +65,7 @@ export type MinistaConfig = {
       srcDir: string
       outDir: string
       outName: string
-      svgstoreOptions: MinistaSvgstoreOptions
+      svgstoreOptions: SvgstoreAddOptions
     }
     download: {
       useRemote: boolean
@@ -140,7 +140,7 @@ export type MinistaUserConfig = {
       srcDir?: string
       outDir?: string
       outName?: string
-      svgstoreOptions?: MinistaSvgstoreOptions
+      svgstoreOptions?: SvgstoreAddOptions
     }
     download?: {
       useRemote?: boolean
@@ -163,15 +163,6 @@ export type MinistaUserConfig = {
     jsOptions?: JSBeautifyOptions
   }
   css?: CssUserOptions
-}
-
-export type MinistaSvgstoreOptions = {
-  cleanDefs?: boolean | string[]
-  cleanSymbols?: boolean | string[]
-  svgAttrs?: boolean | { [key: string]: string }
-  symbolAttrs?: boolean | { [key: string]: string }
-  copyAttrs?: boolean | string[]
-  renameDefs?: boolean
 }
 
 export type MinistaResolveConfig = MinistaConfig & MinistaResolvePathConfig

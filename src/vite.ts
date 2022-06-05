@@ -1,6 +1,7 @@
 import type { UserConfig as ViteConfig, Plugin, ResolvedConfig } from "vite"
 import type { Config as SvgrOptions } from "@svgr/core"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
+import type { SvgstoreAddOptions } from "@qrac/svgstore"
 
 import fs from "fs-extra"
 import path from "path"
@@ -19,7 +20,6 @@ import svgstore from "@qrac/svgstore"
 
 import type {
   MinistaResolveConfig,
-  MinistaSvgstoreOptions,
   MinistaCliDevOptions,
   MinistaCliPreviewOptions,
 } from "./types.js"
@@ -263,7 +263,7 @@ export function vitePluginMinistaSvgr(svgrOptions: SvgrOptions): Plugin {
 
 export function vitePluginMinistaSvgSpriteIcons(
   srcDir: string,
-  options: MinistaSvgstoreOptions = {},
+  options: SvgstoreAddOptions = {},
   output: string,
   tempOutput: string
 ): Plugin {
