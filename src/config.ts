@@ -1,9 +1,12 @@
+import type { AliasOptions as ViteAliasOptions } from "vite"
 import { deepmergeCustom } from "deepmerge-ts"
 
 import type {
   MinistaConfig,
   MinistaUserConfig,
   MinistaResolveConfig,
+  MinistaResolveAliasInput,
+  MinistaResolveAlias,
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
@@ -71,6 +74,9 @@ export const defaultConfig: MinistaConfig = {
     },
   },
   vite: {},
+  resolve: {
+    alias: [],
+  },
   css: {
     modules: {
       cache: true,
@@ -122,11 +128,53 @@ export async function mergeConfig(
   return mergedConfig
 }
 
+export async function mergeAlias(
+  configAlias: MinistaResolveAliasInput,
+  viteConfigAlias: ViteAliasOptions
+): Promise<MinistaResolveAlias> {
+  const alias: MinistaResolveAlias = []
+
+  async function getAlias(input: MinistaResolveAliasInput | ViteAliasOptions) {
+    if (!input) {
+      return
+    } else if (Array.isArray(input) && input.length > 0) {
+      await Promise.all(
+        input.map(async (item) => {
+          const pattern = {
+            find: item.find,
+            replacement: item.replacement,
+          }
+          return alias.push(pattern)
+        })
+      )
+    } else if (typeof input === "object") {
+      await Promise.all(
+        Object.entries(input).map((item) => {
+          const pattern = {
+            find: item[0],
+            replacement: item[1],
+          }
+          return alias.push(pattern)
+        })
+      )
+    }
+  }
+  await getAlias(configAlias)
+  await getAlias(viteConfigAlias)
+
+  return alias
+}
+
 export async function resolveConfig(
   config: MinistaConfig
 ): Promise<MinistaResolveConfig> {
-  const resolvedConfig = {
+  const configAlias = config.resolve.alias
+  const viteConfigAlias = config.vite.resolve?.alias || {}
+  const alias = await mergeAlias(configAlias, viteConfigAlias)
+
+  const resolvedConfig: MinistaResolveConfig = {
     ...config,
+    alias: alias,
     rootSrcDir: noSlashEnd(config.root.srcDir),
     pagesSrcDir: noSlashEnd(config.pages.srcDir),
     publicOutDir: noSlashEnd(config.out),

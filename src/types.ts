@@ -75,6 +75,9 @@ export type MinistaConfig = {
     }
   }
   vite: ViteUserConfig
+  resolve: {
+    alias: MinistaResolveAliasInput
+  }
   css: CssOptions
   markdown: {
     syntaxHighlighter: "highlight" | "none"
@@ -150,6 +153,9 @@ export type MinistaUserConfig = {
     }
   }
   vite?: ViteUserConfig
+  resolve?: {
+    alias?: MinistaResolveAliasInput
+  }
   css?: CssUserOptions
   markdown?: {
     syntaxHighlighter?: "highlight" | "none"
@@ -165,7 +171,20 @@ export type MinistaUserConfig = {
   }
 }
 
-export type MinistaResolveConfig = MinistaConfig & MinistaResolvePathConfig
+export type MinistaResolveConfig = MinistaConfig &
+  MinistaResolveAliasConfig &
+  MinistaResolvePathConfig
+
+export type MinistaResolveAliasInput =
+  | { [key: string]: string }
+  | { find: string; replacement: string }[]
+export type MinistaResolveAlias = {
+  find: string
+  replacement: string
+}[]
+export type MinistaResolveAliasConfig = {
+  alias: MinistaResolveAlias
+}
 
 export type MinistaResolvePathConfig = {
   rootSrcDir: string

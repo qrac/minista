@@ -69,6 +69,7 @@ export async function generateTempRoot(
     await buildTempPages([srcRootFilePaths[0]], {
       outBase: config.rootSrcDir,
       outDir: systemConfig.temp.root.outDir,
+      alias: config.alias,
       mdxConfig: mdxConfig,
       svgrOptions: config.assets.svgr.svgrOptions,
       cssOptions: config.css,
@@ -87,6 +88,7 @@ export async function generateTempPages(
   await buildTempPages(srcPageFilePaths, {
     outBase: config.pagesSrcDir,
     outDir: systemConfig.temp.pages.outDir,
+    alias: config.alias,
     mdxConfig: mdxConfig,
     svgrOptions: config.assets.svgr.svgrOptions,
     cssOptions: config.css,
@@ -142,8 +144,9 @@ export async function generatePartialHydration(
   await buildPartialStringBundle(stringIndex, {
     outFile: stringBundle,
     mdxConfig: mdxConfig,
+    alias: config.alias,
     svgrOptions: config.assets.svgr.svgrOptions,
-    cssOptions: config.css
+    cssOptions: config.css,
   })
   await optimizeCommentOutStyleImport([stringBundle])
   await buildPartialStringInitial(stringBundle, partialModules, {

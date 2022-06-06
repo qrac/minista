@@ -119,6 +119,14 @@ export async function getViteConfig(
 
   const mergedViteConfig = mergeViteConfig(defaultViteConfig, config.vite)
 
+  if (config.alias.length > 0) {
+    await Promise.all(
+      config.alias.map(async (item) => {
+        return mergedViteConfig.resolve.alias.push(item)
+      })
+    )
+  }
+
   const svgrPlugin = vitePluginMinistaSvgr(config.assets.svgr.svgrOptions)
   mergedViteConfig.plugins.push(svgrPlugin)
 

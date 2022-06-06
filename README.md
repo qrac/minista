@@ -139,6 +139,9 @@ export default defineConfig({
     },
   },
   vite: {}, // https://ja.vitejs.dev/config/
+  resolve: {
+    alias: [], // { [key: string]: string } | { find: string, replacement: string }[]
+  },
   css: {
     modules: {
       cache: true,

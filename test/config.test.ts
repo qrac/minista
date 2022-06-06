@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { mergeConfig, resolveConfig, defaultConfig } from "../src/config"
+import {
+  mergeConfig,
+  mergeAlias,
+  resolveConfig,
+  defaultConfig,
+} from "../src/config"
 
 describe("mergeConfig", () => {
   it("Test: mergeConfig", async () => {
@@ -17,6 +22,21 @@ describe("mergeConfig", () => {
 
     //console.log(result)
     expect(result.pages.srcExt).toEqual(userConfig.pages.srcExt)
+  })
+})
+
+describe("mergeAlias", () => {
+  it("Test: mergeAlias", async () => {
+    const userConfig = { "~": "src" }
+    const result = await mergeAlias(userConfig, {})
+
+    //console.log(result)
+    expect(result).toEqual([
+      {
+        find: "~",
+        replacement: "src",
+      },
+    ])
   })
 })
 

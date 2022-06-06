@@ -5,7 +5,19 @@ import fs from "fs-extra"
 import path from "path"
 import { v4 as uuidv4 } from "uuid"
 
+import type { MinistaResolveAlias } from "./types.js"
 import { systemConfig } from "./system.js"
+
+export function getEsbuildAlias(aliasArray: MinistaResolveAlias[]) {
+  const alias = [...aliasArray].flat()
+  const result: { [key: string]: string } = Object.assign(
+    {},
+    ...alias.map((item) => ({
+      [item.find]: item.replacement,
+    }))
+  )
+  return result
+}
 
 /*! Fork: esbuild-plugin-resolve | https://github.com/markwylde/esbuild-plugin-resolve */
 export function resolvePlugin(options: { [key: string]: string }): Plugin {

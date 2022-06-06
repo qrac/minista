@@ -18,6 +18,7 @@ import {
 
 import type {
   MinistaResolveConfig,
+  MinistaResolveAlias,
   MinistaLocation,
   RootStaticContent,
   RootEsmContent,
@@ -37,6 +38,7 @@ import type {
 import { systemConfig } from "./system.js"
 import { getFilePath } from "./path.js"
 import {
+  getEsbuildAlias,
   resolvePlugin,
   svgrPlugin,
   rawPlugin,
@@ -84,6 +86,12 @@ const esbuildLoaders: { [key: string]: EsbuildLoader } = {
   ".woff": "file",
   ".woff2": "file",
 }
+const esbuildAlias: MinistaResolveAlias = [
+  {
+    find: "react/jsx-runtime",
+    replacement: "react/jsx-runtime.js",
+  },
+]
 const userPkgHasPreact = [
   ...Object.keys(userPkg.dependencies || {}),
   ...Object.keys(userPkg.devDependencies || {}),
@@ -94,11 +102,14 @@ export async function buildTempPages(
   buildOptions: {
     outBase: string
     outDir: string
+    alias: MinistaResolveAlias
     mdxConfig: MdxOptions
     svgrOptions: SvgrOptions
     cssOptions: CssOptions
   }
 ) {
+  const alias = getEsbuildAlias([esbuildAlias, buildOptions.alias])
+
   await esBuild({
     entryPoints: entryPoints,
     outbase: buildOptions.outBase,
@@ -114,11 +125,9 @@ export async function buildTempPages(
     external: esbuildExternals,
     loader: esbuildLoaders,
     plugins: [
+      resolvePlugin(alias),
       CssModulePlugin(buildOptions.cssOptions),
       mdx(buildOptions.mdxConfig),
-      resolvePlugin({
-        "react/jsx-runtime": "react/jsx-runtime.js",
-      }),
       svgrPlugin(buildOptions.svgrOptions),
       rawPlugin(),
       partialHydrationPlugin(),
@@ -633,11 +642,14 @@ export async function buildPartialStringBundle(
   entryPoint: string,
   buildOptions: {
     outFile: string
+    alias: MinistaResolveAlias
     mdxConfig: MdxOptions
     svgrOptions: SvgrOptions
     cssOptions: CssOptions
   }
 ) {
+  const alias = getEsbuildAlias([esbuildAlias, buildOptions.alias])
+
   await esBuild({
     entryPoints: [entryPoint],
     outfile: buildOptions.outFile,
@@ -651,11 +663,9 @@ export async function buildPartialStringBundle(
     external: esbuildExternals,
     loader: esbuildLoaders,
     plugins: [
+      resolvePlugin(alias),
       CssModulePlugin(buildOptions.cssOptions),
       mdx(buildOptions.mdxConfig),
-      resolvePlugin({
-        "react/jsx-runtime": "react/jsx-runtime.js",
-      }),
       svgrPlugin(buildOptions.svgrOptions),
       rawPlugin(),
     ],

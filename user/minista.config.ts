@@ -1,3 +1,4 @@
+import path from "path"
 import { defineConfig } from "minista"
 
 //import remarkFrontmatter from "remark-frontmatter"
@@ -26,6 +27,14 @@ export default defineConfig({
       minifySyntax: false,
     },
   },*/
+  /*vite: {
+    resolve: {
+      alias: [{ find: "~", replacement: path.resolve("src") }],
+    },
+  },*/
+  resolve: {
+    alias: [{ find: "~", replacement: path.resolve("src") }],
+  },
   /*markdown: {
     syntaxHighlighter: "none",
     //syntaxHighlighter: "highlight",

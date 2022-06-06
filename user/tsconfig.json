@@ -8,6 +8,9 @@
     "skipLibCheck": true,
     "noErrorTruncation": true,
     "jsx": "react-jsx",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
     "types": ["minista/client"]
   },
   "include": ["./minista.config.ts", "src"]
