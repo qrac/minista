@@ -1,13 +1,12 @@
-import path from "path"
-import fs from "fs-extra"
-
-import postcss from "postcss"
-import postcssModules from "postcss-modules"
-
 import type { Plugin } from "esbuild"
 import type Less from "less"
 import type Sass from "sass"
 import type Stylus from "stylus"
+
+import fs from "fs-extra"
+import path from "path"
+import postcss from "postcss"
+import postcssModules from "postcss-modules"
 
 import type { CssOptions } from "./types.js"
 
