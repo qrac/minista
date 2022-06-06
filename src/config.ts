@@ -87,7 +87,7 @@ export const defaultConfig: MinistaConfig = {
       max_preserve_newlines: 0,
       indent_inner_html: true,
       extra_liners: [],
-      inline: ["span", "b", "br", "code", "del", "s", "small", "strong", "wbr"],
+      inline: ["span", "strong", "b", "small", "del", "s", "code", "br", "wbr"],
     },
     cssOptions: {},
     jsOptions: {},
