@@ -71,6 +71,21 @@ export const defaultConfig: MinistaConfig = {
     },
   },
   vite: {},
+  css: {
+    modules: {
+      cache: true,
+      scopeBehaviour: "local",
+      globalModulePaths: [],
+      generateScopedName: undefined,
+      hashPrefix: "",
+      localsConvention: "camelCaseOnly",
+    },
+    preprocessorOptions: {
+      scss: {},
+      less: {},
+      stylus: {},
+    },
+  },
   markdown: {
     syntaxHighlighter: "highlight",
     highlightOptions: {},
@@ -91,21 +106,6 @@ export const defaultConfig: MinistaConfig = {
     },
     cssOptions: {},
     jsOptions: {},
-  },
-  css: {
-    modules: {
-      generateScopedName: undefined,
-      globalModulePaths: [],
-      hashPrefix: "",
-      localsConvention: "camelCaseOnly",
-      scopeBehaviour: "local",
-      cache: true,
-    },
-    preprocessorOptions: {
-      scss: {},
-      less: {},
-      stylus: {},
-    },
   },
 }
 

@@ -75,6 +75,7 @@ export type MinistaConfig = {
     }
   }
   vite: ViteUserConfig
+  css: CssOptions
   markdown: {
     syntaxHighlighter: "highlight" | "none"
     highlightOptions: HighlightOptions
@@ -87,7 +88,6 @@ export type MinistaConfig = {
     cssOptions: CSSBeautifyOptions
     jsOptions: JSBeautifyOptions
   }
-  css: CssOptions
 }
 
 export type MinistaUserConfig = {
@@ -150,6 +150,7 @@ export type MinistaUserConfig = {
     }
   }
   vite?: ViteUserConfig
+  css?: CssUserOptions
   markdown?: {
     syntaxHighlighter?: "highlight" | "none"
     highlightOptions?: HighlightOptions
@@ -162,7 +163,6 @@ export type MinistaUserConfig = {
     cssOptions?: CSSBeautifyOptions
     jsOptions?: JSBeautifyOptions
   }
-  css?: CssUserOptions
 }
 
 export type MinistaResolveConfig = MinistaConfig & MinistaResolvePathConfig
@@ -278,17 +278,6 @@ export type PartialString = {
   [key: string]: string
 }
 
-export type CSSModulesOptions = {
-  cache: boolean
-  scopeBehaviour: "global" | "local"
-  globalModulePaths: RegExp[]
-  generateScopedName:
-    | undefined
-    | string
-    | ((name: string, filename: string, css: string) => string)
-  hashPrefix: string
-  localsConvention: "camelCase" | "camelCaseOnly" | "dashes" | "dashesOnly"
-}
 export type CssOptions = {
   modules: CSSModulesOptions | false
   preprocessorOptions: {
@@ -304,4 +293,15 @@ export type CssUserOptions = {
     less?: Less.Options
     stylus?: Stylus.RenderOptions
   }
+}
+export type CSSModulesOptions = {
+  cache: boolean
+  scopeBehaviour: "global" | "local"
+  globalModulePaths: RegExp[]
+  generateScopedName:
+    | undefined
+    | string
+    | ((name: string, filename: string, css: string) => string)
+  hashPrefix: string
+  localsConvention: "camelCase" | "camelCaseOnly" | "dashes" | "dashesOnly"
 }
