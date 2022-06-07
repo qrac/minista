@@ -64,6 +64,24 @@ export function resolvePlugin(options: { [key: string]: string }): Plugin {
   }
 }
 
+/*! Fork: esbuild-plugin-alias | https://github.com/igoradamenko/esbuild-plugin-alias */
+export function aliasPlugin(options: { [key: string]: string }): Plugin {
+  function escapeRegExp(name: string) {
+    return name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  }
+  const aliases = Object.keys(options)
+  const re = new RegExp(`^(${aliases.map((x) => escapeRegExp(x)).join("|")})$`)
+
+  return {
+    name: "esbuild-alias",
+    setup(build) {
+      build.onResolve({ filter: re }, (args) => ({
+        path: options[args.path],
+      }))
+    },
+  }
+}
+
 /*! Fork: esbuild-plugin-svgr | https://github.com/kazijawad/esbuild-plugin-svgr */
 export function svgrPlugin(options: SvgrOptions): Plugin {
   return {

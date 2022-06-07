@@ -40,6 +40,7 @@ import { getFilePath } from "./path.js"
 import {
   getEsbuildAlias,
   resolvePlugin,
+  aliasPlugin,
   svgrPlugin,
   rawPlugin,
   partialHydrationPlugin,
@@ -86,12 +87,6 @@ const esbuildLoaders: { [key: string]: EsbuildLoader } = {
   ".woff": "file",
   ".woff2": "file",
 }
-const esbuildAlias: MinistaResolveAlias = [
-  {
-    find: "react/jsx-runtime",
-    replacement: "react/jsx-runtime.js",
-  },
-]
 const userPkgHasPreact = [
   ...Object.keys(userPkg.dependencies || {}),
   ...Object.keys(userPkg.devDependencies || {}),
@@ -108,7 +103,7 @@ export async function buildTempPages(
     cssOptions: CssOptions
   }
 ) {
-  const alias = getEsbuildAlias([esbuildAlias, buildOptions.alias])
+  const alias = getEsbuildAlias([buildOptions.alias])
 
   await esBuild({
     entryPoints: entryPoints,
@@ -125,7 +120,8 @@ export async function buildTempPages(
     external: esbuildExternals,
     loader: esbuildLoaders,
     plugins: [
-      resolvePlugin(alias),
+      resolvePlugin({ "react/jsx-runtime": "react/jsx-runtime.js" }),
+      aliasPlugin(alias),
       CssModulePlugin(buildOptions.cssOptions),
       mdx(buildOptions.mdxConfig),
       svgrPlugin(buildOptions.svgrOptions),
@@ -648,7 +644,7 @@ export async function buildPartialStringBundle(
     cssOptions: CssOptions
   }
 ) {
-  const alias = getEsbuildAlias([esbuildAlias, buildOptions.alias])
+  const alias = getEsbuildAlias([buildOptions.alias])
 
   await esBuild({
     entryPoints: [entryPoint],
@@ -663,7 +659,8 @@ export async function buildPartialStringBundle(
     external: esbuildExternals,
     loader: esbuildLoaders,
     plugins: [
-      resolvePlugin(alias),
+      resolvePlugin({ "react/jsx-runtime": "react/jsx-runtime.js" }),
+      aliasPlugin(alias),
       CssModulePlugin(buildOptions.cssOptions),
       mdx(buildOptions.mdxConfig),
       svgrPlugin(buildOptions.svgrOptions),

@@ -1,7 +1,7 @@
 {
   "name": "minista",
   "description": "Next.js Like Development with 100% Static Generate",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "bin": {
     "minista": "./bin/minista.js"
   },
