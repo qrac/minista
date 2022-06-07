@@ -175,15 +175,9 @@ export type MinistaResolveConfig = MinistaConfig &
   MinistaResolveAliasConfig &
   MinistaResolvePathConfig
 
-export type MinistaResolveAliasInput =
-  | { [key: string]: string }
-  | { find: string; replacement: string }[]
-export type MinistaResolveAlias = {
-  find: string
-  replacement: string
-}[]
+export type MinistaResolveAliasInput = AliasObject | AliasArray
 export type MinistaResolveAliasConfig = {
-  alias: MinistaResolveAlias
+  alias: AliasArray
 }
 
 export type MinistaResolvePathConfig = {
@@ -281,6 +275,9 @@ export type StaticDataItem = {
 }
 export type StaticDataCache = { key: [StaticDataList] } | {}
 export type GetStaticData = () => Promise<StaticData>
+
+export type AliasObject = { [key: string]: string }
+export type AliasArray = { find: string; replacement: string }[]
 
 export type PartialModules = {
   id: string

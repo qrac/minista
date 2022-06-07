@@ -1,7 +1,7 @@
 import { Head } from "minista"
 
 import AppLayout from "../../components/app-layout"
-import demo from "../../assets/others/demo.html?raw"
+import demo from "~/assets/others/demo.html?raw"
 
 const PageRaw = () => {
   return (

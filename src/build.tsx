@@ -18,7 +18,6 @@ import {
 
 import type {
   MinistaResolveConfig,
-  MinistaResolveAlias,
   MinistaLocation,
   RootStaticContent,
   RootEsmContent,
@@ -30,6 +29,7 @@ import type {
   StaticData,
   StaticDataItem,
   GetStaticData,
+  AliasArray,
   PartialModules,
   PartialString,
   CssOptions,
@@ -38,16 +38,14 @@ import type {
 import { systemConfig } from "./system.js"
 import { getFilePath } from "./path.js"
 import {
-  getEsbuildAlias,
   resolvePlugin,
-  aliasPlugin,
   svgrPlugin,
   rawPlugin,
   partialHydrationPlugin,
 } from "./esbuild.js"
 import { renderHtml } from "./render.js"
 import { slashEnd, reactStylesToString } from "./utils.js"
-import { CssModulePlugin } from "./css.js"
+import { cssModulePlugin } from "./css.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -97,14 +95,12 @@ export async function buildTempPages(
   buildOptions: {
     outBase: string
     outDir: string
-    alias: MinistaResolveAlias
+    alias: AliasArray
     mdxConfig: MdxOptions
     svgrOptions: SvgrOptions
     cssOptions: CssOptions
   }
 ) {
-  const alias = getEsbuildAlias([buildOptions.alias])
-
   await esBuild({
     entryPoints: entryPoints,
     outbase: buildOptions.outBase,
@@ -121,12 +117,11 @@ export async function buildTempPages(
     loader: esbuildLoaders,
     plugins: [
       resolvePlugin({ "react/jsx-runtime": "react/jsx-runtime.js" }),
-      aliasPlugin(alias),
-      CssModulePlugin(buildOptions.cssOptions),
+      cssModulePlugin(buildOptions.cssOptions, buildOptions.alias),
       mdx(buildOptions.mdxConfig),
       svgrPlugin(buildOptions.svgrOptions),
-      rawPlugin(),
-      partialHydrationPlugin(),
+      rawPlugin(buildOptions.alias),
+      partialHydrationPlugin(buildOptions.alias),
     ],
   }).catch(() => process.exit(1))
 }
@@ -638,14 +633,12 @@ export async function buildPartialStringBundle(
   entryPoint: string,
   buildOptions: {
     outFile: string
-    alias: MinistaResolveAlias
+    alias: AliasArray
     mdxConfig: MdxOptions
     svgrOptions: SvgrOptions
     cssOptions: CssOptions
   }
 ) {
-  const alias = getEsbuildAlias([buildOptions.alias])
-
   await esBuild({
     entryPoints: [entryPoint],
     outfile: buildOptions.outFile,
@@ -660,11 +653,10 @@ export async function buildPartialStringBundle(
     loader: esbuildLoaders,
     plugins: [
       resolvePlugin({ "react/jsx-runtime": "react/jsx-runtime.js" }),
-      aliasPlugin(alias),
-      CssModulePlugin(buildOptions.cssOptions),
+      cssModulePlugin(buildOptions.cssOptions, buildOptions.alias),
       mdx(buildOptions.mdxConfig),
       svgrPlugin(buildOptions.svgrOptions),
-      rawPlugin(),
+      rawPlugin(buildOptions.alias),
     ],
   }).catch(() => process.exit(1))
 }

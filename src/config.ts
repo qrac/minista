@@ -6,7 +6,7 @@ import type {
   MinistaUserConfig,
   MinistaResolveConfig,
   MinistaResolveAliasInput,
-  MinistaResolveAlias,
+  AliasArray,
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
@@ -131,8 +131,8 @@ export async function mergeConfig(
 export async function mergeAlias(
   configAlias: MinistaResolveAliasInput,
   viteConfigAlias: ViteAliasOptions
-): Promise<MinistaResolveAlias> {
-  const alias: MinistaResolveAlias = []
+): Promise<AliasArray> {
+  const alias: AliasArray = []
 
   async function getAlias(input: MinistaResolveAliasInput | ViteAliasOptions) {
     if (!input) {

@@ -1,27 +1,25 @@
+import type { OnResolveArgs } from "esbuild"
+
 import { describe, expect, it } from "vitest"
 
-import { getEsbuildAlias } from "../src/esbuild"
+import { getEsbuildResolvePath } from "../src/esbuild"
 
-describe("getEsbuildAlias", () => {
-  it("Test: getEsbuildAlias", () => {
-    const esbuildAlias = [
-      {
-        find: "react/jsx-runtime",
-        replacement: "react/jsx-runtime.js",
-      },
-    ]
-    const userAlias = [
-      {
-        find: "~",
-        replacement: "/src",
-      },
-    ]
-    const result = getEsbuildAlias([esbuildAlias, userAlias])
+describe("getEsbuildResolvePath", () => {
+  it("Test: getEsbuildResolvePath", () => {
+    const args: OnResolveArgs = {
+      path: "~/components/app-header?ph",
+      importer: "/Users/user/github/demo/src/components/app-layout.tsx",
+      namespace: "file",
+      resolveDir: "/Users/user/github/demo/src/components",
+      kind: "import-statement",
+      pluginData: undefined,
+    }
+    const alias = [{ find: "~", replacement: "/Users/user/github/demo/src" }]
+    const result = getEsbuildResolvePath(args, alias)
 
     //console.log(result)
-    expect(result).toEqual({
-      "react/jsx-runtime": "react/jsx-runtime.js",
-      "~": "/src",
-    })
+    expect(result).toEqual(
+      "/Users/user/github/demo/src/components/app-header?ph"
+    )
   })
 })

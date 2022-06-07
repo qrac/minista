@@ -8,7 +8,9 @@ import path from "path"
 import postcss from "postcss"
 import postcssModules from "postcss-modules"
 
-import type { CssOptions } from "./types.js"
+import type { AliasArray, CssOptions } from "./types.js"
+
+import { getEsbuildResolvePath } from "./esbuild.js"
 
 enum PreprocessLang {
   less = "less",
@@ -146,7 +148,10 @@ async function buildJs(filepath: string, options: CssOptions) {
   return `export default ${classNames};`
 }
 
-export function CssModulePlugin(options: CssOptions): Plugin {
+export function cssModulePlugin(
+  options: CssOptions,
+  alias: AliasArray
+): Plugin {
   const filter = new RegExp(`\\.module${cssLangs}`)
   return {
     name: PLUGIN,
@@ -154,19 +159,21 @@ export function CssModulePlugin(options: CssOptions): Plugin {
       const results = new Map()
       build.onResolve({ filter, namespace: "file" }, async (args) => {
         if (!options.modules) return args
-        const sourceFullPath = path.resolve(args.resolveDir, args.path)
-        if (results.has(sourceFullPath)) return results.get(sourceFullPath)
 
-        const content = await buildJs(sourceFullPath, options)
+        const resolvePath = getEsbuildResolvePath(args, alias)
+        if (results.has(resolvePath)) return results.get(resolvePath)
+
+        const content = await buildJs(resolvePath, options)
+
         const result = {
-          path: args.path,
+          path: resolvePath,
           namespace: PLUGIN,
           pluginData: {
             content,
           },
         }
 
-        if (options.modules.cache) results.set(sourceFullPath, result)
+        if (options.modules.cache) results.set(resolvePath, result)
         return result
       })
 

@@ -1,5 +1,5 @@
 import { Head } from "minista"
-import style from "../../assets/css-modules/style.module.css"
+import style from "~/assets/css-modules/style.module.css"
 
 import AppLayout from "../../components/app-layout"
 

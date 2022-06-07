@@ -1,6 +1,6 @@
 import "./app-header.css"
 
-export const AppHeader = () => {
+const AppHeader = () => {
   return (
     <header>
       <img
@@ -14,4 +14,4 @@ export const AppHeader = () => {
   )
 }
 
-//export default AppHeader
+export default AppHeader
