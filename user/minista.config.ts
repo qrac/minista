@@ -33,7 +33,7 @@ export default defineConfig({
     },
   },*/
   resolve: {
-    alias: [{ find: "~", replacement: path.resolve("src") }],
+    alias: [{ find: "~/", replacement: path.resolve("src") + "/" }],
   },
   /*markdown: {
     syntaxHighlighter: "none",
