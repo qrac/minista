@@ -84,6 +84,24 @@ export type MinistaConfig = {
     highlightOptions: HighlightOptions
     mdxOptions: MdxOptions
   }
+  search: {
+    useSearch: boolean
+    cache: boolean
+    outDir: string
+    outName: string
+    include: string[]
+    exclude: string[]
+    trimTitle: string
+    targetSelector: string
+    hit: {
+      minLength: number
+      number: boolean
+      english: boolean
+      hiragana: boolean
+      katakana: boolean
+      kanji: boolean
+    }
+  }
   beautify: {
     useHtml: boolean
     useAssets: boolean
@@ -162,6 +180,24 @@ export type MinistaUserConfig = {
     highlightOptions?: HighlightOptions
     mdxOptions?: MdxOptions
   }
+  search?: {
+    useSearch?: boolean
+    cache?: boolean
+    outDir?: string
+    outName?: string
+    include?: string[]
+    exclude?: string[]
+    trimTitle?: string
+    targetSelector?: string
+    hit?: {
+      minLength?: number
+      number?: boolean
+      english?: boolean
+      hiragana?: boolean
+      katakana?: boolean
+      kanji?: boolean
+    }
+  }
   beautify?: {
     useHtml?: boolean
     useAssets?: boolean
@@ -218,6 +254,12 @@ export type MinistaSystemConfig = {
       outDir: string
     }
     icons: {
+      outDir: string
+    }
+    html: {
+      outDir: string
+    }
+    search: {
       outDir: string
     }
   }

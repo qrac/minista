@@ -24,5 +24,11 @@ export const systemConfig: MinistaSystemConfig = {
     icons: {
       outDir: "node_modules/.minista/svg-sprite-icons",
     },
+    html: {
+      outDir: "node_modules/.minista/temp-html-pages",
+    },
+    search: {
+      outDir: "node_modules/.minista/temp-search",
+    },
   },
 }

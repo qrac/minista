@@ -126,34 +126,41 @@ export async function buildTempPages(
   }).catch(() => process.exit(1))
 }
 
-export async function buildStaticPages(
-  entryPoints: string[],
-  tempRootFilePath: string,
-  buildOptions: {
-    outBase: string
-    outDir: string
-  },
+export async function buildStaticPages({
+  entryPoints,
+  tempRootFilePath,
+  outBase,
+  outDir,
+  assetsTagStr,
+  showLog,
+}: {
+  entryPoints: string[]
+  tempRootFilePath: string
+  outBase: string
+  outDir: string
   assetsTagStr: string
-) {
+  showLog: boolean
+}) {
   const rootStaticContent = await buildRootEsmContent(tempRootFilePath)
-  const winOutBase = buildOptions.outBase.replaceAll("/", "\\")
+  const winOutBase = outBase.replaceAll("/", "\\")
   await Promise.all(
     entryPoints.map(async (entryPoint) => {
       const extname = path.extname(entryPoint)
       const basename = path.basename(entryPoint, extname)
       const dirname = path
         .dirname(entryPoint)
-        .replace(buildOptions.outBase, buildOptions.outDir)
-        .replace(winOutBase, buildOptions.outDir)
+        .replace(outBase, outDir)
+        .replace(winOutBase, outDir)
       const filename = path.join(dirname, basename + ".html")
 
-      await buildStaticPage(
-        entryPoint,
-        filename,
-        rootStaticContent,
-        assetsTagStr,
-        buildOptions.outDir
-      )
+      await buildStaticPage({
+        entryPoint: entryPoint,
+        outFile: filename,
+        rootStaticContent: rootStaticContent,
+        assetsTagStr: assetsTagStr,
+        outDir: outDir,
+        showLog: showLog,
+      })
     })
   )
 }
@@ -187,13 +194,21 @@ export async function buildGlobalStaticData(
   return response
 }
 
-export async function buildStaticPage(
-  entryPoint: string,
-  outFile: string,
-  rootStaticContent: RootStaticContent,
-  assetsTagStr: string,
+export async function buildStaticPage({
+  entryPoint,
+  outFile,
+  rootStaticContent,
+  assetsTagStr,
+  outDir,
+  showLog,
+}: {
+  entryPoint: string
+  outFile: string
+  rootStaticContent: RootStaticContent
+  assetsTagStr: string
   outDir: string
-) {
+  showLog: boolean
+}) {
   const targetFilePath = url.pathToFileURL(entryPoint).href
   const pageEsmContent: PageEsmContent = await import(targetFilePath)
   const pageJsxContent: PageJsxContent = pageEsmContent.default
@@ -208,28 +223,30 @@ export async function buildStaticPage(
 
   if (!staticData) {
     const staticDataItem = defaultStaticDataItem
-    return await buildHtmlPage(
-      pageJsxContent,
-      staticDataItem,
-      outFile,
-      rootStaticContent,
-      assetsTagStr,
-      frontmatter,
-      outDir
-    )
+    return await buildHtmlPage({
+      pageJsxContent: pageJsxContent,
+      staticDataItem: staticDataItem,
+      routePath: outFile,
+      rootStaticContent: rootStaticContent,
+      assetsTagStr: assetsTagStr,
+      frontmatter: frontmatter,
+      outDir: outDir,
+      showLog: showLog,
+    })
   }
 
   if ("props" in staticData && "paths" in staticData === false) {
     const staticDataItem = { ...defaultStaticDataItem, ...staticData }
-    return await buildHtmlPage(
-      pageJsxContent,
-      staticDataItem,
-      outFile,
-      rootStaticContent,
-      assetsTagStr,
-      frontmatter,
-      outDir
-    )
+    return await buildHtmlPage({
+      pageJsxContent: pageJsxContent,
+      staticDataItem: staticDataItem,
+      routePath: outFile,
+      rootStaticContent: rootStaticContent,
+      assetsTagStr: assetsTagStr,
+      frontmatter: frontmatter,
+      outDir: outDir,
+      showLog: showLog,
+    })
   }
 
   if ("paths" in staticData) {
@@ -241,15 +258,16 @@ export async function buildStaticPage(
       fixedOutfile = fixedOutfile.replace(reg, `${value}`)
     }
 
-    return await buildHtmlPage(
-      pageJsxContent,
-      staticDataItem,
-      fixedOutfile,
-      rootStaticContent,
-      assetsTagStr,
-      frontmatter,
-      outDir
-    )
+    return await buildHtmlPage({
+      pageJsxContent: pageJsxContent,
+      staticDataItem: staticDataItem,
+      routePath: fixedOutfile,
+      rootStaticContent: rootStaticContent,
+      assetsTagStr: assetsTagStr,
+      frontmatter: frontmatter,
+      outDir: outDir,
+      showLog: showLog,
+    })
   }
 
   if (Array.isArray(staticData) && staticData.length > 0) {
@@ -265,15 +283,16 @@ export async function buildStaticPage(
           fixedOutfile = fixedOutfile.replace(reg, `${value}`)
         }
 
-        return await buildHtmlPage(
-          pageJsxContent,
-          staticDataItem,
-          fixedOutfile,
-          rootStaticContent,
-          assetsTagStr,
-          frontmatter,
-          outDir
-        )
+        return await buildHtmlPage({
+          pageJsxContent: pageJsxContent,
+          staticDataItem: staticDataItem,
+          routePath: fixedOutfile,
+          rootStaticContent: rootStaticContent,
+          assetsTagStr: assetsTagStr,
+          frontmatter: frontmatter,
+          outDir: outDir,
+          showLog: showLog,
+        })
       })
     )
   }
@@ -284,15 +303,25 @@ export async function buildStaticData(getStaticData: GetStaticData) {
   return response
 }
 
-export async function buildHtmlPage(
-  pageJsxContent: PageJsxContent,
-  staticDataItem: StaticDataItem,
-  routePath: string,
-  rootStaticContent: RootStaticContent,
-  assetsTagStr: string,
-  frontmatter: any,
+export async function buildHtmlPage({
+  pageJsxContent,
+  staticDataItem,
+  routePath,
+  rootStaticContent,
+  assetsTagStr,
+  frontmatter,
+  outDir,
+  showLog,
+}: {
+  pageJsxContent: PageJsxContent
+  staticDataItem: StaticDataItem
+  routePath: string
+  rootStaticContent: RootStaticContent
+  assetsTagStr: string
+  frontmatter: any
   outDir: string
-) {
+  showLog: boolean
+}) {
   if (frontmatter?.draft) {
     return
   }
@@ -387,7 +416,8 @@ export async function buildHtmlPage(
   await fs
     .outputFile(routePath, replacedHtml)
     .then(() => {
-      console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(routePath)}`)
+      showLog &&
+        console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(routePath)}`)
     })
     .catch((err) => {
       console.error(err)

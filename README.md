@@ -165,6 +165,24 @@ export default defineConfig({
       rehypePlugins: [], // https://mdxjs.com/packages/mdx/#optionsrehypeplugins
     },
   },
+  search: {
+    useSearch: false, // boolean
+    cache: true, // boolean
+    outDir: "assets", // string
+    outName: "search", // string
+    include: ["**/*"], // string[]
+    exclude: ["404"], // string[]
+    trimTitle: "", // string
+    targetSelector: "[data-search]", // string
+    hit: {
+      minLength: 3, // number
+      number: false, // boolean
+      english: true, // boolean
+      hiragana: false, // boolean
+      katakana: true, // boolean
+      kanji: true, // boolean
+    },
+  },
   beautify: {
     useHtml: true, // boolean
     useAssets: false, // boolean

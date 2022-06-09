@@ -9,7 +9,7 @@ import { systemConfig } from "./system.js"
 import { getViteConfig } from "./vite.js"
 import { getMdxConfig } from "./mdx.js"
 import { emptyResolveDir } from "./empty.js"
-import { createDevServer } from "./server.js"
+import { createDevServer, createDevServerAssets } from "./server.js"
 import { previewLocal } from "./preview.js"
 import {
   generateViteImporters,
@@ -65,12 +65,19 @@ cli
         const viteConfig = await getViteConfig(config, mdxConfig, cliOptions)
 
         await Promise.all([
+          emptyResolveDir(systemConfig.temp.root.outDir),
+          emptyResolveDir(systemConfig.temp.assets.outDir),
+          emptyResolveDir(systemConfig.temp.pages.outDir),
           emptyResolveDir(systemConfig.temp.viteImporter.outDir),
           emptyResolveDir(systemConfig.temp.icons.outDir),
+          emptyResolveDir(systemConfig.temp.partialHydration.outDir),
         ])
         await generateViteImporters(config, viteConfig)
 
-        await createDevServer(viteConfig)
+        await Promise.all([
+          createDevServer(viteConfig),
+          createDevServerAssets(config, mdxConfig),
+        ])
       } catch (err) {
         console.log(err)
         process.exit(1)
@@ -105,7 +112,7 @@ cli.command("build [root]", "build for production").action(async () => {
       generatePartialHydration(config, mdxConfig, viteConfig),
     ])
     await Promise.all([
-      generateHtmlPages(config),
+      generateHtmlPages(config, config.pagesOutDir, true),
       generateAssets(config),
       generatePublic(config),
     ])

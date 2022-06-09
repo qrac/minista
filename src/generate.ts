@@ -171,7 +171,11 @@ export async function generateNoStyleTemp(targetDir: string) {
   }
 }
 
-export async function generateHtmlPages(config: MinistaResolveConfig) {
+export async function generateHtmlPages(
+  config: MinistaResolveConfig,
+  outDir: string,
+  showLog: boolean
+) {
   const tempRootName = config.root.srcName
   const tempRootOutDir = systemConfig.temp.root.outDir
   const tempPagesOutDir = systemConfig.temp.pages.outDir
@@ -187,15 +191,14 @@ export async function generateHtmlPages(config: MinistaResolveConfig) {
     outBase: tempAssetsOutDir,
     outDir: config.assetsOutHref,
   })
-  await buildStaticPages(
-    tempPageFilePaths,
-    tempRootFilePath,
-    {
-      outBase: tempPagesOutDir,
-      outDir: config.pagesOutDir,
-    },
-    assetsTagStr
-  )
+  await buildStaticPages({
+    entryPoints: tempPageFilePaths,
+    tempRootFilePath: tempRootFilePath,
+    outBase: tempPagesOutDir,
+    outDir: outDir,
+    assetsTagStr: assetsTagStr,
+    showLog: showLog,
+  })
 }
 
 export async function generateAssets(config: MinistaResolveConfig) {
