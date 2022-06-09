@@ -2,6 +2,7 @@ import type { Loader as EsbuildLoader } from "esbuild"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type { Config as SvgrOptions } from "@svgr/core"
 import type { InlineConfig } from "vite"
+import type { HTMLElement as NhpHTML } from "node-html-parser"
 
 import fs from "fs-extra"
 import path from "path"
@@ -15,6 +16,8 @@ import {
   defineConfig as defineViteConfig,
   mergeConfig as mergeViteConfig,
 } from "vite"
+import { parse } from "node-html-parser"
+import mojigiri from "mojigiri"
 
 import type {
   MinistaResolveConfig,
@@ -833,6 +836,206 @@ export async function buildPartialHydrateAssets(
       }
     })
   }
+}
+
+export async function buildSearchJson({
+  config,
+  useCacheExists,
+  entryPoints,
+  entryBase,
+  outFile,
+  showLog,
+}: {
+  config: MinistaResolveConfig
+  useCacheExists: boolean
+  entryPoints: string[]
+  entryBase: string
+  outFile: string
+  showLog: boolean
+}) {
+  if (useCacheExists) {
+    return
+  }
+
+  const { trimTitle, targetSelector, hit } = config.search
+
+  const tempWords: string[] = []
+  const tempPages: {
+    path: string
+    toc: [number, string][]
+    title: string[]
+    content: string[]
+  }[] = []
+
+  await Promise.all(
+    entryPoints.map(async (filePath: string) => {
+      const html = await fs.readFile(filePath, { encoding: "utf-8" })
+      const parsedHtml = parse(html, {
+        blockTextElements: { script: false, style: false, pre: false },
+      })
+
+      const regTrimPath = new RegExp(`^${entryBase}|index|.html`, "g")
+      const path = filePath.replace(regTrimPath, "")
+
+      const regTrimTitle = new RegExp(trimTitle)
+      const pTitle = parsedHtml.querySelector("title") as unknown as NhpHTML
+      const title = pTitle ? pTitle.rawText.replace(regTrimTitle, "") : ""
+      const titleArray = mojigiri(title)
+
+      const targetContent = parsedHtml.querySelector(targetSelector)
+
+      if (!targetContent) {
+        tempWords.push(title)
+        tempPages.push({
+          path: path,
+          toc: [],
+          title: titleArray,
+          content: [],
+        })
+        return
+      }
+
+      const contents: { type: string; value: string[] }[] = []
+
+      async function getContent(element: any) {
+        if (element.id) {
+          contents.push({ type: "id", value: [element.id] })
+        }
+        if (element._rawText) {
+          const text = element._rawText
+            .replace(/\n/g, "")
+            .replace(/\s{2,}/g, " ")
+            .trim()
+          const words = mojigiri(text)
+
+          if (words.length > 0) {
+            contents.push({ type: "words", value: words })
+          }
+        }
+        if (element.childNodes) {
+          await Promise.all(
+            element.childNodes.map(async (childNode: any) => {
+              return await getContent(childNode)
+              //console.log("childNode", childNode)
+            })
+          )
+        }
+        return
+      }
+
+      await getContent(targetContent)
+      //console.log("contents", contents)
+
+      const toc: [number, string][] = []
+      const contentArray: string[][] = []
+
+      let contentCount = 0
+
+      contents.forEach((content) => {
+        if (content.type === "id") {
+          toc.push([contentCount, content.value[0]])
+          return
+        } else if (content.type === "words") {
+          contentArray.push(content.value)
+          contentCount = contentCount + content.value.length
+          return
+        }
+      })
+
+      const body = targetContent.rawText
+        .replace(/\n/g, "")
+        .replace(/\s{2,}/g, " ")
+        .trim()
+
+      tempWords.push(title)
+      tempWords.push(body)
+      tempPages.push({
+        path: path,
+        toc: toc,
+        title: titleArray,
+        content: contentArray.flat(),
+      })
+
+      //console.log("querySelector", parsedHtml.querySelector(targetSelector))
+      //console.log("content", content)
+    })
+  )
+
+  const words = mojigiri(tempWords.join(" "))
+  const sortedWords = [...new Set(words)].sort()
+
+  const regHitsArray = [
+    hit.number && "[0-9]",
+    hit.english && "[a-zA-Z]",
+    hit.hiragana && "[ぁ-ん]",
+    hit.katakana && "[ァ-ヴ]",
+    hit.kanji &&
+      "[\u2E80-\u2E99\u2E9B-\u2EF3\u2F00-\u2FD5\u3005\u3007\u3021-\u3029\u3038-\u303B\u3400-\u4DB5\u4E00-\u9FC3\uF900-\uFA2D\uFA30-\uFA6A\uFA70-\uFAD9]",
+  ].filter((reg) => reg)
+  const regHits = new RegExp(`(${regHitsArray.join("|")})`)
+  //console.log("regHitsArray", regHitsArray)
+  //console.log("regHits", regHits)
+
+  const tempHits = sortedWords.filter(
+    (word) =>
+      word.length >= hit.minLength && regHits.test(word) && word !== "..."
+  )
+  const hits = tempHits.map((word) => {
+    return sortedWords.indexOf(word)
+  })
+  //console.log("tempHits", JSON.stringify(tempHits, null, 1))
+  //console.log("hits", hits)
+
+  const pages: {
+    path: string
+    title: number[]
+    toc: [number, string][]
+    content: number[]
+  }[] = []
+
+  await Promise.all(
+    tempPages.map(async (page) => {
+      const path = page.path
+      const toc = page.toc
+      const title = page.title.map((word) => {
+        return sortedWords.indexOf(word)
+      })
+      const content = page.content.map((word) => {
+        return sortedWords.indexOf(word)
+      })
+
+      pages.push({ path: path, title: title, toc: toc, content: content })
+    })
+  )
+
+  const sortedPages = pages.sort((a, b) => {
+    const pathA = a.path.toUpperCase()
+    const pathB = b.path.toUpperCase()
+    if (pathA < pathB) {
+      return -1
+    }
+    if (pathA > pathB) {
+      return 1
+    }
+    return 0
+  })
+
+  const template = JSON.stringify({
+    words: sortedWords,
+    hits: hits,
+    pages: sortedPages,
+  })
+
+  await fs
+    .outputFile(outFile, template)
+    .then(() => {
+      showLog &&
+        console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(outFile)}`)
+    })
+    .catch((err) => {
+      console.error(err)
+    })
+  return
 }
 
 export async function buildCopyDir(

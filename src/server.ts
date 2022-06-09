@@ -8,6 +8,7 @@ import { createServer } from "vite"
 import type { MinistaResolveConfig } from "./types.js"
 
 import { systemConfig } from "./system.js"
+import { getFilterFilePaths } from "./path.js"
 import { emptyResolveDir } from "./empty.js"
 import {
   generateTempRoot,
@@ -15,6 +16,7 @@ import {
   generateNoStyleTemp,
   generateHtmlPages,
 } from "./generate.js"
+import { buildSearchJson } from "./build.js"
 
 export async function createDevServer(viteConfig: InlineConfig) {
   const server = await createServer(viteConfig)
@@ -33,12 +35,12 @@ export async function createDevServerAssets(
     return
   }
 
-  const searchFile = systemConfig.temp.search + "/search.json"
+  const searchFile = systemConfig.temp.search.outDir + "/search.json"
   const searchFileRelative = path.relative(".", searchFile)
   const searchFileExists = fs.existsSync(searchFileRelative)
-  const searchCache = config.search.cache && searchFileExists
+  const searchUseCacheExists = config.search.cache && searchFileExists
 
-  const stopCacheTriggers = [searchCache]
+  const stopCacheTriggers = [searchUseCacheExists]
   const stopCacheTrigger = stopCacheTriggers.every((cache) => cache)
 
   if (stopCacheTrigger) {
@@ -56,5 +58,20 @@ export async function createDevServerAssets(
   ])
   await generateHtmlPages(config, systemConfig.temp.html.outDir, false)
 
+  const searchEntryPoints = await getFilterFilePaths({
+    targetDir: systemConfig.temp.html.outDir,
+    include: config.search.include,
+    exclude: config.search.exclude,
+    exts: "html",
+  })
+  //console.log("searchEntryPoints", searchEntryPoints)
+  await buildSearchJson({
+    config: config,
+    useCacheExists: searchUseCacheExists,
+    entryPoints: searchEntryPoints,
+    entryBase: systemConfig.temp.html.outDir,
+    outFile: searchFile,
+    showLog: false,
+  })
   return
 }

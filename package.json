@@ -97,6 +97,7 @@
     "fs-extra": "^10.1.0",
     "js-beautify": "^1.14.3",
     "mime-types": "^2.1.35",
+    "mojigiri": "^0.3.0",
     "node-fetch": "^3.2.5",
     "node-html-parser": "^5.3.3",
     "picocolors": "^1.0.0",

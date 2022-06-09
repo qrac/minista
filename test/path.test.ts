@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest"
 import path from "path"
 
-import { getFilePath, getFilePaths, getSameFilePaths } from "../src/path"
+import {
+  getFilePath,
+  getFilePaths,
+  getFilterFilePaths,
+  getSameFilePaths,
+} from "../src/path"
 
 describe("getFilePath", () => {
   it("Test: getFilePath", () => {
@@ -18,6 +23,20 @@ describe("getFilePaths", () => {
 
     //console.log(result)
     expect(result).toEqual(["./lib/index.html"])
+  })
+})
+
+describe("getFilterFilePaths", () => {
+  it("Test: getFilterFilePaths", async () => {
+    const result = await getFilterFilePaths({
+      targetDir: "lib",
+      include: ["**/*"],
+      exclude: ["shim-react"],
+      exts: "js",
+    })
+
+    //console.log(result)
+    expect(result).toEqual(["lib/shim-fetch.js"])
   })
 })
 
