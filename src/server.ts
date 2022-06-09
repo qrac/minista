@@ -26,7 +26,7 @@ export async function createDevServerAssets(
   config: MinistaResolveConfig,
   mdxConfig: MdxOptions
 ) {
-  const stopUseTriggers = [!config.search.useSearch]
+  const stopUseTriggers = [!config.search.useJson]
   const stopUseTrigger = stopUseTriggers.every((trigger) => trigger)
 
   if (stopUseTrigger) {

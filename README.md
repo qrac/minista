@@ -166,7 +166,7 @@ export default defineConfig({
     },
   },
   search: {
-    useSearch: false, // boolean
+    useJson: false, // boolean
     cache: true, // boolean
     outDir: "assets", // string
     outName: "search", // string

@@ -101,7 +101,7 @@ export const defaultConfig: MinistaConfig = {
     },
   },
   search: {
-    useSearch: false,
+    useJson: false,
     cache: true,
     outDir: "assets",
     outName: "search",

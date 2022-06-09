@@ -85,7 +85,7 @@ export type MinistaConfig = {
     mdxOptions: MdxOptions
   }
   search: {
-    useSearch: boolean
+    useJson: boolean
     cache: boolean
     outDir: string
     outName: string
@@ -181,7 +181,7 @@ export type MinistaUserConfig = {
     mdxOptions?: MdxOptions
   }
   search?: {
-    useSearch?: boolean
+    useJson?: boolean
     cache?: boolean
     outDir?: string
     outName?: string

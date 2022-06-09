@@ -36,7 +36,7 @@ export default defineConfig({
     alias: [{ find: "~/", replacement: path.resolve("src") + "/" }],
   },
   search: {
-    useSearch: true,
+    useJson: true,
   },
   /*markdown: {
     syntaxHighlighter: "none",
