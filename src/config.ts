@@ -102,7 +102,7 @@ export const defaultConfig: MinistaConfig = {
   },
   search: {
     useJson: false,
-    cache: true,
+    cache: false,
     outDir: "assets",
     outName: "search",
     include: ["**/*"],
