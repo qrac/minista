@@ -1,7 +1,5 @@
 import { Head } from "minista"
 
-import AppLayout from "../../../components/app-layout"
-
 export const getStaticData = async () => {
   const apiUrl = "https://api.github.com/repos/qrac/minista/issues"
   const apiParamsQuery = "?state=all&creator=qrac&per_page=5"
@@ -21,14 +19,14 @@ type PageIssuesTemplateProps = {
 
 const PageIssuesTemplate = (props: PageIssuesTemplateProps) => {
   return (
-    <AppLayout>
+    <>
       <Head>
         <title>{props.title}</title>
       </Head>
       <h1>{props.title}</h1>
       <div>{props.body}</div>
       {/*<Markdown content={props.body} />*/}
-    </AppLayout>
+    </>
   )
 }
 

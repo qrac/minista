@@ -1,11 +1,10 @@
 import { Head } from "minista"
 
-import AppLayout from "../../components/app-layout"
 import Logo from "../../assets/svgs/logo.svg"
 
 const PageSvgr = () => {
   return (
-    <AppLayout>
+    <>
       <Head>
         <title>SVGR</title>
       </Head>
@@ -16,7 +15,7 @@ const PageSvgr = () => {
         width={400}
         height={88}
       />
-    </AppLayout>
+    </>
   )
 }
 

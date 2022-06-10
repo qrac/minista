@@ -1,10 +1,8 @@
 import { Head } from "minista"
 
-import AppLayout from "../../components/app-layout"
-
 const PageDownload = () => {
   return (
-    <AppLayout>
+    <>
       <Head>
         <title>Download</title>
       </Head>
@@ -31,7 +29,7 @@ const PageDownload = () => {
         src="https://picsum.photos/id/1/1600/900"
         srcSet="https://picsum.photos/id/1/800/450 800w, https://picsum.photos/id/1/1600/900 1600w"
       />
-    </AppLayout>
+    </>
   )
 }
 

@@ -1,10 +1,8 @@
 import { Head } from "minista"
 
-import AppLayout from "../../components/app-layout"
-
 const PageIcons = () => {
   return (
-    <AppLayout>
+    <>
       <Head>
         <title>Icons</title>
       </Head>
@@ -15,7 +13,7 @@ const PageIcons = () => {
       <svg className="svg-sprite-icon-outline">
         <use href="/assets/images/icons.svg#brand-alt"></use>
       </svg>
-    </AppLayout>
+    </>
   )
 }
 

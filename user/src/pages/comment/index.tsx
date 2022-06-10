@@ -1,10 +1,8 @@
 import { Head, Comment } from "minista"
 
-import AppLayout from "../../components/app-layout"
-
 const PageComment = () => {
   return (
-    <AppLayout>
+    <>
       <Head>
         <title>Comment</title>
       </Head>
@@ -16,7 +14,7 @@ const PageComment = () => {
         <li>test</li>
       </ul>
       <Comment text="- Test List" />
-    </AppLayout>
+    </>
   )
 }
 

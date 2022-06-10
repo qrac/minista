@@ -1,8 +1,6 @@
-import AppLayout from "../components/app-layout"
-
 const PageHome = () => {
   return (
-    <AppLayout>
+    <>
       <h1>Home</h1>
       <ul>
         <li>
@@ -48,7 +46,7 @@ const PageHome = () => {
           <a href="/migrate/">Migrate</a>
         </li>
       </ul>
-    </AppLayout>
+    </>
   )
 }
 

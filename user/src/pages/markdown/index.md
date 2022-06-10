@@ -1,6 +1,6 @@
 ---
 title: Markdown
-layout: AppLayout
+#layout: AppLayout
 #draft: true
 ---
 

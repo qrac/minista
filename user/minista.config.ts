@@ -37,6 +37,8 @@ export default defineConfig({
   },
   search: {
     useJson: true,
+    include: ["search/posts/**/*"],
+    //exclude: ["search/index"],
   },
   /*markdown: {
     syntaxHighlighter: "none",

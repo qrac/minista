@@ -1,4 +1,3 @@
-import { Fragment } from "react"
 import { Head } from "minista"
 import type { MinistaLocation } from "minista"
 
@@ -45,7 +44,6 @@ type RootProps = {
 
 const Root = ({ global, frontmatter, location, children }: RootProps) => {
   const ogType = location.pathname === "/" ? "website" : "article"
-  const Layout = frontmatter?.layout === "AppLayout" ? AppLayout : Fragment
   return (
     <>
       <Head>
@@ -57,7 +55,7 @@ const Root = ({ global, frontmatter, location, children }: RootProps) => {
         <meta name="description" content={global?.description}></meta>
         <meta property="og:type" content={ogType} />
       </Head>
-      <Layout>{children}</Layout>
+      <AppLayout>{children}</AppLayout>
     </>
   )
 }
