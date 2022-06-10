@@ -230,6 +230,8 @@ export type MinistaResolvePathConfig = {
   vitePluginSvgSpriteIconsSrcDir: string
   vitePluginSvgSpriteIconsOutput: string
   vitePluginSvgSpriteIconsTempOutput: string
+  vitePluginSearchJsonOutput: string
+  vitePluginSearchJsonTempOutput: string
 }
 
 export type MinistaSystemConfig = {

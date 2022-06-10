@@ -35,7 +35,7 @@ export async function createDevServerAssets(
     return
   }
 
-  const searchFile = systemConfig.temp.search.outDir + "/search.json"
+  const searchFile = config.vitePluginSearchJsonTempOutput
   const searchFileRelative = path.relative(".", searchFile)
   const searchFileExists = fs.existsSync(searchFileRelative)
   const searchUseCacheExists = config.search.cache && searchFileExists

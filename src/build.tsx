@@ -878,7 +878,7 @@ export async function buildSearchJson({
       const path = filePath.replace(regTrimPath, "")
 
       const regTrimTitle = new RegExp(trimTitle)
-      const pTitle = parsedHtml.querySelector("title") as unknown as NhpHTML
+      const pTitle = parsedHtml.querySelector("title") as NhpHTML
       const title = pTitle ? pTitle.rawText.replace(regTrimTitle, "") : ""
       const titleArray = mojigiri(title)
 

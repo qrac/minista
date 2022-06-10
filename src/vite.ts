@@ -145,6 +145,19 @@ export async function getViteConfig(
     mergedViteConfig.resolve.alias.push(iconsResolveAlias)
   }
 
+  if (config.search.useJson) {
+    /*const searchPlugin = vitePluginMinistaSearchJson(
+      config.vitePluginSearchJsonOutput,
+      config.vitePluginSearchJsonTempOutput
+    )*/
+    const searchResolveAlias = {
+      find: config.vitePluginSearchJsonOutput,
+      replacement: path.resolve(config.vitePluginSearchJsonTempOutput),
+    }
+    //mergedViteConfig.plugins.push(searchPlugin)
+    mergedViteConfig.resolve.alias.push(searchResolveAlias)
+  }
+
   const mdxPlugin = mdx(mdxConfig)
   mergedViteConfig.plugins.push(mdxPlugin)
 
@@ -344,3 +357,28 @@ export function vitePluginMinistaSvgSpriteIcons(
     },
   }
 }
+
+/*export function vitePluginMinistaSearchJson(
+  output: string,
+  tempOutput: string
+): Plugin {
+  let config: ResolvedConfig
+  return {
+    name: "vite-plugin-minista-search-json",
+    configResolved(resolvedConfig) {
+      config = resolvedConfig
+    },
+    async configureServer(server) {
+      const watcher = server.watcher.add(tempOutput)
+      const logger = createLogger()
+
+      watcher.on("all", async function (eventName, path) {
+        const triggers = ["change"]
+        if (triggers.includes(eventName) && path.includes(output)) {
+          server.ws.send({ type: "full-reload" })
+          logger.info(`${pc.bold(pc.green("BUILD"))} ${pc.bold(output)}`)
+        }
+      })
+    },
+  }
+}*/

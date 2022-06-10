@@ -225,6 +225,16 @@ export async function resolveConfig(
       slashEnd(config.assets.icons.outDir) +
       noSlashEnd(config.assets.icons.outName) +
       ".svg",
+    vitePluginSearchJsonOutput:
+      slashEnd("/") +
+      slashEnd(config.search.outDir) +
+      noSlashEnd(config.search.outName) +
+      ".json",
+    vitePluginSearchJsonTempOutput:
+      slashEnd(systemConfig.temp.search.outDir) +
+      slashEnd(config.search.outDir) +
+      noSlashEnd(config.search.outName) +
+      ".json",
   }
   return resolvedConfig
 }
