@@ -1,4 +1,4 @@
-import { Search } from "minista"
+import { Search } from "../../../"
 
 import "./block-search.css"
 
