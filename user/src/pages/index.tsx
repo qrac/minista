@@ -43,6 +43,9 @@ const PageHome = () => {
           <a href="/download/">Download</a>
         </li>
         <li>
+          <a href="/search/">Search</a>
+        </li>
+        <li>
           <a href="/migrate/">Migrate</a>
         </li>
       </ul>

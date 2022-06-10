@@ -1,5 +1,6 @@
 import path from "path"
 import { defineConfig } from "minista"
+import rehypeSlug from "rehype-slug"
 
 //import remarkFrontmatter from "remark-frontmatter"
 //import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
@@ -37,6 +38,7 @@ export default defineConfig({
   },
   search: {
     useJson: true,
+    trimTitle: " - minista",
     include: ["search/posts/**/*"],
     //exclude: ["search/index"],
   },
@@ -50,6 +52,11 @@ export default defineConfig({
     //  ],
     //}
   },*/
+  markdown: {
+    mdxOptions: {
+      rehypePlugins: [rehypeSlug],
+    },
+  },
   beautify: {
     //useHtml: false,
     //useAssets: true,

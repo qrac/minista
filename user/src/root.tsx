@@ -42,6 +42,11 @@ type RootProps = {
   children: React.ReactNode
 }
 
+export type PageProps = {
+  location: MinistaLocation
+  frontmatter?: FrontmatterProps
+}
+
 const Root = ({ global, frontmatter, location, children }: RootProps) => {
   const ogType = location.pathname === "/" ? "website" : "article"
   return (
@@ -49,13 +54,22 @@ const Root = ({ global, frontmatter, location, children }: RootProps) => {
       <Head>
         <title>
           {frontmatter?.title
-            ? frontmatter?.title + " | " + global?.title
+            ? frontmatter?.title + " - " + global?.title
             : global?.title}
         </title>
         <meta name="description" content={global?.description}></meta>
         <meta property="og:type" content={ogType} />
       </Head>
-      <AppLayout>{children}</AppLayout>
+      <AppLayout>
+        {frontmatter?.layout === "SearchMd" ? (
+          <>
+            <h1>{frontmatter.title}</h1>
+            <div data-search>{children}</div>
+          </>
+        ) : (
+          children
+        )}
+      </AppLayout>
     </>
   )
 }
