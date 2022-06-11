@@ -20,6 +20,9 @@ export type SearchResult = {
 
 export interface SearchProps extends React.HTMLAttributes<HTMLElement> {
   jsonPath: string
+  minHitLength?: number
+  maxHitPages?: number
+  maxHitWords?: number
   searchFieldClassName?: string
   searchListClassName?: string
   attributes?: React.HTMLAttributes<HTMLElement>
@@ -27,6 +30,9 @@ export interface SearchProps extends React.HTMLAttributes<HTMLElement> {
 
 export interface SearchFieldProps extends React.HTMLAttributes<HTMLElement> {
   jsonPath: string
+  minHitLength?: number
+  maxHitPages?: number
+  maxHitWords?: number
   setSearchValues?: React.Dispatch<React.SetStateAction<string[]>>
   setSearchHitValues?: React.Dispatch<React.SetStateAction<string[]>>
   setSearchResults?: React.Dispatch<React.SetStateAction<SearchResult[]>>
@@ -45,8 +51,15 @@ function compNum(a: number, b: number) {
 }
 
 export const Search = (props: SearchProps) => {
-  const { jsonPath, searchFieldClassName, searchListClassName, ...attributes } =
-    props
+  const {
+    jsonPath,
+    minHitLength = props.minHitLength || 2,
+    maxHitPages = props.maxHitPages || 5,
+    maxHitWords = props.maxHitWords || 20,
+    searchFieldClassName,
+    searchListClassName,
+    ...attributes
+  } = props
   const [searchValues, setSearchValues] = useState<string[]>([])
   const [searchHitValues, setSearchHitValues] = useState<string[]>([])
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
@@ -55,6 +68,9 @@ export const Search = (props: SearchProps) => {
       <SearchField
         className={searchFieldClassName}
         jsonPath={jsonPath}
+        minHitLength={minHitLength}
+        maxHitPages={maxHitPages}
+        maxHitWords={maxHitWords}
         setSearchValues={setSearchValues}
         setSearchHitValues={setSearchHitValues}
         setSearchResults={setSearchResults}
@@ -72,6 +88,9 @@ export const Search = (props: SearchProps) => {
 export const SearchField = (props: SearchFieldProps) => {
   const {
     jsonPath,
+    minHitLength = props.minHitLength || 2,
+    maxHitPages = props.maxHitPages || 5,
+    maxHitWords = props.maxHitWords || 20,
     setSearchValues,
     setSearchHitValues,
     setSearchResults,
@@ -97,7 +116,7 @@ export const SearchField = (props: SearchFieldProps) => {
     const inputValues = event.target.value.split(" ")
     const mergedInputValues = [...new Set(inputValues)].sort()
     const hitValues = mergedInputValues.map((value) => {
-      if (value.length >= 2) {
+      if (value.length >= minHitLength) {
         return searchHits.filter((hit) => {
           return new RegExp(value, "i").test(hit)
         })
@@ -135,7 +154,7 @@ export const SearchField = (props: SearchFieldProps) => {
         }
         return 0
       })
-      .slice(0, 5)
+      .slice(0, maxHitPages)
     const resultHitPages: SearchResult[] = sortedHitPages.map((page) => {
       const targetPage = searchData.pages.find(
         (dataPage) => dataPage.path === page.path
@@ -154,7 +173,7 @@ export const SearchField = (props: SearchFieldProps) => {
 
         const targetIndexes = targetPage.content.slice(
           targetIndex,
-          targetIndex + 20
+          targetIndex + maxHitWords
         )
         const targetWords = targetIndexes
           .map((num) => searchData.words[num])
