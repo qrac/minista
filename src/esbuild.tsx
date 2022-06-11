@@ -25,9 +25,11 @@ export function getEsbuildResolvePath(
   const aliasReg = new RegExp(
     `^(${aliasKeys.map((x) => escapeRegExp(x)).join("|")})`
   )
-  const aliasPath = args.path.replace(aliasReg, function (match) {
-    return aliasObject[match]
-  })
+  const aliasPath = alias.length
+    ? args.path.replace(aliasReg, function (match) {
+        return aliasObject[match]
+      })
+    : args.path
   const absolutePath = path.isAbsolute(aliasPath)
     ? aliasPath
     : path.join(args.resolveDir, aliasPath)
