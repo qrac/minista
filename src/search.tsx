@@ -20,19 +20,25 @@ export type SearchResult = {
 
 export interface SearchProps extends React.HTMLAttributes<HTMLElement> {
   jsonPath: string
+  placeholder?: string
   minHitLength?: number
   maxHitPages?: number
   maxHitWords?: number
   searchFieldClassName?: string
+  searchFieldInsertBeforeElement?: React.ReactElement
+  searchFieldInsertAfterElement?: React.ReactElement
   searchListClassName?: string
   attributes?: React.HTMLAttributes<HTMLElement>
 }
 
 export interface SearchFieldProps extends React.HTMLAttributes<HTMLElement> {
   jsonPath: string
+  placeholder?: string
   minHitLength?: number
   maxHitPages?: number
   maxHitWords?: number
+  insertBeforeElement?: React.ReactElement
+  insertAfterElement?: React.ReactElement
   setSearchValues?: React.Dispatch<React.SetStateAction<string[]>>
   setSearchHitValues?: React.Dispatch<React.SetStateAction<string[]>>
   setSearchResults?: React.Dispatch<React.SetStateAction<SearchResult[]>>
@@ -53,9 +59,12 @@ function compNum(a: number, b: number) {
 export const Search = (props: SearchProps) => {
   const {
     jsonPath,
+    placeholder = props.placeholder || "",
     minHitLength = props.minHitLength || 2,
     maxHitPages = props.maxHitPages || 5,
     maxHitWords = props.maxHitWords || 20,
+    searchFieldInsertBeforeElement,
+    searchFieldInsertAfterElement,
     searchFieldClassName,
     searchListClassName,
     ...attributes
@@ -68,9 +77,12 @@ export const Search = (props: SearchProps) => {
       <SearchField
         className={searchFieldClassName}
         jsonPath={jsonPath}
+        placeholder={placeholder}
         minHitLength={minHitLength}
         maxHitPages={maxHitPages}
         maxHitWords={maxHitWords}
+        insertBeforeElement={searchFieldInsertBeforeElement}
+        insertAfterElement={searchFieldInsertAfterElement}
         setSearchValues={setSearchValues}
         setSearchHitValues={setSearchHitValues}
         setSearchResults={setSearchResults}
@@ -88,9 +100,12 @@ export const Search = (props: SearchProps) => {
 export const SearchField = (props: SearchFieldProps) => {
   const {
     jsonPath,
+    placeholder = props.placeholder || "",
     minHitLength = props.minHitLength || 2,
     maxHitPages = props.maxHitPages || 5,
     maxHitWords = props.maxHitWords || 20,
+    insertBeforeElement,
+    insertAfterElement,
     setSearchValues,
     setSearchHitValues,
     setSearchResults,
@@ -261,7 +276,13 @@ export const SearchField = (props: SearchFieldProps) => {
   /*useEffect(() => {
     console.log("searchData", searchData)
   }, [searchData])*/
-  return <input type="text" onChange={searchHandler} {...attributes} />
+  return (
+    <div {...attributes}>
+      {insertBeforeElement}
+      <input type="search" placeholder={placeholder} onChange={searchHandler} />
+      {insertAfterElement}
+    </div>
+  )
 }
 
 export const SearchList = (props: SearchListProps) => {

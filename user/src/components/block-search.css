@@ -5,7 +5,7 @@
     "Segoe UI Symbol";
 }
 
-.block-search-field {
+.block-search-field > input {
   display: block;
   max-width: 100%;
   min-width: 600px;
