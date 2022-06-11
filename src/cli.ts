@@ -22,6 +22,7 @@ import {
   generateAssets,
   generatePublic,
   generateDownload,
+  generateSearchJson,
   generateBeautify,
 } from "./generate.js"
 
@@ -116,7 +117,7 @@ cli.command("build [root]", "build for production").action(async () => {
       generateAssets(config),
       generatePublic(config),
     ])
-    await Promise.all([generateDownload(config)])
+    await Promise.all([generateDownload(config), generateSearchJson(config)])
     await Promise.all([
       generateBeautify(config, "html"),
       generateBeautify(config, "css"),

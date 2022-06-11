@@ -224,6 +224,7 @@ export type MinistaResolvePathConfig = {
   assetsOutHref: string
   downloadOutDir: string
   downloadOutHref: string
+  searchJsonOutput: string
   viteAssetsOutput: string
   viteAssetsImagesOutput: string
   viteAssetsFontsOutput: string

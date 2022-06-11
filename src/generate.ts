@@ -8,7 +8,12 @@ import url from "url"
 import type { MinistaResolveConfig } from "./types.js"
 
 import { systemConfig } from "./system.js"
-import { getFilePath, getFilePaths, getSameFilePaths } from "./path.js"
+import {
+  getFilePath,
+  getFilePaths,
+  getFilterFilePaths,
+  getSameFilePaths,
+} from "./path.js"
 import { slashEnd, noSlashEnd } from "./utils.js"
 import {
   buildTempPages,
@@ -26,6 +31,7 @@ import {
   buildPartialStringInitial,
   buildPartialHydrateIndex,
   buildPartialHydrateAssets,
+  buildSearchJson,
 } from "./build.js"
 import { optimizeCommentOutStyleImport } from "./optimize.js"
 import { downloadFiles } from "./download.js"
@@ -223,6 +229,28 @@ export async function generateDownload(config: MinistaResolveConfig) {
       config.downloadOutDir,
       config.downloadOutHref
     )
+  }
+  return
+}
+
+export async function generateSearchJson(config: MinistaResolveConfig) {
+  if (config.search.useJson) {
+    const entryPoints = await getFilterFilePaths({
+      targetDir: config.out,
+      include: config.search.include,
+      exclude: config.search.exclude,
+      exts: "html",
+    })
+    const outFile = config.searchJsonOutput
+
+    await buildSearchJson({
+      config: config,
+      useCacheExists: false,
+      entryPoints: entryPoints,
+      entryBase: config.out,
+      outFile: outFile,
+      showLog: true,
+    })
   }
   return
 }

@@ -1020,14 +1020,14 @@ export async function buildSearchJson({
     return 0
   })
 
-  const template = JSON.stringify({
+  const template = {
     words: sortedWords,
     hits: hits,
     pages: sortedPages,
-  })
+  }
 
   await fs
-    .outputFile(outFile, template)
+    .outputJson(outFile, template)
     .then(() => {
       showLog &&
         console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(outFile)}`)

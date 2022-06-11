@@ -202,6 +202,11 @@ export async function resolveConfig(
       slashEnd(config.out) + noSlashEnd(config.assets.download.outDir),
     downloadOutHref:
       slashEnd(config.base) + noSlashEnd(config.assets.download.outDir),
+    searchJsonOutput:
+      slashEnd(config.out) +
+      slashEnd(config.search.outDir) +
+      noSlashEnd(config.search.outName) +
+      ".json",
     viteAssetsOutput:
       slashEnd(config.assets.outDir) +
       noSlashEnd(config.assets.outName) +
