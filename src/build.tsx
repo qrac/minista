@@ -808,7 +808,7 @@ export async function buildPartialHydrateAssets(
     resolve: {
       alias: activePreact ? resolveAliasPreact : {},
     },
-    customLogger: viteConfig.customLogger,
+    logLevel: "error",
   })
 
   const mergedConfig = mergeViteConfig({}, customConfig)
