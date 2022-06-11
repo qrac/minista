@@ -4,7 +4,7 @@ import { Search } from "../../../"
 
 const BlockSearch = () => {
   return (
-    <div className="block-search">
+    <>
       <Search
         jsonPath="/assets/search.json"
         //maxHitPages={2}
@@ -12,7 +12,7 @@ const BlockSearch = () => {
         searchFieldClassName="block-search-field"
         searchListClassName="block-search-list"
       />
-    </div>
+    </>
   )
 }
 
