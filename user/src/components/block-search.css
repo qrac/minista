@@ -5,22 +5,61 @@
     "Segoe UI Symbol";
 }
 
-.block-search-field > input {
-  display: block;
-  max-width: 100%;
-  min-width: 600px;
+.block-search .block-search-field + .block-search-list {
+  margin-top: 12px;
+}
+
+.block-search-field {
+  display: flex;
+  align-items: center;
   background-color: #ffffff;
-  padding: 14px 16px;
   border: 2px solid #0ea5e9;
   border-radius: 6px;
-  box-sizing: border-box;
+}
+
+.block-search-field:focus-within {
+  outline: 5px auto Highlight;
+  outline: 5px auto -webkit-focus-ring-color;
+}
+
+.block-search-field .block-search-icon {
+  pointer-events: none;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-left: 16px;
+  fill: #444950;
+}
+
+.block-search-field > input {
+  flex: 1 0;
+  display: block;
+  padding: 14px 16px;
+  background-color: transparent;
+  border: none;
   color: #444950;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1;
 }
 
+.block-search-field > input:focus {
+  outline: none;
+}
+
+.block-search-field > input:placeholder-shown,
+.block-search-field > input::-webkit-input-placeholder,
+.block-search-field > input:-ms-input-placeholder {
+  color: #989898;
+}
+
+.block-search-field > input:-moz-placeholder,
+.block-search-field > input::-moz-placeholder {
+  color: #989898;
+  opacity: 1;
+}
+
 .block-search-list {
-  max-width: 600px;
+  margin: 0;
   padding: 0;
   box-sizing: border-box;
   list-style: none;
@@ -28,9 +67,20 @@
 
 .block-search-list a {
   display: block;
-  padding-bottom: 6px;
   color: #444950;
   text-decoration: none;
+}
+
+.block-search-list a:focus {
+  outline: none;
+}
+
+.block-search-list > li:not(:last-child) > a {
+  padding-bottom: 6px;
+}
+
+.block-search-list > li:last-child > a {
+  padding-bottom: 2px;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -58,6 +108,12 @@
   background-color: #ffffff;
   box-shadow: 0 1px 3px 0 #d4d9e1;
   border-radius: 6px;
+  overflow: hidden;
+}
+
+.block-search-list a:focus > div {
+  outline: 5px auto Highlight;
+  outline: 5px auto -webkit-focus-ring-color;
 }
 
 .block-search-list a > div:before {
@@ -65,11 +121,16 @@
   position: absolute;
   top: 50%;
   right: 16px;
+  display: block;
   width: 8px;
   height: 8px;
   background-color: #d4d9e1;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 76.6% 100%, 76.6% 23.4%, 0 23.4%);
   transform: translateY(-50%) rotate(45deg);
+}
+
+.block-search-list a:focus > div:before {
+  outline: none !important;
 }
 
 .block-search-list p {
