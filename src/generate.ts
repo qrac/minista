@@ -161,7 +161,7 @@ export async function generatePartialHydration(
   await buildPartialHydrateIndex(partialModules, config, {
     outFile: hydrateIndex,
   })
-  await buildPartialHydrateAssets(viteConfig, {
+  await buildPartialHydrateAssets(viteConfig, config, {
     input: hydrateIndex,
     bundleOutName: config.assets.partial.outName,
     outDir: systemConfig.temp.assets.outDir,

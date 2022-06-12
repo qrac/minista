@@ -46,6 +46,7 @@ import {
   rawPlugin,
   partialHydrationPlugin,
 } from "./esbuild.js"
+import { resolveaAssetFileName } from "./vite.js"
 import { renderHtml } from "./render.js"
 import { slashEnd, reactStylesToString } from "./utils.js"
 import { cssModulePlugin } from "./css.js"
@@ -457,7 +458,7 @@ export async function buildTempAssets(
         const customFileName =
           slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".css"
         return item?.source && fs.outputFile(customFileName, item?.source)
-      } else if (item.fileName.match(/__minista_bundle_assets\.js/)) {
+      } else if (item.fileName.match(/(__minista_bundle_assets\.js|\.svg$)/)) {
         return
       } else {
         const customFileName =
@@ -775,6 +776,7 @@ ${tmpRendersStr}`
 
 export async function buildPartialHydrateAssets(
   viteConfig: InlineConfig,
+  config: MinistaResolveConfig,
   buildOptions: {
     input: string
     bundleOutName: string
@@ -784,10 +786,16 @@ export async function buildPartialHydrateAssets(
   }
 ) {
   const activePreact = buildOptions.usePreact && userPkgHasPreact
-  const resolveAliasPreact = {
-    react: "preact/compat",
-    "react-dom": "preact/compat",
-  }
+  const resolveAliasPreact = [
+    {
+      find: "react",
+      replacement: "preact/compat",
+    },
+    {
+      find: "react-dom",
+      replacement: "preact/compat",
+    },
+  ]
   const customConfig = defineViteConfig({
     base: viteConfig.base,
     build: {
@@ -800,27 +808,39 @@ export async function buildPartialHydrateAssets(
         },
         output: {
           manualChunks: undefined,
+          assetFileNames: (chunkInfo) =>
+            resolveaAssetFileName(chunkInfo, config),
         },
       },
     },
     esbuild: viteConfig.esbuild,
     plugins: viteConfig.plugins,
     resolve: {
-      alias: activePreact ? resolveAliasPreact : {},
+      alias: activePreact ? resolveAliasPreact : [],
     },
     logLevel: "error",
+    css: config.css,
   })
 
   const mergedConfig = mergeViteConfig({}, customConfig)
+
+  if (config.alias.length > 0) {
+    await Promise.all(
+      config.alias.map(async (item) => {
+        return mergedConfig.resolve.alias.push(item)
+      })
+    )
+  }
 
   const result: any = await viteBuild(mergedConfig)
   const items = result.output
 
   if (Array.isArray(items) && items.length > 0) {
     items.map((item) => {
-      if (item.fileName.match(/\.css/)) {
+      console.log(item)
+      if (item.fileName.match(/(\.css|\.svg)$/)) {
         return
-      } else if (item.fileName.match(/\.js/)) {
+      } else if (item.fileName.match(/(\.js)$/)) {
         const customFileName =
           slashEnd(buildOptions.outDir) + buildOptions.bundleOutName + ".js"
         return item?.code && fs.outputFile(customFileName, item?.code)

@@ -1,4 +1,5 @@
 import type { UserConfig as ViteConfig, Plugin, ResolvedConfig } from "vite"
+import type { PreRenderedAsset } from "rollup"
 import type { Config as SvgrOptions } from "@svgr/core"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 import type { SvgstoreAddOptions } from "@qrac/svgstore"
@@ -36,9 +37,6 @@ export async function getViteConfig(
   mdxConfig: MdxOptions,
   cliOptions?: MinistaCliDevOptions | MinistaCliPreviewOptions
 ): Promise<ViteConfig> {
-  const imgExt = ["jpg", "jpeg", "gif", "png", "webp", "svg"]
-  const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
-
   const defaultViteConfig = defineViteConfig({
     base: config.base || "/",
     publicDir: config.public || "public",
@@ -57,18 +55,8 @@ export async function getViteConfig(
           entryFileNames: `${config.assets.outDir}/${config.assets.outName}.js`,
           //chunkFileNames: `${config.assets.outDir}/${config.assets.outName}.js`,
           //assetFileNames: `${config.assets.outDir}/${config.assets.outName}.[ext]`,
-          assetFileNames: (chunkInfo) => {
-            const fileExtname = chunkInfo.name && path.extname(chunkInfo.name)
-            const fileExt = fileExtname && fileExtname.slice(1)
-
-            if (fileExt && imgExt.includes(fileExt)) {
-              return config.viteAssetsImagesOutput
-            } else if (fileExt && fontExt.includes(fileExt)) {
-              return config.viteAssetsFontsOutput
-            } else {
-              return config.viteAssetsOutput
-            }
-          },
+          assetFileNames: (chunkInfo) =>
+            resolveaAssetFileName(chunkInfo, config),
         },
       },
     },
@@ -190,6 +178,24 @@ export function resolveEntry(entry: string | string[] | {}): {} {
       : result2
   const result4 = Object.fromEntries(result3)
   return result4
+}
+
+export function resolveaAssetFileName(
+  chunkInfo: PreRenderedAsset,
+  config: MinistaResolveConfig
+) {
+  const imgExt = ["jpg", "jpeg", "gif", "png", "webp"]
+  const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
+  const fileExtname = chunkInfo.name && path.extname(chunkInfo.name)
+  const fileExt = fileExtname && fileExtname.slice(1)
+
+  if (fileExt && imgExt.includes(fileExt)) {
+    return config.viteAssetsImagesOutput
+  } else if (fileExt && fontExt.includes(fileExt)) {
+    return config.viteAssetsFontsOutput
+  } else {
+    return config.viteAssetsOutput
+  }
 }
 
 export function vitePluginMinistaVirtualHtml(): Plugin {
