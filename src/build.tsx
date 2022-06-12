@@ -837,7 +837,6 @@ export async function buildPartialHydrateAssets(
 
   if (Array.isArray(items) && items.length > 0) {
     items.map((item) => {
-      console.log(item)
       if (item.fileName.match(/(\.css|\.svg)$/)) {
         return
       } else if (item.fileName.match(/(\.js)$/)) {
