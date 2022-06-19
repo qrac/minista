@@ -13,12 +13,10 @@ export default defineConfig({
       //usePreact: true,
       //useIntersectionObserver: false,
     },
-  },
-  /*assets: {
     download: {
-      useRemote: true,
+      //useRemote: true,
     },
-  },*/
+  },
   /*vite: {
     build: {
       minify: false,
@@ -26,11 +24,6 @@ export default defineConfig({
     esbuild: {
       minify: false,
       minifySyntax: false,
-    },
-  },*/
-  /*vite: {
-    resolve: {
-      alias: [{ find: "~", replacement: path.resolve("src") }],
     },
   },*/
   resolve: {

@@ -141,11 +141,17 @@ export async function downloadFiles(
     targetPages.map(async (targetPage) => {
       const html = await fs.readFile(targetPage.entryPoint, "utf8")
 
-      const reg = new RegExp(targetPage.remoteImgUrls.join("|"), "g")
+      const joinedUrl = targetPage.remoteImgUrls.map((url) => {
+        return url.replaceAll('&', "&amp;").replaceAll('?', "\\?")
+      }).join("|");
+      const reg = new RegExp(joinedUrl, "g")
 
       function replacer(match: string): string {
         const replaceData = imgSrcList.find(
-          (item) => item.remoteImgUrl === match
+          (item) => {
+            const unescapedMatch = match.replaceAll('&amp;', '&')
+            return item.remoteImgUrl === unescapedMatch
+          }
         )
         const localImgUrl = replaceData?.localImgUrl || match
         return localImgUrl
