@@ -201,7 +201,7 @@ export async function resolveEntry(
       const pattern = {
         name: getFilename(input),
         input: noSlashStart(input),
-        insertPages: { include: ["**/*"], exclude: [] },
+        insertPages: ["**/*"],
       }
       return entries.push(pattern)
     } else if (Array.isArray(input) && input.length > 0) {
@@ -212,7 +212,7 @@ export async function resolveEntry(
             const pattern = {
               name: getFilename(item),
               input: noSlashStart(item),
-              insertPages: { include: ["**/*"], exclude: [] },
+              insertPages: ["**/*"],
             }
             return entries.push(pattern)
           })
@@ -224,10 +224,11 @@ export async function resolveEntry(
             const name = item.name || getFilename(item.input)
             const include = getInsertPagesInclude(item.insertPages)
             const exclude = getInsertPagesExclude(item.insertPages)
+            const fixedExclude = exclude.map((item) => "!" + item)
             const pattern = {
               name: name,
               input: noSlashStart(item.input),
-              insertPages: { include: include, exclude: exclude },
+              insertPages: [...include, ...fixedExclude],
             }
             return entries.push(pattern)
           })
@@ -239,7 +240,7 @@ export async function resolveEntry(
           const pattern = {
             name: item[0],
             input: noSlashStart(item[1]),
-            insertPages: { include: ["**/*"], exclude: [] },
+            insertPages: ["**/*"],
           }
           return entries.push(pattern)
         })

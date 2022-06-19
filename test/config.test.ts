@@ -36,7 +36,7 @@ describe("resolveEntry", () => {
       {
         name: "entry",
         input: "entry.ts",
-        insertPages: { include: ["**/*"], exclude: [] },
+        insertPages: ["**/*"],
       },
     ])
   })
@@ -50,12 +50,12 @@ describe("resolveEntry", () => {
       {
         name: "entry",
         input: "01.ts",
-        insertPages: { include: ["**/*"], exclude: [] },
+        insertPages: ["**/*"],
       },
       {
         name: "script",
         input: "src/assets/script.ts",
-        insertPages: { include: ["**/*"], exclude: [] },
+        insertPages: ["**/*"],
       },
     ])
   })
@@ -69,12 +69,12 @@ describe("resolveEntry", () => {
       {
         name: "entry",
         input: "entry.ts",
-        insertPages: { include: ["**/*"], exclude: [] },
+        insertPages: ["**/*"],
       },
       {
         name: "script",
         input: "src/assets/script.ts",
-        insertPages: { include: ["**/*"], exclude: [] },
+        insertPages: ["**/*"],
       },
     ])
   })
@@ -99,12 +99,12 @@ describe("resolveEntry", () => {
       {
         name: "smp",
         input: "smp.ts",
-        insertPages: { include: ["smp/**/*"], exclude: ["404"] },
+        insertPages: ["smp/**/*", "!404"],
       },
       {
         name: "pc",
         input: "src/assets/pc.ts",
-        insertPages: { include: ["pc/**/*"], exclude: [] },
+        insertPages: ["pc/**/*"],
       },
     ])
   })

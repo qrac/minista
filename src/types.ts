@@ -238,7 +238,7 @@ export type MinistaResolveEntryConfig = {
 export type EntryObject = {
   name: string
   input: string
-  insertPages: { include: string[]; exclude: string[] }
+  insertPages: string[]
 }
 export type UserEntryObject = {
   name?: string
