@@ -8,6 +8,10 @@ const PageDownload = () => {
       </Head>
       <h1>Download</h1>
       <img
+        src="https://images.unsplash.com/photo-1461988320302-91bde64fc8e4?ixid=2yJhcHBfaWQiOjEyMDd9&fm=jpg&w=200&fit=max"
+        alt=""
+      />
+      <img
         src="https://user-images.githubusercontent.com/9658016/154976421-7762ca39-cea1-4e69-9296-ec1c9e35a088.png"
         alt=""
       />
