@@ -29,7 +29,18 @@ export type MinistaConfig = {
     srcExt: string[]
   }
   assets: {
-    entry: string | string[] | { [key: string]: string }
+    entry:
+      | string
+      | string[]
+      | { [key: string]: string }
+      | {
+          name?: string
+          input: string
+          insertPages:
+            | string
+            | string[]
+            | { include: string[]; exclude?: string[] }
+        }[]
     outDir: string
     outName: string
     bundle: {
@@ -125,7 +136,11 @@ export type MinistaUserConfig = {
     srcExt?: string[]
   }
   assets?: {
-    entry?: string | string[] | { [key: string]: string }
+    entry?:
+      | string
+      | string[]
+      | { [key: string]: string }
+      | { name?: string; input: string; insert: string[]; exclude?: string[] }[]
     outDir?: string
     outName?: string
     bundle?: {
@@ -208,8 +223,28 @@ export type MinistaUserConfig = {
 }
 
 export type MinistaResolveConfig = MinistaConfig &
+  MinistaResolveEntryConfig &
   MinistaResolveAliasConfig &
   MinistaResolvePathConfig
+
+export type MinistaEntry =
+  | string
+  | string[]
+  | { [key: string]: string }
+  | UserEntryObject[]
+export type MinistaResolveEntryConfig = {
+  entry: EntryObject[]
+}
+export type EntryObject = {
+  name: string
+  input: string
+  insertPages: { include: string[]; exclude: string[] }
+}
+export type UserEntryObject = {
+  name?: string
+  input: string
+  insertPages: string | string[] | { include: string[]; exclude?: string[] }
+}
 
 export type MinistaResolveAliasInput = AliasObject | AliasArray
 export type MinistaResolveAliasConfig = {

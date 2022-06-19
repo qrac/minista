@@ -4,9 +4,15 @@ import { resolveEntry } from "../src/vite"
 
 describe("resolveEntry", () => {
   it("Test: resolveEntry", () => {
-    const result = resolveEntry("entry.js")
+    const result = resolveEntry([
+      {
+        name: "entry",
+        input: "01.ts",
+        insertPages: { include: ["**/*"], exclude: [] },
+      },
+    ])
 
     //console.log(result)
-    expect(result).toEqual({ entry: "entry.js" })
+    expect(result).toEqual({ entry: "01.ts" })
   })
 })

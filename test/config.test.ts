@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   mergeConfig,
+  resolveEntry,
   mergeAlias,
   resolveConfig,
   defaultConfig,
@@ -22,6 +23,90 @@ describe("mergeConfig", () => {
 
     //console.log(result)
     expect(result.pages.srcExt).toEqual(userConfig.pages.srcExt)
+  })
+})
+
+describe("resolveEntry", () => {
+  it("Test: resolveEntry str", async () => {
+    const userConfig = "./entry.ts"
+    const result = await resolveEntry(userConfig)
+
+    //console.log(result)
+    expect(result).toEqual([
+      {
+        name: "entry",
+        input: "entry.ts",
+        insertPages: { include: ["**/*"], exclude: [] },
+      },
+    ])
+  })
+
+  it("Test: resolveEntry obj", async () => {
+    const userConfig = { entry: "./01.ts", script: "./src/assets/script.ts" }
+    const result = await resolveEntry(userConfig)
+
+    //console.log(result)
+    expect(result).toEqual([
+      {
+        name: "entry",
+        input: "01.ts",
+        insertPages: { include: ["**/*"], exclude: [] },
+      },
+      {
+        name: "script",
+        input: "src/assets/script.ts",
+        insertPages: { include: ["**/*"], exclude: [] },
+      },
+    ])
+  })
+
+  it("Test: resolveEntry arry", async () => {
+    const userConfig = ["./entry.ts", "./src/assets/script.ts"]
+    const result = await resolveEntry(userConfig)
+
+    //console.log(result)
+    expect(result).toEqual([
+      {
+        name: "entry",
+        input: "entry.ts",
+        insertPages: { include: ["**/*"], exclude: [] },
+      },
+      {
+        name: "script",
+        input: "src/assets/script.ts",
+        insertPages: { include: ["**/*"], exclude: [] },
+      },
+    ])
+  })
+
+  it("Test: resolveEntry custom arry", async () => {
+    const userConfig = [
+      {
+        name: "smp",
+        input: "./smp.ts",
+        insertPages: { include: ["smp/**/*"], exclude: ["404"] },
+      },
+      {
+        name: "pc",
+        input: "/src/assets/pc.ts",
+        insertPages: { include: ["pc/**/*"] },
+      },
+    ]
+    const result = await resolveEntry(userConfig)
+
+    //console.log(result)
+    expect(result).toEqual([
+      {
+        name: "smp",
+        input: "smp.ts",
+        insertPages: { include: ["smp/**/*"], exclude: ["404"] },
+      },
+      {
+        name: "pc",
+        input: "src/assets/pc.ts",
+        insertPages: { include: ["pc/**/*"], exclude: [] },
+      },
+    ])
   })
 })
 

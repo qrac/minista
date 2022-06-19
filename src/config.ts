@@ -5,12 +5,21 @@ import type {
   MinistaConfig,
   MinistaUserConfig,
   MinistaResolveConfig,
+  MinistaEntry,
+  EntryObject,
+  UserEntryObject,
   MinistaResolveAliasInput,
   AliasArray,
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
-import { slashEnd, noSlashEnd } from "./utils.js"
+import {
+  slashEnd,
+  noSlashEnd,
+  noSlashStart,
+  getFilename,
+  getFilenameObject,
+} from "./utils.js"
 
 export const defaultConfig: MinistaConfig = {
   base: "/",
@@ -146,6 +155,102 @@ export async function mergeConfig(
   return mergedConfig
 }
 
+export async function resolveEntry(
+  entry: MinistaEntry
+): Promise<EntryObject[]> {
+  const entries: EntryObject[] = []
+
+  function getInsertPagesInclude(
+    input: UserEntryObject["insertPages"]
+  ): string[] {
+    if (typeof input === "string") {
+      return [input]
+    } else if (Array.isArray(input) && input.length > 0) {
+      return input
+    } else if (typeof input === "object" && input.hasOwnProperty("include")) {
+      const object = input as { include: string[] }
+      return object.include
+    } else {
+      return ["**/*"]
+    }
+  }
+
+  function getInsertPagesExclude(
+    input: UserEntryObject["insertPages"]
+  ): string[] {
+    if (typeof input === "string") {
+      return []
+    } else if (Array.isArray(input) && input.length > 0) {
+      const strArray = input as string[]
+      const excludeArray = strArray.filter(
+        (item) => item.startsWith("!") && item.replace(/^!/, "")
+      )
+      return excludeArray
+    } else if (typeof input === "object" && input.hasOwnProperty("exclude")) {
+      const object = input as { exclude: string[] }
+      return object.exclude
+    } else {
+      return []
+    }
+  }
+
+  async function getEntries(input: MinistaEntry) {
+    if (!input) {
+      return
+    } else if (typeof input === "string") {
+      const pattern = {
+        name: getFilename(input),
+        input: noSlashStart(input),
+        insertPages: { include: ["**/*"], exclude: [] },
+      }
+      return entries.push(pattern)
+    } else if (Array.isArray(input) && input.length > 0) {
+      if (typeof input[0] === "string") {
+        const strArray = input as string[]
+        await Promise.all(
+          strArray.map(async (item) => {
+            const pattern = {
+              name: getFilename(item),
+              input: noSlashStart(item),
+              insertPages: { include: ["**/*"], exclude: [] },
+            }
+            return entries.push(pattern)
+          })
+        )
+      } else {
+        const objectArray = input as UserEntryObject[]
+        await Promise.all(
+          objectArray.map(async (item) => {
+            const name = item.name || getFilename(item.input)
+            const include = getInsertPagesInclude(item.insertPages)
+            const exclude = getInsertPagesExclude(item.insertPages)
+            const pattern = {
+              name: name,
+              input: noSlashStart(item.input),
+              insertPages: { include: include, exclude: exclude },
+            }
+            return entries.push(pattern)
+          })
+        )
+      }
+    } else if (typeof input === "object") {
+      await Promise.all(
+        Object.entries(input).map((item) => {
+          const pattern = {
+            name: item[0],
+            input: noSlashStart(item[1]),
+            insertPages: { include: ["**/*"], exclude: [] },
+          }
+          return entries.push(pattern)
+        })
+      )
+    }
+  }
+  await getEntries(entry)
+
+  return entries
+}
+
 export async function mergeAlias(
   configAlias: MinistaResolveAliasInput,
   viteConfigAlias: ViteAliasOptions
@@ -186,12 +291,18 @@ export async function mergeAlias(
 export async function resolveConfig(
   config: MinistaConfig
 ): Promise<MinistaResolveConfig> {
+  const configEntry = config.assets.entry
+  const viteConfigEntry = config.vite.build?.rollupOptions?.input || ""
+  const selectedEntry = configEntry || viteConfigEntry
+  const entry = await resolveEntry(selectedEntry)
+
   const configAlias = config.resolve.alias
   const viteConfigAlias = config.vite.resolve?.alias || {}
   const alias = await mergeAlias(configAlias, viteConfigAlias)
 
   const resolvedConfig: MinistaResolveConfig = {
     ...config,
+    entry: entry,
     alias: alias,
     rootSrcDir: noSlashEnd(config.root.srcDir),
     pagesSrcDir: noSlashEnd(config.pages.srcDir),

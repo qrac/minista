@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   slashEnd,
   noSlashEnd,
+  noSlashStart,
   getFilename,
   getFilenameObject,
   reactStylesToString,
@@ -65,6 +66,36 @@ describe("noSlashEnd", () => {
 
     //console.log(result)
     expect(result).toEqual("dir")
+  })
+})
+
+describe("noSlashStart", () => {
+  it("Test: noSlashStart none", () => {
+    const result = noSlashStart("")
+
+    //console.log(result)
+    expect(result).toEqual("")
+  })
+
+  it("Test: noSlashStart /", () => {
+    const result = noSlashStart("/")
+
+    //console.log(result)
+    expect(result).toEqual("")
+  })
+
+  it("Test: noSlashStart /test/test.ts", () => {
+    const result = noSlashStart("/test/test.ts")
+
+    //console.log(result)
+    expect(result).toEqual("test/test.ts")
+  })
+
+  it("Test: noSlashStart ./test/test.ts", () => {
+    const result = noSlashStart("./test/test.ts")
+
+    //console.log(result)
+    expect(result).toEqual("test/test.ts")
   })
 })
 

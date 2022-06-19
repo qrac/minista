@@ -23,6 +23,7 @@ import type {
   MinistaResolveConfig,
   MinistaCliDevOptions,
   MinistaCliPreviewOptions,
+  EntryObject,
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
@@ -45,11 +46,7 @@ export async function getViteConfig(
       assetsInlineLimit: 0,
       minify: !config.beautify.useAssets,
       rollupOptions: {
-        input: config.assets.entry
-          ? resolveEntry(config.assets.entry)
-          : config.vite.build?.rollupOptions?.input
-          ? resolveEntry(config.vite.build?.rollupOptions?.input)
-          : "",
+        input: resolveEntry(config.entry),
         output: {
           manualChunks: undefined,
           entryFileNames: `${config.assets.outDir}/${config.assets.outName}.js`,
@@ -154,30 +151,16 @@ export async function getViteConfig(
     : mergedViteConfig
 }
 
-export function resolveEntry(entry: string | string[] | {}): {} {
-  const result1 =
-    typeof entry === "object"
-      ? entry
-      : typeof entry === "string"
-      ? { [getFilename(entry)]: entry }
-      : Array.isArray(entry)
-      ? getFilenameObject(entry)
-      : {}
-  const result2 = Object.entries(result1)
-  const result3 =
-    result2.length > 0
-      ? result2.map((item) => {
-          const strUrl = item[1] as string
-          const rootUrl = strUrl.startsWith("./")
-            ? strUrl.replace(/^\.\//, "")
-            : strUrl.startsWith("/")
-            ? strUrl.replace(/^\//, "")
-            : strUrl
-          return [item[0], rootUrl]
-        })
-      : result2
-  const result4 = Object.fromEntries(result3)
-  return result4
+export function resolveEntry(
+  entry: EntryObject[]
+): { [key: string]: string } | string {
+  if (!entry.length) {
+    return ""
+  }
+  const entries = Object.fromEntries(
+    entry.map((item) => [item.name, item.input])
+  )
+  return entries
 }
 
 export function resolveaAssetFileName(

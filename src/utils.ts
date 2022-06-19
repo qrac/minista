@@ -24,6 +24,15 @@ export function noSlashEnd(dir: string): string {
   }
 }
 
+export function noSlashStart(dir: string): string {
+  const result = dir.startsWith("./")
+    ? dir.replace(/^\.\//, "")
+    : dir.startsWith("/")
+    ? dir.replace(/^\//, "")
+    : dir
+  return result
+}
+
 export function getFilename(fullPath: string): string {
   const parsedFullPath = path.parse(fullPath)
   return parsedFullPath.name
