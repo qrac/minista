@@ -20,7 +20,7 @@ import {
   buildStaticPages,
   buildCopyDir,
   buildTempAssets,
-  buildAssetsTagStr,
+  buildAssetsTagArray,
   buildViteImporterRoots,
   buildViteImporterRoutes,
   buildViteImporterAssets,
@@ -193,16 +193,18 @@ export async function generateHtmlPages(
     "css",
     "js",
   ])
-  const assetsTagStr = await buildAssetsTagStr(tempAssetsFilePaths, {
+  const assetsTagArray = buildAssetsTagArray({
+    entryPoints: tempAssetsFilePaths,
     outBase: tempAssetsOutDir,
-    outDir: config.assetsOutHref,
+    hrefBase: config.assetsOutHref,
+    entryPattern: config.entry,
   })
   await buildStaticPages({
     entryPoints: tempPageFilePaths,
     tempRootFilePath: tempRootFilePath,
     outBase: tempPagesOutDir,
     outDir: outDir,
-    assetsTagStr: assetsTagStr,
+    assetsTagArray: assetsTagArray,
     showLog: showLog,
   })
 }

@@ -29,18 +29,7 @@ export type MinistaConfig = {
     srcExt: string[]
   }
   assets: {
-    entry:
-      | string
-      | string[]
-      | { [key: string]: string }
-      | {
-          name?: string
-          input: string
-          insertPages:
-            | string
-            | string[]
-            | { include: string[]; exclude?: string[] }
-        }[]
+    entry: MinistaEntry
     outDir: string
     outName: string
     bundle: {
@@ -136,11 +125,7 @@ export type MinistaUserConfig = {
     srcExt?: string[]
   }
   assets?: {
-    entry?:
-      | string
-      | string[]
-      | { [key: string]: string }
-      | { name?: string; input: string; insert: string[]; exclude?: string[] }[]
+    entry?: MinistaEntry
     outDir?: string
     outName?: string
     bundle?: {

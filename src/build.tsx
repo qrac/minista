@@ -18,6 +18,7 @@ import {
 } from "vite"
 import { parse } from "node-html-parser"
 import mojigiri from "mojigiri"
+import micromatch from "micromatch"
 
 import type {
   MinistaResolveConfig,
@@ -36,6 +37,7 @@ import type {
   PartialModules,
   PartialString,
   CssOptions,
+  EntryObject,
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
@@ -48,7 +50,7 @@ import {
 } from "./esbuild.js"
 import { resolveaAssetFileName } from "./vite.js"
 import { renderHtml } from "./render.js"
-import { slashEnd, reactStylesToString } from "./utils.js"
+import { slashEnd, reactStylesToString, getFilename } from "./utils.js"
 import { cssModulePlugin } from "./css.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
@@ -135,14 +137,17 @@ export async function buildStaticPages({
   tempRootFilePath,
   outBase,
   outDir,
-  assetsTagStr,
+  assetsTagArray,
   showLog,
 }: {
   entryPoints: string[]
   tempRootFilePath: string
   outBase: string
   outDir: string
-  assetsTagStr: string
+  assetsTagArray: {
+    pattern: string[]
+    tag: string
+  }[]
   showLog: boolean
 }) {
   const rootStaticContent = await buildRootEsmContent(tempRootFilePath)
@@ -161,7 +166,7 @@ export async function buildStaticPages({
         entryPoint: entryPoint,
         outFile: filename,
         rootStaticContent: rootStaticContent,
-        assetsTagStr: assetsTagStr,
+        assetsTagArray: assetsTagArray,
         outDir: outDir,
         showLog: showLog,
       })
@@ -202,14 +207,17 @@ export async function buildStaticPage({
   entryPoint,
   outFile,
   rootStaticContent,
-  assetsTagStr,
+  assetsTagArray,
   outDir,
   showLog,
 }: {
   entryPoint: string
   outFile: string
   rootStaticContent: RootStaticContent
-  assetsTagStr: string
+  assetsTagArray: {
+    pattern: string[]
+    tag: string
+  }[]
   outDir: string
   showLog: boolean
 }) {
@@ -232,7 +240,7 @@ export async function buildStaticPage({
       staticDataItem: staticDataItem,
       routePath: outFile,
       rootStaticContent: rootStaticContent,
-      assetsTagStr: assetsTagStr,
+      assetsTagArray: assetsTagArray,
       frontmatter: frontmatter,
       outDir: outDir,
       showLog: showLog,
@@ -246,7 +254,7 @@ export async function buildStaticPage({
       staticDataItem: staticDataItem,
       routePath: outFile,
       rootStaticContent: rootStaticContent,
-      assetsTagStr: assetsTagStr,
+      assetsTagArray: assetsTagArray,
       frontmatter: frontmatter,
       outDir: outDir,
       showLog: showLog,
@@ -267,7 +275,7 @@ export async function buildStaticPage({
       staticDataItem: staticDataItem,
       routePath: fixedOutfile,
       rootStaticContent: rootStaticContent,
-      assetsTagStr: assetsTagStr,
+      assetsTagArray: assetsTagArray,
       frontmatter: frontmatter,
       outDir: outDir,
       showLog: showLog,
@@ -292,7 +300,7 @@ export async function buildStaticPage({
           staticDataItem: staticDataItem,
           routePath: fixedOutfile,
           rootStaticContent: rootStaticContent,
-          assetsTagStr: assetsTagStr,
+          assetsTagArray: assetsTagArray,
           frontmatter: frontmatter,
           outDir: outDir,
           showLog: showLog,
@@ -312,7 +320,7 @@ export async function buildHtmlPage({
   staticDataItem,
   routePath,
   rootStaticContent,
-  assetsTagStr,
+  assetsTagArray,
   frontmatter,
   outDir,
   showLog,
@@ -321,7 +329,10 @@ export async function buildHtmlPage({
   staticDataItem: StaticDataItem
   routePath: string
   rootStaticContent: RootStaticContent
-  assetsTagStr: string
+  assetsTagArray: {
+    pattern: string[]
+    tag: string
+  }[]
   frontmatter: any
   outDir: string
   showLog: boolean
@@ -390,6 +401,10 @@ export async function buildHtmlPage({
     }
   }
 
+  const assetsTagStr = buildAssetsTagStr({
+    pathname: location.pathname,
+    assetsTagArray: assetsTagArray,
+  })
   const renderdHtml = await renderHtml(<RenderComponent />, assetsTagStr)
 
   const html = [renderdHtml]
@@ -474,27 +489,72 @@ export async function buildTempAssets(
   }
 }
 
-export async function buildAssetsTagStr(
-  entryPoints: string[],
-  buildOptions: {
-    outBase: string
-    outDir: string
-  }
-) {
-  const winOutBase = buildOptions.outBase.replaceAll("/", "\\")
-  const assetsTags = entryPoints.map((entryPoint) => {
+export function buildAssetsTagArray({
+  entryPoints, // (*.css|*.js)
+  outBase,
+  hrefBase,
+  entryPattern = [],
+  bundlePattern = [],
+  partialPattern = [],
+}: {
+  entryPoints: string[]
+  outBase: string
+  hrefBase: string
+  entryPattern?: EntryObject[]
+  bundlePattern?: EntryObject[]
+  partialPattern?: EntryObject[]
+}) {
+  const winOutBase = outBase.replaceAll("/", "\\")
+  const assets = entryPoints.map((entryPoint) => {
     const assetPath = entryPoint
-      .replace(buildOptions.outBase, buildOptions.outDir)
-      .replace(winOutBase, buildOptions.outDir)
+      .replace(outBase, hrefBase)
+      .replace(winOutBase, hrefBase)
       .replaceAll("\\", "/")
+    const name = getFilename(assetPath)
     if (assetPath.endsWith(".css")) {
-      return `<link rel="stylesheet" href="${assetPath}">`
-    } else if (assetPath.endsWith(".js")) {
-      return `<script defer src="${assetPath}"></script>`
+      return { name: name, tag: `<link rel="stylesheet" href="${assetPath}">` }
+    } else {
+      return { name: name, tag: `<script defer src="${assetPath}"></script>` }
     }
   })
-  const assetsTagStr = assetsTags.join("")
-  return assetsTagStr
+  const patterns = [...entryPattern, ...bundlePattern, ...partialPattern]
+  const result = assets.map((asset) => {
+    const targetPattern = patterns.find(
+      (pattern) => pattern.name === asset.name
+    )
+    if (targetPattern) {
+      return { pattern: targetPattern.insertPages, tag: asset.tag }
+    } else {
+      return { pattern: ["**/*"], tag: asset.tag }
+    }
+  })
+  return result
+}
+
+export function buildAssetsTagStr({
+  pathname,
+  assetsTagArray,
+}: {
+  pathname: string
+  assetsTagArray: {
+    pattern: string[]
+    tag: string
+  }[]
+}) {
+  if (!assetsTagArray.length) {
+    return ""
+  }
+  const result = assetsTagArray
+    .map((item) => {
+      const check = micromatch.isMatch(pathname, item.pattern)
+      if (check) {
+        return item.tag
+      } else {
+        return ""
+      }
+    })
+    .join("")
+  return result
 }
 
 export async function buildViteImporterRoots(config: MinistaResolveConfig) {

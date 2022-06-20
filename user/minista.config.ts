@@ -8,7 +8,12 @@ import rehypeSlug from "rehype-slug"
 export default defineConfig({
   //base: "/test/",
   assets: {
-    entry: "src/assets/entry.ts",
+    entry: [
+      {
+        input: "src/assets/entry.ts",
+        insertPages: ["/entry/**/", "/entry/**/*"],
+      },
+    ],
     partial: {
       //usePreact: true,
       //useIntersectionObserver: false,
