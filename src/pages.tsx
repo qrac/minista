@@ -26,7 +26,7 @@ export const Pages = () => {
         )
         getAssets(location.pathname)
       } catch (err) {
-        //console.log(err)
+        console.log(err)
       }
 
       setRoots(getRoots)

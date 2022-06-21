@@ -1,4 +1,4 @@
-import type { UserConfig as ViteConfig, InlineConfig } from "vite"
+import type { InlineConfig } from "vite"
 import type { Options as MdxOptions } from "@mdx-js/esbuild"
 
 import fs from "fs-extra"

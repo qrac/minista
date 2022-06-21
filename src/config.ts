@@ -13,13 +13,7 @@ import type {
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
-import {
-  slashEnd,
-  noSlashEnd,
-  noSlashStart,
-  getFilename,
-  getFilenameObject,
-} from "./utils.js"
+import { slashEnd, noSlashEnd, noSlashStart, getFilename } from "./utils.js"
 
 export const defaultConfig: MinistaConfig = {
   base: "/",

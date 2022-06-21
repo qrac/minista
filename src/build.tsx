@@ -18,7 +18,7 @@ import {
 } from "vite"
 import { parse } from "node-html-parser"
 import mojigiri from "mojigiri"
-import micromatch from "micromatch"
+import picomatch from "picomatch"
 
 import type {
   MinistaResolveConfig,
@@ -546,7 +546,7 @@ export function buildAssetsTagStr({
   }
   const result = assetsTagArray
     .map((item) => {
-      const check = micromatch.isMatch(pathname, item.pattern)
+      const check = picomatch.isMatch(pathname, item.pattern)
       if (check) {
         return item.tag
       } else {
@@ -632,22 +632,22 @@ export async function buildViteImporterAssets(entry: EntryObject[]) {
     return `import("/${item.input}")`
   })
   const globalJsImportStr = globalJsImportArray.join("\n  ")
-  /*
   const otherEntry = entry.filter(
-    (item) => !(item.insertPages.length === 1 && item.insertPages[0] === "")
+    (item) => !(item.insertPages.length === 1 && item.insertPages[0] === "**/*")
   )
   const otherImportArray = otherEntry.map((item) => {
     const insertPagesStr = item.insertPages
       .map((pattern) => `"${pattern}"`)
       .join()
-    return `  if (micromatch.isMatch(pathname, [${insertPagesStr}])) {
+    return `  if (picomatch.isMatch(pathname, [${insertPagesStr}])) {
     import("/${item.input}")
   }`
   })
   const otherImportStr = otherImportArray.join("\n  ")
-*/
-  const template = `export const getAssets = (pathname) => {
+  const template = `import picomatch from "picomatch-browser"
+export const getAssets = (pathname) => {
   ${globalJsImportStr}
+  ${otherImportStr}
 }`
   await fs.outputFile(outFile, template).catch((err) => {
     console.error(err)

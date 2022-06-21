@@ -95,6 +95,7 @@ export async function getViteConfig(
         "react-dom",
         "react-router-dom",
         "react-helmet",
+        "picomatch-browser",
       ],
     },
     customLogger: createLogger("info", { prefix: "[minista]" }),
