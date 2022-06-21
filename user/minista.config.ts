@@ -13,6 +13,10 @@ export default defineConfig({
         input: "src/assets/entry.ts",
         insertPages: ["/entry/**/", "/entry/**/*"],
       },
+      {
+        input: "src/assets/entry-page-only-style.css",
+        insertPages: ["/entry/**/", "/entry/**/*"],
+      },
     ],
     partial: {
       //usePreact: true,

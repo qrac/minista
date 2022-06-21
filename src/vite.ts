@@ -28,7 +28,6 @@ import type {
 
 import { systemConfig } from "./system.js"
 import { getFilePaths } from "./path.js"
-import { getFilename, getFilenameObject } from "./utils.js"
 
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -86,7 +85,7 @@ export async function getViteConfig(
         },
       ],
     },
-    plugins: [react(), vitePluginMinistaVirtualHtml()],
+    plugins: [react(), vitePluginMinistaVirtualHtml({ entry: config.entry })],
     optimizeDeps: {
       //entries: path.resolve(__dirname + "/../lib/index.html"),
       include: [
@@ -181,24 +180,16 @@ export function resolveaAssetFileName(
   }
 }
 
-export function vitePluginMinistaVirtualHtml(): Plugin {
-  function getAssetsTagStr(input: any) {
-    !input && ""
-    const tags = []
-    if (typeof input === "string") {
-      const tag = getAssetsTag(input)
-      tags.push(tag)
-    } else if (Array.isArray(input) && input.length > 0) {
-      input.map((item) => {
-        const tag = getAssetsTag(item)
-        return tags.push(tag)
-      })
-    } else if (typeof input === "object") {
-      Object.values(input).map((item) => {
-        const tag = typeof item === "string" ? getAssetsTag(item) : ""
-        return tags.push(tag)
-      })
+export function vitePluginMinistaVirtualHtml({
+  entry,
+}: {
+  entry: EntryObject[]
+}): Plugin {
+  function getAssetsTagStr(input: EntryObject[]) {
+    if (!input.length) {
+      return ""
     }
+    const tags = input.map((item) => getAssetsTag(item.input))
     const sortedTags =
       tags.length >= 2
         ? tags
@@ -226,12 +217,14 @@ export function vitePluginMinistaVirtualHtml(): Plugin {
         const ministaHtmlUrl = path.resolve(__dirname + "/../lib/index.html")
         const ministaHtmlUrlRelative = path.relative(".", ministaHtmlUrl)
         const ministaHtml = fs.readFileSync(ministaHtmlUrlRelative, "utf8")
-        const assetTagStr = getAssetsTagStr(
-          server.config.inlineConfig.build?.rollupOptions?.input
+        const globalEntry = entry.filter(
+          (item) =>
+            item.insertPages.length === 1 && item.insertPages[0] === "**/*"
         )
+        const assetsTagStr = getAssetsTagStr(globalEntry)
         const ministaReplacedHtml = ministaHtml.replace(
           "<!-- VIRTUAL_HTML_ASSETS_TAG -->",
-          assetTagStr
+          assetsTagStr
         )
 
         server.middlewares.use((req, res, next) => {

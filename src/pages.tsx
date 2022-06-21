@@ -24,7 +24,7 @@ export const Pages = () => {
           //@ts-ignore
           "/@minista-temp/vite-importer/assets.js"
         )
-        getAssets()
+        getAssets(location.pathname)
       } catch (err) {
         //console.log(err)
       }

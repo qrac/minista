@@ -619,20 +619,35 @@ export async function buildViteImporterRoutes(config: MinistaResolveConfig) {
   })
 }
 
-export async function buildViteImporterAssets(entry: {
-  [key: string]: string
-}) {
+export async function buildViteImporterAssets(entry: EntryObject[]) {
   const outFile = systemConfig.temp.viteImporter.outDir + "/assets.js"
-  const assetsPathArray = Object.values(entry)
-  const filteredAssetsPathArray = assetsPathArray.filter((path) =>
-    path.match(/\.(js|cjs|mjs|jsx|ts|tsx)$/)
+
+  const globalEntry = entry.filter(
+    (item) => item.insertPages.length === 1 && item.insertPages[0] === "**/*"
   )
-  const importArray = filteredAssetsPathArray.map((path) => {
-    return `import("/${path}")`
+  const globalJsEntry = globalEntry.filter((item) =>
+    item.input.match(/\.(js|cjs|mjs|jsx|ts|tsx)$/)
+  )
+  const globalJsImportArray = globalJsEntry.map((item) => {
+    return `import("/${item.input}")`
   })
-  const importArrayStr = importArray.join("\n  ")
-  const template = `export const getAssets = () => {
-  ${importArrayStr}
+  const globalJsImportStr = globalJsImportArray.join("\n  ")
+  /*
+  const otherEntry = entry.filter(
+    (item) => !(item.insertPages.length === 1 && item.insertPages[0] === "")
+  )
+  const otherImportArray = otherEntry.map((item) => {
+    const insertPagesStr = item.insertPages
+      .map((pattern) => `"${pattern}"`)
+      .join()
+    return `  if (micromatch.isMatch(pathname, [${insertPagesStr}])) {
+    import("/${item.input}")
+  }`
+  })
+  const otherImportStr = otherImportArray.join("\n  ")
+*/
+  const template = `export const getAssets = (pathname) => {
+  ${globalJsImportStr}
 }`
   await fs.outputFile(outFile, template).catch((err) => {
     console.error(err)

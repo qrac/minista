@@ -40,23 +40,14 @@ import { beautifyFiles } from "./beautify.js"
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export async function generateViteImporters(
-  config: MinistaResolveConfig,
-  viteConfig: ViteConfig
-) {
-  const viteEntry = viteConfig.build?.rollupOptions?.input || {}
-
+export async function generateViteImporters(config: MinistaResolveConfig) {
   await Promise.all([
     buildViteImporterRoots(config),
     buildViteImporterRoutes(config),
   ])
 
-  if (
-    typeof viteEntry === "object" &&
-    Object.keys(viteEntry).length > 0 &&
-    !Array.isArray(viteEntry)
-  ) {
-    await buildViteImporterAssets(viteEntry)
+  if (config.entry.length > 0) {
+    await buildViteImporterAssets(config.entry)
   } else {
     await buildViteImporterBlankAssets()
   }

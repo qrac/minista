@@ -73,7 +73,7 @@ cli
           emptyResolveDir(systemConfig.temp.icons.outDir),
           emptyResolveDir(systemConfig.temp.partialHydration.outDir),
         ])
-        await generateViteImporters(config, viteConfig)
+        await generateViteImporters(config)
 
         await Promise.all([
           createDevServer(viteConfig),
@@ -101,7 +101,7 @@ cli.command("build [root]", "build for production").action(async () => {
       emptyResolveDir(systemConfig.temp.partialHydration.outDir),
       emptyResolveDir(config.out),
     ])
-    await Promise.all([generateViteImporters(config, viteConfig)])
+    await Promise.all([generateViteImporters(config)])
     await Promise.all([
       generateTempRoot(config, mdxConfig),
       generateTempPages(config, mdxConfig),
