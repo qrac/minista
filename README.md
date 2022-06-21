@@ -92,7 +92,15 @@ export default defineConfig({
     srcExt: ["tsx", "jsx", "md", "mdx"], // string[]
   },
   assets: {
-    entry: "", // string | string[] | { [key: string]: string } | { name?: string; input: string; insert: string[]; exclude?: string[] }[]
+    entry: "",
+    // | string
+    // | string[]
+    // | { [key: string]: string }
+    // | {
+    //      name?: string
+    //      input: string
+    //      insertPages: string | string[] | { include: string[]; exclude?: string[] }
+    //   }[]
     outDir: "assets", // string
     outName: "[name]", // string
     bundle: {
