@@ -792,11 +792,104 @@ export async function buildPartialStringInitial(
       html: replacedHtml,
     }
   })
-  const template = JSON.stringify({ items: items })
+  const template = { items: items }
 
-  await fs.outputFile(outFile, template).catch((err) => {
+  await fs.outputJson(outFile, template, { spaces: 2 }).catch((err) => {
     console.error(err)
   })
+}
+
+export async function buildPartialHydratePages(
+  partialModules: PartialModules,
+  config: MinistaResolveConfig,
+  buildOptions: {
+    roots: string[]
+    pages: string[]
+    outBase: string
+    outFile: string
+  }
+) {
+  async function searchHasPhIds(targetPath: string, phIds: string[]) {
+    const targetPathRelative = path.relative(".", targetPath)
+    const code = await fs.readFile(targetPathRelative, "utf8")
+    const codeWithPhIds = phIds.filter((phId) => code.includes(phId))
+    return { path: targetPath, hasPhIds: codeWithPhIds }
+  }
+
+  const phIds = partialModules.map((item) => item.id)
+
+  const roots: { path: string; hasPhIds: string[] }[] = []
+  const pages: { path: string; hasPhIds: string[] }[] = []
+
+  await Promise.all(
+    buildOptions.roots.map(async (item) => {
+      const root = await searchHasPhIds(item, phIds)
+      return roots.push(root)
+    })
+  )
+  await Promise.all(
+    buildOptions.pages.map(async (item) => {
+      const page = await searchHasPhIds(item, phIds)
+      return pages.push(page)
+    })
+  )
+
+  const rootHasPhIds = roots.length > 0 ? roots[0].hasPhIds : ""
+  const pagesWithRoot = pages.map((item) => ({
+    path: item.path,
+    hasPhIds: [...new Set([...item.hasPhIds, ...rootHasPhIds])].sort(),
+    groupId: [...new Set([...item.hasPhIds, ...rootHasPhIds])].sort().join("-"),
+  }))
+
+  const groupIds = [
+    ...new Set(
+      pagesWithRoot.map((item) => item.groupId).filter((item) => item)
+    ),
+  ].sort()
+  const groups = groupIds.map((item) => ({
+    groupId: item,
+    pages: pagesWithRoot.filter((childItem) => childItem.groupId === item),
+  }))
+
+  const hydratePages = groups.map((item, index) => {
+    const name = `${config.assets.partial.outName}-${index + 1}`
+    const winOutBase = buildOptions.outBase.replaceAll("/", "\\")
+    const reg1 = new RegExp(`^${buildOptions.outBase}|index.mjs`, "g")
+    const reg2 = new RegExp(`.mjs`, "g")
+    const insertPages = item.pages.map((childItem) =>
+      childItem.path
+        .replace(reg1, "")
+        .replace(reg2, "")
+        .replace(winOutBase, "")
+        .replaceAll("\\", "/")
+    )
+    const reg = new RegExp(`(${item.pages[0].hasPhIds.join("|")})`, "g")
+    const hasPartialModules = partialModules.filter((item) =>
+      item.id.match(reg)
+    )
+    return {
+      name: name,
+      insertPages: insertPages,
+      hasPartialModules: hasPartialModules,
+    }
+  })
+  const template = hydratePages
+
+  //console.log("buildOptions.roots", buildOptions.roots)
+  //console.log("buildOptions.pages", buildOptions.pages)
+  //console.log("roots", roots)
+  //console.log("pages", pages)
+  //console.log("pagesWithRoot", pagesWithRoot)
+  //console.log("groupIds", groupIds)
+  //console.log("groups", groups)
+  //console.log("hydratePages", hydratePages)
+
+  await fs
+    .outputJson(buildOptions.outFile, template, { spaces: 2 })
+    .catch((err) => {
+      console.error(err)
+    })
+  return hydratePages
 }
 
 export async function buildPartialHydrateIndex(
@@ -849,7 +942,7 @@ ${tmpRendersStr}`
   })
 }
 
-export async function buildPartialHydrateAssets(
+export async function buildPartialHydrateAsset(
   viteConfig: InlineConfig,
   config: MinistaResolveConfig,
   buildOptions: {

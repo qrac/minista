@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "minista": "file:..",
-    "preact": "^10.7.3",
+    "preact": "^10.8.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "rehype-slug": "^5.0.1"

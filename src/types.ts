@@ -36,6 +36,7 @@ export type MinistaConfig = {
       outName: string
     }
     partial: {
+      useSplitPerPage: boolean
       usePreact: boolean
       useIntersectionObserver: boolean
       outName: string
@@ -132,6 +133,7 @@ export type MinistaUserConfig = {
       outName?: string
     }
     partial?: {
+      useSplitPerPage?: boolean
       usePreact?: boolean
       useIntersectionObserver?: boolean
       outName?: string

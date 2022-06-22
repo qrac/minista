@@ -5,7 +5,7 @@ import fs from "fs-extra"
 import path from "path"
 import url from "url"
 
-import type { MinistaResolveConfig } from "./types.js"
+import type { MinistaResolveConfig, EntryObject } from "./types.js"
 
 import { systemConfig } from "./system.js"
 import {
@@ -29,8 +29,9 @@ import {
   buildPartialStringIndex,
   buildPartialStringBundle,
   buildPartialStringInitial,
+  buildPartialHydratePages,
   buildPartialHydrateIndex,
-  buildPartialHydrateAssets,
+  buildPartialHydrateAsset,
   buildSearchJson,
 } from "./build.js"
 import { optimizeCommentOutStyleImport } from "./optimize.js"
@@ -135,6 +136,7 @@ export async function generatePartialHydration(
   const stringIndex = `${outDir}/string-index.mjs`
   const stringBundle = `${outDir}/string-bundle.mjs`
   const stringInitial = `${outDir}/string-initial.json`
+  const hydratePages = `${outDir}/hydrate-pages.json`
   const hydrateIndex = `${outDir}/hydrate-index.mjs`
 
   await buildPartialStringIndex(partialModules, { outFile: stringIndex })
@@ -149,16 +151,52 @@ export async function generatePartialHydration(
   await buildPartialStringInitial(stringBundle, partialModules, {
     outFile: stringInitial,
   })
-  await buildPartialHydrateIndex(partialModules, config, {
-    outFile: hydrateIndex,
-  })
-  await buildPartialHydrateAssets(viteConfig, config, {
-    input: hydrateIndex,
-    bundleOutName: config.assets.partial.outName,
-    outDir: systemConfig.temp.assets.outDir,
-    assetDir: config.assets.outDir,
-    usePreact: config.assets.partial.usePreact,
-  })
+
+  if (config.assets.partial.useSplitPerPage) {
+    const perPagesDir = systemConfig.temp.partialHydration.outDir + "/per-pages"
+    const roots = await getFilePaths(systemConfig.temp.root.outDir, "mjs")
+    const pages = await getFilePaths(systemConfig.temp.pages.outDir, "mjs")
+
+    const partialHydratePages = await buildPartialHydratePages(
+      partialModules,
+      config,
+      {
+        roots: roots,
+        pages: pages,
+        outBase: systemConfig.temp.pages.outDir,
+        outFile: hydratePages,
+      }
+    )
+    await Promise.all(
+      partialHydratePages.map(async (item) => {
+        await buildPartialHydrateIndex(item.hasPartialModules, config, {
+          outFile: `${perPagesDir}/${item.name}.mjs`,
+        })
+      })
+    )
+    await Promise.all(
+      partialHydratePages.map(async (item) => {
+        await buildPartialHydrateAsset(viteConfig, config, {
+          input: `${perPagesDir}/${item.name}.mjs`,
+          bundleOutName: item.name,
+          outDir: systemConfig.temp.assets.outDir,
+          assetDir: config.assets.outDir,
+          usePreact: config.assets.partial.usePreact,
+        })
+      })
+    )
+  } else {
+    await buildPartialHydrateIndex(partialModules, config, {
+      outFile: hydrateIndex,
+    })
+    await buildPartialHydrateAsset(viteConfig, config, {
+      input: hydrateIndex,
+      bundleOutName: config.assets.partial.outName,
+      outDir: systemConfig.temp.assets.outDir,
+      assetDir: config.assets.outDir,
+      usePreact: config.assets.partial.usePreact,
+    })
+  }
 }
 
 export async function generateNoStyleTemp(targetDir: string) {
@@ -177,6 +215,7 @@ export async function generateHtmlPages(
   const tempRootOutDir = systemConfig.temp.root.outDir
   const tempPagesOutDir = systemConfig.temp.pages.outDir
   const tempAssetsOutDir = systemConfig.temp.assets.outDir
+  const tempPartialOutDir = systemConfig.temp.partialHydration.outDir
 
   const tempRootFilePath = getFilePath(tempRootOutDir, tempRootName, "mjs")
   const tempPageFilePaths = await getFilePaths(tempPagesOutDir, "mjs")
@@ -184,11 +223,35 @@ export async function generateHtmlPages(
     "css",
     "js",
   ])
+
+  async function getPattern(filePath: string) {
+    const targetRelative = path.relative(".", filePath)
+    const targetJson = JSON.parse(await fs.readFile(targetRelative, "utf8"))
+    const result: EntryObject[] = targetJson.map(
+      (item: { name: string; insertPages: string[] }) => ({
+        name: item.name,
+        input: "",
+        insertPages: item.insertPages,
+      })
+    )
+    return result
+  }
+
+  const tempPartialFilePath = getFilePath(
+    tempPartialOutDir,
+    "hydrate-pages",
+    "json"
+  )
+  const partialPattern = tempAssetsFilePaths
+    ? await getPattern(tempPartialFilePath)
+    : []
+
   const assetsTagArray = buildAssetsTagArray({
     entryPoints: tempAssetsFilePaths,
     outBase: tempAssetsOutDir,
     hrefBase: config.assetsOutHref,
     entryPattern: config.entry,
+    partialPattern: partialPattern,
   })
   await buildStaticPages({
     entryPoints: tempPageFilePaths,

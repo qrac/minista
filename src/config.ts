@@ -36,6 +36,7 @@ export const defaultConfig: MinistaConfig = {
       outName: "bundle",
     },
     partial: {
+      useSplitPerPage: false,
       usePreact: false,
       useIntersectionObserver: true,
       outName: "partial",

@@ -107,6 +107,7 @@ export default defineConfig({
       outName: "bundle", // string
     },
     partial: {
+      useSplitPerPage: false, // boolean
       usePreact: false, // boolean
       useIntersectionObserver: true, // boolean
       outName: "partial", // string
