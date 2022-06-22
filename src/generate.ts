@@ -242,7 +242,7 @@ export async function generateHtmlPages(
     "hydrate-pages",
     "json"
   )
-  const partialPattern = tempAssetsFilePaths
+  const partialPattern = tempPartialFilePath
     ? await getPattern(tempPartialFilePath)
     : []
 
