@@ -7,6 +7,9 @@ const PageHome = () => {
           <a href="/about/">About</a>
         </li>
         <li>
+          <a href="/lang/">Lang</a>
+        </li>
+        <li>
           <a href="/entry/">Entry</a>
         </li>
         <li>

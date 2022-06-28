@@ -12,9 +12,15 @@ export async function renderHtml(
   const staticHelmet = (data: string) => {
     return data.replace(/data-react-helmet="true"/g, "")
   }
+  const htmlAttributes = Object.hasOwn(
+    helmet.htmlAttributes.toComponent(),
+    "lang"
+  )
+    ? helmet.htmlAttributes.toString()
+    : `lang="ja" ${helmet.htmlAttributes.toString()}`
   return `
     <!doctype html>
-    <html lang="ja" ${helmet.htmlAttributes.toString()}>
+    <html ${htmlAttributes}>
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
