@@ -6,6 +6,7 @@ import rehypeSlug from "rehype-slug"
 //import { remarkMdxFrontmatter } from "remark-mdx-frontmatter"
 
 export default defineConfig({
+  //base: "./",
   //base: "/test/",
   assets: {
     entry: [

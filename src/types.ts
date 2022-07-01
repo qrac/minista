@@ -233,6 +233,12 @@ export type UserEntryObject = {
   insertPages: string | string[] | { include: string[]; exclude?: string[] }
 }
 
+export type AssetsTagObject = {
+  pattern: string[]
+  assetTag: string
+  assetPath: string
+}
+
 export type MinistaResolveAliasInput = AliasObject | AliasArray
 export type MinistaResolveAliasConfig = {
   alias: AliasArray

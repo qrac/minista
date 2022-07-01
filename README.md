@@ -80,6 +80,10 @@ import { defineConfig } from "minista"
 
 export default defineConfig({
   base: "/", // string
+  // Absolute URL pathname, e.g. "/foo/"
+  // Full URL, e.g. "https://foo.com/"
+  // Empty string or "./" (for embedded deployment)
+  // https://ja.vitejs.dev/config/shared-options.html#base
   public: "public", // string
   out: "dist", // string
   root: {

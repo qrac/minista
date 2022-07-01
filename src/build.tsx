@@ -38,6 +38,7 @@ import type {
   PartialString,
   CssOptions,
   EntryObject,
+  AssetsTagObject,
 } from "./types.js"
 
 import { systemConfig } from "./system.js"
@@ -144,10 +145,7 @@ export async function buildStaticPages({
   tempRootFilePath: string
   outBase: string
   outDir: string
-  assetsTagArray: {
-    pattern: string[]
-    tag: string
-  }[]
+  assetsTagArray: AssetsTagObject[]
   showLog: boolean
 }) {
   const rootStaticContent = await buildRootEsmContent(tempRootFilePath)
@@ -214,10 +212,7 @@ export async function buildStaticPage({
   entryPoint: string
   outFile: string
   rootStaticContent: RootStaticContent
-  assetsTagArray: {
-    pattern: string[]
-    tag: string
-  }[]
+  assetsTagArray: AssetsTagObject[]
   outDir: string
   showLog: boolean
 }) {
@@ -329,10 +324,7 @@ export async function buildHtmlPage({
   staticDataItem: StaticDataItem
   routePath: string
   rootStaticContent: RootStaticContent
-  assetsTagArray: {
-    pattern: string[]
-    tag: string
-  }[]
+  assetsTagArray: AssetsTagObject[]
   frontmatter: any
   outDir: string
   showLog: boolean
@@ -503,7 +495,7 @@ export function buildAssetsTagArray({
   entryPattern?: EntryObject[]
   bundlePattern?: EntryObject[]
   partialPattern?: EntryObject[]
-}) {
+}): AssetsTagObject[] {
   const winOutBase = outBase.replaceAll("/", "\\")
   const assets = entryPoints.map((entryPoint) => {
     const assetPath = entryPoint
@@ -512,9 +504,17 @@ export function buildAssetsTagArray({
       .replaceAll("\\", "/")
     const name = getFilename(assetPath)
     if (assetPath.endsWith(".css")) {
-      return { name: name, tag: `<link rel="stylesheet" href="${assetPath}">` }
+      return {
+        name: name,
+        assetTag: `<link rel="stylesheet" href="${assetPath}">`,
+        assetPath: assetPath,
+      }
     } else {
-      return { name: name, tag: `<script defer src="${assetPath}"></script>` }
+      return {
+        name: name,
+        assetTag: `<script defer src="${assetPath}"></script>`,
+        assetPath: assetPath,
+      }
     }
   })
   const patterns = [...entryPattern, ...bundlePattern, ...partialPattern]
@@ -523,9 +523,17 @@ export function buildAssetsTagArray({
       (pattern) => pattern.name === asset.name
     )
     if (targetPattern) {
-      return { pattern: targetPattern.insertPages, tag: asset.tag }
+      return {
+        pattern: targetPattern.insertPages,
+        assetTag: asset.assetTag,
+        assetPath: asset.assetPath,
+      }
     } else {
-      return { pattern: ["**/*"], tag: asset.tag }
+      return {
+        pattern: ["**/*"],
+        assetTag: asset.assetTag,
+        assetPath: asset.assetPath,
+      }
     }
   })
   return result
@@ -536,10 +544,7 @@ export function buildAssetsTagStr({
   assetsTagArray,
 }: {
   pathname: string
-  assetsTagArray: {
-    pattern: string[]
-    tag: string
-  }[]
+  assetsTagArray: AssetsTagObject[]
 }) {
   if (!assetsTagArray.length) {
     return ""
@@ -547,10 +552,27 @@ export function buildAssetsTagStr({
   const result = assetsTagArray
     .map((item) => {
       const check = picomatch.isMatch(pathname, item.pattern)
-      if (check) {
-        return item.tag
-      } else {
+
+      if (!check) {
         return ""
+      }
+      if (!item.assetPath.startsWith("./")) {
+        return item.assetTag
+      }
+
+      const slashArray = pathname.match(/\//g)
+      const slashCount = slashArray ? slashArray.length : 1
+
+      if (slashCount >= 2) {
+        const upStr = [...Array(slashCount - 1)].map(() => "../").join("")
+        const relativePath = item.assetPath.replace(/^\.\//, upStr)
+        const relativeAssetTag = item.assetTag.replace(
+          new RegExp(item.assetPath),
+          relativePath
+        )
+        return relativeAssetTag
+      } else {
+        return item.assetTag
       }
     })
     .join("")
@@ -601,6 +623,7 @@ export async function buildViteImporterRoutes(config: MinistaResolveConfig) {
       ${replaceFileNameArrayStr}
       .replace(/\\[\\.{3}.+\\]/, "*")
       .replace(/\\[(.+)\\]/, ":$1")
+      .replace(/^.\\//, "/")
     return {
       routePath: routePath,
       PageComponent: ROUTES[route].default,
