@@ -1085,7 +1085,10 @@ export async function buildSearchJson({
       })
 
       const regTrimPath = new RegExp(`^${entryBase}|index|.html`, "g")
-      const path = filePath.replace(regTrimPath, "")
+      const routePath = path.join(
+        config.base,
+        filePath.replace(regTrimPath, "")
+      )
 
       const regTrimTitle = new RegExp(trimTitle)
       const pTitle = parsedHtml.querySelector("title") as NhpHTML
@@ -1097,7 +1100,7 @@ export async function buildSearchJson({
       if (!targetContent) {
         tempWords.push(title)
         tempPages.push({
-          path: path,
+          path: routePath,
           toc: [],
           title: titleArray,
           content: [],
@@ -1160,7 +1163,7 @@ export async function buildSearchJson({
       tempWords.push(title)
       tempWords.push(body)
       tempPages.push({
-        path: path,
+        path: routePath,
         toc: toc,
         title: titleArray,
         content: contentArray.flat(),
@@ -1205,7 +1208,7 @@ export async function buildSearchJson({
 
   await Promise.all(
     tempPages.map(async (page) => {
-      const path = page.path
+      const routePath = page.path
       const toc = page.toc
       const title = page.title.map((word) => {
         return sortedWords.indexOf(word)
@@ -1214,7 +1217,7 @@ export async function buildSearchJson({
         return sortedWords.indexOf(word)
       })
 
-      pages.push({ path: path, title: title, toc: toc, content: content })
+      pages.push({ path: routePath, title: title, toc: toc, content: content })
     })
   )
 
