@@ -1,6 +1,6 @@
 {
   "name": "minista",
-  "description": "Next.js Like Development with 100% Static Generate",
+  "description": "Static site generator with 100% static export from React and Vite",
   "version": "3.0.0-alpha.0",
   "type": "module",
   "engines": {
