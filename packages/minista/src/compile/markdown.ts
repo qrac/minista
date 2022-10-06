@@ -1,6 +1,5 @@
 import { parse as parseHtml } from "node-html-parser"
 import { compile as compileMdx, run as runMdx } from "@mdx-js/mdx"
-import { transform as transformByEsbuild } from "esbuild"
 import { createElement } from "react"
 import ReactDOMServer from "react-dom/server"
 
