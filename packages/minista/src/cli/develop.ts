@@ -7,9 +7,10 @@ import {
   mergeConfig as mergeViteConfig,
 } from "vite"
 
-import type { Render } from "../server/render"
 import type { ResolvedConfig, InlineConfig } from "../config/index.js"
+import type { GetSources } from "../server/sources.js"
 import { resolveConfig } from "../config/index.js"
+import { compileApp } from "../compile/app.js"
 import { compileComment } from "../compile/comment.js"
 import { compileMarkdown } from "../compile/markdown.js"
 
@@ -25,11 +26,17 @@ export function doDevelop(config: ResolvedConfig): Plugin {
           try {
             const url = req.originalUrl || ""
 
-            const { render } = (await server.ssrLoadModule(
-              __dirname + "/../server/render.js"
-            )) as { render: Render }
+            const { getSources } = (await server.ssrLoadModule(
+              __dirname + "/../server/sources.js"
+            )) as { getSources: GetSources }
+            const { resolvedGlobal, resolvedPages } = await getSources()
 
-            let html = await render(url)
+            let html = compileApp({
+              url,
+              resolvedGlobal,
+              resolvedPages,
+              useDevelopBundle: true,
+            })
 
             if (html.includes(`data-minista-compile-target="comment"`)) {
               html = compileComment(html)
