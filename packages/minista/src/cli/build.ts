@@ -1,96 +1,79 @@
+import type { RollupOutput } from "rollup"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 import pc from "picocolors"
-import { createServer as createViteServer } from "vite"
-import beautify from "js-beautify"
+import {
+  defineConfig as defineViteConfig,
+  mergeConfig as mergeViteConfig,
+  build as viteBuild,
+} from "vite"
 
-import type { ResolvedConfig, InlineConfig } from "../config/index.js"
-import type { GetSources } from "../server/sources.js"
+import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
-import { compileApp } from "../compile/app.js"
-import { compileComment } from "../compile/comment.js"
-import { compileMarkdown } from "../compile/markdown.js"
+import { ssg } from "../vite/ssg.js"
+import { bundle } from "../vite/bundle.js"
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+type BuildResult = {
+  output: BuildItem[]
+}
+type BuildItem = RollupOutput["output"][0] & {
+  source?: string
+  code?: string
+}
 
-export async function doBuild(config: ResolvedConfig) {
-  const server = await createViteServer(config.vite)
-  await server.listen()
+export async function build(inlineConfig: InlineConfig = {}) {
+  const config = await resolveConfig(inlineConfig)
+  const mergedViteConfig = mergeViteConfig(
+    config.vite,
+    defineViteConfig({
+      build: { write: false },
+      plugins: [ssg(config), bundle()],
+    })
+  )
+  const result = (await viteBuild(mergedViteConfig)) as unknown as BuildResult
+  const items = result.output
 
-  const { getSources } = (await server.ssrLoadModule(
-    __dirname + "/../server/sources.js"
-  )) as { getSources: GetSources }
-  const { resolvedGlobal, resolvedPages } = await getSources()
-
-  await server.close()
-
-  if (resolvedPages.length === 0) {
+  if (!Array.isArray(items)) {
+    return
+  }
+  if (items.length === 0) {
     return
   }
 
-  let htmlPages = resolvedPages.map((page) => {
-    return {
-      path: page.path,
-      html: compileApp({
-        url: page.path,
-        resolvedGlobal,
-        resolvedPages: [page],
-        useDevelopBundle: false,
-      }),
-    }
-  })
-
-  htmlPages = await Promise.all(
-    htmlPages.map(async (page) => {
-      let html = page.html
-
-      if (html.includes(`data-minista-compile-target="comment"`)) {
-        html = compileComment(html)
-      }
-      if (html.includes(`data-minista-compile-target="markdown"`)) {
-        html = await compileMarkdown(html, config.mdx)
-      }
-      return {
-        path: page.path,
-        html,
-      }
-    })
-  )
-
-  htmlPages = config.main.beautify.useHtml
-    ? htmlPages.map((page) => ({
-        path: page.path,
-        html: beautify.html(page.html, config.main.beautify.htmlOptions),
-      }))
-    : htmlPages
-
   await Promise.all(
-    htmlPages.map(async (page) => {
-      const fileName = page.path.endsWith("/")
-        ? path.join(page.path, "index.html")
-        : page.path + ".html"
+    items.map(async (item) => {
+      const isPage = item.fileName.match(/src\/pages\/.*\.html$/)
+      const isBundleJs = item.fileName.match(/__minista_bundle_assets\.js$/)
+
+      let fileName = item.fileName
+      isPage && (fileName = item.fileName.replace(/src\/pages\//, ""))
+
+      let data = ""
+      item.source && (data = item.source)
+      item.code && (data = item.code)
+
+      if (isBundleJs) {
+        return
+      }
+      if (!data) {
+        return
+      }
+
       const routePath = path.join(
         config.sub.resolvedRoot,
         config.main.out,
         fileName
       )
-      const relativeParh = path.relative(process.cwd(), routePath)
+      const relativePath = path.relative(process.cwd(), routePath)
 
       return await fs
-        .outputFile(routePath, page.html)
+        .outputFile(routePath, data)
         .then(() => {
-          console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(relativeParh)}`)
+          console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}`)
         })
         .catch((err) => {
           console.error(err)
         })
     })
   )
-}
-
-export async function build(inlineConfig: InlineConfig = {}) {
-  const config = await resolveConfig(inlineConfig)
-  await doBuild(config)
 }

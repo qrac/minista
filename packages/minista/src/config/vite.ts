@@ -1,7 +1,7 @@
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import type { UserConfig as ViteConfig } from "vite"
-import type { PreRenderedAsset } from "rollup"
+import type { PreRenderedChunk, PreRenderedAsset } from "rollup"
 import {
   defineConfig as defineViteConfig,
   mergeConfig as mergeViteConfig,
@@ -40,26 +40,26 @@ export function resolveViteAssetFileNames(
   mainConfig: ResolvedMainConfig
 ) {
   const filePath = chunkInfo.name || ""
+  const fileExt = getFileExt(filePath)
   const imgExt = ["jpg", "jpeg", "gif", "png", "webp"]
   const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
-  const fileExt = getFileExt(filePath)
 
   if (fileExt && imgExt.includes(fileExt)) {
     return path.join(
       mainConfig.assets.images.outDir,
       mainConfig.assets.images.outName + ".[ext]"
     )
-  } else if (fileExt && fontExt.includes(fileExt)) {
+  }
+  if (fileExt && fontExt.includes(fileExt)) {
     return path.join(
       mainConfig.assets.fonts.outDir,
       mainConfig.assets.fonts.outName + ".[ext]"
     )
-  } else {
-    return path.join(
-      mainConfig.assets.outDir,
-      mainConfig.assets.outName + ".[ext]"
-    )
   }
+  return path.join(
+    mainConfig.assets.outDir,
+    mainConfig.assets.outName + ".[ext]"
+  )
 }
 
 export async function resolveViteConfig(
@@ -79,11 +79,16 @@ export async function resolveViteConfig(
         input: resolveViteEntry(subConfig.resolvedEntry),
         output: {
           manualChunks: undefined,
-          entryFileNames: `${mainConfig.assets.outDir}/${mainConfig.assets.outName}.js`,
-          //chunkFileNames: `${config.assets.outDir}/${config.assets.outName}.js`,
-          //assetFileNames: `${config.assets.outDir}/${config.assets.outName}.[ext]`,
+          entryFileNames: path.join(
+            mainConfig.assets.outDir,
+            mainConfig.assets.outName + ".js"
+          ),
           assetFileNames: (chunkInfo) =>
             resolveViteAssetFileNames(chunkInfo, mainConfig),
+        },
+        onwarn: (warning, defaultHandler) => {
+          if (warning.code === "EMPTY_BUNDLE") return
+          defaultHandler(warning)
         },
       },
       commonjsOptions: { include: [] }, // Using esbuild deps optimization at build time

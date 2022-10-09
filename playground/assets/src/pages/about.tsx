@@ -1,9 +1,7 @@
-import "./index.css"
-
 export default function () {
   return (
     <section>
-      <h1>index</h1>
+      <h1>about</h1>
     </section>
   )
 }
