@@ -7,7 +7,7 @@ export function getFileName(filePath: string): string {
 
 export function getFileNameObject(filePaths: string[]) {
   const list = filePaths.map((item) => [getFileName(item), item])
-  const object = Object.fromEntries(list)
+  const object = Object.fromEntries(list) as { [key: string]: string }
   return object
 }
 

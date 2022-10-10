@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 
+import path from "node:path"
+
 import { resolveSubConfig } from "../../src/config/sub"
 import { defaultMainConfig, resolveMainConfig } from "../../src/config/main"
 
@@ -22,7 +24,7 @@ describe("resolveSubConfig", () => {
     expect(result.resolvedEntry).toEqual([
       {
         name: "script",
-        input: "src/assets/script.ts",
+        input: path.join(result.resolvedRoot, "src/assets/script.ts"),
         insertPages: ["**/*"],
       },
     ])

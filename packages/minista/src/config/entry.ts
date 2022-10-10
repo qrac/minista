@@ -1,4 +1,5 @@
-import { noSlashStart } from "../utility/slash.js"
+import path from "node:path"
+
 import { getFileName } from "../utility/path.js"
 
 export type Entry =
@@ -58,7 +59,10 @@ export function resolveEntryExclude(
   }
 }
 
-export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
+export async function resolveEntry(
+  entry: Entry,
+  resolvedRoot: string
+): Promise<ResolvedEntry> {
   const entries: ResolvedEntryObject[] = []
 
   async function pushEntries(input: Entry) {
@@ -67,7 +71,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
     } else if (typeof input === "string") {
       const pattern = {
         name: getFileName(input),
-        input: noSlashStart(input),
+        input: path.join(resolvedRoot, input),
         insertPages: ["**/*"],
       }
       return entries.push(pattern)
@@ -78,7 +82,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
           strArray.map(async (item) => {
             const pattern = {
               name: getFileName(item),
-              input: noSlashStart(item),
+              input: path.join(resolvedRoot, item),
               insertPages: ["**/*"],
             }
             return entries.push(pattern)
@@ -94,7 +98,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
             const fixedExclude = exclude.map((item) => "!" + item)
             const pattern = {
               name: name,
-              input: noSlashStart(item.input),
+              input: path.join(resolvedRoot, item.input),
               insertPages: [...include, ...fixedExclude],
             }
             return entries.push(pattern)
@@ -106,7 +110,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
         Object.entries(input).map(async (item) => {
           const pattern = {
             name: item[0],
-            input: noSlashStart(item[1]),
+            input: path.join(resolvedRoot, item[1]),
             insertPages: ["**/*"],
           }
           return entries.push(pattern)
