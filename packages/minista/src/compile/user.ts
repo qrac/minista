@@ -19,7 +19,10 @@ export async function compileUserConfig(
     platform: "node",
     minify: false,
     plugins: [external()],
+  }).catch((err) => {
+    console.error(err)
   })
+
   const { default: compiledUserConfig }: { default: UserConfig } = await import(
     tempEntryPoint
   )
