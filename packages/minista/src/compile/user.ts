@@ -1,22 +1,28 @@
 import { build as esBuild } from "esbuild"
 
+import path from "node:path"
+import fs from "fs-extra"
 import type { UserConfig } from "../config/user.js"
 import { external } from "../esbuild/external.js"
 
 export async function compileUserConfig(
   entryPoint: string
 ): Promise<UserConfig> {
-  const compiledCode = await esBuild({
+  const entryBase = path.basename(entryPoint)
+  const tempEntryPoint = entryPoint.replace(entryBase, "__minista.config.mjs")
+
+  await esBuild({
     entryPoints: [entryPoint],
-    write: false,
+    outfile: tempEntryPoint,
     bundle: true,
     format: "esm",
     platform: "node",
-    minify: true,
+    minify: false,
     plugins: [external()],
   })
   const { default: compiledUserConfig }: { default: UserConfig } = await import(
-    `data:text/javascript,${compiledCode.outputFiles[0].text}`
+    tempEntryPoint
   )
+  await fs.remove(tempEntryPoint)
   return compiledUserConfig
 }

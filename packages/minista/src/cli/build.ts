@@ -44,17 +44,31 @@ export async function build(inlineConfig: InlineConfig = {}) {
     items.map(async (item) => {
       const isPage = item.fileName.match(/src\/pages\/.*\.html$/)
       const isBundleJs = item.fileName.match(/__minista_bundle_assets\.js$/)
+      const isBundleCss = item.fileName.match(/__minista_bundle_assets\.css$/)
+
+      if (isBundleJs) {
+        return
+      }
+
+      const bundleCssName = path.join(
+        config.main.assets.outDir,
+        config.main.assets.bundle.outName + ".css"
+      )
+      const vite3BugBundleCssName = path.join(
+        config.main.assets.outDir,
+        "bundle.css"
+      )
+      const isVite3BugBundleCss = item.fileName === vite3BugBundleCssName
 
       let fileName = item.fileName
       isPage && (fileName = item.fileName.replace(/src\/pages\//, ""))
+      isBundleCss && (fileName = bundleCssName)
+      isVite3BugBundleCss && (fileName = bundleCssName)
 
       let data = ""
       item.source && (data = item.source)
       item.code && (data = item.code)
 
-      if (isBundleJs) {
-        return
-      }
       if (!data) {
         return
       }

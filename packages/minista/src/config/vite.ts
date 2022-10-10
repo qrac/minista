@@ -1,7 +1,7 @@
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import type { UserConfig as ViteConfig } from "vite"
-import type { PreRenderedChunk, PreRenderedAsset } from "rollup"
+import type { PreRenderedAsset } from "rollup"
 import {
   defineConfig as defineViteConfig,
   mergeConfig as mergeViteConfig,
@@ -56,12 +56,6 @@ export function resolveViteAssetFileNames(
       mainConfig.assets.fonts.outName + ".[ext]"
     )
   }
-  if (fileExt === "css") {
-    return path.join(
-      mainConfig.assets.outDir,
-      mainConfig.assets.bundle.outName + ".[ext]"
-    )
-  }
   return path.join(
     mainConfig.assets.outDir,
     mainConfig.assets.outName + ".[ext]"
@@ -80,7 +74,7 @@ export async function resolveViteConfig(
     build: {
       outDir: mainConfig.out,
       assetsInlineLimit: 0,
-      cssCodeSplit: false,
+      //cssCodeSplit: false,
       minify: !mainConfig.beautify.useAssets,
       rollupOptions: {
         input: resolveViteEntry(subConfig.resolvedEntry),
