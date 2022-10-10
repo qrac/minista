@@ -44,16 +44,22 @@ export function resolveViteAssetFileNames(
   const imgExt = ["jpg", "jpeg", "gif", "png", "webp"]
   const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
 
-  if (fileExt && imgExt.includes(fileExt)) {
+  if (imgExt.includes(fileExt)) {
     return path.join(
       mainConfig.assets.images.outDir,
       mainConfig.assets.images.outName + ".[ext]"
     )
   }
-  if (fileExt && fontExt.includes(fileExt)) {
+  if (fontExt.includes(fileExt)) {
     return path.join(
       mainConfig.assets.fonts.outDir,
       mainConfig.assets.fonts.outName + ".[ext]"
+    )
+  }
+  if (fileExt === "css") {
+    return path.join(
+      mainConfig.assets.outDir,
+      mainConfig.assets.bundle.outName + ".[ext]"
     )
   }
   return path.join(
@@ -74,6 +80,7 @@ export async function resolveViteConfig(
     build: {
       outDir: mainConfig.out,
       assetsInlineLimit: 0,
+      cssCodeSplit: false,
       minify: !mainConfig.beautify.useAssets,
       rollupOptions: {
         input: resolveViteEntry(subConfig.resolvedEntry),
