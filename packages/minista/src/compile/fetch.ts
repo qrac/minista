@@ -1,4 +1,4 @@
-import { transform as transformByEsbuild } from "esbuild"
+import { transformWithEsbuild } from "vite"
 
 import type { GlobalFetch } from "../server/global.js"
 import type { PageFetch } from "../server/pages.js"
@@ -6,7 +6,7 @@ import type { PageFetch } from "../server/pages.js"
 export async function compileFetch(getStaticData: GlobalFetch | PageFetch) {
   let fncStr = "" + getStaticData
 
-  const transformedFnc = await transformByEsbuild(fncStr, {
+  const transformedFnc = await transformWithEsbuild(fncStr, "", {
     format: "esm",
     platform: "node",
     loader: "ts",
