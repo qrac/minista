@@ -7,13 +7,15 @@ import { transformWithEsbuild } from "vite"
 export function svgr(svgrOptions: SvgrOptions): Plugin {
   return {
     name: "minista-vite-plugin:svgr",
-    async transform(_, id) {
+    async transform(code, id) {
       if (id.endsWith(".svg")) {
         const { transform: transformSvgr } = await import("@svgr/core")
         const svgCode = await fs.readFile(id, "utf8")
         const componentCode = await transformSvgr(svgCode, svgrOptions, {
-          componentName: "ReactComponent",
           filePath: id,
+          caller: {
+            previousExport: code,
+          },
         })
         const res = await transformWithEsbuild(componentCode, id, {
           loader: "jsx",
