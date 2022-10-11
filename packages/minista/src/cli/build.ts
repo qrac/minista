@@ -7,6 +7,7 @@ import {
   mergeConfig as mergeViteConfig,
   build as viteBuild,
 } from "vite"
+import beautify from "js-beautify"
 
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
@@ -43,6 +44,8 @@ export async function build(inlineConfig: InlineConfig = {}) {
   await Promise.all(
     items.map(async (item) => {
       const isPage = item.fileName.match(/src\/pages\/.*\.html$/)
+      const isJs = item.fileName.match(/.*\.js$/)
+      const isCss = item.fileName.match(/.*\.css$/)
       const isBundleJs = item.fileName.match(/__minista_bundle_assets\.js$/)
       const isBundleCss = item.fileName.match(/__minista_bundle_assets\.css$/)
 
@@ -71,6 +74,16 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
       if (!data) {
         return
+      }
+
+      if (isPage && config.main.beautify.useHtml) {
+        data = beautify.html(data, config.main.beautify.htmlOptions)
+      }
+      if (isJs && config.main.beautify.useAssets) {
+        data = beautify.js(data, config.main.beautify.jsOptions)
+      }
+      if (isCss && config.main.beautify.useAssets) {
+        data = beautify.css(data, config.main.beautify.cssOptions)
       }
 
       const routePath = path.join(

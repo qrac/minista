@@ -3,7 +3,6 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 import { createServer as createViteServer } from "vite"
-import beautify from "js-beautify"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
@@ -73,13 +72,6 @@ export function ssg(config: ResolvedConfig): Plugin {
           }
         })
       )
-
-      htmlPages = config.main.beautify.useHtml
-        ? htmlPages.map((page) => ({
-            path: page.path,
-            html: beautify.html(page.html, config.main.beautify.htmlOptions),
-          }))
-        : htmlPages
 
       resolvedHtmlPages = htmlPages.map((page, index) => {
         let fileName = page.path.endsWith("/")
