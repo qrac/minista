@@ -13,7 +13,7 @@ import type {
 } from "js-beautify"
 import path from "node:path"
 import fs from "fs-extra"
-import { normalizePath, createServer } from "vite"
+import { normalizePath, createServer as createViteServer } from "vite"
 import { deepmergeCustom } from "deepmerge-ts"
 
 import type { Entry } from "./entry.js"
@@ -150,11 +150,11 @@ export async function resolveUserConfig(
   if (filterdConfigPaths.length > 0) {
     const entryPoint = path.join(resolvedRoot, filterdConfigPaths[0])
 
-    const server = await createServer()
-    const { default: compiledUserConfig } = (await server.ssrLoadModule(
+    const viteServer = await createViteServer()
+    const { default: compiledUserConfig } = (await viteServer.ssrLoadModule(
       entryPoint
     )) as { default: UserConfig }
-    await server.close()
+    await viteServer.close()
 
     const customDeepmerge = deepmergeCustom({
       mergeArrays: false,
