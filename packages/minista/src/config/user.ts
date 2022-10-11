@@ -151,9 +151,11 @@ export async function resolveUserConfig(
     const entryPoint = path.join(resolvedRoot, filterdConfigPaths[0])
 
     const viteServer = await createViteServer()
+
     const { default: compiledUserConfig } = (await viteServer.ssrLoadModule(
       entryPoint
     )) as { default: UserConfig }
+
     await viteServer.close()
 
     const customDeepmerge = deepmergeCustom({
