@@ -5,6 +5,7 @@ import { resolveConfig } from "../config/index.js"
 
 export async function preview(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
-  const server = await vitePreview(config.vite)
-  server.printUrls()
+
+  const viteServer = await vitePreview(config.vite)
+  viteServer.printUrls()
 }

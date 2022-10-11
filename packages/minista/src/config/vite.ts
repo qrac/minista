@@ -17,7 +17,7 @@ import type { ResolvedMdxConfig } from "./mdx.js"
 import type { ResolvedEntry } from "./entry.js"
 import { systemConfig } from "./system.js"
 import { getFileExt } from "../utility/path.js"
-import { svgr } from "../vite/svgr.js"
+import { svgr } from "../plugins/svgr.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

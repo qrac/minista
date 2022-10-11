@@ -11,8 +11,8 @@ import beautify from "js-beautify"
 
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
-import { ssg } from "../vite/ssg.js"
-import { bundle } from "../vite/bundle.js"
+import { ssg } from "../plugins/ssg.js"
+import { bundle } from "../plugins/bundle.js"
 
 type BuildResult = {
   output: BuildItem[]
@@ -24,6 +24,7 @@ type BuildItem = RollupOutput["output"][0] & {
 
 export async function build(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
+
   const mergedViteConfig = mergeViteConfig(
     config.vite,
     defineViteConfig({
@@ -32,6 +33,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     })
   )
   const result = (await viteBuild(mergedViteConfig)) as unknown as BuildResult
+
   const items = result.output
 
   if (!Array.isArray(items)) {
