@@ -73,12 +73,20 @@ export function compileApp({
   url,
   resolvedGlobal,
   resolvedPages,
+  headTags,
+  startTags,
+  endTags,
+  useBundlePlaceholder,
   useDevelopBundle,
 }: {
   url: string
   resolvedGlobal: ResolvedGlobal
   resolvedPages: ResolvedPages
-  useDevelopBundle: boolean
+  headTags?: string
+  startTags?: string
+  endTags?: string
+  useBundlePlaceholder?: boolean
+  useDevelopBundle?: boolean
 }): string {
   const helmetContext = {}
 
@@ -103,7 +111,14 @@ export function compileApp({
     ? helmet.htmlAttributes.toString()
     : `lang="ja" ${helmet.htmlAttributes.toString()}`
 
-  const developBundleScript = useDevelopBundle
+  const insertHeadTags = headTags ? headTags : ""
+  const insertStartTags = startTags ? `${startTags}\n` : ""
+  const insertEndTags = endTags ? `\n${endTags}` : ""
+
+  const bundlePlaceholder = useBundlePlaceholder
+    ? `\n<!-- __minista_bundle_assets -->`
+    : ""
+  const developBundleTag = useDevelopBundle
     ? `\n<script type="module">import "/@minista/dist/server/bundle.js"</script>`
     : ""
 
@@ -115,12 +130,13 @@ export function compileApp({
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       ${staticHelmet(helmet.title.toString())}
       ${staticHelmet(helmet.meta.toString())}
+      ${insertHeadTags}${bundlePlaceholder}
       ${staticHelmet(helmet.link.toString())}
       ${staticHelmet(helmet.style.toString())}
       ${staticHelmet(helmet.script.toString())}
     </head>
     <body ${helmet.bodyAttributes.toString()}>
-      ${markup}${developBundleScript}
+      ${insertStartTags}${markup}${insertEndTags}${developBundleTag}
     </body>
   </html>
 `

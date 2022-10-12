@@ -51,7 +51,7 @@ export function pluginSsg(config: ResolvedConfig): Plugin {
             url: page.path,
             resolvedGlobal,
             resolvedPages: [page],
-            useDevelopBundle: false,
+            useBundlePlaceholder: true,
           }),
         }
       })
