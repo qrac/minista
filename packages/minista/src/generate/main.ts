@@ -9,7 +9,7 @@ import {
 } from "vite"
 import beautify from "js-beautify"
 
-import { ResolvedConfig } from "../config/index.js"
+import type { ResolvedConfig } from "../config/index.js"
 import { pluginSsg } from "../plugins/ssg.js"
 
 type GenerateMainBuildResult = {

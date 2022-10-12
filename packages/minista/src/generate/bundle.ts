@@ -1,5 +1,6 @@
 import type { RollupOutput } from "rollup"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 import pc from "picocolors"
 import {
@@ -9,8 +10,10 @@ import {
 } from "vite"
 import beautify from "js-beautify"
 
-import { ResolvedConfig } from "../config/index.js"
-import { pluginBundle } from "../plugins/bundle.js"
+import type { ResolvedConfig } from "../config/index.js"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 type GenerateBundleBuildResult = {
   output: GenerateBundleBuildItem[]
@@ -25,9 +28,12 @@ export async function generateBundle(config: ResolvedConfig) {
     config.vite,
     defineViteConfig({
       build: { write: false },
-      plugins: [pluginBundle()],
     })
   )
+  mergedViteConfig.build.rollupOptions.input = {
+    __minista_bundle_assets: path.join(__dirname, "/../server/bundle.js"),
+  }
+
   const result = (await viteBuild(
     mergedViteConfig
   )) as unknown as GenerateBundleBuildResult
