@@ -126,7 +126,7 @@ export async function resolveViteConfig(
     optimizeDeps: {
       disabled: false, // Using esbuild deps optimization at build time
     },
-    customLogger: createLogger("info", { prefix: "[minista]" }),
+    customLogger: createLogger("error", { prefix: "[minista]" }),
     css: mainConfig.css,
   })
 
