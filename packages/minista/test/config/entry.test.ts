@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import type { Entry } from "../../src/config/entry"
 import {
   resolveEntryInclude,
   resolveEntryExclude,
@@ -57,7 +58,7 @@ describe("resolveEntryExclude", () => {
 
 describe("resolveEntry", () => {
   it("No props", async () => {
-    const configEntry = ""
+    const configEntry: Entry = ""
     const result = await resolveEntry(configEntry, "./")
 
     //console.log(result)
@@ -65,7 +66,7 @@ describe("resolveEntry", () => {
   })
 
   it("String", async () => {
-    const configEntry = "src/assets/script.ts"
+    const configEntry: Entry = "src/assets/script.ts"
     const result = await resolveEntry(configEntry, "./")
 
     //console.log(result)
@@ -74,12 +75,14 @@ describe("resolveEntry", () => {
         name: "script",
         input: "src/assets/script.ts",
         insertPages: ["**/*"],
+        position: "head",
+        loadType: "defer",
       },
     ])
   })
 
   it("Array", async () => {
-    const configEntry = ["src/assets/script.ts", "src/assets/style.css"]
+    const configEntry: Entry = ["src/assets/script.ts", "src/assets/style.css"]
     const result = await resolveEntry(configEntry, "./")
 
     //console.log(result)
@@ -88,17 +91,21 @@ describe("resolveEntry", () => {
         name: "script",
         input: "src/assets/script.ts",
         insertPages: ["**/*"],
+        position: "head",
+        loadType: "defer",
       },
       {
         name: "style",
         input: "src/assets/style.css",
         insertPages: ["**/*"],
+        position: "head",
+        loadType: "defer",
       },
     ])
   })
 
   it("Object", async () => {
-    const configEntry = { script: "src/assets/index.ts" }
+    const configEntry: Entry = { script: "src/assets/index.ts" }
     const result = await resolveEntry(configEntry, "./")
 
     //console.log(result)
@@ -107,16 +114,20 @@ describe("resolveEntry", () => {
         name: "script",
         input: "src/assets/index.ts",
         insertPages: ["**/*"],
+        position: "head",
+        loadType: "defer",
       },
     ])
   })
 
   it("Array object", async () => {
-    const configEntry = [
+    const configEntry: Entry = [
       {
         name: "test1",
         input: "src/assets/test1.ts",
         insertPages: ["/test/test1/**/*", "/test/test1/"],
+        position: "start",
+        loadType: "async",
       },
       {
         name: "test2",
@@ -130,6 +141,7 @@ describe("resolveEntry", () => {
           include: ["**/*"],
           exclude: ["/test/test2/"],
         },
+        loadType: "none",
       },
     ]
     const result = await resolveEntry(configEntry, "./")
@@ -140,16 +152,22 @@ describe("resolveEntry", () => {
         name: "test1",
         input: "src/assets/test1.ts",
         insertPages: ["/test/test1/**/*", "/test/test1/"],
+        position: "start",
+        loadType: "async",
       },
       {
         name: "test2",
         input: "src/assets/test2.ts",
         insertPages: ["/test/test2/**/*", "!/test/test2/"],
+        position: "head",
+        loadType: "defer",
       },
       {
         name: "style",
         input: "src/assets/style.css",
         insertPages: ["**/*", "!/test/test2/"],
+        position: "head",
+        loadType: "none",
       },
     ])
   })

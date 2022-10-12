@@ -26,6 +26,8 @@ describe("resolveSubConfig", () => {
         name: "script",
         input: path.join(result.resolvedRoot, "src/assets/script.ts"),
         insertPages: ["**/*"],
+        position: "head",
+        loadType: "defer",
       },
     ])
   })
