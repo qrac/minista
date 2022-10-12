@@ -10,7 +10,7 @@ import {
 import beautify from "js-beautify"
 
 import { ResolvedConfig } from "../config/index.js"
-import { bundle } from "../plugins/bundle.js"
+import { pluginBundle } from "../plugins/bundle.js"
 
 type GenerateBundleBuildResult = {
   output: GenerateBundleBuildItem[]
@@ -25,7 +25,7 @@ export async function generateBundle(config: ResolvedConfig) {
     config.vite,
     defineViteConfig({
       build: { write: false },
-      plugins: [bundle()],
+      plugins: [pluginBundle()],
     })
   )
   const result = (await viteBuild(

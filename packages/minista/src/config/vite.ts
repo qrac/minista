@@ -9,7 +9,7 @@ import {
   createLogger,
 } from "vite"
 import react from "@vitejs/plugin-react"
-import mdx from "@mdx-js/rollup"
+import { default as pluginMdx } from "@mdx-js/rollup"
 
 import type { ResolvedMainConfig } from "./main.js"
 import type { ResolvedSubConfig } from "./sub.js"
@@ -17,7 +17,7 @@ import type { ResolvedMdxConfig } from "./mdx.js"
 import type { ResolvedEntry } from "./entry.js"
 import { systemConfig } from "./system.js"
 import { getFileExt } from "../utility/path.js"
-import { svgr } from "../plugins/svgr.js"
+import { pluginSvgr } from "../plugins/svgr.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -142,10 +142,10 @@ export async function resolveViteConfig(
     )
   }
 
-  const svgrPlugin = svgr(mainConfig.assets.svgr.svgrOptions)
+  const svgrPlugin = pluginSvgr(mainConfig.assets.svgr.svgrOptions)
   mergedViteConfig.plugins.push(svgrPlugin)
 
-  const mdxPlugin = mdx(mdxConfig)
+  const mdxPlugin = pluginMdx(mdxConfig)
   mergedViteConfig.plugins.push(mdxPlugin)
 
   return mergedViteConfig

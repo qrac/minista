@@ -11,7 +11,7 @@ import { compileMarkdown } from "../compile/markdown.js"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export function serve(config: ResolvedConfig): Plugin {
+export function pluginServe(config: ResolvedConfig): Plugin {
   return {
     name: "minista-vite-plugin:serve",
     configureServer(server) {

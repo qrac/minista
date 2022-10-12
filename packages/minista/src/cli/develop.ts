@@ -6,14 +6,14 @@ import {
 
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
-import { serve } from "../plugins/serve.js"
+import { pluginServe } from "../plugins/serve.js"
 
 export async function develop(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
 
   const mergedViteConfig = mergeViteConfig(
     config.vite,
-    defineViteConfig({ plugins: [serve(config)] })
+    defineViteConfig({ plugins: [pluginServe(config)] })
   )
   const viteServer = await createViteServer(mergedViteConfig)
 

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export function bundle(): Plugin {
+export function pluginBundle(): Plugin {
   return {
     name: "minista-vite-plugin:bundle",
     config: () => ({

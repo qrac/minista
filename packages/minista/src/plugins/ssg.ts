@@ -23,7 +23,7 @@ type ResolvedHtmlPages = {
   html: string
 }[]
 
-export function ssg(config: ResolvedConfig): Plugin {
+export function pluginSsg(config: ResolvedConfig): Plugin {
   let resolvedHtmlPages: ResolvedHtmlPages = []
 
   return {

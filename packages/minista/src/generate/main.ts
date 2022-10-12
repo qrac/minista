@@ -10,7 +10,7 @@ import {
 import beautify from "js-beautify"
 
 import { ResolvedConfig } from "../config/index.js"
-import { ssg } from "../plugins/ssg.js"
+import { pluginSsg } from "../plugins/ssg.js"
 
 type GenerateMainBuildResult = {
   output: GenerateMainBuildItem[]
@@ -25,7 +25,7 @@ export async function generateMain(config: ResolvedConfig) {
     config.vite,
     defineViteConfig({
       build: { write: false },
-      plugins: [ssg(config)],
+      plugins: [pluginSsg(config)],
     })
   )
   const result = (await viteBuild(
