@@ -16,7 +16,6 @@ import type { ResolvedSubConfig } from "./sub.js"
 import type { ResolvedMdxConfig } from "./mdx.js"
 import type { ResolvedEntry } from "./entry.js"
 import { systemConfig } from "./system.js"
-import { getFileExt } from "../utility/path.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -40,17 +39,15 @@ export function resolveViteAssetFileNames(
   mainConfig: ResolvedMainConfig
 ) {
   const filePath = chunkInfo.name || ""
-  const fileExt = getFileExt(filePath)
-  const imgExt = ["jpg", "jpeg", "gif", "png", "webp"]
-  const fontExt = ["woff", "woff2", "eot", "ttf", "otf"]
+  const fileExt = path.extname(filePath)
 
-  if (imgExt.includes(fileExt)) {
+  if (fileExt.match(/\.(jpg|jpeg|gif|png|webp)$/)) {
     return path.join(
       mainConfig.assets.images.outDir,
       mainConfig.assets.images.outName + ".[ext]"
     )
   }
-  if (fontExt.includes(fileExt)) {
+  if (fileExt.match(/\.(woff|woff2|eot|ttf|otf)$/)) {
     return path.join(
       mainConfig.assets.fonts.outDir,
       mainConfig.assets.fonts.outName + ".[ext]"

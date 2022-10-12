@@ -1,7 +1,5 @@
 import path from "node:path"
 
-import { getFileName } from "../utility/path.js"
-
 export type Entry =
   | string
   | string[]
@@ -70,7 +68,7 @@ export async function resolveEntry(
       return
     } else if (typeof input === "string") {
       const pattern = {
-        name: getFileName(input),
+        name: path.parse(input).name,
         input: path.join(resolvedRoot, input),
         insertPages: ["**/*"],
       }
@@ -81,7 +79,7 @@ export async function resolveEntry(
         await Promise.all(
           strArray.map(async (item) => {
             const pattern = {
-              name: getFileName(item),
+              name: path.parse(item).name,
               input: path.join(resolvedRoot, item),
               insertPages: ["**/*"],
             }
@@ -92,7 +90,7 @@ export async function resolveEntry(
         const objectArray = input as EntryObject[]
         await Promise.all(
           objectArray.map(async (item) => {
-            const name = item.name || getFileName(item.input)
+            const name = item.name || path.parse(item.input).name
             const include = resolveEntryInclude(item.insertPages)
             const exclude = resolveEntryExclude(item.insertPages)
             const fixedExclude = exclude.map((item) => "!" + item)
