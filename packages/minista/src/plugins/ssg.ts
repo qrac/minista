@@ -31,6 +31,8 @@ export function pluginSsg(config: ResolvedConfig): Plugin {
     async config(viteConfig) {
       const viteServer = await createViteServer(config.vite)
 
+      await viteServer.listen()
+
       const { getSources } = (await viteServer.ssrLoadModule(
         __dirname + "/../server/sources.js"
       )) as { getSources: GetSources }
