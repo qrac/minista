@@ -1,14 +1,18 @@
 import type { RollupOutput } from "rollup"
 import path from "node:path"
 import fs from "fs-extra"
+import pc from "picocolors"
+import {
+  defineConfig as defineViteConfig,
+  mergeConfig as mergeViteConfig,
+  build as viteBuild,
+} from "vite"
+import beautify from "js-beautify"
 
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
-import { compileMain } from "../compile/main.js"
-import { compileBundle } from "../compile/bundle.js"
-import { generatePublic } from "../generate/public.js"
-import { generateMain } from "../generate/main.js"
-import { generateBundle } from "../generate/bundle.js"
+import { pluginSsg } from "../plugins/ssg.js"
+import { pluginBundle } from "../plugins/bundle.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -21,20 +25,85 @@ export type BuildItem = RollupOutput["output"][0] & {
 export async function build(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
 
-  const resolvedOut = path.join(config.sub.resolvedRoot, config.main.out)
-  const resolvedPublic = path.join(config.sub.resolvedRoot, config.main.public)
+  const mergedViteConfig = mergeViteConfig(
+    config.vite,
+    defineViteConfig({
+      build: { write: false },
+      plugins: [pluginSsg(config), pluginBundle()],
+    })
+  )
+  const result = (await viteBuild(mergedViteConfig)) as unknown as BuildResult
+  const items = result.output
 
-  const mainItems = await compileMain(config)
-  const bundleItems = await compileBundle(config)
-
-  if (mainItems.length === 0) {
+  if (items.length === 0) {
     return console.log("No content to build.")
   }
-  await fs.emptyDir(resolvedOut)
-  await generatePublic(resolvedPublic, resolvedOut)
+  const resolvedOut = path.join(config.sub.resolvedRoot, config.main.out)
+  const resolvedPublic = path.join(config.sub.resolvedRoot, config.main.public)
+  const hasPublic = await fs.pathExists(resolvedPublic)
 
-  await Promise.all([
-    generateMain({ config, mainItems }),
-    generateBundle({ config, bundleItems }),
-  ])
+  await fs.emptyDir(resolvedOut)
+  hasPublic && (await fs.copy(resolvedPublic, resolvedOut))
+
+  await Promise.all(
+    items.map(async (item) => {
+      const isPage = item.fileName.match(/src\/pages\/.*\.html$/)
+      const isJs = item.fileName.match(/.*\.js$/)
+      const isCss = item.fileName.match(/.*\.css$/)
+      const isBundleJs = item.fileName.match(/__minista_bundle_assets\.js$/)
+      const isBundleCss = item.fileName.match(/__minista_bundle_assets\.css$/)
+
+      if (isBundleJs) {
+        return
+      }
+      const bundleCssName = path.join(
+        config.main.assets.outDir,
+        config.main.assets.bundle.outName + ".css"
+      )
+      const vite3BugBundleCssName = path.join(
+        config.main.assets.outDir,
+        "bundle.css"
+      )
+      const isVite3BugBundleCss = item.fileName === vite3BugBundleCssName
+
+      let fileName = item.fileName
+      isPage && (fileName = item.fileName.replace(/src\/pages\//, ""))
+      isBundleCss && (fileName = bundleCssName)
+      isVite3BugBundleCss && (fileName = bundleCssName)
+
+      let data = ""
+      item.source && (data = item.source)
+      item.code && (data = item.code)
+
+      if (!data) {
+        return
+      }
+
+      if (isPage && config.main.beautify.useHtml) {
+        data = beautify.html(data, config.main.beautify.htmlOptions)
+      }
+      if (isJs && config.main.beautify.useAssets) {
+        data = beautify.js(data, config.main.beautify.jsOptions)
+      }
+      if (isCss && config.main.beautify.useAssets) {
+        data = beautify.css(data, config.main.beautify.cssOptions)
+      }
+
+      const routePath = path.join(
+        config.sub.resolvedRoot,
+        config.main.out,
+        fileName
+      )
+      const relativePath = path.relative(process.cwd(), routePath)
+
+      return await fs
+        .outputFile(routePath, data)
+        .then(() => {
+          console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}`)
+        })
+        .catch((err) => {
+          console.error(err)
+        })
+    })
+  )
 }
