@@ -121,6 +121,8 @@ export async function resolveUserConfig(
 
   const trimConfig = inlineConfig
   delete trimConfig?.configFile
+  trimConfig?.base === undefined && delete trimConfig?.base
+
   const trimmedConfig = trimConfig || ({} as UserConfig)
 
   if (configFile === false) {
