@@ -83,7 +83,6 @@
     "esbuild": "^0.15.10",
     "fast-glob": "^3.2.12",
     "fs-extra": "^10.1.0",
-    "msw": "^0.47.4",
     "pathgae": "^0.1.0",
     "picocolors": "^1.0.0",
     "react": "^18.2.0",
