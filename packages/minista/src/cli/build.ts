@@ -1,5 +1,7 @@
 import type { RollupOutput } from "rollup"
 import path from "node:path"
+//import { gzip } from "node:zlib"
+//import { promisify } from "node:util"
 import fs from "fs-extra"
 import pc from "picocolors"
 import {
@@ -114,10 +116,18 @@ export async function build(inlineConfig: InlineConfig = {}) {
       )
       const relativePath = path.relative(process.cwd(), routePath)
 
+      const dataSize = (data.length / 1024).toFixed(2)
+      //const compress = promisify(gzip)
+      //const dataGzipSize = ((await compress(data)).length / 1024).toFixed(2)
+
       return await fs
         .outputFile(routePath, data)
         .then(() => {
-          console.log(`${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}`)
+          console.log(
+            `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
+              " " +
+              pc.gray(`${dataSize} KiB`) // / gzip: ${dataGzipSize} KiB
+          )
         })
         .catch((err) => {
           console.error(err)
