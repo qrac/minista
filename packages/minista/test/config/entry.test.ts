@@ -59,7 +59,7 @@ describe("resolveEntryExclude", () => {
 describe("resolveEntry", () => {
   it("No props", async () => {
     const configEntry: Entry = ""
-    const result = await resolveEntry(configEntry, "./")
+    const result = await resolveEntry(configEntry)
 
     //console.log(result)
     expect(result).toEqual([])
@@ -67,7 +67,7 @@ describe("resolveEntry", () => {
 
   it("String", async () => {
     const configEntry: Entry = "src/assets/script.ts"
-    const result = await resolveEntry(configEntry, "./")
+    const result = await resolveEntry(configEntry)
 
     //console.log(result)
     expect(result).toEqual([
@@ -83,7 +83,7 @@ describe("resolveEntry", () => {
 
   it("Array", async () => {
     const configEntry: Entry = ["src/assets/script.ts", "src/assets/style.css"]
-    const result = await resolveEntry(configEntry, "./")
+    const result = await resolveEntry(configEntry)
 
     //console.log(result)
     expect(result).toEqual([
@@ -106,7 +106,7 @@ describe("resolveEntry", () => {
 
   it("Object", async () => {
     const configEntry: Entry = { script: "src/assets/index.ts" }
-    const result = await resolveEntry(configEntry, "./")
+    const result = await resolveEntry(configEntry)
 
     //console.log(result)
     expect(result).toEqual([
@@ -144,7 +144,7 @@ describe("resolveEntry", () => {
         loadType: "none",
       },
     ]
-    const result = await resolveEntry(configEntry, "./")
+    const result = await resolveEntry(configEntry)
 
     //console.log(result)
     expect(result).toEqual([

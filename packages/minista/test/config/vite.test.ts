@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import type { ResolvedEntry } from "../../src/config/entry"
 import {
   resolveViteEntry,
   resolveViteAssetFileNames,
@@ -11,21 +12,23 @@ import { resolveMdxConfig } from "../../src/config/mdx"
 
 describe("resolveViteEntry", () => {
   it("No entry", () => {
-    const result = resolveViteEntry([])
+    const result = resolveViteEntry("", [])
 
     //console.log(result)
     expect(result).toEqual("")
   })
 
   it("Set entry", () => {
-    const entries = [
+    const entries: ResolvedEntry = [
       {
         name: "script",
         input: "src/assets/script.ts",
         insertPages: ["**/*"],
+        position: "head",
+        loadType: "defer",
       },
     ]
-    const result = resolveViteEntry(entries)
+    const result = resolveViteEntry("", entries)
 
     //console.log("plugins:", plugins[0].name)
     //console.log("result", result)

@@ -15,7 +15,6 @@ import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginSsg } from "../plugins/ssg.js"
 import { pluginBundle } from "../plugins/bundle.js"
-import { compileBundleTag } from "../compile/tags.js"
 
 type BuildResult = {
   output: BuildItem[]
@@ -87,16 +86,17 @@ export async function build(inlineConfig: InlineConfig = {}) {
         return
       }
 
+      if (isPage && !hasBundle) {
+        data = data.replace(
+          /<link.*data-minista-build-bundle-href=.*?>/g,
+          "\n\n"
+        )
+      }
       if (isPage) {
-        const bundleTag = hasBundle
-          ? compileBundleTag({
-              fileName: item.fileName,
-              bundleCssName,
-              base: config.main.base,
-            })
-          : ""
-        const reg = new RegExp("<!-- __minista_bundle_assets -->")
-        data = data.replace(reg, bundleTag)
+        data = data
+          .replace(/data-minista-build-bundle-href=/g, "href=")
+          .replace(/data-minista-build-css-href=/g, "href=")
+          .replace(/data-minista-build-js-src=/g, "src=")
       }
 
       if (isPage && config.main.beautify.useHtml) {

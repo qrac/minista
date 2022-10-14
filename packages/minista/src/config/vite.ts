@@ -6,7 +6,7 @@ import {
   defineConfig as defineViteConfig,
   mergeConfig as mergeViteConfig,
   searchForWorkspaceRoot,
-  createLogger,
+  //createLogger,
 } from "vite"
 import react from "@vitejs/plugin-react"
 import { default as pluginMdx } from "@mdx-js/rollup"
@@ -24,12 +24,15 @@ const __dirname = path.dirname(__filename)
 export type ResolvedViteConfig = ViteConfig
 export type ResolvedViteEntry = { [key: string]: string } | string
 
-export function resolveViteEntry(entry: ResolvedEntry): ResolvedViteEntry {
+export function resolveViteEntry(
+  root: string,
+  entry: ResolvedEntry
+): ResolvedViteEntry {
   if (!entry.length) {
     return ""
   }
   const entries = Object.fromEntries(
-    entry.map((item) => [item.name, item.input])
+    entry.map((item) => [item.name, path.join(root, item.input)])
   )
   return entries
 }
@@ -74,7 +77,10 @@ export async function resolveViteConfig(
       //cssCodeSplit: false,
       minify: !mainConfig.beautify.useAssets,
       rollupOptions: {
-        input: resolveViteEntry(subConfig.resolvedEntry),
+        input: resolveViteEntry(
+          subConfig.resolvedRoot,
+          subConfig.resolvedEntry
+        ),
         output: {
           manualChunks: undefined,
           entryFileNames: path.join(
@@ -114,6 +120,10 @@ export async function resolveViteConfig(
           replacement: path.resolve(__dirname + "/../../"),
         },
         {
+          find: "/@minista-project-root",
+          replacement: path.resolve(subConfig.resolvedRoot),
+        },
+        {
           find: "/@minista-temp",
           replacement: path.resolve(systemConfig.temp.out),
         },
@@ -123,7 +133,7 @@ export async function resolveViteConfig(
     optimizeDeps: {
       disabled: false, // Using esbuild deps optimization at build time
     },
-    customLogger: createLogger("info", { prefix: "[minista]" }),
+    //customLogger: createLogger("info", { prefix: "[minista]" }),
     css: mainConfig.css,
   })
 

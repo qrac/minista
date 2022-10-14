@@ -7,9 +7,11 @@ import { createServer as createViteServer } from "vite"
 import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
 import type { ResolvedViteEntry } from "../config/vite.js"
+import { compileEntryTags } from "../compile/tags.js"
 import { compileApp } from "../compile/app.js"
 import { compileComment } from "../compile/comment.js"
 import { compileMarkdown } from "../compile/markdown.js"
+import { getHtmlPath } from "../utility/path.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -45,13 +47,20 @@ export function pluginSsg(config: ResolvedConfig): Plugin {
       }
 
       let htmlPages = resolvedPages.map((page) => {
+        const { headTags, startTags, endTags } = compileEntryTags({
+          mode: "ssg",
+          pathname: page.path,
+          config,
+        })
         return {
           path: page.path,
           html: compileApp({
             url: page.path,
             resolvedGlobal,
             resolvedPages: [page],
-            useBundlePlaceholder: true,
+            headTags,
+            startTags,
+            endTags,
           }),
         }
       })
@@ -74,11 +83,7 @@ export function pluginSsg(config: ResolvedConfig): Plugin {
       )
 
       resolvedHtmlPages = htmlPages.map((page, index) => {
-        let fileName = page.path.endsWith("/")
-          ? path.join(page.path, "index.html")
-          : page.path + ".html"
-        fileName = fileName.replace(/^\//, "")
-
+        const fileName = getHtmlPath(page.path)
         const fileId = "__minista_bundle_html_" + index
         const moduleId = path.join("src/pages", fileName)
         const srcId = path.join(config.sub.resolvedRoot, "src/pages", fileName)

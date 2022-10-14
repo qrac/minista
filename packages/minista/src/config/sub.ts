@@ -23,7 +23,7 @@ export async function resolveSubConfig(
   const configEntry = mainConfig.assets.entry
   const viteConfigEntry = mainConfig.vite.build?.rollupOptions?.input || ""
   const selectedEntry = configEntry || viteConfigEntry
-  const resolvedEntry = await resolveEntry(selectedEntry, resolvedRoot)
+  const resolvedEntry = await resolveEntry(selectedEntry)
 
   const configAlias = mainConfig.resolve.alias
   const viteConfigAlias = mainConfig.vite.resolve?.alias || {}

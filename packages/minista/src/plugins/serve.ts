@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
+import { compileEntryTags } from "../compile/tags.js"
 import { compileApp } from "../compile/app.js"
 import { compileComment } from "../compile/comment.js"
 import { compileMarkdown } from "../compile/markdown.js"
@@ -25,11 +26,19 @@ export function pluginServe(config: ResolvedConfig): Plugin {
             )) as { getSources: GetSources }
             const { resolvedGlobal, resolvedPages } = await getSources()
 
+            const { headTags, startTags, endTags } = compileEntryTags({
+              mode: "serve",
+              pathname: url,
+              config,
+            })
+
             let html = compileApp({
               url,
               resolvedGlobal,
               resolvedPages,
-              useDevelopBundle: true,
+              headTags,
+              startTags,
+              endTags,
             })
 
             if (html.includes(`data-minista-compile-target="comment"`)) {

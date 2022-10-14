@@ -61,10 +61,7 @@ export function resolveEntryExclude(
   return []
 }
 
-export async function resolveEntry(
-  entry: Entry,
-  resolvedRoot: string
-): Promise<ResolvedEntry> {
+export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
   const entries: ResolvedEntryObject[] = []
 
   async function pushEntries(input: Entry) {
@@ -75,7 +72,7 @@ export async function resolveEntry(
     if (typeof input === "string") {
       const pattern: ResolvedEntryObject = {
         name: path.parse(input).name,
-        input: path.join(resolvedRoot, input),
+        input,
         insertPages: ["**/*"],
         position: "head",
         loadType: "defer",
@@ -88,7 +85,7 @@ export async function resolveEntry(
           strArray.map(async (item) => {
             const pattern: ResolvedEntryObject = {
               name: path.parse(item).name,
-              input: path.join(resolvedRoot, item),
+              input: item,
               insertPages: ["**/*"],
               position: "head",
               loadType: "defer",
@@ -107,7 +104,7 @@ export async function resolveEntry(
             const fixedExclude = exclude.map((item) => "!" + item)
             const pattern: ResolvedEntryObject = {
               name: name,
-              input: path.join(resolvedRoot, item.input),
+              input: item.input,
               insertPages: [...include, ...fixedExclude],
               position: item.position || "head",
               loadType: item.loadType || "defer",
@@ -121,7 +118,7 @@ export async function resolveEntry(
         Object.entries(input).map(async (item) => {
           const pattern: ResolvedEntryObject = {
             name: item[0],
-            input: path.join(resolvedRoot, item[1]),
+            input: item[1],
             insertPages: ["**/*"],
             position: "head",
             loadType: "defer",

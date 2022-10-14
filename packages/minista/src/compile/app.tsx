@@ -76,8 +76,6 @@ export function compileApp({
   headTags,
   startTags,
   endTags,
-  useBundlePlaceholder,
-  useDevelopBundle,
 }: {
   url: string
   resolvedGlobal: ResolvedGlobal
@@ -85,8 +83,6 @@ export function compileApp({
   headTags?: string
   startTags?: string
   endTags?: string
-  useBundlePlaceholder?: boolean
-  useDevelopBundle?: boolean
 }): string {
   const helmetContext = {}
 
@@ -115,13 +111,6 @@ export function compileApp({
   const insertStartTags = startTags ? `${startTags}\n` : ""
   const insertEndTags = endTags ? `\n${endTags}` : ""
 
-  const bundlePlaceholder = useBundlePlaceholder
-    ? `\n<!-- __minista_bundle_assets -->`
-    : ""
-  const developBundleTag = useDevelopBundle
-    ? `\n<script type="module">import "/@minista/dist/server/bundle.js"</script>`
-    : ""
-
   const html = `
   <!doctype html>
   <html ${htmlAttributes}>
@@ -130,13 +119,13 @@ export function compileApp({
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       ${staticHelmet(helmet.title.toString())}
       ${staticHelmet(helmet.meta.toString())}
-      ${insertHeadTags}${bundlePlaceholder}
+      ${insertHeadTags}
       ${staticHelmet(helmet.link.toString())}
       ${staticHelmet(helmet.style.toString())}
       ${staticHelmet(helmet.script.toString())}
     </head>
     <body ${helmet.bodyAttributes.toString()}>
-      ${insertStartTags}${markup}${insertEndTags}${developBundleTag}
+      ${insertStartTags}${markup}${insertEndTags}
     </body>
   </html>
 `
