@@ -6,7 +6,7 @@ import {
   defineConfig as defineViteConfig,
   mergeConfig as mergeViteConfig,
   searchForWorkspaceRoot,
-  //createLogger,
+  createLogger,
 } from "vite"
 import react from "@vitejs/plugin-react"
 import { default as pluginMdx } from "@mdx-js/rollup"
@@ -133,7 +133,7 @@ export async function resolveViteConfig(
     optimizeDeps: {
       disabled: false, // Using esbuild deps optimization at build time
     },
-    //customLogger: createLogger("info", { prefix: "[minista]" }),
+    customLogger: createLogger("info", { prefix: "[minista]" }),
     css: mainConfig.css,
   })
 

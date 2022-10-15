@@ -1,22 +1,21 @@
 import type { RollupOutput } from "rollup"
 import path from "node:path"
-//import { gzip } from "node:zlib"
-//import { promisify } from "node:util"
 import fs from "fs-extra"
-import pc from "picocolors"
 import {
   defineConfig as defineViteConfig,
   mergeConfig as mergeViteConfig,
   build as viteBuild,
+  createLogger,
 } from "vite"
-import beautify from "js-beautify"
 
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
-import { pluginSsg } from "../plugins/ssg.js"
-import { pluginBundle } from "../plugins/bundle.js"
+import { pluginPages } from "../plugins/pages.js"
+import { pluginAssets } from "../plugins/assets.js"
+import { generatePages } from "../generate/pages.js"
+import { generateAssets } from "../generate/assets.js"
 
-type BuildResult = {
+export type BuildResult = {
   output: BuildItem[]
 }
 type BuildItem = RollupOutput["output"][0] & {
@@ -27,111 +26,58 @@ type BuildItem = RollupOutput["output"][0] & {
 export async function build(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
 
-  const mergedViteConfig = mergeViteConfig(
-    config.vite,
-    defineViteConfig({
-      build: { write: false },
-      plugins: [pluginSsg(config), pluginBundle()],
-    })
-  )
-  const result = (await viteBuild(mergedViteConfig)) as unknown as BuildResult
-  const items = result.output
-
-  if (items.length === 0) {
-    return console.log("No content to build.")
-  }
   const resolvedOut = path.join(config.sub.resolvedRoot, config.main.out)
   const resolvedPublic = path.join(config.sub.resolvedRoot, config.main.public)
   const hasPublic = await fs.pathExists(resolvedPublic)
 
+  const pagesConfig = mergeViteConfig(
+    config.vite,
+    defineViteConfig({
+      build: { write: false, ssr: true },
+      plugins: [pluginPages()],
+      customLogger: createLogger("warn", { prefix: "[minista]" }),
+    })
+  )
+  const assetsConfig = mergeViteConfig(
+    config.vite,
+    defineViteConfig({
+      build: { write: false },
+      plugins: [pluginAssets()],
+      customLogger: createLogger("warn", { prefix: "[minista]" }),
+    })
+  )
+  let pagesResult: BuildResult
+  let assetsResult: BuildResult
+
+  await Promise.all([
+    (pagesResult = (await viteBuild(pagesConfig)) as unknown as BuildResult),
+    (assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult),
+  ])
+
   await fs.emptyDir(resolvedOut)
   hasPublic && (await fs.copy(resolvedPublic, resolvedOut))
 
-  const bundleCssName = path.join(
+  const bundleName = path.join(
     config.main.assets.outDir,
     config.main.assets.bundle.outName + ".css"
   )
-  const vite3BugBundleCssName = path.join(
-    config.main.assets.outDir,
-    "bundle.css"
-  )
-  const hasBundle = items.some(
-    (item) =>
-      item.fileName === bundleCssName || item.fileName === vite3BugBundleCssName
+  const bugName = path.join(config.main.assets.outDir, "assets.css")
+  const hasBundle = assetsResult.output.some(
+    (item) => item.fileName === bundleName || item.fileName === bugName
   )
 
-  await Promise.all(
-    items.map(async (item) => {
-      const isPage = item.fileName.match(/src\/pages\/.*\.html$/)
-      const isJs = item.fileName.match(/.*\.js$/)
-      const isCss = item.fileName.match(/.*\.css$/)
-      const isBundleJs = item.fileName.match(/__minista_bundle_assets\.js$/)
-      const isBundleCss = item.fileName.match(/__minista_bundle_assets\.css$/)
-      const isVite3BugBundleCss = item.fileName === vite3BugBundleCssName
-
-      if (isBundleJs) {
-        return
-      }
-
-      let fileName = item.fileName
-      isPage && (fileName = item.fileName.replace(/src\/pages\//, ""))
-      isBundleCss && (fileName = bundleCssName)
-      isVite3BugBundleCss && (fileName = bundleCssName)
-
-      let data = ""
-      item.source && (data = item.source)
-      item.code && (data = item.code)
-
-      if (!data) {
-        return
-      }
-
-      if (isPage && !hasBundle) {
-        data = data.replace(
-          /<link.*data-minista-build-bundle-href=.*?>/g,
-          "\n\n"
-        )
-      }
-      if (isPage) {
-        data = data
-          .replace(/data-minista-build-bundle-href=/g, "href=")
-          .replace(/data-minista-build-css-href=/g, "href=")
-          .replace(/data-minista-build-js-src=/g, "src=")
-      }
-
-      if (isPage && config.main.beautify.useHtml) {
-        data = beautify.html(data, config.main.beautify.htmlOptions)
-      }
-      if (isJs && config.main.beautify.useAssets) {
-        data = beautify.js(data, config.main.beautify.jsOptions)
-      }
-      if (isCss && config.main.beautify.useAssets) {
-        data = beautify.css(data, config.main.beautify.cssOptions)
-      }
-
-      const routePath = path.join(
-        config.sub.resolvedRoot,
-        config.main.out,
-        fileName
-      )
-      const relativePath = path.relative(process.cwd(), routePath)
-
-      const dataSize = (data.length / 1024).toFixed(2)
-      //const compress = promisify(gzip)
-      //const dataGzipSize = ((await compress(data)).length / 1024).toFixed(2)
-
-      return await fs
-        .outputFile(routePath, data)
-        .then(() => {
-          console.log(
-            `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
-              " " +
-              pc.gray(`${dataSize} KiB`) // / gzip: ${dataGzipSize} KiB
-          )
-        })
-        .catch((err) => {
-          console.error(err)
-        })
-    })
-  )
+  await Promise.all([
+    await generatePages({
+      config,
+      items: pagesResult.output,
+      hasBundle,
+    }),
+    await generateAssets({
+      config,
+      items: assetsResult.output,
+      bundleName,
+      bugName,
+    }),
+  ])
+  return
 }

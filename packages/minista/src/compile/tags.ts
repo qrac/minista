@@ -60,7 +60,7 @@ export function compileLinkTag({
   } else {
     assetPath = path.join(config.main.base, assetName)
   }
-  return `<link rel="stylesheet" data-minista-build-css-href="${assetPath}">`
+  return `<link rel="stylesheet" href="${assetPath}">`
 }
 
 export function compileScriptTag({
@@ -94,7 +94,7 @@ export function compileScriptTag({
   } else {
     assetPath = path.join(config.main.base, assetName)
   }
-  return `<script${deferStr}${asyncStr} data-minista-build-js-src="${assetPath}"></script>`
+  return `<script${deferStr}${asyncStr} src="${assetPath}"></script>`
 }
 
 export function compileEntryTags({
@@ -163,7 +163,7 @@ export function compileEntryTags({
     bundleCssTag = compileBundleTag({ pathname, config })
   }
   if (mode === "serve") {
-    bundleJsTag = `<script type="module">import "/@minista/dist/server/bundle.js"</script>`
+    bundleJsTag = `<script type="module">import "/@minista/dist/gather/assets.js"</script>`
   }
 
   const pageEntries = config.sub.resolvedEntry.filter((entry) => {
