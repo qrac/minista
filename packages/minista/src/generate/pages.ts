@@ -2,10 +2,13 @@ import path from "node:path"
 import fs from "fs-extra"
 import pc from "picocolors"
 import beautify from "js-beautify"
+import { fetch } from "undici"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { BuildResult } from "../cli/build.js"
 import type { GatherPages } from "../gather/pages.js"
+
+export { fetch }
 
 export async function generatePages({
   config,
@@ -27,7 +30,7 @@ export async function generatePages({
         return
       }
       let fileName = item.fileName
-      fileName = "__minista_gather_pages.mjs"
+      fileName = "pages.mjs"
 
       let data = ""
       item.source && (data = item.source)
@@ -36,11 +39,8 @@ export async function generatePages({
       if (!data) {
         return
       }
-      gatherPagesPath = path.join(
-        config.sub.resolvedRoot,
-        config.main.out,
-        fileName
-      )
+      gatherPagesPath = path.join(config.sub.tempDir, fileName)
+
       return await fs
         .outputFile(gatherPagesPath, data)
         .then(() => {
@@ -108,5 +108,4 @@ export async function generatePages({
         })
     })
   )
-  await fs.remove(gatherPagesPath)
 }

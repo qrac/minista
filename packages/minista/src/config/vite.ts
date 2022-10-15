@@ -15,7 +15,6 @@ import type { ResolvedMainConfig } from "./main.js"
 import type { ResolvedSubConfig } from "./sub.js"
 import type { ResolvedMdxConfig } from "./mdx.js"
 import type { ResolvedEntry } from "./entry.js"
-import { systemConfig } from "./system.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -109,7 +108,7 @@ export async function resolveViteConfig(
         allow: [
           searchForWorkspaceRoot(process.cwd()),
           path.resolve(__dirname + "/../../"),
-          path.resolve(systemConfig.temp.icons.outDir),
+          path.resolve(subConfig.tempDir),
         ],
       },
     },
@@ -125,7 +124,7 @@ export async function resolveViteConfig(
         },
         {
           find: "/@minista-temp",
-          replacement: path.resolve(systemConfig.temp.out),
+          replacement: path.resolve(subConfig.tempDir),
         },
       ],
     },
