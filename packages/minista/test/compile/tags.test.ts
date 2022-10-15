@@ -87,9 +87,7 @@ describe("compileLinkTag", () => {
     })
 
     //console.log(result)
-    expect(result).toEqual(
-      `<link rel="stylesheet" data-minista-build-css-href="/assets/style.css">`
-    )
+    expect(result).toEqual(`<link rel="stylesheet" href="/assets/style.css">`)
   })
 })
 
@@ -131,9 +129,7 @@ describe("compileScriptTag", () => {
     })
 
     //console.log(result)
-    expect(result).toEqual(
-      `<script defer data-minista-build-js-src="/assets/script.js"></script>`
-    )
+    expect(result).toEqual(`<script defer src="/assets/script.js"></script>`)
   })
 })
 
@@ -150,7 +146,7 @@ describe("compileEntryTags", () => {
     expect(result).toEqual({
       headTags: ``,
       startTags: ``,
-      endTags: `<script type="module">import "/@minista/dist/server/bundle.js"</script>`,
+      endTags: `<script type="module">import "/@minista/dist/gather/assets.js"</script>`,
     })
   })
 
@@ -168,7 +164,7 @@ describe("compileEntryTags", () => {
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" href="/@minista-project-root/src/assets/style.scss">`,
       startTags: ``,
-      endTags: `<script type="module">import "/@minista/dist/server/bundle.js"</script>`,
+      endTags: `<script type="module">import "/@minista/dist/gather/assets.js"</script>`,
     })
   })
 
@@ -200,7 +196,7 @@ describe("compileEntryTags", () => {
 
     //console.log(result)
     expect(result).toEqual({
-      headTags: `<link rel="stylesheet" data-minista-build-css-href="/assets/style.css">
+      headTags: `<link rel="stylesheet" href="/assets/style.css">
 <link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">`,
       startTags: ``,
       endTags: ``,
