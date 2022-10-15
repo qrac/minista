@@ -2,13 +2,10 @@ import path from "node:path"
 import fs from "fs-extra"
 import pc from "picocolors"
 import beautify from "js-beautify"
-import { fetch } from "undici"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { BuildResult } from "../cli/build.js"
 import type { GatherPages } from "../gather/pages.js"
-
-export { fetch }
 
 export async function generatePages({
   config,
@@ -39,6 +36,8 @@ export async function generatePages({
       if (!data) {
         return
       }
+      data = `import { fetch } from "undici"\n` + data
+
       gatherPagesPath = path.join(config.sub.tempDir, fileName)
 
       return await fs

@@ -1,5 +1,3 @@
-import { compilePageFetch } from "../compile/fetch.js"
-
 export type Pages = {
   path: string
   component: new () => React.Component<any, any>
@@ -60,17 +58,12 @@ export function getPages(): Pages {
   return pages
 }
 
-export async function getPageStaticData(getStaticData: PageFetch) {
-  const compiledPageFetch = await compilePageFetch(getStaticData)
-  return await compiledPageFetch()
-}
-
 export async function resolvePages(pages: Pages): Promise<ResolvedPages> {
   const resolvedPages = await Promise.all(
     pages.map(async (page) => {
       const defaultStaticData = { props: {}, paths: {} }
       const staticData = page.getStaticData
-        ? await getPageStaticData(page.getStaticData)
+        ? await page.getStaticData()
         : undefined
 
       if (!staticData) {

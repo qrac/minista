@@ -33,7 +33,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const pagesConfig = mergeViteConfig(
     config.vite,
     defineViteConfig({
-      build: { write: false, ssr: true },
+      build: { write: false, ssr: true, minify: false },
       plugins: [pluginPages()],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })

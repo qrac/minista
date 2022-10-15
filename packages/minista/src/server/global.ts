@@ -1,5 +1,3 @@
-import { compileGlobalFetch } from "../compile/fetch.js"
-
 export type Global = {
   component?: new () => React.Component<any, any>
   getStaticData?: GlobalFetch
@@ -48,16 +46,11 @@ export function getGlobal(): Global {
   return global
 }
 
-export async function getGlobalStaticData(getStaticData: GlobalFetch) {
-  const compiledGlobalFetch = await compileGlobalFetch(getStaticData)
-  return await compiledGlobalFetch()
-}
-
 export async function resolveGlobal(global: Global): Promise<ResolvedGlobal> {
   const resolvedGlobal = {
     component: global.component || undefined,
     staticData: global.getStaticData
-      ? await getGlobalStaticData(global.getStaticData)
+      ? await global.getStaticData()
       : { props: {} },
   }
   return resolvedGlobal
