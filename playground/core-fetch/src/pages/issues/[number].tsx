@@ -1,5 +1,3 @@
-import { Markdown } from "minista"
-
 export async function getStaticData() {
   const apiUrl = "https://api.github.com/repos/qrac/minista/issues"
   const apiParamsQuery = "?state=all&creator=qrac&per_page=5"
@@ -21,7 +19,7 @@ export default function (props: PageIssuesTemplateProps) {
   return (
     <>
       <h1>{props.title}</h1>
-      <Markdown>{props.body}</Markdown>
+      <div>{props.body}</div>
     </>
   )
 }
