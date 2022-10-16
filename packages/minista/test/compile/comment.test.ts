@@ -4,10 +4,38 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 
-import { compileComment } from "../../src/compile/comment"
+import {
+  compileOneComment,
+  compileMultiComment,
+  compileComment,
+} from "../../src/compile/comment"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+describe("compileOneComment", () => {
+  it("Default", () => {
+    const result = compileOneComment("test")
+
+    //console.log(result)
+    expect(result).toEqual(`<!-- test -->`)
+  })
+})
+
+describe("compileMultiComment", () => {
+  it("Default", () => {
+    const result = compileMultiComment(`test
+test 2
+test 3`)
+
+    //console.log(result)
+    expect(result).toEqual(`<!--
+  test
+  test 2
+  test 3
+-->`)
+  })
+})
 
 describe("compileComment", () => {
   it("Default", async () => {

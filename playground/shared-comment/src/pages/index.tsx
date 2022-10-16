@@ -12,6 +12,14 @@ export default function () {
         テキストテキストテキストテキストテキストテキスト
         import english text text`}
       />
+      <Comment
+        text={`
+        テキスト
+        テキストテキストテキストテキストテキスト
+        テキストテキストテキストテキストテキストテキスト
+        import english text text
+        `}
+      />
     </>
   )
 }
