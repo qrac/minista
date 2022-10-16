@@ -5,9 +5,9 @@ import { fileURLToPath } from "node:url"
 import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
 import { compileEntryTags } from "../compile/tags.js"
-import { compileApp } from "../compile/app.js"
-import { compileComment } from "../compile/comment.js"
-import { compileMarkdown } from "../compile/markdown.js"
+import { renderApp } from "../server/app.js"
+import { transformComment } from "../transform/comment.js"
+import { transformMarkdown } from "../transform/markdown.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -32,7 +32,7 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               config,
             })
 
-            let html = compileApp({
+            let html = renderApp({
               url,
               resolvedGlobal,
               resolvedPages,
@@ -41,11 +41,11 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               endTags,
             })
 
-            if (html.includes(`data-minista-compile-target="comment"`)) {
-              html = compileComment(html)
+            if (html.includes(`data-minista-transform-target="comment"`)) {
+              html = transformComment(html)
             }
-            if (html.includes(`data-minista-compile-target="markdown"`)) {
-              html = await compileMarkdown(html, config.mdx)
+            if (html.includes(`data-minista-transform-target="markdown"`)) {
+              html = await transformMarkdown(html, config.mdx)
             }
 
             const transformedHtml = await server.transformIndexHtml(url, html)

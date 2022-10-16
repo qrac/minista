@@ -1,22 +1,22 @@
 import type { ResolvedConfig } from "../config/index.js"
 import { getSources } from "../server/sources.js"
 import { compileEntryTags } from "../compile/tags.js"
-import { compileApp } from "../compile/app.js"
-import { compileComment } from "../compile/comment.js"
-import { compileMarkdown } from "../compile/markdown.js"
+import { renderApp } from "../server/app.js"
+import { transformComment } from "../transform/comment.js"
+import { transformMarkdown } from "../transform/markdown.js"
 import { getHtmlPath } from "../utility/path.js"
 
-export type GatherSsg = {
-  (config: ResolvedConfig): Promise<GatheredSsgPage[]>
+export type RunSsg = {
+  (config: ResolvedConfig): Promise<SsgPage[]>
 }
 
-type GatheredSsgPage = {
+type SsgPage = {
   fileName: string
   path: string
   html: string
 }
 
-export const gatherSsg: GatherSsg = async (config) => {
+export const runSsg: RunSsg = async (config) => {
   const { resolvedGlobal, resolvedPages } = await getSources()
 
   if (resolvedPages.length === 0) {
@@ -31,7 +31,7 @@ export const gatherSsg: GatherSsg = async (config) => {
     })
     return {
       path: page.path,
-      html: compileApp({
+      html: renderApp({
         url: page.path,
         resolvedGlobal,
         resolvedPages: [page],
@@ -50,11 +50,11 @@ export const gatherSsg: GatherSsg = async (config) => {
     htmlPages.map(async (page) => {
       let html = page.html
 
-      if (html.includes(`data-minista-compile-target="comment"`)) {
-        html = compileComment(html)
+      if (html.includes(`data-minista-transform-target="comment"`)) {
+        html = transformComment(html)
       }
-      if (html.includes(`data-minista-compile-target="markdown"`)) {
-        html = await compileMarkdown(html, config.mdx)
+      if (html.includes(`data-minista-transform-target="markdown"`)) {
+        html = await transformMarkdown(html, config.mdx)
       }
       return {
         path: page.path,
@@ -70,5 +70,5 @@ export const gatherSsg: GatherSsg = async (config) => {
       path: page.path,
       html: page.html,
     }
-  }) as GatheredSsgPage[]
+  }) as SsgPage[]
 }

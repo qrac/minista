@@ -11,5 +11,5 @@ type CommentUseChildren = {
 
 export const Comment = (props: CommentProps) => {
   const text = props.text || props.children
-  return <div data-minista-compile-target="comment">{text}</div>
+  return <div data-minista-transform-target="comment">{text}</div>
 }

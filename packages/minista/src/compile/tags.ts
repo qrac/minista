@@ -163,7 +163,7 @@ export function compileEntryTags({
     bundleCssTag = compileBundleTag({ pathname, config })
   }
   if (mode === "serve") {
-    bundleJsTag = `<script type="module">import "/@minista/dist/gather/bundle.js"</script>`
+    bundleJsTag = `<script type="module">import "/@minista/dist/scripts/bundle.js"</script>`
   }
 
   const pageEntries = config.sub.resolvedEntry.filter((entry) => {

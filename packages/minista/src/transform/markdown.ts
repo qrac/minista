@@ -5,14 +5,14 @@ import ReactDOMServer from "react-dom/server"
 
 import type { ResolvedMdxConfig } from "../config/mdx.js"
 
-export async function compileMarkdown(
+export async function transformMarkdown(
   html: string,
   config: ResolvedMdxConfig
 ): Promise<string> {
   let parsedHtml = parseHtml(html)
 
   const targets = parsedHtml.querySelectorAll(
-    `[data-minista-compile-target="markdown"]`
+    `[data-minista-transform-target="markdown"]`
   )
 
   await Promise.all(

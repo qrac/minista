@@ -4,8 +4,8 @@ import { StaticRouter } from "react-router-dom/server.js"
 import { HelmetProvider } from "react-helmet-async"
 import { Route, Routes } from "react-router-dom"
 
-import type { ResolvedGlobal } from "../server/global.js"
-import type { ResolvedPages } from "../server/pages.js"
+import type { ResolvedGlobal } from "./global.js"
+import type { ResolvedPages } from "./pages.js"
 
 export function App({
   resolvedGlobal,
@@ -69,7 +69,7 @@ export function App({
   )
 }
 
-export function compileApp({
+export function renderApp({
   url,
   resolvedGlobal,
   resolvedPages,

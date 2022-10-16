@@ -12,7 +12,7 @@ import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginSsg } from "../plugins/ssg.js"
 import { pluginBundle } from "../plugins/bundle.js"
-import { generateSsg } from "../generate/ssg.js"
+import { generateHtml } from "../generate/html.js"
 import { generateAssets } from "../generate/assets.js"
 
 export type BuildResult = {
@@ -25,10 +25,6 @@ type BuildItem = RollupOutput["output"][0] & {
 
 export async function build(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
-
-  const resolvedOut = path.join(config.sub.resolvedRoot, config.main.out)
-  const resolvedPublic = path.join(config.sub.resolvedRoot, config.main.public)
-  const hasPublic = await fs.pathExists(resolvedPublic)
 
   const ssgConfig = mergeViteConfig(
     config.vite,
@@ -46,6 +42,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
+
   let ssgResult: BuildResult
   let assetsResult: BuildResult
 
@@ -53,6 +50,10 @@ export async function build(inlineConfig: InlineConfig = {}) {
     (ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult),
     (assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult),
   ])
+
+  const resolvedOut = path.join(config.sub.resolvedRoot, config.main.out)
+  const resolvedPublic = path.join(config.sub.resolvedRoot, config.main.public)
+  const hasPublic = await fs.pathExists(resolvedPublic)
 
   await fs.emptyDir(resolvedOut)
   hasPublic && (await fs.copy(resolvedPublic, resolvedOut))
@@ -67,7 +68,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   )
 
   await Promise.all([
-    await generateSsg({
+    await generateHtml({
       config,
       items: ssgResult.output,
       hasBundle,

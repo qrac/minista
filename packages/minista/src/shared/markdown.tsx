@@ -11,5 +11,5 @@ type MarkdownUseChildren = {
 
 export const Markdown = (props: MarkdownProps) => {
   const content = props.content || props.children
-  return <div data-minista-compile-target="markdown">{content}</div>
+  return <div data-minista-transform-target="markdown">{content}</div>
 }

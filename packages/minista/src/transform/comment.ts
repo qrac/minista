@@ -1,10 +1,10 @@
 import { parse as parseHtml } from "node-html-parser"
 
-export function compileOneComment(text: string): string {
+export function transformOneComment(text: string): string {
   return "<!-- " + text + " -->"
 }
 
-export function compileMultiComment(text: string): string {
+export function transformMultiComment(text: string): string {
   let multiText = text
   let spaceArray: string[] = []
   let spaceNums: number[] = []
@@ -27,11 +27,11 @@ export function compileMultiComment(text: string): string {
   return "<!--" + "\n" + startSpace + multiText + "\n" + endSpace + "-->"
 }
 
-export function compileComment(html: string): string {
+export function transformComment(html: string): string {
   let parsedHtml = parseHtml(html)
 
   const targets = parsedHtml.querySelectorAll(
-    `[data-minista-compile-target="comment"]`
+    `[data-minista-transform-target="comment"]`
   )
 
   targets.map((target) => {
@@ -41,9 +41,9 @@ export function compileComment(html: string): string {
     const text = target.innerText
 
     if (!text.includes("\n")) {
-      commentTag = compileOneComment(text)
+      commentTag = transformOneComment(text)
     } else {
-      commentTag = compileMultiComment(text)
+      commentTag = transformMultiComment(text)
     }
     const content = "\n\n" + commentTag + "\n\n"
     const parsedContent = parseHtml(content, { comment: true })
