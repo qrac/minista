@@ -14,7 +14,7 @@ import type {
 import path from "node:path"
 import fs from "fs-extra"
 import { normalizePath } from "vite"
-import { build } from "esbuild"
+import { build as esBuild } from "esbuild"
 import { deepmergeCustom } from "deepmerge-ts"
 
 import type { Entry } from "./entry.js"
@@ -152,7 +152,7 @@ export async function resolveUserConfig(
       ".minista",
       "minista.config.mjs"
     )
-    await build({
+    await esBuild({
       entryPoints: [configPath],
       outfile: compiledConfigPath,
       bundle: true,
