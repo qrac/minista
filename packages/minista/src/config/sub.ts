@@ -33,7 +33,14 @@ export async function resolveSubConfig(
 
   let tempDir = ""
 
-  if (await fs.pathExists(path.join(resolvedRoot, "node_modules"))) {
+  const hasRootPackageJson = await fs.pathExists(
+    path.join(resolvedRoot, "package.json")
+  )
+  const hasRootNodeModulesDir = await fs.pathExists(
+    path.join(resolvedRoot, "node_modules")
+  )
+
+  if (hasRootPackageJson || hasRootNodeModulesDir) {
     tempDir = path.join(resolvedRoot, "node_modules", ".minista")
   } else {
     tempDir = path.join(process.cwd(), "node_modules", ".minista")
