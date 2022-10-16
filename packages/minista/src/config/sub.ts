@@ -1,5 +1,4 @@
 import path from "node:path"
-import fs from "fs-extra"
 import { normalizePath } from "vite"
 
 import type { ResolvedMainConfig } from "./main.js"
@@ -7,6 +6,7 @@ import type { ResolvedEntry } from "./entry.js"
 import type { ResolvedAlias } from "./alias.js"
 import { resolveEntry } from "./entry.js"
 import { resolveAlias } from "./alias.js"
+import { getNodeModulesPath } from "../utility/path.js"
 
 export type ResolvedSubConfig = {
   resolvedRoot: string
@@ -30,21 +30,7 @@ export async function resolveSubConfig(
   const configAlias = mainConfig.resolve.alias
   const viteConfigAlias = mainConfig.vite.resolve?.alias || {}
   const resolvedAlias = await resolveAlias(configAlias, viteConfigAlias)
-
-  let tempDir = ""
-
-  const hasRootPackageJson = await fs.pathExists(
-    path.join(resolvedRoot, "package.json")
-  )
-  const hasRootNodeModulesDir = await fs.pathExists(
-    path.join(resolvedRoot, "node_modules")
-  )
-
-  if (hasRootPackageJson || hasRootNodeModulesDir) {
-    tempDir = path.join(resolvedRoot, "node_modules", ".minista")
-  } else {
-    tempDir = path.join(process.cwd(), "node_modules", ".minista")
-  }
+  const tempDir = path.join(getNodeModulesPath(resolvedRoot), ".minista")
 
   return {
     resolvedRoot,
