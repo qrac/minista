@@ -21,16 +21,16 @@ export async function generateAssets({
     items.map(async (item) => {
       const isJs = item.fileName.match(/.*\.js$/)
       const isCss = item.fileName.match(/.*\.css$/)
-      const isGatherJs = item.fileName.match(/__minista_gather_assets\.js$/)
-      const isGatherCss = item.fileName.match(/__minista_gather_assets\.css$/)
+      const isBundleJs = item.fileName.match(/__minista_gather_bundle\.js$/)
+      const isBundleCss = item.fileName.match(/__minista_gather_bundle\.css$/)
       const isBugCss = item.fileName === bugName
 
-      if (isGatherJs) {
+      if (isBundleJs) {
         return
       }
 
       let fileName = item.fileName
-      isGatherCss && (fileName = bundleName)
+      isBundleCss && (fileName = bundleName)
       isBugCss && (fileName = bundleName)
 
       let data = ""

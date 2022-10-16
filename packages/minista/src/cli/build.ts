@@ -10,9 +10,9 @@ import {
 
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
-import { pluginPages } from "../plugins/pages.js"
-import { pluginAssets } from "../plugins/assets.js"
-import { generatePages } from "../generate/pages.js"
+import { pluginSsg } from "../plugins/ssg.js"
+import { pluginBundle } from "../plugins/bundle.js"
+import { generateSsg } from "../generate/ssg.js"
 import { generateAssets } from "../generate/assets.js"
 
 export type BuildResult = {
@@ -30,11 +30,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const resolvedPublic = path.join(config.sub.resolvedRoot, config.main.public)
   const hasPublic = await fs.pathExists(resolvedPublic)
 
-  const pagesConfig = mergeViteConfig(
+  const ssgConfig = mergeViteConfig(
     config.vite,
     defineViteConfig({
       build: { write: false, ssr: true, minify: false },
-      plugins: [pluginPages()],
+      plugins: [pluginSsg()],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
@@ -42,15 +42,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
     config.vite,
     defineViteConfig({
       build: { write: false },
-      plugins: [pluginAssets()],
+      plugins: [pluginBundle()],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
-  let pagesResult: BuildResult
+  let ssgResult: BuildResult
   let assetsResult: BuildResult
 
   await Promise.all([
-    (pagesResult = (await viteBuild(pagesConfig)) as unknown as BuildResult),
+    (ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult),
     (assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult),
   ])
 
@@ -67,9 +67,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
   )
 
   await Promise.all([
-    await generatePages({
+    await generateSsg({
       config,
-      items: pagesResult.output,
+      items: ssgResult.output,
       hasBundle,
     }),
     await generateAssets({

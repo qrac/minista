@@ -5,9 +5,9 @@ import beautify from "js-beautify"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { BuildResult } from "../cli/build.js"
-import type { GatherPages } from "../gather/pages.js"
+import type { GatherSsg } from "../gather/ssg.js"
 
-export async function generatePages({
+export async function generateSsg({
   config,
   items,
   hasBundle,
@@ -17,17 +17,17 @@ export async function generatePages({
   hasBundle: boolean
 }) {
   let hasPages = false
-  let gatherPagesPath = ""
+  let gatherSsgPath = ""
 
   await Promise.all(
     items.map(async (item) => {
-      const isGatherJs = item.fileName.match(/__minista_gather_pages\.js$/)
+      const isGatherJs = item.fileName.match(/__minista_gather_ssg\.js$/)
 
       if (!isGatherJs) {
         return
       }
       let fileName = item.fileName
-      fileName = "pages.mjs"
+      fileName = "ssg.mjs"
 
       let data = ""
       item.source && (data = item.source)
@@ -38,10 +38,10 @@ export async function generatePages({
       }
       data = `import { fetch } from "undici"\n` + data
 
-      gatherPagesPath = path.join(config.sub.tempDir, fileName)
+      gatherSsgPath = path.join(config.sub.tempDir, fileName)
 
       return await fs
-        .outputFile(gatherPagesPath, data)
+        .outputFile(gatherSsgPath, data)
         .then(() => {
           hasPages = true
         })
@@ -55,17 +55,15 @@ export async function generatePages({
     return
   }
 
-  const { gatherPages }: { gatherPages: GatherPages } = await import(
-    gatherPagesPath
-  )
-  const pages = await gatherPages(config)
+  const { gatherSsg }: { gatherSsg: GatherSsg } = await import(gatherSsgPath)
+  const ssgPages = await gatherSsg(config)
 
-  if (pages.length === 0) {
+  if (ssgPages.length === 0) {
     return []
   }
 
   await Promise.all(
-    pages.map(async (item) => {
+    ssgPages.map(async (item) => {
       let fileName = item.fileName
       let data = item.html
 

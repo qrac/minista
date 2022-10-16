@@ -5,14 +5,17 @@ import { fileURLToPath } from "node:url"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export function pluginPages(): Plugin {
+export function pluginBundle(): Plugin {
   return {
-    name: "minista-vite-plugin:pages",
+    name: "minista-vite-plugin:bundle",
     config: () => ({
       build: {
         rollupOptions: {
           input: {
-            __minista_gather_pages: path.join(__dirname, "/../gather/pages.js"),
+            __minista_gather_bundle: path.join(
+              __dirname,
+              "/../gather/bundle.js"
+            ),
           },
         },
       },

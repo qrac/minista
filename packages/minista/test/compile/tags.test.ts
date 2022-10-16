@@ -146,7 +146,7 @@ describe("compileEntryTags", () => {
     expect(result).toEqual({
       headTags: ``,
       startTags: ``,
-      endTags: `<script type="module">import "/@minista/dist/gather/assets.js"</script>`,
+      endTags: `<script type="module">import "/@minista/dist/gather/bundle.js"</script>`,
     })
   })
 
@@ -164,7 +164,7 @@ describe("compileEntryTags", () => {
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" href="/@minista-project-root/src/assets/style.scss">`,
       startTags: ``,
-      endTags: `<script type="module">import "/@minista/dist/gather/assets.js"</script>`,
+      endTags: `<script type="module">import "/@minista/dist/gather/bundle.js"</script>`,
     })
   })
 

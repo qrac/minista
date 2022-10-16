@@ -6,17 +6,17 @@ import { compileComment } from "../compile/comment.js"
 import { compileMarkdown } from "../compile/markdown.js"
 import { getHtmlPath } from "../utility/path.js"
 
-export type GatherPages = {
-  (config: ResolvedConfig): Promise<GatheredHtmlPage[]>
+export type GatherSsg = {
+  (config: ResolvedConfig): Promise<GatheredSsgPage[]>
 }
 
-type GatheredHtmlPage = {
+type GatheredSsgPage = {
   fileName: string
   path: string
   html: string
 }
 
-export const gatherPages: GatherPages = async (config) => {
+export const gatherSsg: GatherSsg = async (config) => {
   const { resolvedGlobal, resolvedPages } = await getSources()
 
   if (resolvedPages.length === 0) {
@@ -70,5 +70,5 @@ export const gatherPages: GatherPages = async (config) => {
       path: page.path,
       html: page.html,
     }
-  }) as GatheredHtmlPage[]
+  }) as GatheredSsgPage[]
 }

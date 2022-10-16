@@ -5,17 +5,14 @@ import { fileURLToPath } from "node:url"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export function pluginAssets(): Plugin {
+export function pluginSsg(): Plugin {
   return {
-    name: "minista-vite-plugin:assets",
+    name: "minista-vite-plugin:ssg",
     config: () => ({
       build: {
         rollupOptions: {
           input: {
-            __minista_gather_assets: path.join(
-              __dirname,
-              "/../gather/assets.js"
-            ),
+            __minista_gather_ssg: path.join(__dirname, "/../gather/ssg.js"),
           },
         },
       },
