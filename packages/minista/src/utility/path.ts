@@ -1,5 +1,5 @@
-import fs from "node:fs"
 import path from "node:path"
+import fs from "fs-extra"
 
 export function getHtmlPath(pathname: string) {
   let fileName = pathname.endsWith("/")
