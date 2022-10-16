@@ -13,12 +13,14 @@ import type {
 } from "js-beautify"
 import path from "node:path"
 import fs from "fs-extra"
-import { normalizePath, createServer as createViteServer } from "vite"
+import { normalizePath } from "vite"
+import { build } from "esbuild"
 import { deepmergeCustom } from "deepmerge-ts"
 
 import type { Entry } from "./entry.js"
 import type { Alias } from "./alias.js"
 import type { InlineConfig } from "./index.js"
+import { getNodeModulesPath } from "../utility/path.js"
 
 export type UserConfig = {
   root?: string
@@ -112,10 +114,7 @@ export type UserConfig = {
 export type ResolvedUserConfig = UserConfig
 
 export async function resolveUserConfig(
-  inlineConfig?: InlineConfig,
-  options?: {
-    configPaths?: string[]
-  }
+  inlineConfig?: InlineConfig
 ): Promise<ResolvedUserConfig> {
   const configFile = inlineConfig?.configFile
 
@@ -128,38 +127,55 @@ export async function resolveUserConfig(
   if (configFile === false) {
     return trimmedConfig
   }
+  const configStr = typeof configFile === "string" ? configFile : ""
 
   const resolvedRoot = normalizePath(
     inlineConfig?.root ? path.resolve(inlineConfig.root) : process.cwd()
   )
-  const configStr = typeof configFile === "string" ? configFile : ""
-  const configPaths = options?.configPaths || [
-    "minista.config.ts",
-    "minista.config.tsx",
-    "minista.config.js",
-    "minista.config.jsx",
-    "minista.config.cjs",
-    "minista.config.mjs",
-    "minista.config.json",
-  ]
 
-  const mergedConfigPaths = [...new Set([configStr, ...configPaths])].flat()
-  const filterdConfigPaths = mergedConfigPaths.filter(
-    (configPath) =>
-      configPath && fs.existsSync(path.join(resolvedRoot, configPath))
+  let configPaths = [configStr]
+
+  const configName = "minista.config"
+  const configExts = [".ts", ".tsx", ".js", ".jsx", ".cjs", ".mjs", ".json"]
+
+  configPaths = configPaths.concat(
+    configExts.map((item) => path.join(resolvedRoot, configName + item))
   )
+  configPaths = configPaths.concat(
+    configExts.map((item) => path.join(process.cwd(), configName + item))
+  )
+  const configPath = configPaths.find((item) => fs.existsSync(item))
 
-  if (filterdConfigPaths.length > 0) {
-    const entryPoint = path.join(resolvedRoot, filterdConfigPaths[0])
-
-    const viteServer = await createViteServer()
-
-    const { default: compiledUserConfig } = (await viteServer.ssrLoadModule(
-      entryPoint
-    )) as { default: UserConfig }
-
-    await viteServer.close()
-
+  if (configPath) {
+    const compiledConfigPath = path.join(
+      getNodeModulesPath(resolvedRoot),
+      ".minista",
+      "minista.config.mjs"
+    )
+    await build({
+      entryPoints: [configPath],
+      outfile: compiledConfigPath,
+      bundle: true,
+      format: "esm",
+      platform: "node",
+      minify: false,
+      plugins: [
+        {
+          name: "minista-esbuild-plugin:external",
+          setup(build) {
+            let filter = /^[^.\/]|^\.[^.\/]|^\.\.[^\/]/
+            build.onResolve({ filter }, (args) => ({
+              path: args.path,
+              external: true,
+            }))
+          },
+        },
+      ],
+    }).catch((err) => {
+      console.error(err)
+    })
+    const { default: compiledUserConfig }: { default: UserConfig } =
+      await import(compiledConfigPath)
     const customDeepmerge = deepmergeCustom({
       mergeArrays: false,
     })
