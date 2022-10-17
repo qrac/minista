@@ -53,7 +53,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   const resolvedOut = path.join(config.sub.resolvedRoot, config.main.out)
   const resolvedPublic = path.join(config.sub.resolvedRoot, config.main.public)
-  const hasPublic = await fs.pathExists(resolvedPublic)
+  const hasPublic = fs.existsSync(resolvedPublic)
 
   await fs.emptyDir(resolvedOut)
   hasPublic && (await fs.copy(resolvedPublic, resolvedOut))
