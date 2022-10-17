@@ -129,7 +129,11 @@ export async function resolveViteConfig(
         },
       ],
     },
-    plugins: [react(), pluginIcons({ mainConfig, subConfig })],
+    plugins: [
+      react(),
+      pluginSvgr(mainConfig.assets.svgr.svgrOptions),
+      pluginIcons({ mainConfig, subConfig }),
+    ],
     optimizeDeps: {
       disabled: false, // Using esbuild deps optimization at build time
     },
@@ -148,9 +152,6 @@ export async function resolveViteConfig(
       })
     )
   }
-
-  const svgrPlugin = pluginSvgr(mainConfig.assets.svgr.svgrOptions)
-  mergedViteConfig.plugins.push(svgrPlugin)
 
   const mdxPlugin = pluginMdx(mdxConfig)
   mergedViteConfig.plugins.push(mdxPlugin)
