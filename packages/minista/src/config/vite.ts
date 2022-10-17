@@ -16,6 +16,7 @@ import type { ResolvedSubConfig } from "./sub.js"
 import type { ResolvedMdxConfig } from "./mdx.js"
 import type { ResolvedEntry } from "./entry.js"
 import { pluginSvgr } from "../plugins/svgr.js"
+import { pluginIcons } from "../plugins/icons.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -128,7 +129,7 @@ export async function resolveViteConfig(
         },
       ],
     },
-    plugins: [react()],
+    plugins: [react(), pluginIcons({ mainConfig, subConfig })],
     optimizeDeps: {
       disabled: false, // Using esbuild deps optimization at build time
     },

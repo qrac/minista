@@ -30,6 +30,7 @@ export async function generateAssets({
       const isBundleJs = item.fileName.match(/__minista_plugin_bundle\.js$/)
       const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
       const isBugBundleCss = item.fileName === bugBundleName
+      const isIcons = item.fileName.match(/__minista_plugin_icons\.svg$/)
 
       if (isBundleJs) {
         return
