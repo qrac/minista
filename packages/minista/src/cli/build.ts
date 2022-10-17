@@ -62,9 +62,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
     config.main.assets.outDir,
     config.main.assets.bundle.outName + ".css"
   )
-  const bugName = path.join(config.main.assets.outDir, "assets.css")
+  const bugBundleName = path.join(config.main.assets.outDir, "bundle.css")
   const hasBundle = assetsResult.output.some(
-    (item) => item.fileName === bundleName || item.fileName === bugName
+    (item) => item.fileName === bundleName || item.fileName === bugBundleName
   )
 
   await Promise.all([
@@ -76,8 +76,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
     await generateAssets({
       config,
       items: assetsResult.output,
-      bundleName,
-      bugName,
     }),
   ])
   return

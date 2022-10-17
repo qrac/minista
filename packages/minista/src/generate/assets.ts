@@ -9,21 +9,27 @@ import type { BuildResult } from "../cli/build.js"
 export async function generateAssets({
   config,
   items,
-  bundleName,
-  bugName,
 }: {
   config: ResolvedConfig
   items: BuildResult["output"]
-  bundleName: string
-  bugName: string
 }) {
+  const bundleName = path.join(
+    config.main.assets.outDir,
+    config.main.assets.bundle.outName + ".css"
+  )
+  const bugBundleName = path.join(config.main.assets.outDir, "bundle.css")
+  const iconsName = path.join(
+    config.main.assets.icons.outDir,
+    config.main.assets.icons.outName + ".svg"
+  )
+
   await Promise.all(
     items.map(async (item) => {
       const isJs = item.fileName.match(/.*\.js$/)
       const isCss = item.fileName.match(/.*\.css$/)
       const isBundleJs = item.fileName.match(/__minista_plugin_bundle\.js$/)
       const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
-      const isBugCss = item.fileName === bugName
+      const isBugBundleCss = item.fileName === bugBundleName
 
       if (isBundleJs) {
         return
@@ -31,7 +37,8 @@ export async function generateAssets({
 
       let fileName = item.fileName
       isBundleCss && (fileName = bundleName)
-      isBugCss && (fileName = bundleName)
+      isBugBundleCss && (fileName = bundleName)
+      isIcons && (fileName = iconsName)
 
       let data = ""
       item.source && (data = item.source)
@@ -54,7 +61,6 @@ export async function generateAssets({
         fileName
       )
       const relativePath = path.relative(process.cwd(), routePath)
-
       const dataSize = (data.length / 1024).toFixed(2)
 
       return await fs
