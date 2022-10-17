@@ -12,7 +12,7 @@ export function pluginSsg(): Plugin {
       build: {
         rollupOptions: {
           input: {
-            __minista_script_ssg: path.join(__dirname, "/../scripts/ssg.js"),
+            __minista_plugin_ssg: path.join(__dirname, "/../scripts/ssg.js"),
           },
         },
       },

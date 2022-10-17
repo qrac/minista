@@ -12,7 +12,7 @@ export function pluginBundle(): Plugin {
       build: {
         rollupOptions: {
           input: {
-            __minista_script_bundle: path.join(
+            __minista_plugin_bundle: path.join(
               __dirname,
               "/../scripts/bundle.js"
             ),

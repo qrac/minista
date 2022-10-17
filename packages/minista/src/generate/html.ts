@@ -21,7 +21,7 @@ export async function generateHtml({
 
   await Promise.all(
     items.map(async (item) => {
-      const isSsgJs = item.fileName.match(/__minista_script_ssg\.js$/)
+      const isSsgJs = item.fileName.match(/__minista_plugin_ssg\.js$/)
 
       if (!isSsgJs) {
         return
