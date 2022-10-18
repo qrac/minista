@@ -18,10 +18,6 @@ export async function generateAssets({
     config.main.assets.bundle.outName + ".css"
   )
   const bugBundleName = path.join(config.main.assets.outDir, "bundle.css")
-  const iconsName = path.join(
-    config.main.assets.icons.outDir,
-    config.main.assets.icons.outName + ".svg"
-  )
 
   await Promise.all(
     items.map(async (item) => {
@@ -30,7 +26,6 @@ export async function generateAssets({
       const isBundleJs = item.fileName.match(/__minista_plugin_bundle\.js$/)
       const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
       const isBugBundleCss = item.fileName === bugBundleName
-      const isIcons = item.fileName.match(/__minista_plugin_icons\.svg$/)
 
       if (isBundleJs) {
         return
@@ -39,7 +34,6 @@ export async function generateAssets({
       let fileName = item.fileName
       isBundleCss && (fileName = bundleName)
       isBugBundleCss && (fileName = bundleName)
-      isIcons && (fileName = iconsName)
 
       let data = ""
       item.source && (data = item.source)

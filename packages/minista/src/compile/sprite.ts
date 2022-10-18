@@ -3,7 +3,7 @@ import path from "node:path"
 import fs from "fs-extra"
 import svgstore from "@qrac/svgstore"
 
-export function compileSpriteIcons({
+export function compileSvgSprite({
   svgFiles,
   options,
 }: {

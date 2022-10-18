@@ -3,18 +3,18 @@ import { describe, expect, it } from "vitest"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { compileSpriteIcons } from "../../src/compile/icons"
+import { compileSvgSprite } from "../../src/compile/sprite"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-describe("compileSpriteIcons", () => {
+describe("compileSvgSprite", () => {
   it("Default", async () => {
     const svgFile = path.join(__dirname, "../_demo/plus.svg")
     const options = {
       cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
     }
-    const result = compileSpriteIcons({ svgFiles: [svgFile], options })
+    const result = compileSvgSprite({ svgFiles: [svgFile], options })
 
     //console.log(result)
     expect(result).toEqual(

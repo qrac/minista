@@ -2,12 +2,10 @@ import type { Plugin } from "vite"
 import path from "node:path"
 import fs from "fs-extra"
 import fg from "fast-glob"
-import pc from "picocolors"
-import { createLogger } from "vite"
 
 import type { ResolvedMainConfig } from "../config/main.js"
 import type { ResolvedSubConfig } from "../config/sub.js"
-import { compileSpriteIcons } from "../compile/icons.js"
+import { compileSvgSprite } from "../compile/sprite.js"
 
 export function pluginIcons({
   mainConfig,
@@ -16,29 +14,19 @@ export function pluginIcons({
   mainConfig: ResolvedMainConfig
   subConfig: ResolvedSubConfig
 }): Plugin {
-  let command: "build" | "serve"
   let activeSprite = false
 
   const srcDir = path.join(
     subConfig.resolvedRoot,
     mainConfig.assets.icons.srcDir
   )
-  const tempOutput = path.join(
-    subConfig.tempDir,
-    mainConfig.assets.icons.outName + ".svg"
-  )
-  const targetPath = path.join(
-    "/",
-    mainConfig.base,
-    mainConfig.assets.icons.outDir,
-    mainConfig.assets.icons.outName + ".svg"
-  )
+  const tempOutput = path.join(subConfig.tempDir, "__minista_plugin_icons.svg")
 
   async function buildIcons() {
     const svgFiles = await fg(srcDir + "**/*.svg")
 
     if (svgFiles.length > 0) {
-      const data = compileSpriteIcons({
+      const data = compileSvgSprite({
         svgFiles,
         options: mainConfig.assets.icons.svgstoreOptions,
       })
@@ -50,21 +38,11 @@ export function pluginIcons({
 
   return {
     name: "minista-vite-plugin:icons",
-    async config(_, config) {
-      command = config.command
+    async configResolved() {
       activeSprite = mainConfig.assets.icons.useSprite && fs.existsSync(srcDir)
 
       if (activeSprite) {
-        return {
-          resolve: {
-            alias: [
-              {
-                find: targetPath,
-                replacement: tempOutput,
-              },
-            ],
-          },
-        }
+        await buildIcons()
       }
     },
     async configureServer(server) {
@@ -72,35 +50,14 @@ export function pluginIcons({
         return
       }
       const watcher = server.watcher.add(srcDir)
-      const logger = createLogger()
 
       watcher.on("all", async function (eventName, path) {
         const triggers = ["add", "change", "unlink"]
 
         if (triggers.includes(eventName) && path.includes(srcDir)) {
           await buildIcons()
-
-          server.ws.send({ type: "full-reload" })
-          logger.info(
-            `${pc.bold(pc.green("BUILD"))} ${pc.bold("SVG Sprite Icons")}`
-          )
         }
       })
-    },
-    async buildStart() {
-      if (activeSprite) {
-        await buildIcons()
-      }
-      if (command === "build") {
-        const code = fs.readFileSync(tempOutput, { encoding: "utf8" })
-
-        this.emitFile({
-          fileName: "__minista_plugin_icons.svg",
-          name: "__minista_plugin_icons",
-          source: code,
-          type: "asset",
-        })
-      }
     },
   }
 }
