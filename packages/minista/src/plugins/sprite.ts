@@ -7,7 +7,7 @@ import type { ResolvedMainConfig } from "../config/main.js"
 import type { ResolvedSubConfig } from "../config/sub.js"
 import { compileSvgSprite } from "../compile/sprite.js"
 
-export function pluginIcons({
+export function pluginSprite({
   mainConfig,
   subConfig,
 }: {
@@ -20,9 +20,9 @@ export function pluginIcons({
     subConfig.resolvedRoot,
     mainConfig.assets.icons.srcDir
   )
-  const tempOutput = path.join(subConfig.tempDir, "__minista_plugin_icons.svg")
+  const tempOutput = path.join(subConfig.tempDir, "__minista_plugin_sprite.svg")
 
-  async function buildIcons() {
+  async function buildSvgSprite() {
     const svgFiles = await fg(srcDir + "**/*.svg")
 
     if (svgFiles.length > 0) {
@@ -37,12 +37,12 @@ export function pluginIcons({
   }
 
   return {
-    name: "minista-vite-plugin:icons",
+    name: "minista-vite-plugin:sprite",
     async configResolved() {
       activeSprite = mainConfig.assets.icons.useSprite && fs.existsSync(srcDir)
 
       if (activeSprite) {
-        await buildIcons()
+        await buildSvgSprite()
       }
     },
     async configureServer(server) {
@@ -55,7 +55,7 @@ export function pluginIcons({
         const triggers = ["add", "change", "unlink"]
 
         if (triggers.includes(eventName) && path.includes(srcDir)) {
-          await buildIcons()
+          await buildSvgSprite()
         }
       })
     },

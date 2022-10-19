@@ -1,4 +1,4 @@
-import tempIconsUrl from "/@minista-temp/__minista_plugin_icons.svg"
+import tempSpriteUrl from "/@minista-temp/__minista_plugin_sprite.svg"
 
 type IconProps = {
   iconId: string
@@ -12,7 +12,7 @@ export function Icon(props: IconProps) {
   return (
     <svg className={className && className} {...attributes}>
       {title && <title>{title}</title>}
-      <use href={tempIconsUrl + "#" + iconId} />
+      <use href={tempSpriteUrl + "#" + iconId} />
     </svg>
   )
 }

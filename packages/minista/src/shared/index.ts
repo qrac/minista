@@ -1,5 +1,5 @@
 export * from "./define.js"
 export * from "./comment.js"
 export * from "./head.js"
-export * from "./icons.js"
+export * from "./icon.js"
 export * from "./markdown.js"

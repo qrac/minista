@@ -16,7 +16,7 @@ import type { ResolvedSubConfig } from "./sub.js"
 import type { ResolvedMdxConfig } from "./mdx.js"
 import type { ResolvedEntry } from "./entry.js"
 import { pluginSvgr } from "../plugins/svgr.js"
-import { pluginIcons } from "../plugins/icons.js"
+import { pluginSprite } from "../plugins/sprite.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -44,7 +44,7 @@ export function resolveViteAssetFileNames(
   const filePath = chunkInfo.name || ""
   const fileExt = path.extname(filePath)
 
-  if (filePath.includes("__minista_plugin_icons.svg")) {
+  if (filePath.includes("__minista_plugin_sprite.svg")) {
     return path.join(
       mainConfig.assets.icons.outDir,
       mainConfig.assets.icons.outName + ".svg"
@@ -138,7 +138,7 @@ export async function resolveViteConfig(
     plugins: [
       react(),
       pluginSvgr(mainConfig.assets.svgr.svgrOptions),
-      pluginIcons({ mainConfig, subConfig }),
+      pluginSprite({ mainConfig, subConfig }),
     ],
     optimizeDeps: {
       //disabled: false, // Using esbuild deps optimization at build time
