@@ -14,6 +14,7 @@ export function pluginSprite({
   mainConfig: ResolvedMainConfig
   subConfig: ResolvedSubConfig
 }): Plugin {
+  let command: "build" | "serve"
   let activeSprite = false
 
   const srcDir = path.join(
@@ -38,11 +39,22 @@ export function pluginSprite({
 
   return {
     name: "minista-vite-plugin:sprite",
-    async configResolved() {
+    async config(_, config) {
+      command = config.command
       activeSprite = mainConfig.assets.icons.useSprite && fs.existsSync(srcDir)
 
       if (activeSprite) {
         await buildSvgSprite()
+        return {
+          resolve: {
+            alias: [
+              {
+                find: "/@minista-temp/__minista_plugin_sprite.svg",
+                replacement: tempOutput,
+              },
+            ],
+          },
+        }
       }
     },
     async configureServer(server) {
@@ -58,6 +70,23 @@ export function pluginSprite({
           await buildSvgSprite()
         }
       })
+    },
+    async transform(code, id) {
+      if (
+        command === "build" &&
+        activeSprite &&
+        id.match(/minista(\/|\\)dist(\/|\\)shared(\/|\\)icon\.js$/)
+      ) {
+        const addImport = `import tempSpriteUrl from "/@minista-temp/__minista_plugin_sprite.svg";\n`
+        const replacedCode = code.replace(
+          `"/@minista-temp/__minista_plugin_sprite.svg#"`,
+          `tempSpriteUrl + "#"`
+        )
+        return {
+          code: addImport + replacedCode,
+          map: null,
+        }
+      }
     },
   }
 }
