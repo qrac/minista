@@ -82,7 +82,7 @@ export function compileScriptTag({
 
   if (mode === "serve") {
     assetPath = path.join("/", "@minista-project-root", entry.input)
-    return `<script${deferStr}${asyncStr} src="${assetPath}"></script>`
+    return `<script${deferStr}${asyncStr} type="module" src="${assetPath}"></script>`
   }
 
   if (config.main.base === "" || config.main.base === "./") {
@@ -94,7 +94,7 @@ export function compileScriptTag({
   } else {
     assetPath = path.join(config.main.base, assetName)
   }
-  return `<script${deferStr}${asyncStr} src="${assetPath}"></script>`
+  return `<script${deferStr}${asyncStr} type="module" src="${assetPath}"></script>`
 }
 
 export function compileEntryTags({
