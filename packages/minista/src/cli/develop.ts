@@ -7,13 +7,16 @@ import {
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginServe } from "../plugins/serve.js"
+//import { pluginPartial } from "../plugins/partial.js"
 
 export async function develop(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
 
   const mergedViteConfig = mergeViteConfig(
     config.vite,
-    defineViteConfig({ plugins: [pluginServe(config)] })
+    defineViteConfig({
+      plugins: [pluginServe(config) /*, pluginPartial(config)*/],
+    })
   )
   const viteServer = await createViteServer(mergedViteConfig)
 

@@ -8,7 +8,7 @@ import {
   searchForWorkspaceRoot,
   createLogger,
 } from "vite"
-import react from "@vitejs/plugin-react"
+import { default as pluginReact } from "@vitejs/plugin-react"
 import { default as pluginMdx } from "@mdx-js/rollup"
 
 import type { ResolvedMainConfig } from "./main.js"
@@ -136,7 +136,7 @@ export async function resolveViteConfig(
       ],
     },
     plugins: [
-      react(),
+      pluginReact(),
       pluginSvgr(mainConfig.assets.svgr.svgrOptions),
       pluginSprite({ mainConfig, subConfig }),
     ],

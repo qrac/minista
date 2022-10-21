@@ -11,6 +11,7 @@ import {
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginSsg } from "../plugins/ssg.js"
+//import { pluginPartial } from "../plugins/partial.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { generateHtml } from "../generate/html.js"
 import { generateAssets } from "../generate/assets.js"
@@ -42,13 +43,23 @@ export async function build(inlineConfig: InlineConfig = {}) {
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
+  /*const partialConfig = mergeViteConfig(
+    config.vite,
+    defineViteConfig({
+      build: { write: false },
+      plugins: [pluginPartial(config)],
+      customLogger: createLogger("warn", { prefix: "[minista]" }),
+    })
+  )*/
 
   let ssgResult: BuildResult
   let assetsResult: BuildResult
+  //let partialResult: BuildResult
 
   await Promise.all([
     (ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult),
     (assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult),
+    //(partialResult = (await viteBuild(partialConfig)) as unknown as BuildResult),
   ])
 
   const resolvedOut = path.join(config.sub.resolvedRoot, config.main.out)
