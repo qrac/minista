@@ -119,10 +119,10 @@ export function renderApp({
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       ${staticHelmet(helmet.title.toString())}
       ${staticHelmet(helmet.meta.toString())}
-      ${insertHeadTags}
       ${staticHelmet(helmet.link.toString())}
-      ${staticHelmet(helmet.style.toString())}
       ${staticHelmet(helmet.script.toString())}
+      ${insertHeadTags}
+      ${staticHelmet(helmet.style.toString())}
     </head>
     <body ${helmet.bodyAttributes.toString()}>
       ${insertStartTags}${markup}${insertEndTags}
