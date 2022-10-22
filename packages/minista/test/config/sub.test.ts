@@ -25,7 +25,7 @@ describe("resolveSubConfig", () => {
         input: "src/assets/script.ts",
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
     ])
   })

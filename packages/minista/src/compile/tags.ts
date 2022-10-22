@@ -45,10 +45,11 @@ export function compileLinkTag({
   let assetPath = ""
 
   const assetName = path.join(config.main.assets.outDir, entry.name + ".css")
+  const attributes = entry.attributes ? " " + entry.attributes : ""
 
   if (mode === "serve") {
     assetPath = path.join("/", "@minista-project-root", entry.input)
-    return `<link rel="stylesheet" href="${assetPath}">`
+    return `<link rel="stylesheet"${attributes} href="${assetPath}">`
   }
 
   if (config.main.base === "" || config.main.base === "./") {
@@ -60,7 +61,7 @@ export function compileLinkTag({
   } else {
     assetPath = path.join(config.main.base, assetName)
   }
-  return `<link rel="stylesheet" href="${assetPath}">`
+  return `<link rel="stylesheet"${attributes} href="${assetPath}">`
 }
 
 export function compileScriptTag({
@@ -77,12 +78,16 @@ export function compileScriptTag({
   let assetPath = ""
 
   const assetName = path.join(config.main.assets.outDir, entry.name + ".js")
-  const deferStr = entry.loadType === "defer" ? " defer" : ""
-  const asyncStr = entry.loadType === "async" ? " async" : ""
+  const attributes =
+    entry.attributes === false
+      ? ""
+      : entry.attributes
+      ? " " + entry.attributes
+      : ` type="module"`
 
   if (mode === "serve") {
     assetPath = path.join("/", "@minista-project-root", entry.input)
-    return `<script${deferStr}${asyncStr} type="module" src="${assetPath}"></script>`
+    return `<script${attributes} src="${assetPath}"></script>`
   }
 
   if (config.main.base === "" || config.main.base === "./") {
@@ -94,7 +99,7 @@ export function compileScriptTag({
   } else {
     assetPath = path.join(config.main.base, assetName)
   }
-  return `<script${deferStr}${asyncStr} type="module" src="${assetPath}"></script>`
+  return `<script${attributes} src="${assetPath}"></script>`
 }
 
 export function compileEntryTags({
@@ -163,9 +168,7 @@ export function compileEntryTags({
     bundleCssTag = compileBundleTag({ pathname, config })
   }
   if (mode === "serve") {
-    bundleJsTag = `<script type="module">
-  import "/@minista/dist/scripts/bundle.js"
-</script>`
+    bundleJsTag = `<script type="module">import "/@minista/dist/scripts/bundle.js"</script>`
     /*bundleJsTag = `<script type="module">
   import "/@minista/dist/scripts/bundle.js"
 import "/@minista/dist/scripts/partial.js"

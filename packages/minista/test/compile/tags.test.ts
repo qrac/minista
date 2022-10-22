@@ -60,7 +60,7 @@ describe("compileLinkTag", () => {
         input: "src/assets/style.scss",
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
       config,
     })
@@ -81,7 +81,7 @@ describe("compileLinkTag", () => {
         input: "src/assets/style.scss",
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
       config,
     })
@@ -102,7 +102,7 @@ describe("compileScriptTag", () => {
         input: "src/assets/script.ts",
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "defer",
       },
       config,
     })
@@ -123,13 +123,34 @@ describe("compileScriptTag", () => {
         input: "src/assets/script.ts",
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
       config,
     })
 
     //console.log(result)
-    expect(result).toEqual(`<script defer src="/assets/script.js"></script>`)
+    expect(result).toEqual(
+      `<script type="module" src="/assets/script.js"></script>`
+    )
+  })
+
+  it("Ssg attributes false", async () => {
+    const config = await resolveConfig({})
+    const result = compileScriptTag({
+      mode: "ssg",
+      pathname: "/",
+      entry: {
+        name: "script",
+        input: "src/assets/script.ts",
+        insertPages: ["**/*"],
+        position: "head",
+        attributes: false,
+      },
+      config,
+    })
+
+    //console.log(result)
+    expect(result).toEqual(`<script src="/assets/script.js"></script>`)
   })
 })
 

@@ -11,7 +11,7 @@ type EntryObject = {
   input: string
   insertPages: string | string[] | { include: string[]; exclude?: string[] }
   position?: "head" | "start" | "end"
-  loadType?: "defer" | "async" | "none"
+  attributes?: string | false
 }
 
 export type ResolvedEntry = ResolvedEntryObject[]
@@ -21,7 +21,7 @@ type ResolvedEntryObject = {
   input: string
   insertPages: string[]
   position: "head" | "start" | "end"
-  loadType: "defer" | "async" | "none"
+  attributes: string | false
 }
 
 export function resolveEntryInclude(
@@ -75,7 +75,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
         input,
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       }
       return entries.push(pattern)
     } else if (Array.isArray(input) && input.length > 0) {
@@ -88,7 +88,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
               input: item,
               insertPages: ["**/*"],
               position: "head",
-              loadType: "defer",
+              attributes: "",
             }
             return entries.push(pattern)
           })
@@ -107,7 +107,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
               input: item.input,
               insertPages: [...include, ...fixedExclude],
               position: item.position || "head",
-              loadType: item.loadType || "defer",
+              attributes: item.attributes || "",
             }
             return entries.push(pattern)
           })
@@ -121,7 +121,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
             input: item[1],
             insertPages: ["**/*"],
             position: "head",
-            loadType: "defer",
+            attributes: "",
           }
           return entries.push(pattern)
         })

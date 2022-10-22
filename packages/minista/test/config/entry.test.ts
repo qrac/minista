@@ -76,7 +76,7 @@ describe("resolveEntry", () => {
         input: "src/assets/script.ts",
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
     ])
   })
@@ -92,14 +92,14 @@ describe("resolveEntry", () => {
         input: "src/assets/script.ts",
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
       {
         name: "style",
         input: "src/assets/style.css",
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
     ])
   })
@@ -115,7 +115,7 @@ describe("resolveEntry", () => {
         input: "src/assets/index.ts",
         insertPages: ["**/*"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
     ])
   })
@@ -127,7 +127,7 @@ describe("resolveEntry", () => {
         input: "src/assets/test1.ts",
         insertPages: ["/test/test1/**/*", "/test/test1/"],
         position: "start",
-        loadType: "async",
+        attributes: "async",
       },
       {
         name: "test2",
@@ -141,7 +141,7 @@ describe("resolveEntry", () => {
           include: ["**/*"],
           exclude: ["/test/test2/"],
         },
-        loadType: "none",
+        attributes: "defer",
       },
     ]
     const result = await resolveEntry(configEntry)
@@ -153,21 +153,21 @@ describe("resolveEntry", () => {
         input: "src/assets/test1.ts",
         insertPages: ["/test/test1/**/*", "/test/test1/"],
         position: "start",
-        loadType: "async",
+        attributes: "async",
       },
       {
         name: "test2",
         input: "src/assets/test2.ts",
         insertPages: ["/test/test2/**/*", "!/test/test2/"],
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
       {
         name: "style",
         input: "src/assets/style.css",
         insertPages: ["**/*", "!/test/test2/"],
         position: "head",
-        loadType: "none",
+        attributes: "defer",
       },
     ])
   })
