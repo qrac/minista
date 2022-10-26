@@ -13,41 +13,43 @@ export async function generateAssets({
   config: ResolvedConfig
   items: BuildResult["output"]
 }) {
-  const bundleName = path.join(
+  const bundleCssName = path.join(
     config.main.assets.outDir,
     config.main.assets.bundle.outName + ".css"
   )
-  const bugBundleName = path.join(config.main.assets.outDir, "bundle.css")
+  const bugBundleCssName = path.join(config.main.assets.outDir, "bundle.css")
 
   await Promise.all(
     items.map(async (item) => {
-      const isJs = item.fileName.match(/.*\.js$/)
       const isCss = item.fileName.match(/.*\.css$/)
-      const isBundleJs = item.fileName.match(/__minista_plugin_bundle\.js$/)
-      const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
-      const isBugBundleCss = item.fileName === bugBundleName
+      const isJs = item.fileName.match(/.*\.js$/)
+      const isBundleCss = item.fileName.match(
+        /__minista_plugin_get_bundle\.css$/
+      )
+      const isBugBundleCss = item.fileName === bugBundleCssName
+      const isBundleJs = item.fileName.match(/__minista_plugin_get_bundle\.js$/)
 
       if (isBundleJs) {
         return
       }
 
       let fileName = item.fileName
-      isBundleCss && (fileName = bundleName)
-      isBugBundleCss && (fileName = bundleName)
+      isBundleCss && (fileName = bundleCssName)
+      isBugBundleCss && (fileName = bundleCssName)
 
       let data = ""
       item.source && (data = item.source)
       item.code && (data = item.code)
 
-      if (!data) {
+      if (!data || data === "\n") {
         return
       }
 
-      if (isJs && config.main.beautify.useAssets) {
-        data = beautify.js(data, config.main.beautify.jsOptions)
-      }
       if (isCss && config.main.beautify.useAssets) {
         data = beautify.css(data, config.main.beautify.cssOptions)
+      }
+      if (isJs && config.main.beautify.useAssets) {
+        data = beautify.js(data, config.main.beautify.jsOptions)
       }
 
       const routePath = path.join(

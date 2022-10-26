@@ -6,7 +6,11 @@ import { fileURLToPath } from "node:url"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-import { getHtmlPath, getNodeModulesPath } from "../../src/utility/path"
+import {
+  getHtmlPath,
+  getBasedAssetPath,
+  getNodeModulesPath,
+} from "../../src/utility/path"
 
 describe("getHtmlPath", () => {
   it("Default", () => {
@@ -28,6 +32,41 @@ describe("getHtmlPath", () => {
 
     //console.log(result)
     expect(result).toEqual("about/index.html")
+  })
+})
+
+describe("getBasedAssetPath", () => {
+  it("Default", () => {
+    const result = getBasedAssetPath({
+      base: "/",
+      pathname: "/",
+      assetPath: "style.css",
+    })
+
+    //console.log(result)
+    expect(result).toEqual("/style.css")
+  })
+
+  it("Base", () => {
+    const result = getBasedAssetPath({
+      base: "./",
+      pathname: "/",
+      assetPath: "style.css",
+    })
+
+    //console.log(result)
+    expect(result).toEqual("style.css")
+  })
+
+  it("Base with nest", () => {
+    const result = getBasedAssetPath({
+      base: "./",
+      pathname: "/about/",
+      assetPath: "style.css",
+    })
+
+    //console.log(result)
+    expect(result).toEqual("../style.css")
   })
 })
 

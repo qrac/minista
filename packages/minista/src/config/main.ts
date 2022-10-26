@@ -132,7 +132,7 @@ export const defaultMainConfig: MainConfig = {
       intersectionObserverOptions: {
         root: null,
         rootMargin: "0px",
-        thresholds: [1],
+        thresholds: [0],
       },
     },
     images: {

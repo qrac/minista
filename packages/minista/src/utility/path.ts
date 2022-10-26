@@ -9,6 +9,23 @@ export function getHtmlPath(pathname: string) {
   return fileName
 }
 
+export function getBasedAssetPath({
+  base,
+  pathname,
+  assetPath,
+}: {
+  base: string
+  pathname: string
+  assetPath: string
+}) {
+  if (base === "" || base === "./") {
+    const fileName = getHtmlPath(pathname)
+    const filePath = path.dirname(fileName)
+    return path.relative(filePath, path.join("./", assetPath))
+  }
+  return path.join(base, assetPath)
+}
+
 export function getNodeModulesPath(root: string): string {
   if (fs.existsSync(path.join(root, "package.json"))) {
     return path.join(root, "node_modules")

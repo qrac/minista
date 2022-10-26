@@ -3,33 +3,7 @@ import picomatch from "picomatch"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedEntry } from "../config/entry.js"
-import { getHtmlPath } from "../utility/path.js"
-
-export function compileBundleTag({
-  pathname,
-  config,
-}: {
-  pathname: string
-  config: ResolvedConfig
-}) {
-  let assetPath = ""
-
-  const assetName = path.join(
-    config.main.assets.outDir,
-    config.main.assets.bundle.outName + ".css"
-  )
-
-  if (config.main.base === "" || config.main.base === "./") {
-    const fileName = getHtmlPath(pathname)
-    const filePath = path.dirname(fileName)
-    const bundleCssPath = path.join("./", assetName)
-    const relativePath = path.relative(filePath, bundleCssPath)
-    assetPath = relativePath
-  } else {
-    assetPath = path.join(config.main.base, assetName)
-  }
-  return `<link rel="stylesheet" data-minista-build-bundle-href="${assetPath}">`
-}
+import { getBasedAssetPath } from "../utility/path.js"
 
 export function compileLinkTag({
   mode,
@@ -43,24 +17,17 @@ export function compileLinkTag({
   config: ResolvedConfig
 }) {
   let assetPath = ""
+  let attributes = ""
 
-  const assetName = path.join(config.main.assets.outDir, entry.name + ".css")
-  const attributes = entry.attributes ? " " + entry.attributes : ""
+  attributes = entry.attributes ? " " + entry.attributes : ""
 
   if (mode === "serve") {
     assetPath = path.join("/", "@minista-project-root", entry.input)
     return `<link rel="stylesheet"${attributes} href="${assetPath}">`
   }
+  assetPath = path.join(config.main.assets.outDir, entry.name + ".css")
+  assetPath = getBasedAssetPath({ base: config.main.base, pathname, assetPath })
 
-  if (config.main.base === "" || config.main.base === "./") {
-    const fileName = getHtmlPath(pathname)
-    const filePath = path.dirname(fileName)
-    const cssPath = path.join("./", assetName)
-    const relativePath = path.relative(filePath, cssPath)
-    assetPath = relativePath
-  } else {
-    assetPath = path.join(config.main.base, assetName)
-  }
   return `<link rel="stylesheet"${attributes} href="${assetPath}">`
 }
 
@@ -76,29 +43,18 @@ export function compileScriptTag({
   config: ResolvedConfig
 }) {
   let assetPath = ""
+  let attributes = ""
 
-  const assetName = path.join(config.main.assets.outDir, entry.name + ".js")
-  const attributes =
-    entry.attributes === false
-      ? ""
-      : entry.attributes
-      ? " " + entry.attributes
-      : ` type="module"`
+  attributes = entry.attributes ? " " + entry.attributes : ` type="module"`
+  attributes = entry.attributes === false ? "" : attributes
 
   if (mode === "serve") {
     assetPath = path.join("/", "@minista-project-root", entry.input)
     return `<script${attributes} src="${assetPath}"></script>`
   }
+  assetPath = path.join(config.main.assets.outDir, entry.name + ".js")
+  assetPath = getBasedAssetPath({ base: config.main.base, pathname, assetPath })
 
-  if (config.main.base === "" || config.main.base === "./") {
-    const fileName = getHtmlPath(pathname)
-    const filePath = path.dirname(fileName)
-    const cssPath = path.join("./", assetName)
-    const relativePath = path.relative(filePath, cssPath)
-    assetPath = relativePath
-  } else {
-    assetPath = path.join(config.main.base, assetName)
-  }
   return `<script${attributes} src="${assetPath}"></script>`
 }
 
@@ -161,18 +117,34 @@ export function compileEntryTags({
   let endLinkTags: string[] = []
   let endScriptTags: string[] = []
 
-  let bundleCssTag = ""
-  let bundleJsTag = ""
+  let bundleHeadLinkTag = ""
+  let bundleEndScriptTag = ""
+  let partialHeadScriptTag = ""
+  let partialEndScriptTag = ""
 
-  if (mode === "ssg") {
-    bundleCssTag = compileBundleTag({ pathname, config })
-  }
   if (mode === "serve") {
-    bundleJsTag = `<script type="module">import "/@minista/dist/scripts/bundle.js"</script>`
-    /*bundleJsTag = `<script type="module">
-  import "/@minista/dist/scripts/bundle.js"
-import "/@minista/dist/scripts/partial.js"
-</script>`*/
+    bundleEndScriptTag = `<script type="module" src="/@minista/dist/scripts/bundle.js"></script>`
+    partialEndScriptTag = `<script type="module" src="/@minista/dist/scripts/partial.js"></script>`
+  }
+  if (mode === "ssg") {
+    const bundleCss = getBasedAssetPath({
+      base: config.main.base,
+      pathname,
+      assetPath: path.join(
+        config.main.assets.outDir,
+        config.main.assets.bundle.outName + ".css"
+      ),
+    })
+    const partialJs = getBasedAssetPath({
+      base: config.main.base,
+      pathname,
+      assetPath: path.join(
+        config.main.assets.outDir,
+        config.main.assets.partial.outName + ".js"
+      ),
+    })
+    bundleHeadLinkTag = `<link rel="stylesheet" data-minista-build-bundle-href="${bundleCss}">`
+    partialHeadScriptTag = `<script type="module" data-minista-build-partial-src="${partialJs}"></script>`
   }
 
   const pageEntries = config.sub.resolvedEntry.filter((entry) => {
@@ -200,7 +172,12 @@ import "/@minista/dist/scripts/partial.js"
     endScriptTags = scriptTags
   }
 
-  headTags = [...headLinkTags, bundleCssTag, ...headScriptTags]
+  headTags = [
+    ...headLinkTags,
+    bundleHeadLinkTag,
+    ...headScriptTags,
+    partialHeadScriptTag,
+  ]
     .filter((tag) => tag)
     .join("\n")
 
@@ -208,7 +185,12 @@ import "/@minista/dist/scripts/partial.js"
     .filter((tag) => tag)
     .join("\n")
 
-  endTags = [...endLinkTags, ...endScriptTags, bundleJsTag]
+  endTags = [
+    ...endLinkTags,
+    ...endScriptTags,
+    bundleEndScriptTag,
+    partialEndScriptTag,
+  ]
     .filter((tag) => tag)
     .join("\n")
 

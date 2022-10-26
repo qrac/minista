@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename)
 
 import type { ResolvedConfig } from "../config/index.js"
 
-function staticPartial({
+function getStaticPartial({
   originalId,
   rootDOMElement,
   dataAttr,
@@ -29,44 +29,109 @@ export default function Wrapped() {
 }`
 }
 
-function hydratePartial({
+function getHydratePartial({
   originalId,
   dataAttr,
+  useLegacy,
+  useIntersectionObserver,
+  options,
 }: {
   originalId: string
   dataAttr: string
+  useLegacy: boolean
+  useIntersectionObserver: boolean
+  options: ResolvedConfig["main"]["assets"]["partial"]["intersectionObserverOptions"]
 }) {
-  return `import React from "react"
-import * as ReactDOM from "react-dom/client"
+  let hydrateStr = ""
+  let hydrateFncStr = ""
+
+  hydrateStr = "ReactDOM.hydrateRoot(target, <App />)"
+  hydrateStr = useLegacy ? "ReactDOM.hydrate(<App />, target)" : hydrateStr
+
+  hydrateFncStr = `const options = {
+      root: ${options.root},
+      rootMargin: "${options.rootMargin}",
+      thresholds: [${options.thresholds.join()}],
+    }
+    const observer = new IntersectionObserver(hydrate, options)
+    observer.observe(target)
+    function hydrate() {
+      ${hydrateStr}
+      observer.unobserve(target)
+    }`
+  hydrateFncStr = !useIntersectionObserver ? hydrateStr : hydrateFncStr
+
+  return `import * as ReactDOM from "react-dom/client"
 import App from "${originalId}"
 const targets = document.querySelectorAll('[${dataAttr}]')
 if (targets) {
   targets.forEach(target => {
-    ReactDOM.hydrateRoot(target, <App />)
+    let children = target.innerHTML
+    children = children.replace(/((?<=\\>)(\\s|\\n)*(\\s|\\n))|((\\s|\\n)*(\\s|\\n)(?=\\<))/g, "")
+    target.innerHTML = children
+    ${hydrateFncStr}
   })
 }`
 }
 
-export function pluginPartial(config: ResolvedConfig): Plugin {
-  let partials: { [key: string]: number } = {}
-
+export function pluginGetPartial(): Plugin {
   return {
-    name: "minista-vite-plugin:partial",
+    name: "minista-vite-plugin:get-partial",
     config: () => ({
       build: {
         rollupOptions: {
           input: {
-            __minista_plugin_partial: path.join(
+            __minista_plugin_get_partial: path.join(
               __dirname,
               "/../scripts/partial.js"
             ),
           },
         },
       },
+    }),
+  }
+}
+
+export function pluginPartial(config: ResolvedConfig): Plugin {
+  let useLegacy = false
+  let partials: { [key: string]: number } = {}
+
+  return {
+    name: "minista-vite-plugin:init-partial",
+    config: () => ({
       optimizeDeps: {
         include: ["react-dom/client"],
       },
     }),
+    async configResolved() {
+      const rootReactDomPkgPath = path.join(
+        config.sub.resolvedRoot,
+        "node_modules",
+        "react-dom",
+        "package.json"
+      )
+      const cwdReactDomPkgPath = path.join(
+        process.cwd(),
+        "node_modules",
+        "react-dom",
+        "package.json"
+      )
+      const hasRoot = fs.existsSync(rootReactDomPkgPath)
+      const hasCwd = fs.existsSync(cwdReactDomPkgPath)
+
+      if (!hasRoot && !hasCwd) {
+        return
+      }
+
+      const reactDomPkgPath = hasRoot ? rootReactDomPkgPath : cwdReactDomPkgPath
+      const reactDomPkg = JSON.parse(fs.readFileSync(reactDomPkgPath, "utf8"))
+      const version = reactDomPkg.version.match(/[0-9]*(?=\.)/)[0]
+
+      useLegacy = version < 18 ? true : false
+    },
+    async buildStart() {
+      await fs.remove(path.join(config.sub.tempDir, "partials"))
+    },
     async load(id) {
       if (id.endsWith("?ph")) {
         let count = 0
@@ -82,9 +147,13 @@ export function pluginPartial(config: ResolvedConfig): Plugin {
           await fs
             .outputFile(
               path.join(config.sub.tempDir, "partials", `ph-${count}.jsx`),
-              hydratePartial({
+              getHydratePartial({
                 originalId,
                 dataAttr: `data-${rootAttrSuffix}="${rootValuePrefix}-${count}"`,
+                useLegacy,
+                useIntersectionObserver:
+                  config.main.assets.partial.useIntersectionObserver,
+                options: config.main.assets.partial.intersectionObserverOptions,
               })
             )
             .catch((err) => {
@@ -93,7 +162,7 @@ export function pluginPartial(config: ResolvedConfig): Plugin {
         } else {
           count = partials[id]
         }
-        return staticPartial({
+        return getStaticPartial({
           originalId,
           rootDOMElement,
           dataAttr: `data-${rootAttrSuffix}="${rootValuePrefix}-${count}"`,

@@ -14,7 +14,7 @@ export default function BlockCounter() {
         >
           increment
         </button>
-        <p className="block-counter-message">count: {count}</p>
+        <p className="block-counter-message">{"count: " + count}</p>
       </div>
     </div>
   )

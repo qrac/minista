@@ -1,53 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  compileBundleTag,
   compileLinkTag,
   compileScriptTag,
   compileEntryTags,
 } from "../../src/compile/tags"
 import { resolveConfig } from "../../src/config"
-
-describe("compileBundleTag", () => {
-  it("Default", async () => {
-    const config = await resolveConfig({})
-    const result = compileBundleTag({
-      pathname: "/",
-      config,
-    })
-
-    //console.log(result)
-    expect(result).toEqual(
-      `<link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">`
-    )
-  })
-
-  it("Relative", async () => {
-    const config = await resolveConfig({ base: "./" })
-    const result = compileBundleTag({
-      pathname: "/",
-      config,
-    })
-
-    //console.log(result)
-    expect(result).toEqual(
-      `<link rel="stylesheet" data-minista-build-bundle-href="assets/bundle.css">`
-    )
-  })
-
-  it("Relative nest", async () => {
-    const config = await resolveConfig({ base: "./" })
-    const result = compileBundleTag({
-      pathname: "/foo/bar/",
-      config,
-    })
-
-    //console.log(result)
-    expect(result).toEqual(
-      `<link rel="stylesheet" data-minista-build-bundle-href="../../assets/bundle.css">`
-    )
-  })
-})
 
 describe("compileLinkTag", () => {
   it("Serve", async () => {
@@ -167,7 +125,8 @@ describe("compileEntryTags", () => {
     expect(result).toEqual({
       headTags: ``,
       startTags: ``,
-      endTags: `<script type="module">import "/@minista/dist/scripts/bundle.js"</script>`,
+      endTags: `<script type="module" src="/@minista/dist/scripts/bundle.js"></script>
+<script type="module" src="/@minista/dist/scripts/partial.js"></script>`,
     })
   })
 
@@ -185,7 +144,8 @@ describe("compileEntryTags", () => {
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" href="/@minista-project-root/src/assets/style.scss">`,
       startTags: ``,
-      endTags: `<script type="module">import "/@minista/dist/scripts/bundle.js"</script>`,
+      endTags: `<script type="module" src="/@minista/dist/scripts/bundle.js"></script>
+<script type="module" src="/@minista/dist/scripts/partial.js"></script>`,
     })
   })
 
@@ -199,7 +159,8 @@ describe("compileEntryTags", () => {
 
     //console.log(result)
     expect(result).toEqual({
-      headTags: `<link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">`,
+      headTags: `<link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
+<script type="module" data-minista-build-partial-src="/assets/partial.js"></script>`,
       startTags: ``,
       endTags: ``,
     })
@@ -218,7 +179,8 @@ describe("compileEntryTags", () => {
     //console.log(result)
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" href="/assets/style.css">
-<link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">`,
+<link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
+<script type="module" data-minista-build-partial-src="/assets/partial.js"></script>`,
       startTags: ``,
       endTags: ``,
     })
