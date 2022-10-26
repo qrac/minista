@@ -35,7 +35,6 @@ export type UserConfig = {
       outName?: string
     }
     partial?: {
-      useSplitPerPage?: boolean
       usePreact?: boolean
       useIntersectionObserver?: boolean
       outName?: string

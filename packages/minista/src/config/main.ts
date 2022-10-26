@@ -30,7 +30,6 @@ export type MainConfig = {
       outName: string
     }
     partial: {
-      useSplitPerPage: boolean
       usePreact: boolean
       useIntersectionObserver: boolean
       outName: string
@@ -121,7 +120,6 @@ export const defaultMainConfig: MainConfig = {
       outName: "bundle",
     },
     partial: {
-      useSplitPerPage: false,
       usePreact: false,
       useIntersectionObserver: true,
       outName: "partial",
