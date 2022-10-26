@@ -23,11 +23,9 @@ export async function generateAssets({
     items.map(async (item) => {
       const isCss = item.fileName.match(/.*\.css$/)
       const isJs = item.fileName.match(/.*\.js$/)
-      const isBundleCss = item.fileName.match(
-        /__minista_plugin_get_bundle\.css$/
-      )
+      const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
       const isBugBundleCss = item.fileName === bugBundleCssName
-      const isBundleJs = item.fileName.match(/__minista_plugin_get_bundle\.js$/)
+      const isBundleJs = item.fileName.match(/__minista_plugin_bundle\.js$/)
 
       if (isBundleJs) {
         return

@@ -1,4 +1,5 @@
 import type { RollupOutput } from "rollup"
+import type { PluginOption } from "vite"
 import path from "node:path"
 import fs from "fs-extra"
 import {
@@ -7,12 +8,16 @@ import {
   build as viteBuild,
   createLogger,
 } from "vite"
+import { default as pluginReact } from "@vitejs/plugin-react"
+import { default as pluginMdx } from "@mdx-js/rollup"
 
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
-import { pluginGetSsg } from "../plugins/ssg.js"
-import { pluginPartial, pluginGetPartial } from "../plugins/partial.js"
-import { pluginGetBundle } from "../plugins/bundle.js"
+import { pluginSvgr } from "../plugins/svgr.js"
+import { pluginSpriteInit, pluginSprite } from "../plugins/sprite.js"
+import { pluginSsg } from "../plugins/ssg.js"
+import { pluginPartial, pluginPartialImport } from "../plugins/partial.js"
+import { pluginBundle } from "../plugins/bundle.js"
 import { generateHtml } from "../generate/html.js"
 import { generateAssets } from "../generate/assets.js"
 import { generatePartial } from "../generate/partial.js"
@@ -32,7 +37,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
     config.vite,
     defineViteConfig({
       build: { write: false, ssr: true, minify: false },
-      plugins: [pluginGetSsg(), pluginPartial(config)],
+      plugins: [
+        pluginReact(),
+        pluginMdx(config.mdx) as PluginOption,
+        pluginSvgr(config),
+        pluginSpriteInit(config),
+        pluginSprite(config),
+        pluginSsg(),
+        pluginPartial(config),
+      ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
@@ -40,7 +53,13 @@ export async function build(inlineConfig: InlineConfig = {}) {
     config.vite,
     defineViteConfig({
       build: { write: false },
-      plugins: [pluginGetBundle()],
+      plugins: [
+        pluginReact(),
+        pluginMdx(config.mdx) as PluginOption,
+        pluginSvgr(config),
+        pluginSprite(config),
+        pluginBundle(),
+      ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
@@ -48,11 +67,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
     config.vite,
     defineViteConfig({
       build: { write: false },
-      plugins: [pluginGetPartial(config)],
+      plugins: [
+        pluginReact(),
+        pluginSvgr(config),
+        pluginSprite(config),
+        pluginPartialImport(config),
+      ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
-  const hasPartial = fs.existsSync(path.join(config.sub.tempDir, "partials"))
 
   let ssgResult: BuildResult
   let assetsResult: BuildResult
@@ -62,6 +85,8 @@ export async function build(inlineConfig: InlineConfig = {}) {
     (ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult),
     (assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult),
   ])
+
+  const hasPartial = fs.existsSync(path.join(config.sub.tempDir, "partials"))
 
   if (hasPartial) {
     partialResult = (await viteBuild(partialConfig)) as unknown as BuildResult

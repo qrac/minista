@@ -8,15 +8,11 @@ import {
   searchForWorkspaceRoot,
   createLogger,
 } from "vite"
-import { default as pluginReact } from "@vitejs/plugin-react"
-import { default as pluginMdx } from "@mdx-js/rollup"
 
 import type { ResolvedMainConfig } from "./main.js"
 import type { ResolvedSubConfig } from "./sub.js"
 import type { ResolvedMdxConfig } from "./mdx.js"
 import type { ResolvedEntry } from "./entry.js"
-import { pluginSvgr } from "../plugins/svgr.js"
-import { pluginSprite } from "../plugins/sprite.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -135,11 +131,6 @@ export async function resolveViteConfig(
         },
       ],
     },
-    plugins: [
-      pluginReact(),
-      pluginSvgr(mainConfig.assets.svgr.svgrOptions),
-      pluginSprite({ mainConfig, subConfig }),
-    ],
     optimizeDeps: {
       //disabled: false, // Using esbuild deps optimization at build time
     },
@@ -158,9 +149,5 @@ export async function resolveViteConfig(
       })
     )
   }
-
-  const mdxPlugin = pluginMdx(mdxConfig)
-  mergedViteConfig.plugins.push(mdxPlugin)
-
   return mergedViteConfig
 }

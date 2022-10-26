@@ -85,11 +85,11 @@ const preactAlias = [
   },
 ]
 
-export function pluginGetPartial(config: ResolvedConfig): Plugin {
+export function pluginPartialImport(config: ResolvedConfig): Plugin {
   let activePreact = false
 
   return {
-    name: "minista-vite-plugin:get-partial",
+    name: "minista-vite-plugin:partial-import",
     config: () => {
       activePreact = config.main.assets.partial.usePreact
 
@@ -97,7 +97,7 @@ export function pluginGetPartial(config: ResolvedConfig): Plugin {
         build: {
           rollupOptions: {
             input: {
-              __minista_plugin_get_partial: path.join(
+              __minista_plugin_partial: path.join(
                 __dirname,
                 "/../scripts/partial.js"
               ),
@@ -119,7 +119,7 @@ export function pluginPartial(config: ResolvedConfig): Plugin {
   let partials: { [key: string]: number } = {}
 
   return {
-    name: "minista-vite-plugin:init-partial",
+    name: "minista-vite-plugin:partial",
     config: (_, viteConfig) => {
       command = viteConfig.command
       activePreact = config.main.assets.partial.usePreact && command === "serve"

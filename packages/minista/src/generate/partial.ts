@@ -14,7 +14,7 @@ export async function generatePartial({
   items: BuildResult["output"]
 }) {
   const partialItem = items.find((item) =>
-    item.fileName.match(/__minista_plugin_get_partial\.js$/)
+    item.fileName.match(/__minista_plugin_partial\.js$/)
   )
 
   if (!partialItem) {

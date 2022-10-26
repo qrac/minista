@@ -20,7 +20,7 @@ export async function generateHtml({
   let ssgPath = ""
 
   const ssgItem = items.find((item) =>
-    item.fileName.match(/__minista_plugin_get_ssg\.js$/)
+    item.fileName.match(/__minista_plugin_ssg\.js$/)
   )
 
   if (!ssgItem) {
