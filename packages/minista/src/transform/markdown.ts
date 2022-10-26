@@ -1,7 +1,7 @@
 import { parse as parseHtml } from "node-html-parser"
 import { compile as compileMdx, run as runMdx } from "@mdx-js/mdx"
 import { createElement } from "react"
-import ReactDOMServer from "react-dom/server"
+import { renderToString } from "react-dom/server"
 
 import type { ResolvedMdxConfig } from "../config/mdx.js"
 
@@ -36,7 +36,7 @@ export async function transformMarkdown(
       contentStr = contentStr.replace(/\nexport.*;/g, "\n")
 
       const contentReact = createElement(await runMdx(contentStr, {}))
-      const contentHtml = ReactDOMServer.renderToString(contentReact)
+      const contentHtml = renderToString(contentReact)
 
       const parsedContent = parseHtml(contentHtml)
       return parent.exchangeChild(target, parsedContent)

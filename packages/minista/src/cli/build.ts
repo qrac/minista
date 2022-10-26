@@ -48,7 +48,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     config.vite,
     defineViteConfig({
       build: { write: false },
-      plugins: [pluginGetPartial()],
+      plugins: [pluginGetPartial(config)],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )

@@ -1,5 +1,5 @@
 import type { FilledContext } from "react-helmet-async"
-import ReactDOMServer from "react-dom/server"
+import { renderToString } from "react-dom/server"
 import { StaticRouter } from "react-router-dom/server.js"
 import { HelmetProvider } from "react-helmet-async"
 import { Route, Routes } from "react-router-dom"
@@ -86,7 +86,7 @@ export function renderApp({
 }): string {
   const helmetContext = {}
 
-  const markup = ReactDOMServer.renderToString(
+  const markup = renderToString(
     <StaticRouter location={url}>
       <HelmetProvider context={helmetContext}>
         <App resolvedGlobal={resolvedGlobal} resolvedPages={resolvedPages} />

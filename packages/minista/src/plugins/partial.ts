@@ -74,35 +74,65 @@ if (targets) {
 }`
 }
 
-export function pluginGetPartial(): Plugin {
+const preactAlias = [
+  {
+    find: "react",
+    replacement: "preact/compat",
+  },
+  {
+    find: "react-dom",
+    replacement: "preact/compat",
+  },
+]
+
+export function pluginGetPartial(config: ResolvedConfig): Plugin {
+  let activePreact = false
+
   return {
     name: "minista-vite-plugin:get-partial",
-    config: () => ({
-      build: {
-        rollupOptions: {
-          input: {
-            __minista_plugin_get_partial: path.join(
-              __dirname,
-              "/../scripts/partial.js"
-            ),
+    config: () => {
+      activePreact = config.main.assets.partial.usePreact
+
+      return {
+        build: {
+          rollupOptions: {
+            input: {
+              __minista_plugin_get_partial: path.join(
+                __dirname,
+                "/../scripts/partial.js"
+              ),
+            },
           },
         },
-      },
-    }),
+        resolve: {
+          alias: activePreact ? preactAlias : [],
+        },
+      }
+    },
   }
 }
 
 export function pluginPartial(config: ResolvedConfig): Plugin {
+  let command: "build" | "serve"
+  let activePreact = false
   let useLegacy = false
   let partials: { [key: string]: number } = {}
 
   return {
     name: "minista-vite-plugin:init-partial",
-    config: () => ({
-      optimizeDeps: {
-        include: ["react-dom/client"],
-      },
-    }),
+    config: (_, viteConfig) => {
+      command = viteConfig.command
+      activePreact = config.main.assets.partial.usePreact && command === "serve"
+
+      return {
+        resolve: {
+          alias: activePreact ? preactAlias : [],
+        },
+        optimizeDeps: {
+          include: ["react-dom/client"],
+        },
+      }
+    },
     async configResolved() {
       const rootReactDomPkgPath = path.join(
         config.sub.resolvedRoot,
