@@ -38,7 +38,6 @@ export async function generateHtml({
     if (!data) {
       return
     }
-    data = `import { fetch } from "undici"\n` + data
 
     ssgPath = path.join(config.sub.tempDir, fileName)
 

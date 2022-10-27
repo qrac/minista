@@ -11,6 +11,7 @@ import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 import { pluginSpriteInit, pluginSprite } from "../plugins/sprite.js"
+import { pluginFetch } from "../plugins/fetch.js"
 import { pluginServe } from "../plugins/serve.js"
 import { pluginPartial } from "../plugins/partial.js"
 
@@ -26,6 +27,7 @@ export async function develop(inlineConfig: InlineConfig = {}) {
         pluginSvgr(config),
         pluginSpriteInit(config),
         pluginSprite(config),
+        pluginFetch(config),
         pluginServe(config),
         pluginPartial(config),
       ],

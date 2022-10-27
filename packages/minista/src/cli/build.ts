@@ -15,6 +15,7 @@ import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 import { pluginSpriteInit, pluginSprite } from "../plugins/sprite.js"
+import { pluginFetch } from "../plugins/fetch.js"
 import { pluginSsg } from "../plugins/ssg.js"
 import { pluginPartial, pluginPartialImport } from "../plugins/partial.js"
 import { pluginBundle } from "../plugins/bundle.js"
@@ -43,6 +44,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
         pluginSvgr(config),
         pluginSpriteInit(config),
         pluginSprite(config),
+        pluginFetch(config),
         pluginSsg(),
         pluginPartial(config),
       ],
