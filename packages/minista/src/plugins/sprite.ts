@@ -94,7 +94,7 @@ export function pluginSprite(config: ResolvedConfig): Plugin {
         }
       })
     },
-    async transform(code, id) {
+    transform(code, id) {
       if (
         command === "build" &&
         activeSprite &&
