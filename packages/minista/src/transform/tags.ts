@@ -5,7 +5,7 @@ import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedEntry } from "../config/entry.js"
 import { getBasedAssetPath } from "../utility/path.js"
 
-export function compileLinkTag({
+export function transformLinkTag({
   mode,
   pathname,
   entry,
@@ -31,7 +31,7 @@ export function compileLinkTag({
   return `<link rel="stylesheet"${attributes} href="${assetPath}">`
 }
 
-export function compileScriptTag({
+export function transformScriptTag({
   mode,
   pathname,
   entry,
@@ -58,7 +58,7 @@ export function compileScriptTag({
   return `<script${attributes} src="${assetPath}"></script>`
 }
 
-export function compileEntryTags({
+export function transformEntryTags({
   mode,
   pathname,
   config,
@@ -85,7 +85,7 @@ export function compileEntryTags({
 
     if (linkEntries.length > 0) {
       linkTags = linkEntries.map((entry) => {
-        return compileLinkTag({
+        return transformLinkTag({
           mode,
           pathname,
           entry,
@@ -95,7 +95,7 @@ export function compileEntryTags({
     }
     if (scriptEntries.length > 0) {
       scriptTags = scriptEntries.map((entry) => {
-        return compileScriptTag({
+        return transformScriptTag({
           mode,
           pathname,
           entry,
@@ -124,7 +124,7 @@ export function compileEntryTags({
 
   if (mode === "serve") {
     bundleEndScriptTag = `<script type="module" src="/@minista/dist/scripts/bundle.js"></script>`
-    partialEndScriptTag = `<script type="module" src="/@minista/dist/scripts/partial.js"></script>`
+    partialEndScriptTag = `<script type="module" src="/@minista/dist/scripts/hydrate.js"></script>`
   }
   if (mode === "ssg") {
     const bundleCss = getBasedAssetPath({

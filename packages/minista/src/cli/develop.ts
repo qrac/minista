@@ -10,10 +10,11 @@ import { default as pluginMdx } from "@mdx-js/rollup"
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginSvgr } from "../plugins/svgr.js"
-import { pluginSpriteInit, pluginSprite } from "../plugins/sprite.js"
+import { pluginSprite } from "../plugins/sprite.js"
 import { pluginFetch } from "../plugins/fetch.js"
 import { pluginServe } from "../plugins/serve.js"
 import { pluginPartial } from "../plugins/partial.js"
+import { pluginPreact } from "../plugins/preact.js"
 
 export async function develop(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
@@ -23,10 +24,10 @@ export async function develop(inlineConfig: InlineConfig = {}) {
     defineViteConfig({
       plugins: [
         pluginReact(),
+        pluginPreact(config),
         pluginMdx(config.mdx) as PluginOption,
         pluginSvgr(config),
-        pluginSpriteInit(config),
-        pluginSprite(config),
+        pluginSprite(config, true),
         pluginFetch(config),
         pluginServe(config),
         pluginPartial(config),

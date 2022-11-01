@@ -1,7 +1,7 @@
 import type { ResolvedConfig } from "../config/index.js"
 import { getSources } from "../server/sources.js"
-import { compileEntryTags } from "../compile/tags.js"
 import { renderApp } from "../server/app.js"
+import { transformEntryTags } from "../transform/tags.js"
 import { transformComment } from "../transform/comment.js"
 import { transformMarkdown } from "../transform/markdown.js"
 import { getHtmlPath } from "../utility/path.js"
@@ -9,8 +9,7 @@ import { getHtmlPath } from "../utility/path.js"
 export type RunSsg = {
   (config: ResolvedConfig): Promise<SsgPage[]>
 }
-
-type SsgPage = {
+export type SsgPage = {
   fileName: string
   path: string
   html: string
@@ -24,7 +23,7 @@ export const runSsg: RunSsg = async (config) => {
   }
 
   let htmlPages = resolvedPages.map((page) => {
-    const { headTags, startTags, endTags } = compileEntryTags({
+    const { headTags, startTags, endTags } = transformEntryTags({
       mode: "ssg",
       pathname: page.path,
       config,

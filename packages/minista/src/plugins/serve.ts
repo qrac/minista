@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
-import { compileEntryTags } from "../compile/tags.js"
 import { renderApp } from "../server/app.js"
+import { transformEntryTags } from "../transform/tags.js"
 import { transformComment } from "../transform/comment.js"
 import { transformMarkdown } from "../transform/markdown.js"
 
@@ -26,7 +26,7 @@ export function pluginServe(config: ResolvedConfig): Plugin {
             )) as { getSources: GetSources }
             const { resolvedGlobal, resolvedPages } = await getSources()
 
-            const { headTags, startTags, endTags } = compileEntryTags({
+            const { headTags, startTags, endTags } = transformEntryTags({
               mode: "serve",
               pathname: url,
               config,

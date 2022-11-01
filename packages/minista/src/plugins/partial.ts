@@ -1,14 +1,10 @@
 import type { Plugin } from "vite"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 import type { ResolvedConfig } from "../config/index.js"
 
-function getStaticPartial({
+function transformStatic({
   originalId,
   rootDOMElement,
   dataAttr,
@@ -20,7 +16,7 @@ function getStaticPartial({
   style: string
 }) {
   return `import App from "${originalId}"
-export default function Wrapped() {
+export default function () {
   return (
     <${rootDOMElement} ${dataAttr} style={${style}}>
       <App />
@@ -29,7 +25,7 @@ export default function Wrapped() {
 }`
 }
 
-function getHydratePartial({
+function transformHydrate({
   originalId,
   dataAttr,
   useLegacy,
@@ -74,60 +70,14 @@ if (targets) {
 }`
 }
 
-const preactAlias = [
-  {
-    find: "react",
-    replacement: "preact/compat",
-  },
-  {
-    find: "react-dom",
-    replacement: "preact/compat",
-  },
-]
-
-export function pluginPartialImport(config: ResolvedConfig): Plugin {
-  let activePreact = false
-
-  return {
-    name: "minista-vite-plugin:partial-import",
-    config: () => {
-      activePreact = config.main.assets.partial.usePreact
-
-      return {
-        build: {
-          rollupOptions: {
-            input: {
-              __minista_plugin_partial: path.join(
-                __dirname,
-                "/../scripts/partial.js"
-              ),
-            },
-          },
-        },
-        resolve: {
-          alias: activePreact ? preactAlias : [],
-        },
-      }
-    },
-  }
-}
-
 export function pluginPartial(config: ResolvedConfig): Plugin {
-  let command: "build" | "serve"
-  let activePreact = false
   let useLegacy = false
   let partials: { [key: string]: number } = {}
 
   return {
     name: "minista-vite-plugin:partial",
-    config: (_, viteConfig) => {
-      command = viteConfig.command
-      activePreact = config.main.assets.partial.usePreact && command === "serve"
-
+    config: () => {
       return {
-        resolve: {
-          alias: activePreact ? preactAlias : [],
-        },
         optimizeDeps: {
           include: ["react-dom/client"],
         },
@@ -174,10 +124,11 @@ export function pluginPartial(config: ResolvedConfig): Plugin {
         if (!Object.hasOwn(partials, id)) {
           count = Object.keys(partials).length + 1
           partials[id] = count
+
           await fs
             .outputFile(
               path.join(config.sub.tempDir, "partials", `ph-${count}.jsx`),
-              getHydratePartial({
+              transformHydrate({
                 originalId,
                 dataAttr: `data-${rootAttrSuffix}="${rootValuePrefix}-${count}"`,
                 useLegacy,
@@ -192,7 +143,7 @@ export function pluginPartial(config: ResolvedConfig): Plugin {
         } else {
           count = partials[id]
         }
-        return getStaticPartial({
+        return transformStatic({
           originalId,
           rootDOMElement,
           dataAttr: `data-${rootAttrSuffix}="${rootValuePrefix}-${count}"`,

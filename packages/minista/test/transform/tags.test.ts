@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  compileLinkTag,
-  compileScriptTag,
-  compileEntryTags,
-} from "../../src/compile/tags"
+  transformLinkTag,
+  transformScriptTag,
+  transformEntryTags,
+} from "../../src/transform/tags"
 import { resolveConfig } from "../../src/config"
 
-describe("compileLinkTag", () => {
+describe("transformLinkTag", () => {
   it("Serve", async () => {
     const config = await resolveConfig({})
-    const result = compileLinkTag({
+    const result = transformLinkTag({
       mode: "serve",
       pathname: "/",
       entry: {
@@ -31,7 +31,7 @@ describe("compileLinkTag", () => {
 
   it("Ssg", async () => {
     const config = await resolveConfig({})
-    const result = compileLinkTag({
+    const result = transformLinkTag({
       mode: "ssg",
       pathname: "/",
       entry: {
@@ -49,10 +49,10 @@ describe("compileLinkTag", () => {
   })
 })
 
-describe("compileScriptTag", () => {
+describe("transformScriptTag", () => {
   it("Serve", async () => {
     const config = await resolveConfig({})
-    const result = compileScriptTag({
+    const result = transformScriptTag({
       mode: "serve",
       pathname: "/",
       entry: {
@@ -73,7 +73,7 @@ describe("compileScriptTag", () => {
 
   it("Ssg", async () => {
     const config = await resolveConfig({})
-    const result = compileScriptTag({
+    const result = transformScriptTag({
       mode: "ssg",
       pathname: "/",
       entry: {
@@ -94,7 +94,7 @@ describe("compileScriptTag", () => {
 
   it("Ssg attributes false", async () => {
     const config = await resolveConfig({})
-    const result = compileScriptTag({
+    const result = transformScriptTag({
       mode: "ssg",
       pathname: "/",
       entry: {
@@ -112,10 +112,10 @@ describe("compileScriptTag", () => {
   })
 })
 
-describe("compileEntryTags", () => {
+describe("transformEntryTags", () => {
   it("Serve blank", async () => {
     const config = await resolveConfig({})
-    const result = compileEntryTags({
+    const result = transformEntryTags({
       mode: "serve",
       pathname: "/",
       config,
@@ -126,7 +126,7 @@ describe("compileEntryTags", () => {
       headTags: ``,
       startTags: ``,
       endTags: `<script type="module" src="/@minista/dist/scripts/bundle.js"></script>
-<script type="module" src="/@minista/dist/scripts/partial.js"></script>`,
+<script type="module" src="/@minista/dist/scripts/hydrate.js"></script>`,
     })
   })
 
@@ -134,7 +134,7 @@ describe("compileEntryTags", () => {
     const config = await resolveConfig({
       assets: { entry: "src/assets/style.scss" },
     })
-    const result = compileEntryTags({
+    const result = transformEntryTags({
       mode: "serve",
       pathname: "/",
       config,
@@ -145,13 +145,13 @@ describe("compileEntryTags", () => {
       headTags: `<link rel="stylesheet" href="/@minista-project-root/src/assets/style.scss">`,
       startTags: ``,
       endTags: `<script type="module" src="/@minista/dist/scripts/bundle.js"></script>
-<script type="module" src="/@minista/dist/scripts/partial.js"></script>`,
+<script type="module" src="/@minista/dist/scripts/hydrate.js"></script>`,
     })
   })
 
   it("Ssg blank", async () => {
     const config = await resolveConfig({})
-    const result = compileEntryTags({
+    const result = transformEntryTags({
       mode: "ssg",
       pathname: "/",
       config,
@@ -170,7 +170,7 @@ describe("compileEntryTags", () => {
     const config = await resolveConfig({
       assets: { entry: "src/assets/style.scss" },
     })
-    const result = compileEntryTags({
+    const result = transformEntryTags({
       mode: "ssg",
       pathname: "/",
       config,

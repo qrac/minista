@@ -3,9 +3,31 @@ import type { SvgstoreAddOptions } from "@qrac/svgstore"
 import path from "node:path"
 import fs from "fs-extra"
 import fg from "fast-glob"
+import svgstore from "@qrac/svgstore"
 
 import type { ResolvedConfig } from "../config/index.js"
-import { compileSvgSprite } from "../compile/sprite.js"
+
+function compileSvgSprite({
+  svgFiles,
+  options,
+}: {
+  svgFiles: string[]
+  options: SvgstoreAddOptions
+}) {
+  const sprites = svgstore()
+
+  for (const svgFile of svgFiles) {
+    const svgId = path.parse(svgFile).name
+    const code = fs.readFileSync(svgFile, { encoding: "utf8" })
+    sprites.add(svgId, code, options)
+  }
+  return sprites
+    .toString({ inline: true })
+    .replace(
+      `<svg>`,
+      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`
+    )
+}
 
 async function buildSvgSprite({
   srcDir,
@@ -29,28 +51,10 @@ async function buildSvgSprite({
   }
 }
 
-export function pluginSpriteInit(config: ResolvedConfig): Plugin {
-  let activeSprite = false
-
-  const srcDir = path.join(
-    config.sub.resolvedRoot,
-    config.main.assets.icons.srcDir
-  )
-  const output = path.join(config.sub.tempDir, "__minista_plugin_sprite.svg")
-  const options = config.main.assets.icons.svgstoreOptions
-
-  return {
-    name: "minista-vite-plugin:init-sprite",
-    async buildStart() {
-      await fs.remove(output)
-
-      activeSprite = config.main.assets.icons.useSprite && fs.existsSync(srcDir)
-      activeSprite && (await buildSvgSprite({ srcDir, output, options }))
-    },
-  }
-}
-
-export function pluginSprite(config: ResolvedConfig): Plugin {
+export function pluginSprite(
+  config: ResolvedConfig,
+  useInit?: boolean
+): Plugin {
   let command: "build" | "serve"
   let activeSprite = false
 
@@ -78,6 +82,12 @@ export function pluginSprite(config: ResolvedConfig): Plugin {
             ],
           },
         }
+      }
+    },
+    async buildStart() {
+      if (useInit) {
+        await fs.remove(output)
+        activeSprite && (await buildSvgSprite({ srcDir, output, options }))
       }
     },
     async configureServer(server) {
