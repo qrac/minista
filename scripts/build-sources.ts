@@ -1,7 +1,7 @@
 import path from "node:path"
 import fg from "fast-glob"
 import { cac } from "cac"
-import colors from "picocolors"
+import pc from "picocolors"
 import { build } from "esbuild"
 import pathgae from "pathgae"
 
@@ -41,7 +41,7 @@ cli
               outExt: "js",
             })
             console.log(
-              `${colors.bold(colors.green("BUILD"))} ${colors.bold(
+              `${pc.bold(pc.green("BUILD"))} ${pc.bold(
                 path.join(pkgDir, outPath)
               )}`
             )

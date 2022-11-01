@@ -1,7 +1,7 @@
 import fs from "fs-extra"
 import fg from "fast-glob"
 import { cac } from "cac"
-import colors from "picocolors"
+import pc from "picocolors"
 
 const cli = cac()
 const pkgs = ["packages/minista/package.json"]
@@ -24,7 +24,7 @@ cli
             .outputJson(entryPoint, pkg, { spaces: 2 })
             .then(() => {
               console.log(
-                `${colors.bold(colors.green("WRITE"))} ${colors.bold(
+                `${pc.bold(pc.green("WRITE"))} ${pc.bold(
                   entryPoint
                 )} (${newVersion})`
               )

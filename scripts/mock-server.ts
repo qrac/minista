@@ -1,5 +1,5 @@
 import { cac } from "cac"
-import colors from "picocolors"
+import pc from "picocolors"
 import express from "express"
 import { kill } from "cross-port-killer"
 
@@ -37,7 +37,7 @@ cli
       })
 
       server.listen(options.port, () => {
-        console.log(colors.gray("Mock server started"))
+        console.log(pc.gray("Mock server started"))
 
         apis.map((api) => {
           const nameLength = api.name.length
@@ -45,7 +45,7 @@ cli
           const space = " ".repeat(spaceCount)
 
           console.log(
-            colors.gray(
+            pc.gray(
               `${api.name}:${space}http://localhost:${options.port}${api.path}`
             )
           )
@@ -63,8 +63,8 @@ cli
   .action((files: string, options: Options) => {
     try {
       kill(options.port).then((pids) => {
-        console.log(colors.gray("Mock server closed"))
-        console.log(colors.gray(`port: ${options.port}, pids: ${pids}`))
+        console.log(pc.gray("Mock server closed"))
+        console.log(pc.gray(`port: ${options.port}, pids: ${pids}`))
       })
     } catch (err) {
       console.log(err)
