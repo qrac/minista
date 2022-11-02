@@ -39,7 +39,7 @@ test 3`)
 
 describe("transformComment", () => {
   it("Default", async () => {
-    const htmlPath = "../_demo/comment.html"
+    const htmlPath = "../_data/comment.html"
     const htmlFile = path.relative(".", path.join(__dirname, htmlPath))
     const html = await fs.readFile(htmlFile, "utf8")
     const result = transformComment(html)

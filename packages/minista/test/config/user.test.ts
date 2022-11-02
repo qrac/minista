@@ -17,7 +17,7 @@ describe("resolveUserConfig", () => {
   })
 
   it("Set file", async () => {
-    const configPath = "../_demo/config.ts"
+    const configPath = "../_data/config.ts"
     const configFile = path.relative(".", path.join(__dirname, configPath))
     const result = await resolveUserConfig({ configFile })
 
@@ -33,7 +33,7 @@ describe("resolveUserConfig", () => {
   })
 
   it("Set file with inline", async () => {
-    const configPath = "../_demo/config.ts"
+    const configPath = "../_data/config.ts"
     const configFile = path.relative(".", path.join(__dirname, configPath))
     const result = await resolveUserConfig({ configFile, public: "static" })
 
@@ -42,7 +42,7 @@ describe("resolveUserConfig", () => {
   })
 
   it("Set file with relative import", async () => {
-    const configPath = "../_demo/config2.ts"
+    const configPath = "../_data/config2.ts"
     const configFile = path.relative(".", path.join(__dirname, configPath))
     const result = await resolveUserConfig({ configFile })
 

@@ -79,9 +79,9 @@ describe("getNodeModulesPath", () => {
   })
 
   it("Custom root", () => {
-    const result = getNodeModulesPath(path.join(__dirname, "../_demo"))
+    const result = getNodeModulesPath(path.join(__dirname, "../_data"))
 
     //console.log(result)
-    expect(result).toEqual(path.join(__dirname, "../_demo", "node_modules"))
+    expect(result).toEqual(path.join(__dirname, "../_data", "node_modules"))
   })
 })
