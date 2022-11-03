@@ -19,7 +19,7 @@ export type ResolvedEntry = ResolvedEntryObject[]
 type ResolvedEntryObject = {
   name: string
   input: string
-  insertPages: string[]
+  insertPages: { include: string[]; exclude?: string[] }
   position: "head" | "start" | "end"
   attributes: string | false
 }
@@ -73,7 +73,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
       const pattern: ResolvedEntryObject = {
         name: path.parse(input).name,
         input,
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "",
       }
@@ -86,7 +86,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
             const pattern: ResolvedEntryObject = {
               name: path.parse(item).name,
               input: item,
-              insertPages: ["**/*"],
+              insertPages: { include: ["**/*"], exclude: [] },
               position: "head",
               attributes: "",
             }
@@ -101,11 +101,10 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
             const name = item.name || path.parse(item.input).name
             const include = resolveEntryInclude(item.insertPages)
             const exclude = resolveEntryExclude(item.insertPages)
-            const fixedExclude = exclude.map((item) => "!" + item)
             const pattern: ResolvedEntryObject = {
               name: name,
               input: item.input,
-              insertPages: [...include, ...fixedExclude],
+              insertPages: { include, exclude },
               position: item.position || "head",
               attributes: item.attributes || "",
             }
@@ -119,7 +118,7 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
           const pattern: ResolvedEntryObject = {
             name: item[0],
             input: item[1],
-            insertPages: ["**/*"],
+            insertPages: { include: ["**/*"], exclude: [] },
             position: "head",
             attributes: "",
           }

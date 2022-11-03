@@ -74,7 +74,7 @@ describe("resolveEntry", () => {
       {
         name: "script",
         input: "src/assets/script.ts",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "",
       },
@@ -90,14 +90,14 @@ describe("resolveEntry", () => {
       {
         name: "script",
         input: "src/assets/script.ts",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "",
       },
       {
         name: "style",
         input: "src/assets/style.css",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "",
       },
@@ -113,7 +113,7 @@ describe("resolveEntry", () => {
       {
         name: "script",
         input: "src/assets/index.ts",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "",
       },
@@ -151,21 +151,30 @@ describe("resolveEntry", () => {
       {
         name: "test1",
         input: "src/assets/test1.ts",
-        insertPages: ["/test/test1/**/*", "/test/test1/"],
+        insertPages: {
+          include: ["/test/test1/**/*", "/test/test1/"],
+          exclude: [],
+        },
         position: "start",
         attributes: "async",
       },
       {
         name: "test2",
         input: "src/assets/test2.ts",
-        insertPages: ["/test/test2/**/*", "!/test/test2/"],
+        insertPages: {
+          include: ["/test/test2/**/*"],
+          exclude: ["/test/test2/"],
+        },
         position: "head",
         attributes: "",
       },
       {
         name: "style",
         input: "src/assets/style.css",
-        insertPages: ["**/*", "!/test/test2/"],
+        insertPages: {
+          include: ["**/*"],
+          exclude: ["/test/test2/"],
+        },
         position: "head",
         attributes: "defer",
       },

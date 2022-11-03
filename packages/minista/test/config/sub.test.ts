@@ -23,7 +23,7 @@ describe("resolveSubConfig", () => {
       {
         name: "script",
         input: "src/assets/script.ts",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "",
       },

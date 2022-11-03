@@ -148,7 +148,9 @@ export function transformEntryTags({
   }
 
   const pageEntries = config.sub.resolvedEntry.filter((entry) => {
-    return picomatch.isMatch(pathname, entry.insertPages)
+    return picomatch.isMatch(pathname, entry.insertPages.include, {
+      ignore: entry.insertPages.exclude,
+    })
   })
   const headEntries = pageEntries.filter((entry) => entry.position === "head")
   const startEntries = pageEntries.filter((entry) => entry.position === "start")
