@@ -66,8 +66,7 @@ export function resolveViteAssetFileNames(
 
 export async function resolveViteConfig(
   mainConfig: ResolvedMainConfig,
-  subConfig: ResolvedSubConfig,
-  mdxConfig: ResolvedMdxConfig
+  subConfig: ResolvedSubConfig
 ): Promise<ResolvedViteConfig> {
   const defaultViteConfig = defineViteConfig({
     root: mainConfig.root,

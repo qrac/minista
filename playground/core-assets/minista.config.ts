@@ -17,4 +17,3 @@ export default defineConfig({
     ],
   },
 })
-//"src/assets/style-entry.css", "src/assets/script-entry.ts"

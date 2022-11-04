@@ -29,8 +29,7 @@ export async function resolveConfig(
   const resolvedMdxConfig = await resolveMdxConfig(resolvedMainConfig)
   const resolvedViteConfig = await resolveViteConfig(
     resolvedMainConfig,
-    resolvedSubConfig,
-    resolvedMdxConfig
+    resolvedSubConfig
   )
 
   const resolvedConfig: ResolvedConfig = {
