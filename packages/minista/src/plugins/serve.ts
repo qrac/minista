@@ -21,10 +21,14 @@ export function pluginServe(config: ResolvedConfig): Plugin {
         server.middlewares.use(async (req, res) => {
           try {
             if (req.url?.endsWith(".html")) {
-              //const originalUrl = req.originalUrl || ""
-              const url = req.url
-                .replace(/index\.html$/, "")
-                .replace(/\.html$/, "")
+              const resolvedBase = resolveBase(config.main.base)
+
+              let url = req.originalUrl || ""
+
+              if (resolvedBase.match(/^\/.*\/$/)) {
+                const reg = new RegExp(`^${resolvedBase}`)
+                url = url.replace(reg, "/")
+              }
 
               const { getSources } = (await server.ssrLoadModule(
                 __dirname + "/../server/sources.js"
@@ -54,8 +58,6 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               }
 
               let transformedHtml = await server.transformIndexHtml(url, html)
-
-              const resolvedBase = resolveBase(config.main.base)
 
               if (resolvedBase.match(/^\/.*\/$/)) {
                 const wrongBase = path.join(resolvedBase, resolvedBase)
