@@ -193,7 +193,7 @@ export const defaultMainConfig: MainConfig = {
     outDir: "assets",
     outName: "search",
     include: ["**/*"],
-    exclude: ["404"],
+    exclude: ["/404"],
     trimTitle: "",
     targetSelector: "[data-search]",
     hit: {

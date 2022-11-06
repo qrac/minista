@@ -16,7 +16,7 @@ describe("transformLinkTag", () => {
       entry: {
         name: "style",
         input: "src/assets/style.scss",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "",
       },
@@ -37,7 +37,7 @@ describe("transformLinkTag", () => {
       entry: {
         name: "style",
         input: "src/assets/style.scss",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "",
       },
@@ -58,7 +58,7 @@ describe("transformScriptTag", () => {
       entry: {
         name: "script",
         input: "src/assets/script.ts",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "defer",
       },
@@ -79,7 +79,7 @@ describe("transformScriptTag", () => {
       entry: {
         name: "script",
         input: "src/assets/script.ts",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: "",
       },
@@ -100,7 +100,7 @@ describe("transformScriptTag", () => {
       entry: {
         name: "script",
         input: "src/assets/script.ts",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
         attributes: false,
       },

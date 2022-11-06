@@ -16,14 +16,16 @@ import beautify from "js-beautify"
 import type { InlineConfig } from "../config/index.js"
 import type { RunSsg, SsgPage } from "../scripts/ssg.js"
 import { resolveConfig } from "../config/index.js"
+import { pluginPreact } from "../plugins/preact.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 import { pluginSprite } from "../plugins/sprite.js"
 import { pluginFetch } from "../plugins/fetch.js"
 import { pluginSsg } from "../plugins/ssg.js"
 import { pluginPartial } from "../plugins/partial.js"
 import { pluginHydrate } from "../plugins/hydrate.js"
-import { pluginPreact } from "../plugins/preact.js"
 import { pluginBundle } from "../plugins/bundle.js"
+import { pluginSearch } from "../plugins/search.js"
+import { transformSearch } from "../transform/search.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -77,6 +79,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
         pluginSvgr(config),
         pluginSprite(config),
         pluginHydrate(),
+        pluginSearch(config),
       ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
@@ -185,6 +188,17 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const htmlItems = ssgItems[0] ? await getHtmlItems(ssgItems[0]) : []
   const optimizedAssetItems = optimizeItems([...assetItems, ...partialItems])
   const mergedItems = [...htmlItems, ...optimizedAssetItems]
+
+  if (config.main.search.useJson && ssgPages.length) {
+    const fileName = path.join(
+      config.main.search.outDir,
+      config.main.search.outName + ".json"
+    )
+    const searchObj = await transformSearch({ ssgPages, config })
+    const data = JSON.stringify(searchObj)
+
+    mergedItems.push({ fileName, data })
+  }
 
   const nameLengths = mergedItems.map((api) => api.fileName.length)
   const maxNameLength = nameLengths.reduce((a, b) => (a > b ? a : b), 0)

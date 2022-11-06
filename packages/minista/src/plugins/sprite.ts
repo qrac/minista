@@ -67,7 +67,7 @@ export function pluginSprite(
 
   return {
     name: "minista-vite-plugin:sprite",
-    async config(_, viteConfig) {
+    config(_, viteConfig) {
       command = viteConfig.command
       activeSprite = config.main.assets.icons.useSprite && fs.existsSync(srcDir)
 
