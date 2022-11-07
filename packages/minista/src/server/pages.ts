@@ -2,14 +2,14 @@ export type Pages = {
   path: string
   component: new () => React.Component<any, any>
   getStaticData?: PageFetch
-  frontmatter?: {}
+  frontmatter?: { [key: string]: string }
 }[]
 
 type ImportedPages = {
   [key: string]: {
     default: new () => React.Component<any, any>
     getStaticData?: PageFetch
-    frontmatter?: {}
+    frontmatter?: { [key: string]: string }
   }
 }
 
@@ -28,7 +28,7 @@ export type ResolvedPages = {
     paths: {}
   }
   component: new () => React.Component<any, any, any>
-  frontmatter?: {}
+  frontmatter?: { [key: string]: string }
 }[]
 
 export function getPages(): Pages {

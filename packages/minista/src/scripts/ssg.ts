@@ -35,19 +35,24 @@ export const runSsg: RunSsg = async (config) => {
       pathname: basedPath,
       config,
     })
+    const draft = page.frontmatter?.draft || false
     return {
       path: page.path,
       basedPath,
-      html: renderApp({
-        url: page.path,
-        resolvedGlobal,
-        resolvedPages: [page],
-        headTags,
-        startTags,
-        endTags,
-      }),
+      html: draft
+        ? ""
+        : renderApp({
+            url: page.path,
+            resolvedGlobal,
+            resolvedPages: [page],
+            headTags,
+            startTags,
+            endTags,
+          }),
     }
   })
+
+  htmlPages = htmlPages.filter((page) => page.html)
 
   if (htmlPages.length === 0) {
     return []
