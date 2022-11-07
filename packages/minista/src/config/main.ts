@@ -72,7 +72,7 @@ export type MainConfig = {
     alias: Alias
   }
   vite: ViteUserConfig
-  css: ViteCSSOptions & { modules: { cache: boolean } }
+  css: ViteCSSOptions
   markdown: {
     syntaxHighlighter: "highlight" | "none"
     highlightOptions: HighlightOptions
@@ -166,7 +166,6 @@ export const defaultMainConfig: MainConfig = {
   vite: {},
   css: {
     modules: {
-      cache: true,
       scopeBehaviour: "local",
       globalModulePaths: [],
       generateScopedName: undefined,

@@ -77,7 +77,7 @@ export type UserConfig = {
     alias?: Alias
   }
   vite?: ViteUserConfig
-  css?: ViteCSSOptions & { modules?: { cache?: boolean } }
+  css?: ViteCSSOptions
   markdown?: {
     syntaxHighlighter?: "highlight" | "none"
     highlightOptions?: HighlightOptions
