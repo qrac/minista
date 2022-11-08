@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 describe("transformSprite", () => {
-  it("Default", async () => {
+  it("Default", () => {
     const svgFile = path.join(__dirname, "../_data/plus.svg")
     const options = {
       cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
