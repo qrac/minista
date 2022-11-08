@@ -1,3 +1,3 @@
-import.meta.glob(["/node_modules/.minista/partials/*.jsx"], {
+import.meta.glob(["/node_modules/.minista/phs/*.jsx"], {
   eager: true,
 })

@@ -122,7 +122,7 @@ export const defaultMainConfig: MainConfig = {
     partial: {
       usePreact: false,
       useIntersectionObserver: true,
-      outName: "partial",
+      outName: "hydrate",
       rootAttrSuffix: "partial-hydration",
       rootValuePrefix: "ph",
       rootDOMElement: "div",

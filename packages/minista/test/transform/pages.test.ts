@@ -45,7 +45,7 @@ describe("transformPages", () => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title></title>
     <link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
-    <script type="module" data-minista-build-partial-src="/assets/partial.js"></script>
+    <script type="module" data-minista-build-hydrate-src="/assets/hydrate.js"></script>
   </head>
   <body>
     <h1>index</h1>
@@ -88,7 +88,7 @@ describe("transformPages", () => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title></title>
     <link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
-    <script type="module" data-minista-build-partial-src="/assets/partial.js"></script>
+    <script type="module" data-minista-build-hydrate-src="/assets/hydrate.js"></script>
   </head>
   <body>
     <div>

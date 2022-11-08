@@ -125,8 +125,8 @@ describe("transformEntryTags", () => {
     expect(result).toEqual({
       headTags: ``,
       startTags: ``,
-      endTags: `<script type="module" src="/@minista/dist/scripts/bundle.js"></script>
-<script type="module" src="/@minista/dist/scripts/hydrate.js"></script>`,
+      endTags: `<script type="module" src="/@minista/dist/server/bundle.js"></script>
+<script type="module" src="/@minista/dist/server/hydrate.js"></script>`,
     })
   })
 
@@ -144,8 +144,8 @@ describe("transformEntryTags", () => {
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" href="/@minista-project-root/src/assets/style.scss">`,
       startTags: ``,
-      endTags: `<script type="module" src="/@minista/dist/scripts/bundle.js"></script>
-<script type="module" src="/@minista/dist/scripts/hydrate.js"></script>`,
+      endTags: `<script type="module" src="/@minista/dist/server/bundle.js"></script>
+<script type="module" src="/@minista/dist/server/hydrate.js"></script>`,
     })
   })
 
@@ -160,7 +160,7 @@ describe("transformEntryTags", () => {
     //console.log(result)
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
-<script type="module" data-minista-build-partial-src="/assets/partial.js"></script>`,
+<script type="module" data-minista-build-hydrate-src="/assets/hydrate.js"></script>`,
       startTags: ``,
       endTags: ``,
     })
@@ -180,7 +180,7 @@ describe("transformEntryTags", () => {
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" href="/assets/style.css">
 <link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
-<script type="module" data-minista-build-partial-src="/assets/partial.js"></script>`,
+<script type="module" data-minista-build-hydrate-src="/assets/hydrate.js"></script>`,
       startTags: ``,
       endTags: ``,
     })

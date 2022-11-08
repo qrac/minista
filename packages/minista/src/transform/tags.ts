@@ -119,12 +119,12 @@ export function transformEntryTags({
 
   let bundleHeadLinkTag = ""
   let bundleEndScriptTag = ""
-  let partialHeadScriptTag = ""
-  let partialEndScriptTag = ""
+  let hydrateHeadScriptTag = ""
+  let hydrateEndScriptTag = ""
 
   if (mode === "serve") {
-    bundleEndScriptTag = `<script type="module" src="/@minista/dist/scripts/bundle.js"></script>`
-    partialEndScriptTag = `<script type="module" src="/@minista/dist/scripts/hydrate.js"></script>`
+    bundleEndScriptTag = `<script type="module" src="/@minista/dist/server/bundle.js"></script>`
+    hydrateEndScriptTag = `<script type="module" src="/@minista/dist/server/hydrate.js"></script>`
   }
   if (mode === "ssg") {
     const bundleCss = getBasedAssetPath({
@@ -135,7 +135,7 @@ export function transformEntryTags({
         config.main.assets.bundle.outName + ".css"
       ),
     })
-    const partialJs = getBasedAssetPath({
+    const hydrateJs = getBasedAssetPath({
       base: config.main.base,
       pathname,
       assetPath: path.join(
@@ -144,7 +144,7 @@ export function transformEntryTags({
       ),
     })
     bundleHeadLinkTag = `<link rel="stylesheet" data-minista-build-bundle-href="${bundleCss}">`
-    partialHeadScriptTag = `<script type="module" data-minista-build-partial-src="${partialJs}"></script>`
+    hydrateHeadScriptTag = `<script type="module" data-minista-build-hydrate-src="${hydrateJs}"></script>`
   }
 
   const pageEntries = config.sub.resolvedEntry.filter((entry) => {
@@ -178,7 +178,7 @@ export function transformEntryTags({
     ...headLinkTags,
     bundleHeadLinkTag,
     ...headScriptTags,
-    partialHeadScriptTag,
+    hydrateHeadScriptTag,
   ]
     .filter((tag) => tag)
     .join("\n")
@@ -191,7 +191,7 @@ export function transformEntryTags({
     ...endLinkTags,
     ...endScriptTags,
     bundleEndScriptTag,
-    partialEndScriptTag,
+    hydrateEndScriptTag,
   ]
     .filter((tag) => tag)
     .join("\n")

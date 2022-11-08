@@ -10,6 +10,8 @@ export function pluginPartial(config: ResolvedConfig): Plugin {
   let useLegacy = false
   let partials: { [key: string]: number } = {}
 
+  const tempPhsDir = path.join(config.sub.tempDir, "phs")
+
   return {
     name: "minista-vite-plugin:partial",
     config: () => {
@@ -46,7 +48,7 @@ export function pluginPartial(config: ResolvedConfig): Plugin {
       useLegacy = version < 18 ? true : false
     },
     async buildStart() {
-      await fs.remove(path.join(config.sub.tempDir, "partials"))
+      await fs.remove(tempPhsDir)
     },
     async load(id) {
       if (id.endsWith("?ph")) {
@@ -63,7 +65,7 @@ export function pluginPartial(config: ResolvedConfig): Plugin {
 
           await fs
             .outputFile(
-              path.join(config.sub.tempDir, "partials", `ph-${count}.jsx`),
+              path.join(tempPhsDir, `ph-${count}.jsx`),
               transformHydrate({
                 originalId,
                 dataAttr: `data-${rootAttrSuffix}="${rootValuePrefix}-${count}"`,

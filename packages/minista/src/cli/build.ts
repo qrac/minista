@@ -68,7 +68,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
-  const partialConfig = mergeViteConfig(
+  const hydrateConfig = mergeViteConfig(
     config.vite,
     defineViteConfig({
       build: { write: false },
@@ -87,19 +87,19 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   let ssgResult: BuildResult
   let assetsResult: BuildResult
-  let partialResult: BuildResult
+  let hydrateResult: BuildResult
 
   await Promise.all([
     (ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult),
     (assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult),
   ])
 
-  const hasPartial = fs.existsSync(path.join(config.sub.tempDir, "partials"))
+  const hasHydrate = fs.existsSync(path.join(config.sub.tempDir, "phs"))
 
-  if (hasPartial) {
-    partialResult = (await viteBuild(partialConfig)) as unknown as BuildResult
+  if (hasHydrate) {
+    hydrateResult = (await viteBuild(hydrateConfig)) as unknown as BuildResult
   } else {
-    partialResult = { output: [] }
+    hydrateResult = { output: [] }
   }
 
   const resolvedOut = path.join(config.sub.resolvedRoot, config.main.out)
@@ -118,7 +118,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     (item) =>
       item.fileName === bundleCssName || item.fileName === bugBundleCssName
   )
-  const partialJsName = path.join(
+  const hydrateJsName = path.join(
     config.main.assets.outDir,
     config.main.assets.partial.outName + ".js"
   )
@@ -129,7 +129,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const assetItems = assetsResult.output.filter(
     (item) => !item.fileName.match(/__minista_plugin_bundle\.js$/)
   )
-  const partialItems = partialResult.output.filter((item) =>
+  const hydrateItems = hydrateResult.output.filter((item) =>
     item.fileName.match(/__minista_plugin_hydrate\.js$/)
   )
 
@@ -163,12 +163,12 @@ export async function build(inlineConfig: InlineConfig = {}) {
       .map((item) => {
         const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
         const isBugBundleCss = item.fileName === bugBundleCssName
-        const isPartialJs = item.fileName.match(/__minista_plugin_hydrate\.js$/)
+        const isHydrateJs = item.fileName.match(/__minista_plugin_hydrate\.js$/)
 
         let fileName = item.fileName
         isBundleCss && (fileName = bundleCssName)
         isBugBundleCss && (fileName = bundleCssName)
-        isPartialJs && (fileName = partialJsName)
+        isHydrateJs && (fileName = hydrateJsName)
 
         let data = ""
         item.source && (data = item.source)
@@ -186,7 +186,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   }
 
   const htmlItems = ssgItems[0] ? await getHtmlItems(ssgItems[0]) : []
-  const optimizedAssetItems = optimizeItems([...assetItems, ...partialItems])
+  const optimizedAssetItems = optimizeItems([...assetItems, ...hydrateItems])
   const mergedItems = [...htmlItems, ...optimizedAssetItems]
 
   if (config.main.search.useJson && ssgPages.length) {
@@ -209,20 +209,20 @@ export async function build(inlineConfig: InlineConfig = {}) {
       const isCss = item.fileName.match(/.*\.css$/)
       const isJs = item.fileName.match(/.*\.js$/)
 
-      let hasPartialJs = false
+      let hasHydrateJs = false
       let fileName = item.fileName
       let data = item.data
 
       if (isHtml) {
-        hasPartialJs = data.includes(
+        hasHydrateJs = data.includes(
           `data-${config.main.assets.partial.rootAttrSuffix}`
         )
 
-        if (hasPartialJs) {
-          data = data.replace(/data-minista-build-partial-src=/g, "src=")
+        if (hasHydrateJs) {
+          data = data.replace(/data-minista-build-hydrate-src=/g, "src=")
         } else {
           data = data.replace(
-            /<script.*data-minista-build-partial-src=.*?><\/script>/g,
+            /<script.*data-minista-build-hydrate-src=.*?><\/script>/g,
             "\n\n"
           )
         }
