@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
-import { renderApp } from "../server/app.js"
+import { transformPage } from "../transform/page.js"
 import { transformEntryTags } from "../transform/tags.js"
 import { transformComment } from "../transform/comment.js"
 import { transformMarkdown } from "../transform/markdown.js"
@@ -41,7 +41,7 @@ export function pluginServe(config: ResolvedConfig): Plugin {
                 config,
               })
 
-              let html = renderApp({
+              let html = transformPage({
                 url,
                 resolvedGlobal,
                 resolvedPages,

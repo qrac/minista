@@ -5,10 +5,7 @@ import fs from "fs-extra"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
-import { renderApp } from "../server/app.js"
-import { transformEntryTags } from "../transform/tags.js"
-import { transformComment } from "../transform/comment.js"
-import { transformMarkdown } from "../transform/markdown.js"
+import { transformPages } from "../transform/pages.js"
 import { transformSearch } from "../transform/search.js"
 import { getHtmlPath } from "../utility/path.js"
 import { resolveBase } from "../utility/base.js"
@@ -60,61 +57,11 @@ export function pluginSearch(config: ResolvedConfig): Plugin {
         )) as { getSources: GetSources }
         const { resolvedGlobal, resolvedPages } = await getSources()
 
-        let htmlPages = resolvedPages.map((page) => {
-          const basedPath = resolvedBase.match(/^\/.*\/$/)
-            ? path.join(resolvedBase, page.path)
-            : page.path
-          const { headTags, startTags, endTags } = transformEntryTags({
-            mode: "ssg",
-            pathname: basedPath,
-            config,
-          })
-          const draft = page.frontmatter?.draft || false
-          return {
-            path: page.path,
-            basedPath,
-            html: draft
-              ? ""
-              : renderApp({
-                  url: page.path,
-                  resolvedGlobal,
-                  resolvedPages: [page],
-                  headTags,
-                  startTags,
-                  endTags,
-                }),
-          }
+        const ssgPages = await transformPages({
+          resolvedGlobal,
+          resolvedPages,
+          config,
         })
-
-        htmlPages = htmlPages.filter((page) => page.html)
-
-        htmlPages = await Promise.all(
-          htmlPages.map(async (page) => {
-            let html = page.html
-
-            if (html.includes(`data-minista-transform-target="comment"`)) {
-              html = transformComment(html)
-            }
-            if (html.includes(`data-minista-transform-target="markdown"`)) {
-              html = await transformMarkdown(html, config.mdx)
-            }
-            return {
-              path: page.path,
-              basedPath: page.basedPath,
-              html,
-            }
-          })
-        )
-
-        let ssgPages = htmlPages.map((page) => {
-          const fileName = getHtmlPath(page.path)
-          return {
-            fileName,
-            path: page.basedPath,
-            html: page.html,
-          }
-        })
-
         const searchObj = await transformSearch({ ssgPages, config })
 
         return await fs.outputJson(output, searchObj).catch((err) => {

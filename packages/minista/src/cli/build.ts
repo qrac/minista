@@ -14,7 +14,7 @@ import { default as pluginMdx } from "@mdx-js/rollup"
 import beautify from "js-beautify"
 
 import type { InlineConfig } from "../config/index.js"
-import type { RunSsg, SsgPage } from "../scripts/ssg.js"
+import type { RunSsg, SsgPage } from "../server/ssg.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginPreact } from "../plugins/preact.js"
 import { pluginSvgr } from "../plugins/svgr.js"
@@ -249,7 +249,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       }
 
       const nameLength = fileName.length
-      const spaceCount = maxNameLength - nameLength + 1
+      const spaceCount = maxNameLength - nameLength + 3
       const space = " ".repeat(spaceCount)
 
       const routePath = path.join(

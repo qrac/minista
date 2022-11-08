@@ -15,7 +15,7 @@ export function pluginHydrate(): Plugin {
             input: {
               __minista_plugin_hydrate: path.join(
                 __dirname,
-                "/../scripts/hydrate.js"
+                "/../server/hydrate.js"
               ),
             },
           },

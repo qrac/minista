@@ -17,15 +17,15 @@ export type PageFetch = () => Promise<PageStaticData>
 type PageStaticData = PageStaticDataList | PageStaticDataItem | undefined
 type PageStaticDataList = PageStaticDataItem[]
 type PageStaticDataItem = {
-  props?: {}
-  paths?: {}
+  props?: { [key: string]: string }
+  paths?: { [key: string]: string }
 }
 
 export type ResolvedPages = {
   path: string
   staticData: {
-    props: {}
-    paths: {}
+    props: { [key: string]: string }
+    paths: { [key: string]: string }
   }
   component: new () => React.Component<any, any, any>
   frontmatter?: { [key: string]: string }

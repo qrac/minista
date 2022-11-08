@@ -11,6 +11,7 @@ describe("transformSearch", () => {
         {
           fileName: "index.html",
           path: "/",
+          title: "",
           html: `<title>title</title><div data-search>body</div>`,
         },
       ],
@@ -39,6 +40,7 @@ describe("transformSearch", () => {
         {
           fileName: "index.html",
           path: "/",
+          title: "",
           html: `<title>title</title><div data-search><h1 id='heading'>heading</h1>body</div>`,
         },
       ],

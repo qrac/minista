@@ -14,7 +14,7 @@ export function pluginBundle(): Plugin {
           input: {
             __minista_plugin_bundle: path.join(
               __dirname,
-              "/../scripts/bundle.js"
+              "/../server/bundle.js"
             ),
           },
         },

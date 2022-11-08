@@ -5,6 +5,5 @@
     "declarationDir": "dist/types",
     "jsx": "react-jsx",
     "types": ["vite/client"]
-  },
-  "include": ["src"]
+  }
 }

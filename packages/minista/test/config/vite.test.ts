@@ -8,7 +8,6 @@ import {
 } from "../../src/config/vite"
 import { defaultMainConfig, resolveMainConfig } from "../../src/config/main"
 import { resolveSubConfig } from "../../src/config/sub"
-import { resolveMdxConfig } from "../../src/config/mdx"
 
 describe("resolveViteEntry", () => {
   it("No entry", () => {
@@ -23,9 +22,9 @@ describe("resolveViteEntry", () => {
       {
         name: "script",
         input: "src/assets/script.ts",
-        insertPages: ["**/*"],
+        insertPages: { include: ["**/*"], exclude: [] },
         position: "head",
-        loadType: "defer",
+        attributes: "",
       },
     ]
     const result = resolveViteEntry("", entries)
@@ -65,8 +64,7 @@ describe("resolveViteConfig", () => {
   it("Default", async () => {
     const mainConfig = defaultMainConfig
     const subConfig = await resolveSubConfig(defaultMainConfig)
-    const mdxConfig = await resolveMdxConfig(mainConfig)
-    const result = await resolveViteConfig(mainConfig, subConfig, mdxConfig)
+    const result = await resolveViteConfig(mainConfig, subConfig)
 
     //console.log(result)
     expect(result.build?.outDir).toEqual("dist")
@@ -75,8 +73,7 @@ describe("resolveViteConfig", () => {
   it("Add user config", async () => {
     const mainConfig = await resolveMainConfig({ out: "out" })
     const subConfig = await resolveSubConfig(defaultMainConfig)
-    const mdxConfig = await resolveMdxConfig(mainConfig)
-    const result = await resolveViteConfig(mainConfig, subConfig, mdxConfig)
+    const result = await resolveViteConfig(mainConfig, subConfig)
 
     //console.log(result)
     expect(result.build?.outDir).toEqual("out")

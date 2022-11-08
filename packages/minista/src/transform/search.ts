@@ -4,7 +4,7 @@ import { parse } from "node-html-parser"
 import mojigiri from "mojigiri"
 
 import type { ResolvedConfig } from "../config/index.js"
-import type { SsgPage } from "../scripts/ssg"
+import type { SsgPage } from "../server/ssg.js"
 
 export async function transformSearch({
   ssgPages,

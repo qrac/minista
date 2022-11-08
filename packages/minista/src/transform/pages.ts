@@ -1,32 +1,27 @@
 import path from "node:path"
 
 import type { ResolvedConfig } from "../config/index.js"
-import { getSources } from "../server/sources.js"
-import { renderApp } from "../server/app.js"
-import { transformEntryTags } from "../transform/tags.js"
-import { transformComment } from "../transform/comment.js"
-import { transformMarkdown } from "../transform/markdown.js"
+import type { ResolvedGlobal } from "../server/global.js"
+import type { ResolvedPages } from "../server/pages.js"
+import { transformPage } from "./page.js"
+import { transformEntryTags } from "./tags.js"
+import { transformComment } from "./comment.js"
+import { transformMarkdown } from "./markdown.js"
 import { getHtmlPath } from "../utility/path.js"
 import { resolveBase } from "../utility/base.js"
 
-export type RunSsg = {
-  (config: ResolvedConfig): Promise<SsgPage[]>
-}
-export type SsgPage = {
-  fileName: string
-  path: string
-  html: string
-}
-
-export const runSsg: RunSsg = async (config) => {
+export async function transformPages({
+  resolvedGlobal,
+  resolvedPages,
+  config,
+}: {
+  resolvedGlobal: ResolvedGlobal
+  resolvedPages: ResolvedPages
+  config: ResolvedConfig
+}) {
   const resolvedBase = resolveBase(config.main.base)
-  const { resolvedGlobal, resolvedPages } = await getSources()
 
-  if (resolvedPages.length === 0) {
-    return []
-  }
-
-  let htmlPages = resolvedPages.map((page) => {
+  let pages = resolvedPages.map((page) => {
     const basedPath = resolvedBase.match(/^\/.*\/$/)
       ? path.join(resolvedBase, page.path)
       : page.path
@@ -35,13 +30,15 @@ export const runSsg: RunSsg = async (config) => {
       pathname: basedPath,
       config,
     })
+    const title = page.frontmatter?.title || ""
     const draft = page.frontmatter?.draft || false
     return {
       path: page.path,
       basedPath,
+      title,
       html: draft
         ? ""
-        : renderApp({
+        : transformPage({
             url: page.path,
             resolvedGlobal,
             resolvedPages: [page],
@@ -52,14 +49,14 @@ export const runSsg: RunSsg = async (config) => {
     }
   })
 
-  htmlPages = htmlPages.filter((page) => page.html)
+  pages = pages.filter((page) => page.html)
 
-  if (htmlPages.length === 0) {
+  if (pages.length === 0) {
     return []
   }
 
-  htmlPages = await Promise.all(
-    htmlPages.map(async (page) => {
+  pages = await Promise.all(
+    pages.map(async (page) => {
       let html = page.html
 
       if (html.includes(`data-minista-transform-target="comment"`)) {
@@ -71,17 +68,19 @@ export const runSsg: RunSsg = async (config) => {
       return {
         path: page.path,
         basedPath: page.basedPath,
+        title: page.title,
         html,
       }
     })
   )
 
-  return htmlPages.map((page) => {
+  return pages.map((page) => {
     const fileName = getHtmlPath(page.path)
     return {
       fileName,
       path: page.basedPath,
+      title: page.title,
       html: page.html,
     }
-  }) as SsgPage[]
+  })
 }

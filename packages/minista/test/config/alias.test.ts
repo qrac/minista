@@ -5,7 +5,7 @@ import { resolveAlias } from "../../src/config/alias"
 describe("resolveAlias", () => {
   it("No props", async () => {
     const configAlias = {}
-    const viteConfigAlias = []
+    const viteConfigAlias = {}
     const result = await resolveAlias(configAlias, viteConfigAlias)
 
     //console.log(result)
@@ -14,7 +14,7 @@ describe("resolveAlias", () => {
 
   it("One object from main config", async () => {
     const configAlias = { test: "../test" }
-    const viteConfigAlias = []
+    const viteConfigAlias = {}
     const result = await resolveAlias(configAlias, viteConfigAlias)
 
     //console.log(result)
@@ -23,7 +23,7 @@ describe("resolveAlias", () => {
 
   it("Twe object from main config", async () => {
     const configAlias = { test: "../test", test_2: "../../test2" }
-    const viteConfigAlias = []
+    const viteConfigAlias = {}
     const result = await resolveAlias(configAlias, viteConfigAlias)
 
     //console.log(result)
@@ -35,7 +35,7 @@ describe("resolveAlias", () => {
 
   it("One array from main config", async () => {
     const configAlias = [{ find: "test", replacement: "../test" }]
-    const viteConfigAlias = []
+    const viteConfigAlias = {}
     const result = await resolveAlias(configAlias, viteConfigAlias)
 
     //console.log(result)
