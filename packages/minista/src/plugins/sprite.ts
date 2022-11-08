@@ -1,55 +1,10 @@
 import type { Plugin } from "vite"
-import type { SvgstoreAddOptions } from "@qrac/svgstore"
 import path from "node:path"
 import fs from "fs-extra"
 import fg from "fast-glob"
-import svgstore from "@qrac/svgstore"
 
 import type { ResolvedConfig } from "../config/index.js"
-
-function compileSvgSprite({
-  svgFiles,
-  options,
-}: {
-  svgFiles: string[]
-  options: SvgstoreAddOptions
-}) {
-  const sprites = svgstore()
-
-  for (const svgFile of svgFiles) {
-    const svgId = path.parse(svgFile).name
-    const code = fs.readFileSync(svgFile, { encoding: "utf8" })
-    sprites.add(svgId, code, options)
-  }
-  return sprites
-    .toString({ inline: true })
-    .replace(
-      `<svg>`,
-      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`
-    )
-}
-
-async function buildSvgSprite({
-  srcDir,
-  output,
-  options,
-}: {
-  srcDir: string
-  output: string
-  options: SvgstoreAddOptions
-}) {
-  const svgFiles = await fg(srcDir + "**/*.svg")
-
-  if (svgFiles.length > 0) {
-    const data = compileSvgSprite({
-      svgFiles,
-      options,
-    })
-    return await fs.outputFile(output, data).catch((err) => {
-      console.error(err)
-    })
-  }
-}
+import { transformSprite } from "../transform/sprite.js"
 
 export function pluginSprite(
   config: ResolvedConfig,
@@ -64,6 +19,20 @@ export function pluginSprite(
   )
   const output = path.join(config.sub.tempDir, "__minista_plugin_sprite.svg")
   const options = config.main.assets.icons.svgstoreOptions
+
+  async function buildSprite() {
+    const svgFiles = await fg(srcDir + "**/*.svg")
+
+    if (svgFiles.length > 0) {
+      const data = transformSprite({
+        svgFiles,
+        options,
+      })
+      return await fs.outputFile(output, data).catch((err) => {
+        console.error(err)
+      })
+    }
+  }
 
   return {
     name: "minista-vite-plugin:sprite",
@@ -87,7 +56,7 @@ export function pluginSprite(
     async buildStart() {
       if (useInit) {
         await fs.remove(output)
-        activeSprite && (await buildSvgSprite({ srcDir, output, options }))
+        activeSprite && (await buildSprite())
       }
     },
     async configureServer(server) {
@@ -100,7 +69,7 @@ export function pluginSprite(
         const triggers = ["add", "change", "unlink"]
 
         if (triggers.includes(eventName) && path.includes(srcDir)) {
-          await buildSvgSprite({ srcDir, output, options })
+          await buildSprite()
         }
       })
     },
