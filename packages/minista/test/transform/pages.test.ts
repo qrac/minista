@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+
 import beautify from "js-beautify"
 
 import { transformPages } from "../../src/transform/pages"
