@@ -1,80 +1,56 @@
-import type { Plugin, ViteDevServer } from "vite"
+import type { Plugin } from "vite"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 
 import type { ResolvedConfig } from "../config/index.js"
-import type { GetSources } from "../server/sources.js"
-import { transformPages } from "../transform/pages.js"
-import { transformSearch } from "../transform/search.js"
-import { getHtmlPath } from "../utility/path.js"
 import { resolveBase } from "../utility/base.js"
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 export function pluginSearch(config: ResolvedConfig): Plugin {
   let command: "build" | "serve"
-  let server: ViteDevServer
   let activeSearch = false
-  let useCache = false
 
-  const resolvedBase = resolveBase(config.main.base)
-  const output = path.join(config.sub.tempDir, "__minista_plugin_search.json")
+  const output = path.join(config.sub.tempDir, "search.txt")
 
   return {
     name: "minista-vite-plugin:search",
-    async config(_, viteConfig) {
+    config(_, viteConfig) {
       command = viteConfig.command
-      activeSearch = config.main.search.useJson
-      useCache = config.main.search.cache && fs.existsSync(output)
-
-      if (activeSearch) {
-        return {
-          resolve: {
-            alias: [
-              {
-                find: "/@minista-temp/__minista_plugin_search.json",
-                replacement: output,
-              },
-            ],
-          },
-        }
-      }
-    },
-    configureServer(_server) {
-      server = _server
     },
     async buildStart() {
-      if (command === "build") {
-        await fs.remove(output)
-      }
-      if (command === "serve" && activeSearch && !useCache) {
-        await fs.remove(output)
-
-        const { getSources } = (await server.ssrLoadModule(
-          __dirname + "/../server/sources.js"
-        )) as { getSources: GetSources }
-        const { resolvedGlobal, resolvedPages } = await getSources()
-
-        const ssgPages = await transformPages({
-          resolvedGlobal,
-          resolvedPages,
-          config,
-        })
-        const searchObj = await transformSearch({ ssgPages, config })
-
-        return await fs.outputJson(output, searchObj).catch((err) => {
-          console.error(err)
-        })
-      }
+      await fs.remove(output)
     },
-    transform(code, id) {
+    async transform(code, id) {
       if (
-        command === "build" &&
-        activeSearch &&
+        command === "serve" &&
         id.match(/minista(\/|\\)dist(\/|\\)shared(\/|\\)search\.js$/)
       ) {
+        const importCode = `import { searchObj as data } from "virtual:minista-plugin-serve"`
+        const replacedCode = code
+          .replace(
+            /const response = await fetch/,
+            "//const response = await fetch"
+          )
+          .replace(
+            /const data = await response/,
+            "//const data = await response"
+          )
+        return {
+          code: importCode + "\n\n" + replacedCode,
+          map: null,
+        }
+      }
+
+      if (
+        command === "build" &&
+        id.match(/minista(\/|\\)dist(\/|\\)shared(\/|\\)search\.js$/)
+      ) {
+        if (!activeSearch) {
+          await fs.outputFile(output, "")
+          activeSearch = true
+        }
+
+        const resolvedBase = resolveBase(config.main.base)
+
         let filePath = path.join(
           config.main.search.outDir,
           config.main.search.outName + ".json"

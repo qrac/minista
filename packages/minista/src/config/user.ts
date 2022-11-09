@@ -84,8 +84,6 @@ export type UserConfig = {
     mdxOptions?: MdxOptions
   }
   search?: {
-    useJson?: boolean
-    cache?: boolean
     outDir?: string
     outName?: string
     include?: string[]

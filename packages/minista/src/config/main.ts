@@ -79,8 +79,6 @@ export type MainConfig = {
     mdxOptions: MdxOptions
   }
   search: {
-    useJson: boolean
-    cache: boolean
     outDir: string
     outName: string
     include: string[]
@@ -187,8 +185,6 @@ export const defaultMainConfig: MainConfig = {
     },
   },
   search: {
-    useJson: false,
-    cache: false,
     outDir: "assets",
     outName: "search",
     include: ["**/*"],

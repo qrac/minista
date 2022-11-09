@@ -189,7 +189,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const optimizedAssetItems = optimizeItems([...assetItems, ...hydrateItems])
   const mergedItems = [...htmlItems, ...optimizedAssetItems]
 
-  if (config.main.search.useJson && ssgPages.length) {
+  const hasSearch = fs.existsSync(path.join(config.sub.tempDir, "search.txt"))
+
+  if (hasSearch && ssgPages.length) {
     const fileName = path.join(
       config.main.search.outDir,
       config.main.search.outName + ".json"

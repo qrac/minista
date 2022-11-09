@@ -234,9 +234,8 @@ export const SearchField = (props: SearchFieldProps) => {
   useEffect(() => {
     if (callSearchData) {
       const getSearchData = async () => {
-        const response = await fetch(
-          "/@minista-temp/__minista_plugin_search.json"
-        )
+        //prettier-ignore
+        const response = await fetch("/@minista-temp/__minista_plugin_search.json")
         const data = await response.json()
         setSearchData(data)
 

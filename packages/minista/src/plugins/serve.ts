@@ -1,22 +1,60 @@
-import type { Plugin } from "vite"
+import type { Plugin, ViteDevServer } from "vite"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import type { ResolvedConfig } from "../config/index.js"
+import type { ResolvedGlobal } from "../server/global.js"
+import type { ResolvedPages } from "../server/pages.js"
 import type { GetSources } from "../server/sources.js"
+import type { SsgPage } from "../server/ssg.js"
 import { transformPage } from "../transform/page.js"
+import { transformPages } from "../transform/pages.js"
 import { transformEntryTags } from "../transform/tags.js"
 import { transformComment } from "../transform/comment.js"
 import { transformMarkdown } from "../transform/markdown.js"
+import { transformSearch } from "../transform/search.js"
 import { resolveBase } from "../utility/base.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export function pluginServe(config: ResolvedConfig): Plugin {
+  const virtualModuleId = "virtual:minista-plugin-serve"
+  const resolvedVirtualModuleId = "\0" + virtualModuleId
+
+  let server: ViteDevServer
+  let serveResolvedGlobal: ResolvedGlobal
+  let serveResolvedPages: ResolvedPages
+
+  serveResolvedGlobal = { staticData: { props: {} } }
+  serveResolvedPages = []
+
   return {
     name: "minista-vite-plugin:serve",
-    configureServer(server) {
+    resolveId(id) {
+      if (id === virtualModuleId) {
+        return resolvedVirtualModuleId
+      }
+    },
+    async load(id) {
+      if (id === resolvedVirtualModuleId) {
+        const { moduleGraph } = server
+        const module = moduleGraph.getModuleById(resolvedVirtualModuleId)!
+        moduleGraph.invalidateModule(module)
+
+        const ssgPages = (await transformPages({
+          resolvedGlobal: serveResolvedGlobal,
+          resolvedPages: serveResolvedPages,
+          config,
+        })) as SsgPage[]
+        const searchObj = await transformSearch({ ssgPages, config })
+
+        return `export const searchObj = ${JSON.stringify(searchObj)}`
+      }
+    },
+    configureServer(_server) {
+      server = _server
+
       return () => {
         server.middlewares.use(async (req, res) => {
           try {
@@ -34,6 +72,9 @@ export function pluginServe(config: ResolvedConfig): Plugin {
                 __dirname + "/../server/sources.js"
               )) as { getSources: GetSources }
               const { resolvedGlobal, resolvedPages } = await getSources()
+
+              serveResolvedGlobal = resolvedGlobal
+              serveResolvedPages = resolvedPages
 
               const { headTags, startTags, endTags } = transformEntryTags({
                 mode: "serve",
