@@ -9,7 +9,7 @@ type MarkdownUseChildren = {
   children: string
 }
 
-export const Markdown = (props: MarkdownProps) => {
+export function Markdown(props: MarkdownProps) {
   const content = props.content || props.children
   return <div data-minista-transform-target="markdown">{content}</div>
 }

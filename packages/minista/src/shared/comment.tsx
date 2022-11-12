@@ -9,7 +9,7 @@ type CommentUseChildren = {
   children: string
 }
 
-export const Comment = (props: CommentProps) => {
+export function Comment(props: CommentProps) {
   const text = props.text || props.children
   return <div data-minista-transform-target="comment">{text}</div>
 }

@@ -5,7 +5,7 @@ type HeadProps = HelmetProps & {
   children?: React.ReactNode
 }
 
-export const Head = (props: HeadProps) => {
+export function Head(props: HeadProps) {
   const { children, ...attribute } = props
   return <Helmet {...attribute}>{children}</Helmet>
 }

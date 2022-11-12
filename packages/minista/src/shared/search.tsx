@@ -1,24 +1,24 @@
 import { useState, useEffect } from "react"
 
-export type SearchData = {
+type SearchData = {
   words: string[]
   hits: number[]
   pages: SearchPage[]
 }
 
-export type SearchPage = {
+type SearchPage = {
   path: string
   title: number[]
   toc: [number, string][]
   content: number[]
 }
 
-export type SearchResult = {
+type SearchResult = {
   path: string
   content: string
 }
 
-export interface SearchProps extends React.HTMLAttributes<HTMLElement> {
+type SearchProps = {
   placeholder?: string
   minHitLength?: number
   maxHitPages?: number
@@ -28,9 +28,9 @@ export interface SearchProps extends React.HTMLAttributes<HTMLElement> {
   searchFieldInsertAfterElement?: React.ReactElement
   searchListClassName?: string
   attributes?: React.HTMLAttributes<HTMLElement>
-}
+} & React.HTMLAttributes<HTMLElement>
 
-export interface SearchFieldProps extends React.HTMLAttributes<HTMLElement> {
+type SearchFieldProps = {
   placeholder?: string
   minHitLength?: number
   maxHitPages?: number
@@ -41,20 +41,20 @@ export interface SearchFieldProps extends React.HTMLAttributes<HTMLElement> {
   setSearchHitValues?: React.Dispatch<React.SetStateAction<string[]>>
   setSearchResults?: React.Dispatch<React.SetStateAction<SearchResult[]>>
   attributes?: React.HTMLAttributes<HTMLElement>
-}
+} & React.HTMLAttributes<HTMLElement>
 
-export interface SearchListProps extends React.HTMLAttributes<HTMLElement> {
+type SearchListProps = {
   searchValues?: string[]
   searchHitValues?: string[]
   searchResults?: SearchResult[]
   attributes?: React.HTMLAttributes<HTMLElement>
-}
+} & React.HTMLAttributes<HTMLElement>
 
 function compNum(a: number, b: number) {
   return a - b
 }
 
-export const Search = (props: SearchProps) => {
+export function Search(props: SearchProps) {
   const {
     placeholder = props.placeholder || "",
     minHitLength = props.minHitLength || 2,
@@ -93,7 +93,7 @@ export const Search = (props: SearchProps) => {
   )
 }
 
-export const SearchField = (props: SearchFieldProps) => {
+export function SearchField(props: SearchFieldProps) {
   const {
     placeholder = props.placeholder || "",
     minHitLength = props.minHitLength || 2,
@@ -281,7 +281,7 @@ export const SearchField = (props: SearchFieldProps) => {
   )
 }
 
-export const SearchList = (props: SearchListProps) => {
+export function SearchList(props: SearchListProps) {
   const { searchValues, searchHitValues, searchResults, ...attributes } = props
 
   const checkValues = searchValues && searchValues.length
