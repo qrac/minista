@@ -2,8 +2,6 @@ import type { CorsOptions } from "vite"
 import fs from "fs-extra"
 import { cac } from "cac"
 
-const cli = cac("minista")
-
 type GlobalCliOptions = {
   "--"?: string[]
   c?: string | false
@@ -27,10 +25,12 @@ type PreviewCliOptions = {
   open?: boolean | string
 }
 
+const cli = cac("minista")
+
 function pkgVersion() {
   const pkgURL = new URL("../../package.json", import.meta.url)
   const pkg = JSON.parse(fs.readFileSync(pkgURL, "utf8"))
-  return pkg.version
+  return pkg.version as string
 }
 
 cli

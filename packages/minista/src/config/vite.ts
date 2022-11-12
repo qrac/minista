@@ -11,7 +11,6 @@ import {
 
 import type { ResolvedMainConfig } from "./main.js"
 import type { ResolvedSubConfig } from "./sub.js"
-import type { ResolvedMdxConfig } from "./mdx.js"
 import type { ResolvedEntry } from "./entry.js"
 
 const __filename = fileURLToPath(import.meta.url)

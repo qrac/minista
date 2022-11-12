@@ -276,5 +276,4 @@ export async function build(inlineConfig: InlineConfig = {}) {
         })
     })
   )
-  return
 }
