@@ -6,8 +6,12 @@ import { getPages, resolvePages } from "./pages.js"
 export type GetSources = {
   (): Promise<{ resolvedGlobal: ResolvedGlobal; resolvedPages: ResolvedPages }>
 }
+export type Sources = {
+  resolvedGlobal: ResolvedGlobal
+  resolvedPages: ResolvedPages
+}
 
-export const getSources: GetSources = async () => {
+export async function getSources(): Promise<Sources> {
   const global = getGlobal()
   const pages = getPages()
   const resolvedGlobal = await resolveGlobal(global)

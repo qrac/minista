@@ -12,7 +12,7 @@ export type SsgPage = {
   html: string
 }
 
-export const runSsg: RunSsg = async (config) => {
+export async function runSsg(config: ResolvedConfig): Promise<SsgPage[]> {
   const { resolvedGlobal, resolvedPages } = await getSources()
 
   if (resolvedPages.length === 0) {
