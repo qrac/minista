@@ -8,3 +8,12 @@ export * from "./search.js"
 export type Location = {
   pathname: string
 }
+
+export type GetStaticData = {
+  (): Promise<StaticData>
+}
+
+export type StaticData = {
+  props: { [key: string]: string }
+  paths?: { [key: string]: string }
+}

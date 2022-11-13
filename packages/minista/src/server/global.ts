@@ -1,24 +1,20 @@
-export type Global = {
+import type { GetStaticData, StaticData } from "../shared/index.js"
+
+type Global = {
   component?: new () => React.Component<any, any>
-  getStaticData?: GlobalFetch
+  getStaticData?: GetStaticData
 }
 
-type Globals = Global[]
 type ImportedGlobals = {
   [key: string]: {
     default?: new () => React.Component<any, any>
-    getStaticData?: GlobalFetch
+    getStaticData?: GetStaticData
   }
-}
-
-export type GlobalFetch = () => Promise<GlobalStaticData>
-type GlobalStaticData = {
-  props: {}
 }
 
 export type ResolvedGlobal = {
   component?: new () => React.Component<any, any>
-  staticData: GlobalStaticData
+  staticData: StaticData
 }
 
 export function getGlobal(): Global {
@@ -33,7 +29,7 @@ export function getGlobal(): Global {
       eager: true,
     }
   )
-  const globals: Globals =
+  const globals: Global[] =
     Object.keys(GLOBALS).length === 0
       ? [{}]
       : Object.keys(GLOBALS).map((global) => {

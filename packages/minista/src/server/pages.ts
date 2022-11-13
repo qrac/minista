@@ -1,44 +1,35 @@
-export type Pages = {
+import type { GetStaticData, StaticData } from "../shared/index.js"
+
+type Page = {
   path: string
   component: new () => React.Component<any, any>
-  getStaticData?: PageFetch
+  getStaticData?: GetStaticData
   frontmatter?: { [key: string]: string }
-}[]
+}
 
 type ImportedPages = {
   [key: string]: {
     default: new () => React.Component<any, any>
-    getStaticData?: PageFetch
+    getStaticData?: GetStaticData
     frontmatter?: { [key: string]: string }
   }
 }
 
-export type PageFetch = () => Promise<PageStaticData>
-type PageStaticData = PageStaticDataList | PageStaticDataItem | undefined
-type PageStaticDataList = PageStaticDataItem[]
-type PageStaticDataItem = {
-  props?: { [key: string]: string }
-  paths?: { [key: string]: string }
-}
-
 export type ResolvedPages = {
   path: string
-  staticData: {
-    props: { [key: string]: string }
-    paths: { [key: string]: string }
-  }
+  staticData: StaticData
   component: new () => React.Component<any, any, any>
   frontmatter?: { [key: string]: string }
 }[]
 
-export function getPages(): Pages {
+export function getPages(): Page[] {
   const PAGES: ImportedPages = import.meta.glob(
     ["/src/pages/**/*.{tsx,jsx,mdx,md}", "!/src/pages/_global.{tsx,jsx}"],
     {
       eager: true,
     }
   )
-  const pages: Pages = Object.keys(PAGES).map((page) => {
+  const pages: Page[] = Object.keys(PAGES).map((page) => {
     const pagePath = page
       .replace(/^\/src\/pages\//g, "/")
       .replace(/\index|\.tsx$/g, "")
@@ -58,7 +49,7 @@ export function getPages(): Pages {
   return pages
 }
 
-export async function resolvePages(pages: Pages): Promise<ResolvedPages> {
+export async function resolvePages(pages: Page[]): Promise<ResolvedPages> {
   const resolvedPages = await Promise.all(
     pages.map(async (page) => {
       const defaultStaticData = { props: {}, paths: {} }
