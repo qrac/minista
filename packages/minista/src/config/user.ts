@@ -31,23 +31,6 @@ export type UserConfig = {
     entry?: Entry
     outDir?: string
     outName?: string
-    bundle?: {
-      outName?: string
-    }
-    partial?: {
-      usePreact?: boolean
-      useIntersectionObserver?: boolean
-      outName?: string
-      rootAttrSuffix?: string
-      rootValuePrefix?: string
-      rootDOMElement?: "div" | "span"
-      rootStyle?: React.CSSProperties
-      intersectionObserverOptions?: {
-        root?: Element | null
-        rootMargin?: string
-        thresholds?: ReadonlyArray<number>
-      }
-    }
     images?: {
       outDir?: string
       outName?: string
@@ -72,11 +55,27 @@ export type UserConfig = {
       remoteName?: string
       outDir?: string
     }
+    bundle?: {
+      outName?: string
+    }
+    partial?: {
+      usePreact?: boolean
+      useIntersectionObserver?: boolean
+      outName?: string
+      rootAttrSuffix?: string
+      rootValuePrefix?: string
+      rootDOMElement?: "div" | "span"
+      rootStyle?: React.CSSProperties
+      intersectionObserverOptions?: {
+        root?: Element | null
+        rootMargin?: string
+        thresholds?: ReadonlyArray<number>
+      }
+    }
   }
   resolve?: {
     alias?: Alias
   }
-  vite?: ViteUserConfig
   css?: ViteCSSOptions
   markdown?: {
     syntaxHighlighter?: "highlight" | "none"
@@ -106,6 +105,7 @@ export type UserConfig = {
     cssOptions?: CSSBeautifyOptions
     jsOptions?: JSBeautifyOptions
   }
+  vite?: ViteUserConfig
 }
 
 export type ResolvedUserConfig = UserConfig

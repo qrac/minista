@@ -26,23 +26,6 @@ export type MainConfig = {
     entry: Entry
     outDir: string
     outName: string
-    bundle: {
-      outName: string
-    }
-    partial: {
-      usePreact: boolean
-      useIntersectionObserver: boolean
-      outName: string
-      rootAttrSuffix: string
-      rootValuePrefix: string
-      rootDOMElement: "div" | "span"
-      rootStyle: React.CSSProperties
-      intersectionObserverOptions: {
-        root: Element | null
-        rootMargin: string
-        thresholds: ReadonlyArray<number>
-      }
-    }
     images: {
       outDir: string
       outName: string
@@ -67,11 +50,27 @@ export type MainConfig = {
       remoteName: string
       outDir: string
     }
+    bundle: {
+      outName: string
+    }
+    partial: {
+      usePreact: boolean
+      useIntersectionObserver: boolean
+      outName: string
+      rootAttrSuffix: string
+      rootValuePrefix: string
+      rootDOMElement: "div" | "span"
+      rootStyle: React.CSSProperties
+      intersectionObserverOptions: {
+        root: Element | null
+        rootMargin: string
+        thresholds: ReadonlyArray<number>
+      }
+    }
   }
   resolve: {
     alias: Alias
   }
-  vite: ViteUserConfig
   css: ViteCSSOptions
   markdown: {
     syntaxHighlighter: "highlight" | "none"
@@ -101,6 +100,7 @@ export type MainConfig = {
     cssOptions: CSSBeautifyOptions
     jsOptions: JSBeautifyOptions
   }
+  vite: ViteUserConfig
 }
 
 export type ResolvedMainConfig = MainConfig
@@ -114,23 +114,6 @@ export const defaultMainConfig: MainConfig = {
     entry: "",
     outDir: "assets",
     outName: "[name]",
-    bundle: {
-      outName: "bundle",
-    },
-    partial: {
-      usePreact: false,
-      useIntersectionObserver: true,
-      outName: "hydrate",
-      rootAttrSuffix: "partial-hydration",
-      rootValuePrefix: "ph",
-      rootDOMElement: "div",
-      rootStyle: { display: "contents" },
-      intersectionObserverOptions: {
-        root: null,
-        rootMargin: "0px",
-        thresholds: [0],
-      },
-    },
     images: {
       outDir: "assets/images",
       outName: "[name]",
@@ -157,11 +140,27 @@ export const defaultMainConfig: MainConfig = {
       remoteName: "remote-[index]",
       outDir: "assets/images",
     },
+    bundle: {
+      outName: "bundle",
+    },
+    partial: {
+      usePreact: false,
+      useIntersectionObserver: true,
+      outName: "hydrate",
+      rootAttrSuffix: "partial-hydration",
+      rootValuePrefix: "ph",
+      rootDOMElement: "div",
+      rootStyle: { display: "contents" },
+      intersectionObserverOptions: {
+        root: null,
+        rootMargin: "0px",
+        thresholds: [0],
+      },
+    },
   },
   resolve: {
     alias: [],
   },
-  vite: {},
   css: {
     modules: {
       scopeBehaviour: "local",
@@ -213,6 +212,7 @@ export const defaultMainConfig: MainConfig = {
     cssOptions: {},
     jsOptions: {},
   },
+  vite: {},
 }
 
 export async function resolveMainConfig(
