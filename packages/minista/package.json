@@ -83,6 +83,7 @@
     "esbuild": "^0.15.13",
     "fast-glob": "^3.2.12",
     "fs-extra": "^10.1.0",
+    "iconv-lite": "^0.6.3",
     "js-beautify": "^1.14.7",
     "mojigiri": "^0.3.0",
     "node-html-parser": "^6.1.1",

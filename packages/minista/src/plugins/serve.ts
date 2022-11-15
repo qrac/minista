@@ -12,6 +12,7 @@ import { transformPages } from "../transform/pages.js"
 import { transformEntryTags } from "../transform/tags.js"
 import { transformComment } from "../transform/comment.js"
 import { transformMarkdown } from "../transform/markdown.js"
+import { transformEncode } from "../transform/encode.js"
 import { transformSearch } from "../transform/search.js"
 import { resolveBase } from "../utility/base.js"
 
@@ -98,7 +99,7 @@ export function pluginServe(config: ResolvedConfig): Plugin {
                 html = await transformMarkdown(html, config.mdx)
               }
 
-              let transformedHtml = await server.transformIndexHtml(url, html)
+              html = await server.transformIndexHtml(url, html)
 
               if (resolvedBase.match(/^\/.*\/$/)) {
                 const wrongBase = path.join(resolvedBase, resolvedBase)
@@ -106,11 +107,21 @@ export function pluginServe(config: ResolvedConfig): Plugin {
                 const resolvedSrc = `src="${resolvedBase}`
                 const reg = new RegExp(wrongSrc, "g")
 
-                transformedHtml = transformedHtml.replace(reg, resolvedSrc)
+                html = html.replace(reg, resolvedSrc)
               }
 
-              res.statusCode = 200
-              res.end(transformedHtml)
+              const charsets = html.match(
+                /<meta[^<>]*?charset=["|'](.*?)["|'].*?\/>/i
+              )
+              const charset = charsets ? charsets[1] : "UTF-8"
+
+              if (charset.match(/^utf[\s-_]*8$/i)) {
+                res.statusCode = 200
+                res.end(html)
+              } else {
+                res.statusCode = 200
+                res.end(transformEncode(html, charset))
+              }
             }
           } catch (e: any) {
             server.ssrFixStacktrace(e)

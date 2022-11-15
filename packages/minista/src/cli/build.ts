@@ -26,6 +26,7 @@ import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
 import { transformSearch } from "../transform/search.js"
+import { transformEncode } from "../transform/encode.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -213,7 +214,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
       let hasHydrateJs = false
       let fileName = item.fileName
-      let data = item.data
+      let data: string | Buffer = item.data
 
       if (isHtml) {
         hasHydrateJs = data.includes(
@@ -248,6 +249,17 @@ export async function build(inlineConfig: InlineConfig = {}) {
       }
       if (isJs && config.main.beautify.useAssets) {
         data = beautify.js(data, config.main.beautify.jsOptions)
+      }
+
+      if (isHtml) {
+        const charsets = data.match(
+          /<meta[^<>]*?charset=["|'](.*?)["|'].*?\/>/i
+        )
+        const charset = charsets ? charsets[1] : "UTF-8"
+
+        if (!charset.match(/^utf[\s-_]*8$/i)) {
+          data = transformEncode(data, charset)
+        }
       }
 
       const nameLength = fileName.length
