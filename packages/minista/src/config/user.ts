@@ -98,6 +98,15 @@ export type UserConfig = {
       kanji?: boolean
     }
   }
+  delivery?: {
+    useZip?: boolean
+    outDir?: string
+    outName?: string
+    include?: string[]
+    exclude?: string[]
+    trimTitle?: string
+    sortBy?: "path" | "title"
+  }
   beautify?: {
     useHtml?: boolean
     useAssets?: boolean

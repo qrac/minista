@@ -35,9 +35,17 @@ export async function transformSearch({
       const parsedHtml = parse(spacedHtml, {
         blockTextElements: { script: false, style: false, pre: false },
       })
+
+      let title: string
+      title = page.title ? page.title : ""
+
+      if (!title) {
+        const pTitle = parsedHtml.querySelector("title")
+        title = pTitle ? pTitle.rawText : ""
+      }
       const regTrimTitle = new RegExp(trimTitle)
-      const pTitle = parsedHtml.querySelector("title")
-      const title = pTitle ? pTitle.rawText.replace(regTrimTitle, "") : ""
+      title = title ? title.replace(regTrimTitle, "") : ""
+
       const titleArray = mojigiri(title)
 
       const targetContent = parsedHtml.querySelector(targetSelector)

@@ -14,6 +14,7 @@ import { transformComment } from "../transform/comment.js"
 import { transformMarkdown } from "../transform/markdown.js"
 import { transformEncode } from "../transform/encode.js"
 import { transformSearch } from "../transform/search.js"
+import { transformDelivery } from "../transform/delivery.js"
 import { resolveBase } from "../utility/base.js"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -34,23 +35,31 @@ export function pluginServe(config: ResolvedConfig): Plugin {
     name: "minista-vite-plugin:serve",
     resolveId(id) {
       if (id === virtualModuleId) {
+        server.ws.send({
+          type: "full-reload",
+        })
         return resolvedVirtualModuleId
       }
     },
     async load(id) {
       if (id === resolvedVirtualModuleId) {
-        const { moduleGraph } = server
-        const module = moduleGraph.getModuleById(resolvedVirtualModuleId)!
-        moduleGraph.invalidateModule(module)
-
         const ssgPages = (await transformPages({
           resolvedGlobal: serveResolvedGlobal,
           resolvedPages: serveResolvedPages,
           config,
         })) as SsgPage[]
         const searchObj = await transformSearch({ ssgPages, config })
+        const deliveryItems = transformDelivery({ ssgPages, config })
 
-        return `export const searchObj = ${JSON.stringify(searchObj)}`
+        return `export const searchObj = ${JSON.stringify(searchObj)}
+export const deliveryItems = ${JSON.stringify(deliveryItems)}`
+      }
+    },
+    transform(_, id) {
+      if (id === resolvedVirtualModuleId) {
+        const { moduleGraph } = server
+        const module = moduleGraph.getModuleById(resolvedVirtualModuleId)!
+        moduleGraph.invalidateModule(module)
       }
     },
     configureServer(_server) {

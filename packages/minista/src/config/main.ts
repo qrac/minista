@@ -93,6 +93,15 @@ export type MainConfig = {
       kanji: boolean
     }
   }
+  delivery: {
+    useZip: boolean
+    outDir: string
+    outName: string
+    include: string[]
+    exclude: string[]
+    trimTitle: string
+    sortBy: "path" | "title"
+  }
   beautify: {
     useHtml: boolean
     useAssets: boolean
@@ -198,6 +207,15 @@ export const defaultMainConfig: MainConfig = {
       katakana: true,
       kanji: true,
     },
+  },
+  delivery: {
+    useZip: false,
+    outDir: "",
+    outName: "dist",
+    include: ["**/*"],
+    exclude: ["/404"],
+    trimTitle: "",
+    sortBy: "path",
   },
   beautify: {
     useHtml: true,
