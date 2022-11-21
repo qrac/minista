@@ -17,7 +17,9 @@ export function pluginSearch(config: ResolvedConfig): Plugin {
       command = viteConfig.command
     },
     async buildStart() {
-      await fs.remove(output)
+      if (command === "build") {
+        await fs.remove(output)
+      }
     },
     async transform(code, id) {
       if (
