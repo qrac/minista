@@ -56,20 +56,21 @@ export function Delivery({
   title = "Project",
   bodyClass = "minista-delivery",
   dateFormat = "YYYY.MM.DD - HH:mm",
-  header,
   styles,
+  header,
+  items,
 }: {
   title?: string
   bodyClass?: string
   dateFormat?: string
-  header?: HeaderProps
   styles?: StylesProps
+  header?: HeaderProps
+  items?: Item[]
 }) {
   dayjs.extend(timezone)
   dayjs.extend(utc)
   dayjs.tz.setDefault("Asia/Tokyo")
   const now = dayjs().tz().format(dateFormat)
-  const deliveryItems: Item[] = []
   return (
     <>
       <Head
@@ -84,7 +85,11 @@ export function Delivery({
         <DeliveryHeader title={title} date={now} {...header} />
         <DeliveryMain>
           <DeliveryNav>
-            <DeliveryList items={deliveryItems} />
+            {items ? (
+              <DeliveryList items={items} />
+            ) : (
+              <div data-minista-transform-target="delivery" />
+            )}
           </DeliveryNav>
         </DeliveryMain>
       </DeliveryContainer>

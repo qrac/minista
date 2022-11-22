@@ -3,8 +3,6 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import type { ResolvedConfig } from "../config/index.js"
-import type { ResolvedGlobal } from "../server/global.js"
-import type { ResolvedPages } from "../server/pages.js"
 import type { GetSources } from "../server/sources.js"
 import type { SsgPage } from "../server/ssg.js"
 import { transformPage } from "../transform/page.js"
@@ -25,41 +23,30 @@ export function pluginServe(config: ResolvedConfig): Plugin {
   const resolvedVirtualModuleId = "\0" + virtualModuleId
 
   let server: ViteDevServer
-  let serveResolvedGlobal: ResolvedGlobal
-  let serveResolvedPages: ResolvedPages
 
-  serveResolvedGlobal = { staticData: { props: {} } }
-  serveResolvedPages = []
+  let useVirtualModule: boolean
+  let ssgPages: SsgPage[]
+
+  useVirtualModule = false
+  ssgPages = []
 
   return {
     name: "minista-vite-plugin:serve",
     resolveId(id) {
       if (id === virtualModuleId) {
-        server.ws.send({
-          type: "full-reload",
-        })
+        useVirtualModule = true
         return resolvedVirtualModuleId
       }
     },
     async load(id) {
       if (id === resolvedVirtualModuleId) {
-        const ssgPages = (await transformPages({
-          resolvedGlobal: serveResolvedGlobal,
-          resolvedPages: serveResolvedPages,
-          config,
-        })) as SsgPage[]
-        const searchObj = await transformSearch({ ssgPages, config })
-        const deliveryItems = transformDelivery({ ssgPages, config })
-
-        return `export const searchObj = ${JSON.stringify(searchObj)}
-export const deliveryItems = ${JSON.stringify(deliveryItems)}`
-      }
-    },
-    transform(_, id) {
-      if (id === resolvedVirtualModuleId) {
         const { moduleGraph } = server
         const module = moduleGraph.getModuleById(resolvedVirtualModuleId)!
         moduleGraph.invalidateModule(module)
+
+        const searchObj = await transformSearch({ ssgPages, config })
+
+        return `export const searchObj = ${JSON.stringify(searchObj)}`
       }
     },
     configureServer(_server) {
@@ -83,9 +70,6 @@ export const deliveryItems = ${JSON.stringify(deliveryItems)}`
               )) as { getSources: GetSources }
               const { resolvedGlobal, resolvedPages } = await getSources()
 
-              serveResolvedGlobal = resolvedGlobal
-              serveResolvedPages = resolvedPages
-
               const { headTags, startTags, endTags } = transformEntryTags({
                 mode: "serve",
                 pathname: url,
@@ -106,6 +90,20 @@ export const deliveryItems = ${JSON.stringify(deliveryItems)}`
               }
               if (html.includes(`data-minista-transform-target="markdown"`)) {
                 html = await transformMarkdown(html, config.mdx)
+              }
+
+              if (
+                useVirtualModule ||
+                html.includes(`data-minista-transform-target="delivery"`)
+              ) {
+                ssgPages = await transformPages({
+                  resolvedGlobal,
+                  resolvedPages,
+                  config,
+                })
+              }
+              if (html.includes(`data-minista-transform-target="delivery"`)) {
+                html = transformDelivery({ html, ssgPages, config })
               }
 
               html = await server.transformIndexHtml(url, html)

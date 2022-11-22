@@ -26,6 +26,7 @@ import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
 import { transformSearch } from "../transform/search.js"
+import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
 
 export type BuildResult = {
@@ -237,6 +238,10 @@ export async function build(inlineConfig: InlineConfig = {}) {
             /<link.*data-minista-build-bundle-href=.*?>/g,
             "\n\n"
           )
+        }
+
+        if (data.includes(`data-minista-transform-target="delivery"`)) {
+          data = transformDelivery({ html: data, ssgPages, config })
         }
 
         if (config.main.beautify.useHtml) {
