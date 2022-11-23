@@ -6,6 +6,7 @@ import type { Config as SvgrOptions } from "@svgr/core"
 import type { SvgstoreAddOptions } from "@qrac/svgstore"
 import type { Options as HighlightOptions } from "rehype-highlight"
 import type { Options as MdxOptions } from "@mdx-js/rollup"
+import type { Format as ArchiverFormat, ArchiverOptions } from "archiver"
 import type {
   HTMLBeautifyOptions,
   CSSBeautifyOptions,
@@ -94,13 +95,22 @@ export type MainConfig = {
     }
   }
   delivery: {
-    useZip: boolean
-    outDir: string
-    outName: string
     include: string[]
     exclude: string[]
     trimTitle: string
     sortBy: "path" | "title"
+    archives: {
+      srcDir: string
+      outDir: string
+      outName: string
+      format: ArchiverFormat
+      options?: ArchiverOptions
+      ignore?: string[]
+      button?: {
+        text?: string
+        color?: string
+      }
+    }[]
   }
   beautify: {
     useHtml: boolean
@@ -209,13 +219,11 @@ export const defaultMainConfig: MainConfig = {
     },
   },
   delivery: {
-    useZip: false,
-    outDir: "",
-    outName: "dist",
     include: ["**/*"],
     exclude: ["/404"],
     trimTitle: "",
     sortBy: "path",
+    archives: [],
   },
   beautify: {
     useHtml: true,

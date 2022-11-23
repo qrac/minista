@@ -78,6 +78,7 @@
     "@qrac/svgstore": "^3.0.3",
     "@svgr/core": "^6.5.1",
     "@vitejs/plugin-react": "^2.2.0",
+    "archiver": "^5.3.1",
     "cac": "^6.7.14",
     "dayjs": "^1.11.6",
     "deepmerge-ts": "^4.2.2",

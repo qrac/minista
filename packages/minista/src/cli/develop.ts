@@ -16,6 +16,7 @@ import { pluginFetch } from "../plugins/fetch.js"
 import { pluginServe } from "../plugins/serve.js"
 import { pluginPartial } from "../plugins/partial.js"
 import { pluginSearch } from "../plugins/search.js"
+import { pluginDelivery } from "../plugins/delivery.js"
 
 export async function develop(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
@@ -33,6 +34,7 @@ export async function develop(inlineConfig: InlineConfig = {}) {
         pluginServe(config),
         pluginPartial(config),
         pluginSearch(config),
+        pluginDelivery(config),
       ],
     })
   )

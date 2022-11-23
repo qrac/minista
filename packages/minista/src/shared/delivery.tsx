@@ -71,6 +71,10 @@ export function Delivery({
   dayjs.extend(utc)
   dayjs.tz.setDefault("Asia/Tokyo")
   const now = dayjs().tz().format(dateFormat)
+
+  const archives: Button[] = []
+  const headerButtons: Button[] = header?.buttons ? header.buttons : []
+  const buttons: Button[] = [...archives, ...headerButtons]
   return (
     <>
       <Head
@@ -82,7 +86,12 @@ export function Delivery({
       </Head>
       <DeliveryStyles {...styles} />
       <DeliveryContainer>
-        <DeliveryHeader title={title} date={now} {...header} />
+        <DeliveryHeader
+          title={title}
+          date={now}
+          buttons={buttons}
+          {...header}
+        />
         <DeliveryMain>
           <DeliveryNav>
             {items ? (
@@ -148,9 +157,9 @@ export function DeliveryHeader({
               </p>
             )}
           </div>
-          <div className="minista-delivery-header-column">
-            {buttons &&
-              buttons.map((item, index) => (
+          {buttons && (
+            <div className="minista-delivery-header-column">
+              {buttons.map((item, index) => (
                 <a
                   className="minista-delivery-button"
                   href={item.link}
@@ -160,7 +169,8 @@ export function DeliveryHeader({
                   {item.text}
                 </a>
               ))}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </header>

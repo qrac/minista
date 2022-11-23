@@ -12,6 +12,7 @@ import {
 import { default as pluginReact } from "@vitejs/plugin-react"
 import { default as pluginMdx } from "@mdx-js/rollup"
 import beautify from "js-beautify"
+import archiver from "archiver"
 
 import type { InlineConfig } from "../config/index.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
@@ -25,6 +26,7 @@ import { pluginPartial } from "../plugins/partial.js"
 import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
+import { pluginDelivery } from "../plugins/delivery.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
@@ -52,6 +54,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
         pluginFetch(config),
         pluginSsg(),
         pluginPartial(config),
+        pluginDelivery(config),
       ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
@@ -204,7 +207,12 @@ export async function build(inlineConfig: InlineConfig = {}) {
     mergedItems.push({ fileName, data })
   }
 
-  const nameLengths = mergedItems.map((api) => api.fileName.length)
+  const distItemNames = mergedItems.map((item) => item.fileName)
+  const archiveItemNames = config.main.delivery.archives.map((item) =>
+    path.join(item.outDir, item.outName + "." + item.format)
+  )
+  const mergedItemNames = [...distItemNames, ...archiveItemNames]
+  const nameLengths = mergedItemNames.map((item) => item.length)
   const maxNameLength = nameLengths.reduce((a, b) => (a > b ? a : b), 0)
 
   await Promise.all(
@@ -293,4 +301,59 @@ export async function build(inlineConfig: InlineConfig = {}) {
         })
     })
   )
+
+  if (config.main.delivery.archives.length) {
+    const cwd = path.relative(process.cwd(), config.sub.resolvedRoot)
+    const tempDir = path.join(config.sub.tempDir, "archives")
+
+    await fs.emptyDir(tempDir)
+
+    await Promise.all(
+      config.main.delivery.archives.map(async (item) => {
+        const srcDir = item.srcDir
+        const outFile = item.outName + "." + item.format
+        const fileName = path.join(item.outDir, outFile)
+        const tempFile = path.join(tempDir, fileName)
+
+        await fs.ensureFile(tempFile)
+        const output = fs.createWriteStream(tempFile)
+        const options = item.options ? item.options : {}
+        const ignore = item.ignore ? item.ignore : ""
+        const archive = archiver(item.format, options)
+
+        output.on("close", async () => {
+          const nameLength = fileName.length
+          const spaceCount = maxNameLength - nameLength + 3
+          const space = " ".repeat(spaceCount)
+
+          const routePath = path.join(
+            config.sub.resolvedRoot,
+            config.main.out,
+            fileName
+          )
+          const relativePath = path.relative(process.cwd(), routePath)
+          const dataSize = (archive.pointer() / 1024).toFixed(2)
+
+          return await fs
+            .copy(tempFile, routePath)
+            .then(() => {
+              console.log(
+                `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
+                  space +
+                  pc.gray(`${dataSize} KiB`)
+              )
+            })
+            .catch((err) => {
+              console.error(err)
+            })
+        })
+
+        archive.pipe(output)
+        archive.glob(path.join(srcDir, "**/*"), { cwd, ignore })
+
+        await archive.finalize()
+        return
+      })
+    )
+  }
 }
