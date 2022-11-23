@@ -107,10 +107,10 @@
     "@types/node": "^18.11.9",
     "@types/picomatch": "^2.3.0",
     "@types/react": "^18.0.25",
-    "@types/react-dom": "^18.0.8",
+    "@types/react-dom": "^18.0.9",
     "cac": "^6.7.14",
     "cross-port-killer": "^1.4.0",
-    "esbuild": "^0.15.13",
+    "esbuild": "^0.15.15",
     "express": "^4.18.2",
     "fast-glob": "^3.2.12",
     "fs-extra": "^10.1.0",
@@ -119,9 +119,9 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rimraf": "^3.0.2",
-    "rollup": "^3.2.5",
-    "tsx": "^3.11.0",
-    "typescript": "^4.8.4",
-    "vitest": "^0.25.1"
+    "rollup": "^3.4.0",
+    "tsx": "^3.12.1",
+    "typescript": "^4.9.3",
+    "vitest": "^0.25.3"
   }
 }
