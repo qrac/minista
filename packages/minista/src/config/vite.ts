@@ -77,10 +77,6 @@ export async function resolveViteConfig(
       //cssCodeSplit: false,
       minify: !mainConfig.beautify.useAssets,
       rollupOptions: {
-        input: resolveViteEntry(
-          subConfig.resolvedRoot,
-          subConfig.resolvedEntry
-        ),
         output: {
           manualChunks: undefined,
           entryFileNames: path.join(
@@ -138,6 +134,7 @@ export async function resolveViteConfig(
 
   const mainViteConfig = Object.assign({}, mainConfig.vite)
   delete mainViteConfig.build?.rollupOptions?.input
+
   const mergedViteConfig = mergeViteConfig(defaultViteConfig, mainViteConfig)
 
   if (subConfig.resolvedAlias.length > 0) {

@@ -22,6 +22,7 @@ import { pluginSvgr } from "../plugins/svgr.js"
 import { pluginSprite } from "../plugins/sprite.js"
 import { pluginFetch } from "../plugins/fetch.js"
 import { pluginSsg } from "../plugins/ssg.js"
+import { pluginEntry } from "../plugins/entry.js"
 import { pluginPartial } from "../plugins/partial.js"
 import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
@@ -68,6 +69,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
         pluginMdx(config.mdx) as PluginOption,
         pluginSvgr(config),
         pluginSprite(config),
+        pluginEntry(config),
         pluginBundle(),
       ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
