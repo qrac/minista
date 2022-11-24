@@ -2,7 +2,7 @@ import { defineConfig } from "minista"
 
 export default defineConfig({
   delivery: {
-    include: ["/test/**/*"],
+    include: ["/test/", "/test/*", "/test/**/*"],
     archives: [
       {
         srcDir: "dist",
