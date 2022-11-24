@@ -235,8 +235,13 @@ export const defaultMainConfig: MainConfig = {
       extra_liners: [],
       inline: ["span", "strong", "b", "small", "del", "s", "code", "br", "wbr"],
     },
-    cssOptions: {},
-    jsOptions: {},
+    cssOptions: {
+      indent_size: 2,
+      space_around_combinator: true,
+    },
+    jsOptions: {
+      indent_size: 2,
+    },
   },
   vite: {},
 }
