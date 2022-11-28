@@ -27,7 +27,6 @@ import { pluginPartial } from "../plugins/partial.js"
 import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
-import { pluginDelivery } from "../plugins/delivery.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
@@ -55,7 +54,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
         pluginFetch(config),
         pluginSsg(),
         pluginPartial(config),
-        pluginDelivery(config),
       ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
@@ -250,7 +248,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
           )
         }
 
-        if (data.includes(`data-minista-transform-target="delivery"`)) {
+        if (data.includes(`data-minista-transform-target="delivery-`)) {
           data = transformDelivery({ html: data, ssgPages, config })
         }
 

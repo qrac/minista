@@ -112,7 +112,7 @@ export type UserConfig = {
       options?: ArchiverOptions
       ignore?: string[]
       button?: {
-        text?: string
+        title?: string
         color?: string
       }
     }[]

@@ -107,7 +107,7 @@ export type MainConfig = {
       options?: ArchiverOptions
       ignore?: string[]
       button?: {
-        text?: string
+        title?: string
         color?: string
       }
     }[]

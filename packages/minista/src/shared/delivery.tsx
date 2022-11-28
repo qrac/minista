@@ -28,8 +28,8 @@ type HeaderProps = {
 }
 
 type Button = {
-  text?: string
-  link?: string
+  title?: string
+  path?: string
   color?: string
 }
 
@@ -71,10 +71,6 @@ export function Delivery({
   dayjs.extend(utc)
   dayjs.tz.setDefault("Asia/Tokyo")
   const now = dayjs().tz().format(dateFormat)
-
-  const archives: Button[] = []
-  const headerButtons: Button[] = header?.buttons ? header.buttons : []
-  const buttons: Button[] = [...archives, ...headerButtons]
   return (
     <>
       <Head
@@ -86,18 +82,13 @@ export function Delivery({
       </Head>
       <DeliveryStyles {...styles} />
       <DeliveryContainer>
-        <DeliveryHeader
-          title={title}
-          date={now}
-          buttons={buttons}
-          {...header}
-        />
+        <DeliveryHeader title={title} date={now} {...header} />
         <DeliveryMain>
           <DeliveryNav>
             {items ? (
               <DeliveryList items={items} />
             ) : (
-              <div data-minista-transform-target="delivery" />
+              <div data-minista-transform-target="delivery-list" />
             )}
           </DeliveryNav>
         </DeliveryMain>
@@ -145,6 +136,7 @@ export function DeliveryHeader({
   date,
   buttons,
 }: HeaderProps) {
+  const hasButtons = buttons && buttons.length > 0
   return (
     <header className="minista-delivery-header">
       <div className="minista-delivery-header-inner">
@@ -157,20 +149,22 @@ export function DeliveryHeader({
               </p>
             )}
           </div>
-          {buttons && (
-            <div className="minista-delivery-header-column">
-              {buttons.map((item, index) => (
+          <div className="minista-delivery-header-column">
+            {hasButtons ? (
+              buttons.map((item, index) => (
                 <a
                   className="minista-delivery-button"
-                  href={item.link}
+                  href={item.path}
                   style={item.color ? { backgroundColor: item.color } : {}}
                   key={index}
                 >
-                  {item.text}
+                  {item.title}
                 </a>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              <div data-minista-transform-target="delivery-buttons" />
+            )}
+          </div>
         </div>
       </div>
     </header>

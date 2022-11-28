@@ -13,7 +13,7 @@ export default defineConfig({
           zlib: { level: 9 },
         },
         button: {
-          text: "Download",
+          title: "Download",
           //color: "blue",
         },
       },

@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  transformDataDelivery,
-  transformStrDelivery,
+  transformListDataDelivery,
+  transformListStrDelivery,
+  transformButtonsDataDelivery,
+  transformButtonsStrDelivery,
   transformDelivery,
 } from "../../src/transform/delivery"
 import { resolveConfig } from "../../src/config"
 
-describe("transformDataDelivery", () => {
+describe("transformListDataDelivery", () => {
   it("Default", async () => {
     const config = await resolveConfig({})
-    const result = transformDataDelivery({
+    const result = transformListDataDelivery({
       ssgPages: [
         {
           fileName: "",
@@ -49,7 +51,7 @@ describe("transformDataDelivery", () => {
 
   it("Sort by title", async () => {
     const config = await resolveConfig({ delivery: { sortBy: "title" } })
-    const result = transformDataDelivery({
+    const result = transformListDataDelivery({
       ssgPages: [
         {
           fileName: "",
@@ -87,16 +89,16 @@ describe("transformDataDelivery", () => {
   })
 })
 
-describe("transformStrDelivery", () => {
+describe("transformListStrDelivery", () => {
   it("Blank", () => {
-    const result = transformStrDelivery([])
+    const result = transformListStrDelivery([])
 
     //console.log(result)
     expect(result).toEqual("")
   })
 
   it("Default", () => {
-    const result = transformStrDelivery([
+    const result = transformListStrDelivery([
       {
         title: "HOME",
         path: "/",
@@ -139,12 +141,62 @@ describe("transformStrDelivery", () => {
   })
 })
 
+describe("transformButtonsDataDelivery", () => {
+  it("Default", async () => {
+    let config = await resolveConfig({})
+    config.main.delivery.archives = [
+      {
+        srcDir: "dist",
+        outDir: "",
+        outName: "archive",
+        format: "zip",
+        options: {
+          zlib: { level: 9 },
+        },
+        button: {
+          title: "Download",
+          //color: "blue",
+        },
+      },
+    ]
+    const result = transformButtonsDataDelivery(config)
+
+    expect(result).toEqual([
+      { title: "Download", path: "/archive.zip", color: "" },
+    ])
+  })
+})
+
+describe("transformButtonsStrDelivery", () => {
+  it("Blank", () => {
+    const result = transformButtonsStrDelivery([])
+
+    //console.log(result)
+    expect(result).toEqual("")
+  })
+
+  it("Default", () => {
+    const result = transformButtonsStrDelivery([
+      { title: "Download", path: "/archive.zip", color: "blue" },
+    ])
+
+    //console.log(result)
+    expect(result).toEqual(`<a
+  class="minista-delivery-button"
+  href="/archive.zip"
+  style="background-color: blue;"
+>
+  Download
+</a>`)
+  })
+})
+
 describe("transformDelivery", () => {
   it("Default", async () => {
     const config = await resolveConfig({})
     const result = transformDelivery({
       html: `<div>
-<div data-minista-transform-target="delivery"></div>
+<div data-minista-transform-target="delivery-list"></div>
 </div>`,
       ssgPages: [
         {

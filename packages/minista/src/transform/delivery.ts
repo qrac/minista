@@ -1,9 +1,11 @@
+import path from "node:path"
 import picomatch from "picomatch"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { SsgPage } from "../server/ssg.js"
+import { resolveBase } from "../utility/base.js"
 
-export function transformDataDelivery({
+export function transformListDataDelivery({
   ssgPages,
   config,
 }: {
@@ -51,7 +53,7 @@ export function transformDataDelivery({
     })
 }
 
-export function transformStrDelivery(
+export function transformListStrDelivery(
   data: {
     title: string
     path: string
@@ -73,10 +75,44 @@ export function transformStrDelivery(
 </li>`
   })
   const itemsStr = items.join("\n")
-
   return itemsStr
     ? `<ul class="minista-delivery-list">\n` + itemsStr + `\n</ul>`
     : ""
+}
+
+export function transformButtonsDataDelivery(config: ResolvedConfig) {
+  const resolvedBase = resolveBase(config.main.base)
+
+  return config.main.delivery.archives.map((item) => {
+    const outFile = item.outName + "." + item.format
+    const fileName = path.join(item.outDir, outFile)
+    const title = item.button?.title ? item.button.title : fileName
+    const link = path.join(resolvedBase, fileName)
+    const color = item.button?.color ? item.button.color : ""
+    return { title, path: link, color }
+  })
+}
+
+export function transformButtonsStrDelivery(
+  data: {
+    title: string
+    path: string
+    color: string
+  }[]
+) {
+  const items = data.map((item) => {
+    const colorStr = item.color
+      ? `\n  style="background-color: ${item.color};"`
+      : ""
+    return `<a
+  class="minista-delivery-button"
+  href="${item.path}"${colorStr}
+>
+  ${item.title}
+</a>`
+  })
+  const itemsStr = items.join("\n")
+  return itemsStr
 }
 
 export function transformDelivery({
@@ -88,11 +124,24 @@ export function transformDelivery({
   ssgPages: SsgPage[]
   config: ResolvedConfig
 }) {
-  const data = transformDataDelivery({ ssgPages, config })
-  const str = transformStrDelivery(data)
+  let replacedHtml = html
 
-  return html.replace(
-    /<div[^<>]*?data-minista-transform-target="delivery".*?>\s*\n*<\/div>/gi,
-    str
+  const listData = transformListDataDelivery({ ssgPages, config })
+  const listStr = transformListStrDelivery(listData)
+
+  replacedHtml = replacedHtml.replace(
+    /<div[^<>]*?data-minista-transform-target="delivery-list".*?>\s*\n*<\/div>/gi,
+    listStr
   )
+
+  if (config.main.delivery.archives.length > 0) {
+    const buttonsData = transformButtonsDataDelivery(config)
+    const buttonsStr = transformButtonsStrDelivery(buttonsData)
+
+    replacedHtml = replacedHtml.replace(
+      /<div[^<>]*?data-minista-transform-target="delivery-buttons".*?>\s*\n*<\/div>/gi,
+      buttonsStr
+    )
+  }
+  return replacedHtml
 }
