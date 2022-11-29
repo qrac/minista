@@ -94,7 +94,7 @@ export function pluginServe(config: ResolvedConfig): Plugin {
 
               if (
                 useVirtualModule ||
-                html.includes(`data-minista-transform-target="delivery-`)
+                html.includes(`data-minista-transform-target="delivery-list"`)
               ) {
                 ssgPages = await transformPages({
                   resolvedGlobal,
@@ -102,7 +102,9 @@ export function pluginServe(config: ResolvedConfig): Plugin {
                   config,
                 })
               }
-              if (html.includes(`data-minista-transform-target="delivery-`)) {
+              if (
+                html.includes(`data-minista-transform-target="delivery-list"`)
+              ) {
                 html = transformDelivery({ html, ssgPages, config })
               }
 
