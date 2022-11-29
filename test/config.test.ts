@@ -34,7 +34,6 @@ describe("resolveEntry", () => {
     //console.log(result)
     expect(result).toEqual([
       {
-        name: "entry",
         input: "entry.ts",
         insertPages: ["**/*"],
       },
@@ -67,12 +66,10 @@ describe("resolveEntry", () => {
     //console.log(result)
     expect(result).toEqual([
       {
-        name: "entry",
         input: "entry.ts",
         insertPages: ["**/*"],
       },
       {
-        name: "script",
         input: "src/assets/script.ts",
         insertPages: ["**/*"],
       },

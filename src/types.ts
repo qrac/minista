@@ -223,7 +223,7 @@ export type MinistaResolveEntryConfig = {
   entry: EntryObject[]
 }
 export type EntryObject = {
-  name: string
+  name?: string
   input: string
   insertPages: string[]
 }

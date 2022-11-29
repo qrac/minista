@@ -194,7 +194,6 @@ export async function resolveEntry(
       return
     } else if (typeof input === "string") {
       const pattern = {
-        name: getFilename(input),
         input: noSlashStart(input),
         insertPages: ["**/*"],
       }
@@ -205,7 +204,6 @@ export async function resolveEntry(
         await Promise.all(
           strArray.map(async (item) => {
             const pattern = {
-              name: getFilename(item),
               input: noSlashStart(item),
               insertPages: ["**/*"],
             }
@@ -216,14 +214,16 @@ export async function resolveEntry(
         const objectArray = input as UserEntryObject[]
         await Promise.all(
           objectArray.map(async (item) => {
-            const name = item.name || getFilename(item.input)
             const include = getInsertPagesInclude(item.insertPages)
             const exclude = getInsertPagesExclude(item.insertPages)
             const fixedExclude = exclude.map((item) => "!" + item)
-            const pattern = {
-              name: name,
+
+            let pattern: EntryObject = {
               input: noSlashStart(item.input),
               insertPages: [...include, ...fixedExclude],
+            }
+            if (item.name) {
+              pattern.name = item.name
             }
             return entries.push(pattern)
           })
