@@ -468,8 +468,10 @@ export async function buildTempAssets(
       } else if (item.fileName.match(/(__minista_bundle_assets\.js|\.svg$)/)) {
         return
       } else {
-        const customFileName =
+        let customFileName =
           buildOptions.outDir + item.fileName.replace(buildOptions.assetDir, "")
+        customFileName = customFileName.replace(/-ministaDuplicateName\d*/, "")
+
         const customCode = item?.source
           ? item?.source
           : item?.code

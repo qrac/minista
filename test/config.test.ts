@@ -79,6 +79,25 @@ describe("resolveEntry", () => {
     ])
   })
 
+  it("Test: resolveEntry arry (duplicate)", async () => {
+    const userConfig = ["./index.scss", "./index.ts"]
+    const result = await resolveEntry(userConfig)
+
+    //console.log(result)
+    expect(result).toEqual([
+      {
+        name: "index-ministaDuplicateName0",
+        input: "index.scss",
+        insertPages: ["**/*"],
+      },
+      {
+        name: "index-ministaDuplicateName1",
+        input: "index.ts",
+        insertPages: ["**/*"],
+      },
+    ])
+  })
+
   it("Test: resolveEntry custom arry", async () => {
     const userConfig = [
       {

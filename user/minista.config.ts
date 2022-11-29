@@ -15,7 +15,7 @@ export default defineConfig({
         insertPages: ["/entry/**/", "/entry/**/*"],
       },
       {
-        input: "src/assets/entry-page-only-style.css",
+        input: "src/assets/entry.css",
         insertPages: ["/entry/**/", "/entry/**/*"],
       },
     ],
