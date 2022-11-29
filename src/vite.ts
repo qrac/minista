@@ -153,21 +153,14 @@ export async function getViteConfig(
 
 export function resolveEntry(
   entry: EntryObject[]
-): { [key: string]: string } | string[] | string {
+): { [key: string]: string } | string {
   if (!entry.length) {
     return ""
   }
-  const hasName = entry.every((item) => item.name)
-
-  if (hasName) {
-    const entries = Object.fromEntries(
-      entry.map((item) => [item.name, item.input])
-    )
-    return entries
-  } else {
-    const entries = entry.map((item) => item.input)
-    return entries
-  }
+  const entries = Object.fromEntries(
+    entry.map((item) => [item.name, item.input])
+  )
+  return entries
 }
 
 export function resolveaAssetFileName(
