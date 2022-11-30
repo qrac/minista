@@ -143,22 +143,25 @@ describe("transformListStrDelivery", () => {
 
 describe("transformButtonsDataDelivery", () => {
   it("Default", async () => {
-    let config = await resolveConfig({})
-    config.main.delivery.archives = [
-      {
-        srcDir: "dist",
-        outDir: "",
-        outName: "archive",
-        format: "zip",
-        options: {
-          zlib: { level: 9 },
-        },
-        button: {
-          title: "Download",
-          //color: "blue",
-        },
+    const config = await resolveConfig({
+      delivery: {
+        archives: [
+          {
+            srcDir: "dist",
+            outDir: "",
+            outName: "archive",
+            format: "zip",
+            options: {
+              zlib: { level: 9 },
+            },
+            button: {
+              title: "Download",
+              //color: "blue",
+            },
+          },
+        ],
       },
-    ]
+    })
     const result = transformButtonsDataDelivery(config)
 
     expect(result).toEqual([
