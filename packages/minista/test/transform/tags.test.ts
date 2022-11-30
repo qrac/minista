@@ -185,4 +185,25 @@ describe("transformEntryTags", () => {
       endTags: ``,
     })
   })
+
+  it("Ssg entry array (duplicate)", async () => {
+    const config = await resolveConfig({
+      assets: { entry: ["src/assets/index.ts", "src/assets/index.css"] },
+    })
+    const result = transformEntryTags({
+      mode: "ssg",
+      pathname: "/",
+      config,
+    })
+
+    //console.log(result)
+    expect(result).toEqual({
+      headTags: `<link rel="stylesheet" href="/assets/index.css">
+<link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
+<script type="module" src="/assets/index.js"></script>
+<script type="module" data-minista-build-hydrate-src="/assets/hydrate.js"></script>`,
+      startTags: ``,
+      endTags: ``,
+    })
+  })
 })

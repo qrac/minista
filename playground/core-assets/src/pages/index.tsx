@@ -1,4 +1,4 @@
-import "../assets/style-bundle.css"
+import "../assets/heading.css"
 import imageUrl from "../assets/image.png"
 
 export default function () {
@@ -6,7 +6,7 @@ export default function () {
     <>
       <h1>heading 1</h1>
       <h2>heading 2</h2>
-      <p id="script-entry"></p>
+      <p id="js-text"></p>
       <div>
         <img src={imageUrl} width="220" height="108" alt="" />
       </div>

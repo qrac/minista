@@ -129,5 +129,22 @@ export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
   }
   await pushEntries(entry)
 
-  return entries
+  const entryNames = entries.map((item) => item.name)
+  const duplicateNames = entryNames.filter(
+    (value, index, self) =>
+      self.indexOf(value) === index && self.lastIndexOf(value) !== index
+  )
+  const uniqueNameEntries = entries.map((item, index) => {
+    const name = duplicateNames.includes(item.name)
+      ? `${item.name}-ministaDuplicateName${index}`
+      : item.name
+    return {
+      name,
+      input: item.input,
+      insertPages: item.insertPages,
+      position: item.position,
+      attributes: item.attributes,
+    }
+  })
+  return uniqueNameEntries
 }

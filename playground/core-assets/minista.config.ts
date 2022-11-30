@@ -4,11 +4,11 @@ export default defineConfig({
   assets: {
     entry: [
       {
-        input: "src/assets/style-entry.css",
+        input: "src/assets/entry.css",
         insertPages: "**/*",
       },
       {
-        input: "src/assets/script-entry.ts",
+        input: "src/assets/entry.ts",
         insertPages: {
           include: ["**/*"],
           exclude: ["/about"],

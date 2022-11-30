@@ -104,6 +104,29 @@ describe("resolveEntry", () => {
     ])
   })
 
+  it("Array (duplicate)", async () => {
+    const configEntry: Entry = ["src/assets/index.ts", "src/assets/index.css"]
+    const result = await resolveEntry(configEntry)
+
+    //console.log(result)
+    expect(result).toEqual([
+      {
+        name: "index-ministaDuplicateName0",
+        input: "src/assets/index.ts",
+        insertPages: { include: ["**/*"], exclude: [] },
+        position: "head",
+        attributes: "",
+      },
+      {
+        name: "index-ministaDuplicateName1",
+        input: "src/assets/index.css",
+        insertPages: { include: ["**/*"], exclude: [] },
+        position: "head",
+        attributes: "",
+      },
+    ])
+  })
+
   it("Object", async () => {
     const configEntry: Entry = { script: "src/assets/index.ts" }
     const result = await resolveEntry(configEntry)

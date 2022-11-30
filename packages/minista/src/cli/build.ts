@@ -171,6 +171,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
         const isHydrateJs = item.fileName.match(/__minista_plugin_hydrate\.js$/)
 
         let fileName = item.fileName
+        fileName = fileName.replace(/-ministaDuplicateName\d*/, "")
         isBundleCss && (fileName = bundleCssName)
         isBugBundleCss && (fileName = bundleCssName)
         isHydrateJs && (fileName = hydrateJsName)

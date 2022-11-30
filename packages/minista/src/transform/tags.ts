@@ -27,6 +27,7 @@ export function transformLinkTag({
   }
   assetPath = path.join(config.main.assets.outDir, entry.name + ".css")
   assetPath = getBasedAssetPath({ base: config.main.base, pathname, assetPath })
+  assetPath = assetPath.replace(/-ministaDuplicateName\d*/, "")
 
   return `<link rel="stylesheet"${attributes} href="${assetPath}">`
 }
@@ -54,6 +55,7 @@ export function transformScriptTag({
   }
   assetPath = path.join(config.main.assets.outDir, entry.name + ".js")
   assetPath = getBasedAssetPath({ base: config.main.base, pathname, assetPath })
+  assetPath = assetPath.replace(/-ministaDuplicateName\d*/, "")
 
   return `<script${attributes} src="${assetPath}"></script>`
 }
