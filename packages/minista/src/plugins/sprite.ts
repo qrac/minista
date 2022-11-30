@@ -1,10 +1,14 @@
 import type { Plugin } from "vite"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 import fg from "fast-glob"
 
 import type { ResolvedConfig } from "../config/index.js"
 import { transformSprite } from "../transform/sprite.js"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export function pluginSprite(
   config: ResolvedConfig,
@@ -36,6 +40,7 @@ export function pluginSprite(
 
   return {
     name: "minista-vite-plugin:sprite",
+    enforce: "pre",
     config(_, viteConfig) {
       command = viteConfig.command
       activeSprite = config.main.assets.icons.useSprite && fs.existsSync(srcDir)
@@ -77,7 +82,7 @@ export function pluginSprite(
       if (
         command === "build" &&
         activeSprite &&
-        id.match(/minista(\/|\\)dist(\/|\\)shared(\/|\\)icon\.js$/)
+        id.match(path.join(__dirname, "../shared/icon.js"))
       ) {
         const addImport = `import tempSpriteUrl from "/@minista-temp/__minista_plugin_sprite.svg";\n`
         const replacedCode = code.replace(

@@ -46,6 +46,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     config.vite,
     defineViteConfig({
       build: { write: false, ssr: true, minify: false },
+      ssr: { noExternal: "minista" },
       plugins: [
         pluginReact(),
         pluginMdx(config.mdx) as PluginOption,
