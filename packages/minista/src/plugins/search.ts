@@ -1,9 +1,13 @@
 import type { Plugin } from "vite"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 
 import type { ResolvedConfig } from "../config/index.js"
 import { resolveBase } from "../utility/base.js"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export function pluginSearch(config: ResolvedConfig): Plugin {
   let command: "build" | "serve"
@@ -24,7 +28,7 @@ export function pluginSearch(config: ResolvedConfig): Plugin {
     async transform(code, id) {
       if (
         command === "serve" &&
-        id.match(/minista(\/|\\)dist(\/|\\)shared(\/|\\)search\.js$/)
+        id.match(path.join(__dirname, "../shared/search.js"))
       ) {
         const importCode = `import { searchObj as data } from "virtual:minista-plugin-serve"`
         const replacedCode = code
@@ -44,7 +48,7 @@ export function pluginSearch(config: ResolvedConfig): Plugin {
 
       if (
         command === "build" &&
-        id.match(/minista(\/|\\)dist(\/|\\)shared(\/|\\)search\.js$/)
+        id.match(path.join(__dirname, "../shared/search.js"))
       ) {
         if (!activeSearch) {
           await fs.outputFile(output, "")
