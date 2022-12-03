@@ -34,9 +34,15 @@ import { transformEncode } from "../transform/encode.js"
 export type BuildResult = {
   output: BuildItem[]
 }
+
 type BuildItem = RollupOutput["output"][0] & {
   source?: string
   code?: string
+}
+
+type GenerateItem = {
+  fileName: string
+  data: string
 }
 
 export async function build(inlineConfig: InlineConfig = {}) {
@@ -52,10 +58,17 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const hydrateJsName = path.join(assets.outDir, assets.partial.outName + ".js")
 
   let ssgResult: BuildResult
-  let ssgPages: SsgPage[] = []
-
   let assetsResult: BuildResult
   let hydrateResult: BuildResult
+
+  let ssgItems: BuildItem[]
+  let assetItems: BuildItem[]
+  let hydrateItems: BuildItem[]
+
+  let ssgPages: SsgPage[] = []
+
+  let htmlItems: GenerateItem[]
+  let generateItems: GenerateItem[]
 
   let hasPublic = false
   let hasBundleCss = false
@@ -104,11 +117,10 @@ export async function build(inlineConfig: InlineConfig = {}) {
   }
 
   ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult
-
-  const ssgItems = ssgResult.output.filter((item) =>
+  ssgItems = ssgResult.output.filter((item) =>
     item.fileName.match(/__minista_plugin_ssg\.js$/)
   )
-  const htmlItems = ssgItems[0] ? await getHtmlItems(ssgItems[0]) : []
+  htmlItems = ssgItems[0] ? await getHtmlItems(ssgItems[0]) : []
 
   const assetsConfig = mergeViteConfig(
     config.vite,
@@ -150,7 +162,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       item.fileName === bundleCssName || item.fileName === bugBundleCssName
   )
   hasHydrate = fs.existsSync(path.join(tempDir, "phs"))
-  hasSearch = fs.existsSync(path.join(config.sub.tempDir, "search.txt"))
+  hasSearch = fs.existsSync(path.join(tempDir, "search.txt"))
 
   if (hasHydrate) {
     hydrateResult = (await viteBuild(hydrateConfig)) as unknown as BuildResult
@@ -162,10 +174,10 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   hasPublic && (await fs.copy(resolvedPublic, resolvedOut))
 
-  const assetItems = assetsResult.output.filter(
+  assetItems = assetsResult.output.filter(
     (item) => !item.fileName.match(/__minista_plugin_bundle\.js$/)
   )
-  const hydrateItems = hydrateResult.output.filter((item) =>
+  hydrateItems = hydrateResult.output.filter((item) =>
     item.fileName.match(/__minista_plugin_hydrate\.js$/)
   )
 
@@ -197,18 +209,18 @@ export async function build(inlineConfig: InlineConfig = {}) {
       .filter((item) => item.data)
   }
 
-  const optimizedAssetItems = optimizeItems([...assetItems, ...hydrateItems])
-  const mergedItems = [...htmlItems, ...optimizedAssetItems]
+  generateItems = optimizeItems([...assetItems, ...hydrateItems])
+  generateItems = [...htmlItems, ...generateItems]
 
   if (hasSearch && ssgPages.length) {
     const fileName = path.join(search.outDir, search.outName + ".json")
     const searchObj = await transformSearch({ ssgPages, config })
     const data = JSON.stringify(searchObj)
 
-    mergedItems.push({ fileName, data })
+    generateItems.push({ fileName, data })
   }
 
-  const distItemNames = mergedItems.map((item) => item.fileName)
+  const distItemNames = generateItems.map((item) => item.fileName)
   const archiveItemNames = delivery.archives.map((item) =>
     path.join(item.outDir, item.outName + "." + item.format)
   )
@@ -217,7 +229,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const maxNameLength = nameLengths.reduce((a, b) => (a > b ? a : b), 0)
 
   await Promise.all(
-    mergedItems.map(async (item) => {
+    generateItems.map(async (item) => {
       const isHtml = item.fileName.match(/.*\.html$/)
       const isCss = item.fileName.match(/.*\.css$/)
       const isJs = item.fileName.match(/.*\.js$/)
