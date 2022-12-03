@@ -41,6 +41,26 @@ type BuildItem = RollupOutput["output"][0] & {
 
 export async function build(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
+  const { assets, search, delivery } = config.main
+  const { resolvedRoot, tempDir } = config.sub
+
+  const resolvedOut = path.join(resolvedRoot, config.main.out)
+  const resolvedPublic = path.join(resolvedRoot, config.main.public)
+
+  const bundleCssName = path.join(assets.outDir, assets.bundle.outName + ".css")
+  const bugBundleCssName = path.join(assets.outDir, "bundle.css")
+  const hydrateJsName = path.join(assets.outDir, assets.partial.outName + ".js")
+
+  let ssgResult: BuildResult
+  let ssgPages: SsgPage[] = []
+
+  let assetsResult: BuildResult
+  let hydrateResult: BuildResult
+
+  let hasPublic = false
+  let hasBundleCss = false
+  let hasHydrate = false
+  let hasSearch = false
 
   const ssgConfig = mergeViteConfig(
     config.vite,
@@ -59,6 +79,37 @@ export async function build(inlineConfig: InlineConfig = {}) {
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
+
+  async function getHtmlItems(ssgItem: BuildItem) {
+    const ssgPath = path.join(tempDir, "ssg.mjs")
+    const ssgData = ssgItem.source || ssgItem.code || ""
+
+    if (!ssgData) {
+      return []
+    }
+    await fs.outputFile(ssgPath, ssgData)
+
+    const { runSsg }: { runSsg: RunSsg } = await import(ssgPath)
+    ssgPages = await runSsg(config)
+
+    if (ssgPages.length === 0) {
+      return []
+    }
+    return ssgPages.map((item) => {
+      return {
+        fileName: item.fileName,
+        data: item.html,
+      }
+    })
+  }
+
+  ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult
+
+  const ssgItems = ssgResult.output.filter((item) =>
+    item.fileName.match(/__minista_plugin_ssg\.js$/)
+  )
+  const htmlItems = ssgItems[0] ? await getHtmlItems(ssgItems[0]) : []
+
   const assetsConfig = mergeViteConfig(
     config.vite,
     defineViteConfig({
@@ -91,16 +142,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
     })
   )
 
-  let ssgResult: BuildResult
-  let assetsResult: BuildResult
-  let hydrateResult: BuildResult
+  assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult
 
-  await Promise.all([
-    (ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult),
-    (assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult),
-  ])
-
-  const hasHydrate = fs.existsSync(path.join(config.sub.tempDir, "phs"))
+  hasPublic = fs.existsSync(resolvedPublic)
+  hasBundleCss = assetsResult.output.some(
+    (item) =>
+      item.fileName === bundleCssName || item.fileName === bugBundleCssName
+  )
+  hasHydrate = fs.existsSync(path.join(tempDir, "phs"))
+  hasSearch = fs.existsSync(path.join(config.sub.tempDir, "search.txt"))
 
   if (hasHydrate) {
     hydrateResult = (await viteBuild(hydrateConfig)) as unknown as BuildResult
@@ -108,61 +158,16 @@ export async function build(inlineConfig: InlineConfig = {}) {
     hydrateResult = { output: [] }
   }
 
-  const resolvedOut = path.join(config.sub.resolvedRoot, config.main.out)
-  const resolvedPublic = path.join(config.sub.resolvedRoot, config.main.public)
-  const hasPublic = fs.existsSync(resolvedPublic)
-
   await fs.emptyDir(resolvedOut)
+
   hasPublic && (await fs.copy(resolvedPublic, resolvedOut))
 
-  const bundleCssName = path.join(
-    config.main.assets.outDir,
-    config.main.assets.bundle.outName + ".css"
-  )
-  const bugBundleCssName = path.join(config.main.assets.outDir, "bundle.css")
-  const hasBundleCss = assetsResult.output.some(
-    (item) =>
-      item.fileName === bundleCssName || item.fileName === bugBundleCssName
-  )
-  const hydrateJsName = path.join(
-    config.main.assets.outDir,
-    config.main.assets.partial.outName + ".js"
-  )
-
-  const ssgItems = ssgResult.output.filter((item) =>
-    item.fileName.match(/__minista_plugin_ssg\.js$/)
-  )
   const assetItems = assetsResult.output.filter(
     (item) => !item.fileName.match(/__minista_plugin_bundle\.js$/)
   )
   const hydrateItems = hydrateResult.output.filter((item) =>
     item.fileName.match(/__minista_plugin_hydrate\.js$/)
   )
-
-  let ssgPages: SsgPage[] = []
-
-  async function getHtmlItems(ssgItem: BuildItem) {
-    const ssgPath = path.join(config.sub.tempDir, "ssg.mjs")
-    const ssgData = ssgItem.source || ssgItem.code || ""
-
-    if (!ssgData) {
-      return []
-    }
-    await fs.outputFile(ssgPath, ssgData)
-
-    const { runSsg }: { runSsg: RunSsg } = await import(ssgPath)
-    ssgPages = await runSsg(config)
-
-    if (ssgPages.length === 0) {
-      return []
-    }
-    return ssgPages.map((item) => {
-      return {
-        fileName: item.fileName,
-        data: item.html,
-      }
-    })
-  }
 
   function optimizeItems(items: BuildItem[]) {
     return items
@@ -192,17 +197,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
       .filter((item) => item.data)
   }
 
-  const htmlItems = ssgItems[0] ? await getHtmlItems(ssgItems[0]) : []
   const optimizedAssetItems = optimizeItems([...assetItems, ...hydrateItems])
   const mergedItems = [...htmlItems, ...optimizedAssetItems]
 
-  const hasSearch = fs.existsSync(path.join(config.sub.tempDir, "search.txt"))
-
   if (hasSearch && ssgPages.length) {
-    const fileName = path.join(
-      config.main.search.outDir,
-      config.main.search.outName + ".json"
-    )
+    const fileName = path.join(search.outDir, search.outName + ".json")
     const searchObj = await transformSearch({ ssgPages, config })
     const data = JSON.stringify(searchObj)
 
@@ -210,7 +209,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   }
 
   const distItemNames = mergedItems.map((item) => item.fileName)
-  const archiveItemNames = config.main.delivery.archives.map((item) =>
+  const archiveItemNames = delivery.archives.map((item) =>
     path.join(item.outDir, item.outName + "." + item.format)
   )
   const mergedItemNames = [...distItemNames, ...archiveItemNames]
@@ -223,14 +222,12 @@ export async function build(inlineConfig: InlineConfig = {}) {
       const isCss = item.fileName.match(/.*\.css$/)
       const isJs = item.fileName.match(/.*\.js$/)
 
-      let hasHydrateJs = false
       let fileName = item.fileName
       let data: string | Buffer = item.data
+      let hasHydrateJs = false
 
       if (isHtml) {
-        hasHydrateJs = data.includes(
-          `data-${config.main.assets.partial.rootAttrSuffix}`
-        )
+        hasHydrateJs = data.includes(`data-${assets.partial.rootAttrSuffix}`)
 
         if (hasHydrateJs) {
           data = data.replace(/data-minista-build-hydrate-src=/g, "src=")
@@ -281,11 +278,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       const spaceCount = maxNameLength - nameLength + 3
       const space = " ".repeat(spaceCount)
 
-      const routePath = path.join(
-        config.sub.resolvedRoot,
-        config.main.out,
-        fileName
-      )
+      const routePath = path.join(resolvedRoot, config.main.out, fileName)
       const relativePath = path.relative(process.cwd(), routePath)
       const dataSize = (data.length / 1024).toFixed(2)
 
@@ -304,21 +297,21 @@ export async function build(inlineConfig: InlineConfig = {}) {
     })
   )
 
-  if (config.main.delivery.archives.length) {
-    const cwd = path.relative(process.cwd(), config.sub.resolvedRoot)
-    const tempDir = path.join(config.sub.tempDir, "archives")
+  if (delivery.archives.length) {
+    const cwd = path.relative(process.cwd(), resolvedRoot)
+    const archivesDir = path.join(tempDir, "archives")
 
-    await fs.emptyDir(tempDir)
+    await fs.emptyDir(archivesDir)
 
     await Promise.all(
-      config.main.delivery.archives.map(async (item) => {
+      delivery.archives.map(async (item) => {
         const srcDir = item.srcDir
         const outFile = item.outName + "." + item.format
         const fileName = path.join(item.outDir, outFile)
-        const tempFile = path.join(tempDir, fileName)
+        const archiveFile = path.join(archivesDir, fileName)
 
-        await fs.ensureFile(tempFile)
-        const output = fs.createWriteStream(tempFile)
+        await fs.ensureFile(archiveFile)
+        const output = fs.createWriteStream(archiveFile)
         const options = item.options ? item.options : {}
         const ignore = item.ignore ? item.ignore : ""
         const archive = archiver(item.format, options)
@@ -328,16 +321,12 @@ export async function build(inlineConfig: InlineConfig = {}) {
           const spaceCount = maxNameLength - nameLength + 3
           const space = " ".repeat(spaceCount)
 
-          const routePath = path.join(
-            config.sub.resolvedRoot,
-            config.main.out,
-            fileName
-          )
+          const routePath = path.join(resolvedRoot, config.main.out, fileName)
           const relativePath = path.relative(process.cwd(), routePath)
           const dataSize = (archive.pointer() / 1024).toFixed(2)
 
           return await fs
-            .copy(tempFile, routePath)
+            .copy(archiveFile, routePath)
             .then(() => {
               console.log(
                 `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
