@@ -250,7 +250,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
           )
         }
 
-        if (data.includes(`data-minista-transform-target="delivery-`)) {
+        if (data.includes(`data-minista-transform-target="delivery-list"`)) {
           data = transformDelivery({ html: data, ssgPages, config })
         }
 
