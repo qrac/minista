@@ -1,6 +1,6 @@
 import path from "node:path"
 
-export type Entry =
+export type EntryPatterns =
   | string
   | string[]
   | { [key: string]: string }
@@ -61,10 +61,12 @@ export function resolveEntryExclude(
   return []
 }
 
-export async function resolveEntry(entry: Entry): Promise<ResolvedEntry> {
+export async function resolveEntry(
+  entry: EntryPatterns
+): Promise<ResolvedEntry> {
   const entries: ResolvedEntryObject[] = []
 
-  async function pushEntries(input: Entry) {
+  async function pushEntries(input: EntryPatterns) {
     if (!input) {
       return
     }

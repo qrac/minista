@@ -15,8 +15,8 @@ import type {
 import { deepmergeCustom } from "deepmerge-ts"
 
 import type { ResolvedUserConfig } from "./user.js"
-import type { Entry } from "./entry.js"
-import type { Alias } from "./alias.js"
+import type { EntryPatterns } from "./entry.js"
+import type { AliasPatterns } from "./alias.js"
 
 export type MainConfig = {
   root: string
@@ -24,7 +24,7 @@ export type MainConfig = {
   public: string
   out: string
   assets: {
-    entry: Entry
+    entry: EntryPatterns
     outDir: string
     outName: string
     images: {
@@ -70,7 +70,7 @@ export type MainConfig = {
     }
   }
   resolve: {
-    alias: Alias
+    alias: AliasPatterns
   }
   css: ViteCSSOptions
   markdown: {

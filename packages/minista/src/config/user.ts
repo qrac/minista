@@ -18,8 +18,8 @@ import { normalizePath } from "vite"
 import { build as esBuild } from "esbuild"
 import { deepmergeCustom } from "deepmerge-ts"
 
-import type { Entry } from "./entry.js"
-import type { Alias } from "./alias.js"
+import type { EntryPatterns } from "./entry.js"
+import type { AliasPatterns } from "./alias.js"
 import type { InlineConfig } from "./index.js"
 import { getNodeModulesPath } from "../utility/path.js"
 
@@ -29,7 +29,7 @@ export type UserConfig = {
   public?: string
   out?: string
   assets?: {
-    entry?: Entry
+    entry?: EntryPatterns
     outDir?: string
     outName?: string
     images?: {
@@ -75,7 +75,7 @@ export type UserConfig = {
     }
   }
   resolve?: {
-    alias?: Alias
+    alias?: AliasPatterns
   }
   css?: ViteCSSOptions
   markdown?: {

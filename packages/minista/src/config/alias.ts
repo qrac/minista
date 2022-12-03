@@ -1,6 +1,6 @@
 import type { AliasOptions as ViteAliasOptions } from "vite"
 
-export type Alias = AliasObject | AliasArray
+export type AliasPatterns = AliasObject | AliasArray
 
 type AliasObject = { [key: string]: string }
 type AliasArray = { find: string; replacement: string }[]
@@ -8,12 +8,12 @@ type AliasArray = { find: string; replacement: string }[]
 export type ResolvedAlias = AliasArray
 
 export async function resolveAlias(
-  configAlias: Alias,
+  configAlias: AliasPatterns,
   viteConfigAlias: ViteAliasOptions
 ): Promise<ResolvedAlias> {
   const alias: AliasArray = []
 
-  async function pushAlias(input: Alias | ViteAliasOptions) {
+  async function pushAlias(input: AliasPatterns | ViteAliasOptions) {
     if (!input) {
       return
     } else if (Array.isArray(input) && input.length > 0) {
