@@ -17,14 +17,14 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export type ResolvedViteConfig = ViteConfig
-export type ResolvedViteEntry = { [key: string]: string } | string
+export type ResolvedViteEntry = { [key: string]: string }
 
 export function resolveViteEntry(
   root: string,
   entry: ResolvedEntry
 ): ResolvedViteEntry {
   if (!entry.length) {
-    return ""
+    return {}
   }
   const entries = Object.fromEntries(
     entry.map((item) => [item.name, path.join(root, item.input)])
@@ -117,6 +117,10 @@ export async function resolveViteConfig(
         },
         {
           find: "/@minista-project-root",
+          replacement: path.resolve(subConfig.resolvedRoot),
+        },
+        {
+          find: "/@minista-entry",
           replacement: path.resolve(subConfig.resolvedRoot),
         },
         {

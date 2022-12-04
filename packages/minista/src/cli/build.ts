@@ -11,10 +11,12 @@ import {
 } from "vite"
 import { default as pluginReact } from "@vitejs/plugin-react"
 import { default as pluginMdx } from "@mdx-js/rollup"
+import { parse as parseHtml } from "node-html-parser"
 import beautify from "js-beautify"
 import archiver from "archiver"
 
 import type { InlineConfig } from "../config/index.js"
+import type { ResolvedViteEntry } from "../config/vite.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginPreact } from "../plugins/preact.js"
@@ -30,6 +32,7 @@ import { pluginSearch } from "../plugins/search.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
+import { getBasedAssetPath } from "../utility/path.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -66,6 +69,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let hydrateItems: BuildItem[]
 
   let ssgPages: SsgPage[] = []
+  let ssgLinks: ResolvedViteEntry = {}
+  let ssgScripts: ResolvedViteEntry = {}
+  let ssgEntries: ResolvedViteEntry = {}
 
   let htmlItems: GenerateItem[]
   let generateItems: GenerateItem[]
@@ -108,10 +114,81 @@ export async function build(inlineConfig: InlineConfig = {}) {
     if (ssgPages.length === 0) {
       return []
     }
-    return ssgPages.map((item) => {
+    return ssgPages.map((page) => {
+      const pathname = page.path
+      const parsedHtml = parseHtml(page.html)
+
+      const links = parsedHtml
+        .querySelectorAll("link")
+        .filter((item) =>
+          item.getAttribute("href")?.startsWith("/@minista-entry/")
+        ) as unknown as HTMLElement[]
+
+      const scripts = parsedHtml
+        .querySelectorAll("script")
+        .filter((item) =>
+          item.getAttribute("src")?.startsWith("/@minista-entry/")
+        ) as unknown as HTMLElement[]
+
+      if (links.length === 0 && scripts.length === 0) {
+        return {
+          fileName: page.fileName,
+          data: page.html,
+        }
+      }
+
+      function registerSsgEntries(
+        items: HTMLElement[],
+        srcAttr: string,
+        outExt: string,
+        selfEntries: { [key: string]: string },
+        otherEntries: { [key: string]: string }
+      ) {
+        items.map((item) => {
+          let src = ""
+          src = item.getAttribute(srcAttr) || ""
+          src = src.replace("/@minista-entry/", "")
+          src = path.join(resolvedRoot, src)
+
+          let name = ""
+          name = item.getAttribute("data-minista-entry-name") || ""
+          name = name ? name : path.parse(src).name
+
+          let assetPath = ""
+          assetPath = path.join(assets.outDir, name + "." + outExt)
+          assetPath = getBasedAssetPath({
+            base: config.main.base,
+            pathname,
+            assetPath,
+          })
+
+          item.setAttribute(srcAttr, assetPath)
+          item.removeAttribute("data-minista-entry-name")
+
+          const duplicateName = `${name}-ministaDuplicateName0`
+
+          if (Object.hasOwn(selfEntries, name)) {
+            return
+          }
+          if (Object.hasOwn(selfEntries, duplicateName)) {
+            return
+          }
+          if (Object.hasOwn(otherEntries, name)) {
+            selfEntries[duplicateName] = src
+            return
+          }
+          selfEntries[name] = src
+          return
+        })
+      }
+      registerSsgEntries(links, "href", "css", ssgLinks, ssgScripts)
+      registerSsgEntries(scripts, "src", "js", ssgScripts, ssgLinks)
+
+      const htmlStr = parsedHtml.toString()
+
       return {
-        fileName: item.fileName,
-        data: item.html,
+        fileName: page.fileName,
+        data: htmlStr,
       }
     })
   }
@@ -121,6 +198,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     item.fileName.match(/__minista_plugin_ssg\.js$/)
   )
   htmlItems = ssgItems[0] ? await getHtmlItems(ssgItems[0]) : []
+  ssgEntries = { ...ssgLinks, ...ssgScripts }
 
   const assetsConfig = mergeViteConfig(
     config.vite,
@@ -131,7 +209,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
         pluginMdx(config.mdx) as PluginOption,
         pluginSvgr(config),
         pluginSprite(config),
-        pluginEntry(config),
+        pluginEntry(config, ssgEntries),
         pluginBundle(),
       ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
