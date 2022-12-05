@@ -14,7 +14,7 @@ describe("resolveViteEntry", () => {
     const result = resolveViteEntry("", [])
 
     //console.log(result)
-    expect(result).toEqual("")
+    expect(result).toEqual({})
   })
 
   it("Set entry", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { Entry } from "../../src/config/entry"
+import type { EntryPatterns } from "../../src/config/entry"
 import {
   resolveEntryInclude,
   resolveEntryExclude,
@@ -58,7 +58,7 @@ describe("resolveEntryExclude", () => {
 
 describe("resolveEntry", () => {
   it("No props", async () => {
-    const configEntry: Entry = ""
+    const configEntry: EntryPatterns = ""
     const result = await resolveEntry(configEntry)
 
     //console.log(result)
@@ -66,7 +66,7 @@ describe("resolveEntry", () => {
   })
 
   it("String", async () => {
-    const configEntry: Entry = "src/assets/script.ts"
+    const configEntry: EntryPatterns = "src/assets/script.ts"
     const result = await resolveEntry(configEntry)
 
     //console.log(result)
@@ -82,7 +82,10 @@ describe("resolveEntry", () => {
   })
 
   it("Array", async () => {
-    const configEntry: Entry = ["src/assets/script.ts", "src/assets/style.css"]
+    const configEntry: EntryPatterns = [
+      "src/assets/script.ts",
+      "src/assets/style.css",
+    ]
     const result = await resolveEntry(configEntry)
 
     //console.log(result)
@@ -105,7 +108,10 @@ describe("resolveEntry", () => {
   })
 
   it("Array (duplicate)", async () => {
-    const configEntry: Entry = ["src/assets/index.ts", "src/assets/index.css"]
+    const configEntry: EntryPatterns = [
+      "src/assets/index.ts",
+      "src/assets/index.css",
+    ]
     const result = await resolveEntry(configEntry)
 
     //console.log(result)
@@ -128,7 +134,7 @@ describe("resolveEntry", () => {
   })
 
   it("Object", async () => {
-    const configEntry: Entry = { script: "src/assets/index.ts" }
+    const configEntry: EntryPatterns = { script: "src/assets/index.ts" }
     const result = await resolveEntry(configEntry)
 
     //console.log(result)
@@ -144,7 +150,7 @@ describe("resolveEntry", () => {
   })
 
   it("Array object", async () => {
-    const configEntry: Entry = [
+    const configEntry: EntryPatterns = [
       {
         name: "test1",
         input: "src/assets/test1.ts",
