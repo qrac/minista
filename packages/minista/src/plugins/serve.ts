@@ -85,26 +85,31 @@ export function pluginServe(config: ResolvedConfig): Plugin {
                 endTags,
               })
 
-              if (html.includes(`data-minista-transform-target="comment"`)) {
+              const targetAttr = "data-minista-transform-target"
+              const commentReg = new RegExp(
+                `<div[^<>]*?${targetAttr}="comment".*?>`
+              )
+              const markdownReg = new RegExp(
+                `<div[^<>]*?${targetAttr}="markdown".*?>`
+              )
+              const deliListReg = new RegExp(
+                `<div[^<>]*?${targetAttr}="delivery-list".*?>`
+              )
+
+              if (html.match(commentReg)) {
                 html = transformComment(html)
               }
-              if (html.includes(`data-minista-transform-target="markdown"`)) {
+              if (html.match(markdownReg)) {
                 html = await transformMarkdown(html, config.mdx)
               }
-
-              if (
-                useVirtualModule ||
-                html.includes(`data-minista-transform-target="delivery-list"`)
-              ) {
+              if (useVirtualModule || html.match(deliListReg)) {
                 ssgPages = await transformPages({
                   resolvedGlobal,
                   resolvedPages,
                   config,
                 })
               }
-              if (
-                html.includes(`data-minista-transform-target="delivery-list"`)
-              ) {
+              if (html.match(deliListReg)) {
                 html = transformDelivery({ html, ssgPages, config })
               }
 
