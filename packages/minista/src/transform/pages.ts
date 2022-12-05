@@ -59,10 +59,14 @@ export async function transformPages({
     pages.map(async (page) => {
       let html = page.html
 
-      if (html.includes(`data-minista-transform-target="comment"`)) {
+      const targetAttr = "data-minista-transform-target"
+      const commentReg = new RegExp(`<div[^<>]*?${targetAttr}="comment".*?>`)
+      const markdownReg = new RegExp(`<div[^<>]*?${targetAttr}="markdown".*?>`)
+
+      if (html.match(commentReg)) {
         html = transformComment(html)
       }
-      if (html.includes(`data-minista-transform-target="markdown"`)) {
+      if (html.match(markdownReg)) {
         html = await transformMarkdown(html, config.mdx)
       }
       return {

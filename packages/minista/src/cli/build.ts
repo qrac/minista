@@ -116,18 +116,19 @@ export async function build(inlineConfig: InlineConfig = {}) {
     }
     return ssgPages.map((page) => {
       const pathname = page.path
-      const parsedHtml = parseHtml(page.html)
+
+      let parsedHtml = parseHtml(page.html)
 
       const links = parsedHtml
         .querySelectorAll("link")
-        .filter((item) =>
-          item.getAttribute("href")?.startsWith("/@minista-entry/")
+        .filter((el) =>
+          el.getAttribute("href")?.startsWith("/@minista-entry/")
         ) as unknown as HTMLElement[]
 
       const scripts = parsedHtml
         .querySelectorAll("script")
-        .filter((item) =>
-          item.getAttribute("src")?.startsWith("/@minista-entry/")
+        .filter((el) =>
+          el.getAttribute("src")?.startsWith("/@minista-entry/")
         ) as unknown as HTMLElement[]
 
       if (links.length === 0 && scripts.length === 0) {
@@ -314,30 +315,45 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
       let fileName = item.fileName
       let data: string | Buffer = item.data
-      let hasHydrateJs = false
 
       if (isHtml) {
-        hasHydrateJs = data.includes(`data-${assets.partial.rootAttrSuffix}`)
+        let parsedHtml = parseHtml(data)
 
-        if (hasHydrateJs) {
-          data = data.replace(/data-minista-build-hydrate-src=/g, "src=")
-        } else {
-          data = data.replace(
-            /<script.*data-minista-build-hydrate-src=.*?><\/script>/g,
-            "\n\n"
-          )
-        }
+        const bundleAttr = "data-minista-build-bundle-href"
+        const bundleEl = parsedHtml
+          .querySelectorAll("link")
+          .find((el) => el.hasAttribute(bundleAttr))
+        const bundlePath = bundleEl?.getAttribute(bundleAttr) || ""
+
+        const hydrateAttr = "data-minista-build-hydrate-src"
+        const hydrateEl = parsedHtml
+          .querySelectorAll("script")
+          .find((el) => el.hasAttribute(hydrateAttr))
+        const hydratePath = hydrateEl?.getAttribute(hydrateAttr) || ""
+
+        const partialAttr = `[data-${assets.partial.rootAttrSuffix}]`
+        const partialEl = parsedHtml.querySelector(partialAttr)
+
+        const targetAttr = "data-minista-transform-target"
+        const deliListAttr = `[${targetAttr}="delivery-list"]`
 
         if (hasBundleCss) {
-          data = data.replace(/data-minista-build-bundle-href=/g, "href=")
+          bundleEl?.removeAttribute(bundleAttr)
+          bundleEl?.setAttribute("href", bundlePath)
         } else {
-          data = data.replace(
-            /<link.*data-minista-build-bundle-href=.*?>/g,
-            "\n\n"
-          )
+          bundleEl?.remove()
         }
 
-        if (data.includes(`data-minista-transform-target="delivery-list"`)) {
+        if (partialEl) {
+          hydrateEl?.removeAttribute(hydrateAttr)
+          hydrateEl?.setAttribute("href", hydratePath)
+        } else {
+          hydrateEl?.remove()
+        }
+
+        data = parsedHtml.toString()
+
+        if (parsedHtml.querySelector(deliListAttr)) {
           data = transformDelivery({ html: data, ssgPages, config })
         }
 
