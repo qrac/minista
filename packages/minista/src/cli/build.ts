@@ -1,6 +1,7 @@
 import type { RollupOutput } from "rollup"
 import type { PluginOption } from "vite"
 import path from "node:path"
+import { parse as parseUrl } from "node:url"
 import fs from "fs-extra"
 import pc from "picocolors"
 import {
@@ -119,17 +120,25 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
       let parsedHtml = parseHtml(page.html)
 
-      const links = parsedHtml
-        .querySelectorAll("link")
-        .filter((el) =>
-          el.getAttribute("href")?.startsWith("/@minista-entry/")
-        ) as unknown as HTMLElement[]
+      function hasEntryFile(src: string) {
+        const isAbsolute = parseUrl(src).protocol
 
-      const scripts = parsedHtml
-        .querySelectorAll("script")
-        .filter((el) =>
-          el.getAttribute("src")?.startsWith("/@minista-entry/")
-        ) as unknown as HTMLElement[]
+        if (!src || isAbsolute) {
+          return false
+        }
+        const filePath = path.join(resolvedRoot, src)
+        return fs.existsSync(filePath)
+      }
+
+      const links = parsedHtml.querySelectorAll("link").filter((el) => {
+        const url = el.getAttribute("href") || ""
+        return hasEntryFile(url)
+      }) as unknown as HTMLElement[]
+
+      const scripts = parsedHtml.querySelectorAll("script").filter((el) => {
+        const url = el.getAttribute("src") || ""
+        return hasEntryFile(url)
+      }) as unknown as HTMLElement[]
 
       if (links.length === 0 && scripts.length === 0) {
         return {
@@ -148,7 +157,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
         items.map((item) => {
           let src = ""
           src = item.getAttribute(srcAttr) || ""
-          src = src.replace("/@minista-entry/", "")
           src = path.join(resolvedRoot, src)
 
           let name = ""

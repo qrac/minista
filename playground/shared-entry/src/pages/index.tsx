@@ -5,13 +5,13 @@ export default function () {
     <>
       <Head>
         <title>Dynamic Entry</title>
-        <link rel="stylesheet" href="/@minista-entry/src/assets/entry.css" />
+        <link rel="stylesheet" href="/src/assets/entry.css" />
         <link
           rel="stylesheet"
-          href="/@minista-entry/src/assets/entry2.css"
+          href="/src/assets/entry2.css"
           data-minista-entry-name="test/custom"
         />
-        <script type="module" src="/@minista-entry/src/assets/entry.ts" />
+        <script type="module" src="/src/assets/entry.ts" />
       </Head>
       <h1>heading 1</h1>
       <h2>heading 2</h2>
@@ -19,7 +19,7 @@ export default function () {
       <p id="js-text2"></p>
       <script
         type="module"
-        src="/@minista-entry/src/assets/entry2.ts"
+        src="/src/assets/entry2.ts"
         data-minista-entry-name="test/custom"
       />
     </>
