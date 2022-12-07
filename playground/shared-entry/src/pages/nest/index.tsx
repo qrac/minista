@@ -10,6 +10,7 @@ export default function () {
           rel="stylesheet"
           href="/src/assets/entry2.css"
           data-minista-entry-name="test/custom"
+          data-minista-entry-attributes={`data-test="minista"`}
         />
         <script type="module" src="/src/assets/entry.ts" />
       </Head>
@@ -21,6 +22,7 @@ export default function () {
         type="module"
         src="/src/assets/entry2.ts"
         data-minista-entry-name="test/custom"
+        data-minista-entry-attributes={`data-test="minista"`}
       />
     </>
   )

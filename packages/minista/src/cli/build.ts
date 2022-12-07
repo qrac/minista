@@ -149,12 +149,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
       function registerSsgEntries(
         items: HTMLElement[],
-        srcAttr: string,
-        outExt: string,
         selfEntries: { [key: string]: string },
         otherEntries: { [key: string]: string }
       ) {
         items.map((item) => {
+          const tagName = item.tagName.toLowerCase()
+          const isScript = tagName === "script"
+          const srcAttr = isScript ? "src" : "href"
+          const outExt = isScript ? "js" : "css"
+
           let src = ""
           src = item.getAttribute(srcAttr) || ""
           src = path.join(resolvedRoot, src)
@@ -162,6 +165,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
           let name = ""
           name = item.getAttribute("data-minista-entry-name") || ""
           name = name ? name : path.parse(src).name
+
+          let attributes = ""
+          attributes = item.getAttribute("data-minista-entry-attributes") || ""
 
           let assetPath = ""
           assetPath = path.join(assets.outDir, name + "." + outExt)
@@ -171,8 +177,28 @@ export async function build(inlineConfig: InlineConfig = {}) {
             assetPath,
           })
 
+          if (isScript && attributes) {
+            item.removeAttribute("type")
+          }
+          if (attributes && attributes !== "false") {
+            const attrStrArray = attributes.split(/\s+/)
+
+            let attrObj: { [key: string]: string } = {}
+
+            attrStrArray.map((attrStr) => {
+              const parts = attrStr.split("=")
+              const key = parts[0]
+              const value = parts[1].replace(/\"/g, "")
+              return (attrObj[key] = value)
+            })
+            for (const key in attrObj) {
+              item.setAttribute(key, attrObj[key])
+            }
+          }
+
           item.setAttribute(srcAttr, assetPath)
           item.removeAttribute("data-minista-entry-name")
+          item.removeAttribute("data-minista-entry-attributes")
 
           const duplicateName = `${name}-ministaDuplicateName0`
 
@@ -190,8 +216,8 @@ export async function build(inlineConfig: InlineConfig = {}) {
           return
         })
       }
-      registerSsgEntries(links, "href", "css", ssgLinks, ssgScripts)
-      registerSsgEntries(scripts, "src", "js", ssgScripts, ssgLinks)
+      registerSsgEntries(links, ssgLinks, ssgScripts)
+      registerSsgEntries(scripts, ssgScripts, ssgLinks)
 
       const htmlStr = parsedHtml.toString()
 
