@@ -1,4 +1,5 @@
 import path from "node:path"
+import { parse as parseUrl } from "node:url"
 import fs from "fs-extra"
 
 export function getHtmlPath(pathname: string) {
@@ -7,6 +8,17 @@ export function getHtmlPath(pathname: string) {
     : pathname + ".html"
   fileName = fileName.replace(/^\//, "")
   return fileName
+}
+
+export function getRelativeAssetPath({
+  pathname,
+  assetPath,
+}: {
+  pathname: string
+  assetPath: string
+}) {
+  const pagePath = path.dirname(getHtmlPath(pathname))
+  return path.relative(pagePath, path.join("./", assetPath))
 }
 
 export function getBasedAssetPath({
@@ -19,9 +31,7 @@ export function getBasedAssetPath({
   assetPath: string
 }) {
   if (base === "" || base === "./") {
-    const fileName = getHtmlPath(pathname)
-    const filePath = path.dirname(fileName)
-    return path.relative(filePath, path.join("./", assetPath))
+    return getRelativeAssetPath({ pathname, assetPath })
   }
   return path.join(base, assetPath)
 }
@@ -32,4 +42,14 @@ export function getNodeModulesPath(root: string): string {
   } else {
     return path.join(process.cwd(), "node_modules")
   }
+}
+
+export function isLocalPath(root: string, url: string): boolean {
+  const isAbsolute = parseUrl(url).protocol
+
+  if (!url || isAbsolute) {
+    return false
+  }
+  const filePath = path.join(root, url)
+  return fs.existsSync(filePath)
 }

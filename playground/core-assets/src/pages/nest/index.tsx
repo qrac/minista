@@ -8,7 +8,13 @@ export default function () {
       <h2>heading 2</h2>
       <p id="js-text"></p>
       <div>
-        <img src={imageUrl} width="220" height="108" alt="" />
+        <img
+          src={imageUrl}
+          srcSet={`${imageUrl} 768w, ${imageUrl} 1024w`}
+          width="220"
+          height="108"
+          alt=""
+        />
       </div>
     </>
   )

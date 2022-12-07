@@ -8,8 +8,10 @@ const __dirname = path.dirname(__filename)
 
 import {
   getHtmlPath,
+  getRelativeAssetPath,
   getBasedAssetPath,
   getNodeModulesPath,
+  isLocalPath,
 } from "../../src/utility/path"
 
 describe("getHtmlPath", () => {
@@ -32,6 +34,38 @@ describe("getHtmlPath", () => {
 
     //console.log(result)
     expect(result).toEqual("about/index.html")
+  })
+})
+
+describe("getRelativeAssetPath", () => {
+  it("Default", () => {
+    const result = getRelativeAssetPath({
+      pathname: "/",
+      assetPath: "style.css",
+    })
+
+    //console.log(result)
+    expect(result).toEqual("style.css")
+  })
+
+  it("Has id", () => {
+    const result = getRelativeAssetPath({
+      pathname: "/",
+      assetPath: "icons.svg#heart",
+    })
+
+    //console.log(result)
+    expect(result).toEqual("icons.svg#heart")
+  })
+
+  it("Nest", () => {
+    const result = getRelativeAssetPath({
+      pathname: "/about/",
+      assetPath: "style.css",
+    })
+
+    //console.log(result)
+    expect(result).toEqual("../style.css")
   })
 })
 
@@ -83,5 +117,28 @@ describe("getNodeModulesPath", () => {
 
     //console.log(result)
     expect(result).toEqual(path.join(__dirname, "../_data", "node_modules"))
+  })
+})
+
+describe("isLocalPath", () => {
+  it("Default", () => {
+    const result = isLocalPath(__dirname, "path.test.ts")
+
+    //console.log(result)
+    expect(result).toBeTruthy()
+  })
+
+  it("Protocol", () => {
+    const result = isLocalPath(__dirname, "https://example.com/image.jpg")
+
+    //console.log(result)
+    expect(result).toBeFalsy()
+  })
+
+  it("No file", () => {
+    const result = isLocalPath(__dirname, "test.js")
+
+    //console.log(result)
+    expect(result).toBeFalsy()
   })
 })

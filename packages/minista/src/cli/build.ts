@@ -1,7 +1,6 @@
 import type { RollupOutput } from "rollup"
 import type { PluginOption } from "vite"
 import path from "node:path"
-import { parse as parseUrl } from "node:url"
 import fs from "fs-extra"
 import pc from "picocolors"
 import {
@@ -33,7 +32,11 @@ import { pluginSearch } from "../plugins/search.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
-import { getBasedAssetPath } from "../utility/path.js"
+import {
+  getRelativeAssetPath,
+  getBasedAssetPath,
+  isLocalPath,
+} from "../utility/path.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -115,109 +118,155 @@ export async function build(inlineConfig: InlineConfig = {}) {
     if (ssgPages.length === 0) {
       return []
     }
+
     return ssgPages.map((page) => {
       const pathname = page.path
 
       let parsedHtml = parseHtml(page.html)
 
-      function hasEntryFile(src: string) {
-        const isAbsolute = parseUrl(src).protocol
-
-        if (!src || isAbsolute) {
-          return false
-        }
-        const filePath = path.join(resolvedRoot, src)
-        return fs.existsSync(filePath)
-      }
-
       const links = parsedHtml.querySelectorAll("link").filter((el) => {
         const url = el.getAttribute("href") || ""
-        return hasEntryFile(url)
+        return isLocalPath(resolvedRoot, url)
       }) as unknown as HTMLElement[]
 
       const scripts = parsedHtml.querySelectorAll("script").filter((el) => {
         const url = el.getAttribute("src") || ""
-        return hasEntryFile(url)
+        return isLocalPath(resolvedRoot, url)
       }) as unknown as HTMLElement[]
 
-      if (links.length === 0 && scripts.length === 0) {
-        return {
-          fileName: page.fileName,
-          data: page.html,
-        }
-      }
+      const images = parsedHtml.querySelectorAll(
+        "img, source, use"
+      ) as unknown as HTMLElement[]
 
-      function registerSsgEntries(
-        items: HTMLElement[],
+      const rootImagesDir = path.join("/", assets.images.outDir)
+      const rootIconsDir = path.join("/", assets.icons.outDir)
+
+      function registerSsgEntry(
+        el: HTMLElement,
         selfEntries: { [key: string]: string },
         otherEntries: { [key: string]: string }
       ) {
-        items.map((item) => {
-          const tagName = item.tagName.toLowerCase()
-          const isScript = tagName === "script"
-          const srcAttr = isScript ? "src" : "href"
-          const outExt = isScript ? "js" : "css"
+        const tagName = el.tagName.toLowerCase()
+        const isScript = tagName === "script"
+        const srcAttr = isScript ? "src" : "href"
+        const outExt = isScript ? "js" : "css"
 
-          let src = ""
-          src = item.getAttribute(srcAttr) || ""
-          src = path.join(resolvedRoot, src)
+        let src = ""
+        src = el.getAttribute(srcAttr) || ""
+        src = path.join(resolvedRoot, src)
 
-          let name = ""
-          name = item.getAttribute("data-minista-entry-name") || ""
-          name = name ? name : path.parse(src).name
+        let name = ""
+        name = el.getAttribute("data-minista-entry-name") || ""
+        name = name ? name : path.parse(src).name
 
-          let attributes = ""
-          attributes = item.getAttribute("data-minista-entry-attributes") || ""
+        let attributes = ""
+        attributes = el.getAttribute("data-minista-entry-attributes") || ""
 
-          let assetPath = ""
-          assetPath = path.join(assets.outDir, name + "." + outExt)
-          assetPath = getBasedAssetPath({
-            base: config.main.base,
-            pathname,
-            assetPath,
+        let assetPath = ""
+        assetPath = path.join(assets.outDir, name + "." + outExt)
+        assetPath = getBasedAssetPath({
+          base: config.main.base,
+          pathname,
+          assetPath,
+        })
+
+        if (isScript && attributes) {
+          el.removeAttribute("type")
+        }
+        if (attributes && attributes !== "false") {
+          const attrStrArray = attributes.split(/\s+/)
+
+          let attrObj: { [key: string]: string } = {}
+
+          attrStrArray.map((attrStr) => {
+            const parts = attrStr.split("=")
+            const key = parts[0]
+            const value = parts[1].replace(/\"/g, "")
+            return (attrObj[key] = value)
           })
-
-          if (isScript && attributes) {
-            item.removeAttribute("type")
+          for (const key in attrObj) {
+            el.setAttribute(key, attrObj[key])
           }
-          if (attributes && attributes !== "false") {
-            const attrStrArray = attributes.split(/\s+/)
+        }
 
-            let attrObj: { [key: string]: string } = {}
+        el.setAttribute(srcAttr, assetPath)
+        el.removeAttribute("data-minista-entry-name")
+        el.removeAttribute("data-minista-entry-attributes")
 
-            attrStrArray.map((attrStr) => {
-              const parts = attrStr.split("=")
-              const key = parts[0]
-              const value = parts[1].replace(/\"/g, "")
-              return (attrObj[key] = value)
-            })
-            for (const key in attrObj) {
-              item.setAttribute(key, attrObj[key])
+        const duplicateName = `${name}-ministaDuplicateName0`
+
+        if (Object.hasOwn(selfEntries, name)) {
+          return
+        }
+        if (Object.hasOwn(selfEntries, duplicateName)) {
+          return
+        }
+        if (Object.hasOwn(otherEntries, name)) {
+          selfEntries[duplicateName] = src
+          return
+        }
+        selfEntries[name] = src
+        return
+      }
+
+      function toRelativePath(
+        el: HTMLElement,
+        attr: string,
+        value: string,
+        replaceDir: string
+      ) {
+        let _value = value
+        _value = _value.replace(/\n/, "").trim()
+
+        if (!value.includes(",") && value.startsWith(replaceDir)) {
+          _value = getRelativeAssetPath({ pathname, assetPath: value })
+          return el.setAttribute(attr, _value)
+        }
+        if (!value.includes(",")) {
+          return
+        }
+
+        let hasRelative = false
+
+        _value = _value
+          .split(",")
+          .map((s) => s.trim())
+          .map((s) => {
+            let [url, density] = s.split(/\s+/)
+
+            if (url.startsWith(replaceDir)) {
+              hasRelative = true
+              url = getRelativeAssetPath({ pathname, assetPath: url })
             }
-          }
+            return `${url} ${density}`
+          })
+          .join(", ")
 
-          item.setAttribute(srcAttr, assetPath)
-          item.removeAttribute("data-minista-entry-name")
-          item.removeAttribute("data-minista-entry-attributes")
+        if (hasRelative) {
+          return el.setAttribute(attr, _value)
+        }
+        return
+      }
 
-          const duplicateName = `${name}-ministaDuplicateName0`
+      links.map((el) => {
+        return registerSsgEntry(el, ssgLinks, ssgScripts)
+      })
+      scripts.map((el) => {
+        return registerSsgEntry(el, ssgScripts, ssgLinks)
+      })
 
-          if (Object.hasOwn(selfEntries, name)) {
-            return
-          }
-          if (Object.hasOwn(selfEntries, duplicateName)) {
-            return
-          }
-          if (Object.hasOwn(otherEntries, name)) {
-            selfEntries[duplicateName] = src
-            return
-          }
-          selfEntries[name] = src
+      if (config.main.base === "" || config.main.base === "./") {
+        images.map((el) => {
+          const src = el.getAttribute("src") || ""
+          const srcset = el.getAttribute("srcset") || ""
+          const href = el.getAttribute("href") || ""
+
+          if (src) toRelativePath(el, "src", src, rootImagesDir)
+          if (srcset) toRelativePath(el, "srcset", srcset, rootImagesDir)
+          if (href) toRelativePath(el, "href", href, rootIconsDir)
           return
         })
       }
-      registerSsgEntries(links, ssgLinks, ssgScripts)
-      registerSsgEntries(scripts, ssgScripts, ssgLinks)
 
       const htmlStr = parsedHtml.toString()
 
