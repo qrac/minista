@@ -86,13 +86,16 @@ export function transformPage({
 }): string {
   const helmetContext = {}
 
-  const markup = renderToString(
+  let markup = renderToString(
     <StaticRouter location={url}>
       <HelmetProvider context={helmetContext}>
         <Page resolvedGlobal={resolvedGlobal} resolvedPages={resolvedPages} />
       </HelmetProvider>
     </StaticRouter>
   )
+
+  markup = markup.replace(/(?<=\<[img|source].+?)(srcSet=)/g, "srcset=")
+
   const { helmet } = helmetContext as FilledContext
 
   let htmlAttributes = ` lang="ja" ${helmet.htmlAttributes.toString()}`
