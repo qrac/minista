@@ -9,7 +9,7 @@ export async function transformMarkdown(
   html: string,
   config: ResolvedMdxConfig
 ): Promise<string> {
-  let parsedHtml = parseHtml(html)
+  let parsedHtml = parseHtml(html, { comment: true })
 
   const targets = parsedHtml.querySelectorAll(
     `[data-minista-transform-target="markdown"]`
