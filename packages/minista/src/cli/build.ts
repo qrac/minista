@@ -429,7 +429,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
         if (partialEl) {
           hydrateEl?.removeAttribute(hydrateAttr)
-          hydrateEl?.setAttribute("href", hydratePath)
+          hydrateEl?.setAttribute("src", hydratePath)
         } else {
           hydrateEl?.remove()
         }
