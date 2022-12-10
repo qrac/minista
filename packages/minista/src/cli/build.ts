@@ -122,7 +122,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     return ssgPages.map((page) => {
       const pathname = page.path
 
-      let parsedHtml = parseHtml(page.html)
+      let parsedHtml = parseHtml(page.html, { comment: true })
 
       const links = parsedHtml.querySelectorAll("link").filter((el) => {
         const url = el.getAttribute("href") || ""
@@ -400,7 +400,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       let data: string | Buffer = item.data
 
       if (isHtml) {
-        let parsedHtml = parseHtml(data)
+        let parsedHtml = parseHtml(data, { comment: true })
 
         const bundleAttr = "data-minista-build-bundle-href"
         const bundleEl = parsedHtml
