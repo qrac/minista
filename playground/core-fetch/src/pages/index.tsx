@@ -30,7 +30,7 @@ export default function (props: PageIssuesProps) {
       <ul>
         {props.issues?.map((item, index) => (
           <li key={index}>
-            <a href={`/issues/${item.number}/`}>{item.title}</a>
+            <a href={`/issues/${item.number}.html`}>{item.title}</a>
           </li>
         ))}
       </ul>
