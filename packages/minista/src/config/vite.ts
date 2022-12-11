@@ -11,26 +11,11 @@ import {
 
 import type { ResolvedMainConfig } from "./main.js"
 import type { ResolvedSubConfig } from "./sub.js"
-import type { ResolvedEntry } from "./entry.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export type ResolvedViteConfig = ViteConfig
-export type ResolvedViteEntry = { [key: string]: string }
-
-export function resolveViteEntry(
-  root: string,
-  entry: ResolvedEntry
-): ResolvedViteEntry {
-  if (!entry.length) {
-    return {}
-  }
-  const entries = Object.fromEntries(
-    entry.map((item) => [item.name, path.join(root, item.input)])
-  )
-  return entries
-}
 
 export function resolveViteAssetFileNames(
   chunkInfo: PreRenderedAsset,

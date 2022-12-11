@@ -18,12 +18,12 @@ import archiver from "archiver"
 import type { InlineConfig } from "../config/index.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
 import { resolveConfig } from "../config/index.js"
+import { resolveViteEntry } from "../config/entry.js"
 import { pluginPreact } from "../plugins/preact.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 import { pluginSprite } from "../plugins/sprite.js"
 import { pluginFetch } from "../plugins/fetch.js"
 import { pluginSsg } from "../plugins/ssg.js"
-import { pluginEntry } from "../plugins/entry.js"
 import { pluginPartial } from "../plugins/partial.js"
 import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
@@ -32,7 +32,6 @@ import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
 import {
-  getRelativeAssetPath,
   getBasedAssetPath,
   resolveRelativeImagePath,
   isLocalPath,
@@ -66,9 +65,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const bugBundleCssName = path.join(assets.outDir, "bundle.css")
   const hydrateJsName = path.join(assets.outDir, assets.partial.outName + ".js")
 
+  let ssgResult: BuildResult
   let assetsResult: BuildResult
   let hydrateResult: BuildResult
 
+  let ssgItems: BuildItem[]
   let assetItems: BuildItem[]
   let hydrateItems: BuildItem[]
 
@@ -76,6 +77,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let ssgLinks: BuildEntry = {}
   let ssgScripts: BuildEntry = {}
   let ssgEntries: BuildEntry = {}
+  let entries: BuildEntry = {}
 
   let htmlItems: GenerateItem[] = []
   let generateItems: GenerateItem[]
@@ -103,14 +105,14 @@ export async function build(inlineConfig: InlineConfig = {}) {
     })
   )
 
-  const ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult
-  const ssgItem = ssgResult.output.find((item) =>
-    item.fileName.endsWith("__minista_plugin_ssg.js")
+  ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult
+  ssgItems = ssgResult.output.filter((item) =>
+    item.fileName.match(/__minista_plugin_ssg\.js$/)
   )
 
-  if (ssgItem) {
+  if (ssgItems) {
     const ssgPath = path.join(tempDir, "ssg.mjs")
-    const ssgData = ssgItem.source || ssgItem.code || ""
+    const ssgData = ssgItems[0].source || ssgItems[0].code || ""
 
     await fs.outputFile(ssgPath, ssgData)
 
@@ -273,17 +275,23 @@ export async function build(inlineConfig: InlineConfig = {}) {
   }
 
   ssgEntries = { ...ssgLinks, ...ssgScripts }
+  entries = resolveViteEntry(config.sub.resolvedRoot, config.sub.resolvedEntry)
+  entries = { ...entries, ...ssgEntries }
 
   const assetsConfig = mergeViteConfig(
     config.vite,
     defineViteConfig({
-      build: { write: false },
+      build: {
+        rollupOptions: {
+          input: entries,
+        },
+        write: false,
+      },
       plugins: [
         pluginReact(),
         pluginMdx(config.mdx) as PluginOption,
         pluginSvgr(config),
         pluginSprite(config),
-        pluginEntry(config, ssgEntries),
         pluginBundle(),
       ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),

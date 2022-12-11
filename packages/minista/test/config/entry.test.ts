@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import type { EntryPatterns } from "../../src/config/entry"
+import type { EntryPatterns, ResolvedEntry } from "../../src/config/entry"
 import {
   resolveEntryInclude,
   resolveEntryExclude,
+  resolveViteEntry,
   resolveEntry,
 } from "../../src/config/entry"
 
@@ -53,6 +54,32 @@ describe("resolveEntryExclude", () => {
 
     //console.log(result)
     expect(result).toEqual(["/test/test2"])
+  })
+})
+
+describe("resolveViteEntry", () => {
+  it("No entry", () => {
+    const result = resolveViteEntry("", [])
+
+    //console.log(result)
+    expect(result).toEqual({})
+  })
+
+  it("Set entry", () => {
+    const entries: ResolvedEntry = [
+      {
+        name: "script",
+        input: "src/assets/script.ts",
+        insertPages: { include: ["**/*"], exclude: [] },
+        position: "head",
+        attributes: "",
+      },
+    ]
+    const result = resolveViteEntry("", entries)
+
+    //console.log("plugins:", plugins[0].name)
+    //console.log("result", result)
+    expect(result).toEqual({ script: "src/assets/script.ts" })
   })
 })
 

@@ -1,39 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import type { ResolvedEntry } from "../../src/config/entry"
 import {
-  resolveViteEntry,
   resolveViteAssetFileNames,
   resolveViteConfig,
 } from "../../src/config/vite"
 import { defaultMainConfig, resolveMainConfig } from "../../src/config/main"
 import { resolveSubConfig } from "../../src/config/sub"
-
-describe("resolveViteEntry", () => {
-  it("No entry", () => {
-    const result = resolveViteEntry("", [])
-
-    //console.log(result)
-    expect(result).toEqual({})
-  })
-
-  it("Set entry", () => {
-    const entries: ResolvedEntry = [
-      {
-        name: "script",
-        input: "src/assets/script.ts",
-        insertPages: { include: ["**/*"], exclude: [] },
-        position: "head",
-        attributes: "",
-      },
-    ]
-    const result = resolveViteEntry("", entries)
-
-    //console.log("plugins:", plugins[0].name)
-    //console.log("result", result)
-    expect(result).toEqual({ script: "src/assets/script.ts" })
-  })
-})
 
 describe("resolveViteAssetFileNames", () => {
   // Stopped by vite 3 bug

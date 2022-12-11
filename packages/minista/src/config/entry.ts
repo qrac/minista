@@ -14,6 +14,8 @@ type EntryObject = {
   attributes?: string | false
 }
 
+type ResolvedViteEntry = { [key: string]: string }
+
 export type ResolvedEntry = ResolvedEntryObject[]
 
 type ResolvedEntryObject = {
@@ -59,6 +61,19 @@ export function resolveEntryExclude(
     return object.exclude
   }
   return []
+}
+
+export function resolveViteEntry(
+  root: string,
+  entry: ResolvedEntry
+): ResolvedViteEntry {
+  if (!entry.length) {
+    return {}
+  }
+  const entries = Object.fromEntries(
+    entry.map((item) => [item.name, path.join(root, item.input)])
+  )
+  return entries
 }
 
 export async function resolveEntry(
