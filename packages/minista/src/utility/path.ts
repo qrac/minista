@@ -44,6 +44,39 @@ export function getNodeModulesPath(root: string): string {
   }
 }
 
+export function resolveRelativeImagePath({
+  pathname,
+  replaceTarget,
+  assetPath,
+}: {
+  pathname: string
+  replaceTarget: string
+  assetPath: string
+}): string {
+  let resolvedPath = assetPath.replace(/\n/, "").trim()
+
+  if (!resolvedPath.includes(",") && resolvedPath.startsWith(replaceTarget)) {
+    return getRelativeAssetPath({ pathname, assetPath: resolvedPath })
+  }
+  if (!resolvedPath.includes(",")) {
+    return resolvedPath
+  }
+
+  resolvedPath = resolvedPath
+    .split(",")
+    .map((s) => s.trim())
+    .map((s) => {
+      let [url, density] = s.split(/\s+/)
+
+      if (url.startsWith(replaceTarget)) {
+        url = getRelativeAssetPath({ pathname, assetPath: url })
+      }
+      return `${url} ${density}`
+    })
+    .join(", ")
+  return resolvedPath
+}
+
 export function isLocalPath(root: string, url: string): boolean {
   const isAbsolute = parseUrl(url).protocol
 

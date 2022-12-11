@@ -16,7 +16,6 @@ import beautify from "js-beautify"
 import archiver from "archiver"
 
 import type { InlineConfig } from "../config/index.js"
-import type { ResolvedViteEntry } from "../config/vite.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginPreact } from "../plugins/preact.js"
@@ -35,6 +34,7 @@ import { transformEncode } from "../transform/encode.js"
 import {
   getRelativeAssetPath,
   getBasedAssetPath,
+  resolveRelativeImagePath,
   isLocalPath,
 } from "../utility/path.js"
 
@@ -46,6 +46,8 @@ type BuildItem = RollupOutput["output"][0] & {
   source?: string
   code?: string
 }
+
+type BuildEntry = { [key: string]: string }
 
 type GenerateItem = {
   fileName: string
@@ -64,20 +66,18 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const bugBundleCssName = path.join(assets.outDir, "bundle.css")
   const hydrateJsName = path.join(assets.outDir, assets.partial.outName + ".js")
 
-  let ssgResult: BuildResult
   let assetsResult: BuildResult
   let hydrateResult: BuildResult
 
-  let ssgItems: BuildItem[]
   let assetItems: BuildItem[]
   let hydrateItems: BuildItem[]
 
   let ssgPages: SsgPage[] = []
-  let ssgLinks: ResolvedViteEntry = {}
-  let ssgScripts: ResolvedViteEntry = {}
-  let ssgEntries: ResolvedViteEntry = {}
+  let ssgLinks: BuildEntry = {}
+  let ssgScripts: BuildEntry = {}
+  let ssgEntries: BuildEntry = {}
 
-  let htmlItems: GenerateItem[]
+  let htmlItems: GenerateItem[] = []
   let generateItems: GenerateItem[]
 
   let hasPublic = false
@@ -103,23 +103,23 @@ export async function build(inlineConfig: InlineConfig = {}) {
     })
   )
 
-  async function getHtmlItems(ssgItem: BuildItem) {
+  const ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult
+  const ssgItem = ssgResult.output.find((item) =>
+    item.fileName.endsWith("__minista_plugin_ssg.js")
+  )
+
+  if (ssgItem) {
     const ssgPath = path.join(tempDir, "ssg.mjs")
     const ssgData = ssgItem.source || ssgItem.code || ""
 
-    if (!ssgData) {
-      return []
-    }
     await fs.outputFile(ssgPath, ssgData)
 
     const { runSsg }: { runSsg: RunSsg } = await import(ssgPath)
     ssgPages = await runSsg(config)
+  }
 
-    if (ssgPages.length === 0) {
-      return []
-    }
-
-    return ssgPages.map((page) => {
+  if (ssgPages.length > 0) {
+    htmlItems = ssgPages.map((page) => {
       const pathname = page.path
 
       let parsedHtml = parseHtml(page.html, { comment: true })
@@ -135,11 +135,12 @@ export async function build(inlineConfig: InlineConfig = {}) {
       }) as unknown as HTMLElement[]
 
       const images = parsedHtml.querySelectorAll(
-        "img, source, use"
+        "img, source"
       ) as unknown as HTMLElement[]
 
-      const rootImagesDir = path.join("/", assets.images.outDir)
-      const rootIconsDir = path.join("/", assets.icons.outDir)
+      const icons = parsedHtml.querySelectorAll(
+        "use"
+      ) as unknown as HTMLElement[]
 
       function registerSsgEntry(
         el: HTMLElement,
@@ -209,45 +210,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
         return
       }
 
-      function toRelativePath(
-        el: HTMLElement,
-        attr: string,
-        value: string,
-        replaceDir: string
-      ) {
-        let _value = value
-        _value = _value.replace(/\n/, "").trim()
-
-        if (!value.includes(",") && value.startsWith(replaceDir)) {
-          _value = getRelativeAssetPath({ pathname, assetPath: value })
-          return el.setAttribute(attr, _value)
-        }
-        if (!value.includes(",")) {
-          return
-        }
-
-        let hasRelative = false
-
-        _value = _value
-          .split(",")
-          .map((s) => s.trim())
-          .map((s) => {
-            let [url, density] = s.split(/\s+/)
-
-            if (url.startsWith(replaceDir)) {
-              hasRelative = true
-              url = getRelativeAssetPath({ pathname, assetPath: url })
-            }
-            return `${url} ${density}`
-          })
-          .join(", ")
-
-        if (hasRelative) {
-          return el.setAttribute(attr, _value)
-        }
-        return
-      }
-
       links.map((el) => {
         return registerSsgEntry(el, ssgLinks, ssgScripts)
       })
@@ -259,11 +221,44 @@ export async function build(inlineConfig: InlineConfig = {}) {
         images.map((el) => {
           const src = el.getAttribute("src") || ""
           const srcset = el.getAttribute("srcset") || ""
+
+          if (src) {
+            const resolvedPath = resolveRelativeImagePath({
+              pathname,
+              replaceTarget: path.join("/", assets.images.outDir),
+              assetPath: src,
+            })
+            if (src !== resolvedPath) {
+              el.setAttribute("src", resolvedPath)
+            }
+          }
+
+          if (srcset) {
+            const resolvedPath = resolveRelativeImagePath({
+              pathname,
+              replaceTarget: path.join("/", assets.images.outDir),
+              assetPath: srcset,
+            })
+            if (srcset !== resolvedPath) {
+              el.setAttribute("srcset", resolvedPath)
+            }
+          }
+          return
+        })
+
+        icons.map((el) => {
           const href = el.getAttribute("href") || ""
 
-          if (src) toRelativePath(el, "src", src, rootImagesDir)
-          if (srcset) toRelativePath(el, "srcset", srcset, rootImagesDir)
-          if (href) toRelativePath(el, "href", href, rootIconsDir)
+          if (href) {
+            const resolvedPath = resolveRelativeImagePath({
+              pathname,
+              replaceTarget: path.join("/", assets.icons.outDir),
+              assetPath: href,
+            })
+            if (href !== resolvedPath) {
+              el.setAttribute("href", resolvedPath)
+            }
+          }
           return
         })
       }
@@ -277,11 +272,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
     })
   }
 
-  ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult
-  ssgItems = ssgResult.output.filter((item) =>
-    item.fileName.match(/__minista_plugin_ssg\.js$/)
-  )
-  htmlItems = ssgItems[0] ? await getHtmlItems(ssgItems[0]) : []
   ssgEntries = { ...ssgLinks, ...ssgScripts }
 
   const assetsConfig = mergeViteConfig(
