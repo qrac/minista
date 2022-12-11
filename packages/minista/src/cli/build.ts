@@ -48,6 +48,8 @@ type BuildItem = RollupOutput["output"][0] & {
 
 type BuildEntry = { [key: string]: string }
 
+type CssNameBugFix = { [key: string]: string }
+
 type GenerateItem = {
   fileName: string
   data: string
@@ -56,7 +58,7 @@ type GenerateItem = {
 export async function build(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
   const { assets, search, delivery } = config.main
-  const { resolvedRoot, tempDir } = config.sub
+  const { resolvedRoot, resolvedEntry, tempDir } = config.sub
 
   const resolvedOut = path.join(resolvedRoot, config.main.out)
   const resolvedPublic = path.join(resolvedRoot, config.main.public)
@@ -77,15 +79,17 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let ssgLinks: BuildEntry = {}
   let ssgScripts: BuildEntry = {}
   let ssgEntries: BuildEntry = {}
-  let entries: BuildEntry = {}
+  let assetEntries: BuildEntry = {}
 
   let htmlItems: GenerateItem[] = []
-  let generateItems: GenerateItem[]
+  let generateItems: GenerateItem[] = []
 
-  let hasPublic = false
+  let cssNameBugFix: CssNameBugFix = {}
+
   let hasBundleCss = false
   let hasHydrate = false
   let hasSearch = false
+  let hasPublic = false
 
   const ssgConfig = mergeViteConfig(
     config.vite,
@@ -110,7 +114,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     item.fileName.match(/__minista_plugin_ssg\.js$/)
   )
 
-  if (ssgItems) {
+  if (ssgItems.length > 0) {
     const ssgPath = path.join(tempDir, "ssg.mjs")
     const ssgData = ssgItems[0].source || ssgItems[0].code || ""
 
@@ -275,15 +279,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
   }
 
   ssgEntries = { ...ssgLinks, ...ssgScripts }
-  entries = resolveViteEntry(config.sub.resolvedRoot, config.sub.resolvedEntry)
-  entries = { ...entries, ...ssgEntries }
+  assetEntries = resolveViteEntry(resolvedRoot, resolvedEntry)
+  assetEntries = { ...assetEntries, ...ssgEntries }
 
   const assetsConfig = mergeViteConfig(
     config.vite,
     defineViteConfig({
       build: {
         rollupOptions: {
-          input: entries,
+          input: assetEntries,
         },
         write: false,
       },
@@ -316,7 +320,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult
 
-  hasPublic = fs.existsSync(resolvedPublic)
   hasBundleCss = assetsResult.output.some(
     (item) =>
       item.fileName === bundleCssName || item.fileName === bugBundleCssName
@@ -332,6 +335,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   await fs.emptyDir(resolvedOut)
 
+  hasPublic = fs.existsSync(resolvedPublic)
   hasPublic && (await fs.copy(resolvedPublic, resolvedOut))
 
   assetItems = assetsResult.output.filter(
@@ -341,35 +345,45 @@ export async function build(inlineConfig: InlineConfig = {}) {
     item.fileName.match(/__minista_plugin_hydrate\.js$/)
   )
 
-  function optimizeItems(items: BuildItem[]) {
-    return items
-      .map((item) => {
-        const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
-        const isBugBundleCss = item.fileName === bugBundleCssName
-        const isHydrateJs = item.fileName.match(/__minista_plugin_hydrate\.js$/)
+  cssNameBugFix = Object.fromEntries(
+    Object.entries(assetEntries).map((item) => {
+      return [
+        path.join(assets.outDir, path.parse(item[1]).name + ".css"),
+        path.join(assets.outDir, item[0] + ".css"),
+      ]
+    })
+  )
+  cssNameBugFix = { ...cssNameBugFix, ...{ [bugBundleCssName]: bundleCssName } }
 
-        let fileName = item.fileName
-        fileName = fileName.replace(/-ministaDuplicateName\d*/, "")
-        isBundleCss && (fileName = bundleCssName)
-        isBugBundleCss && (fileName = bundleCssName)
-        isHydrateJs && (fileName = hydrateJsName)
+  generateItems = [...assetItems, ...hydrateItems]
+    .map((item) => {
+      const isCss = item.fileName.match(/.*\.css$/)
+      const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
+      const isHydrateJs = item.fileName.match(/__minista_plugin_hydrate\.js$/)
 
-        let data = ""
-        item.source && (data = item.source)
-        item.code && (data = item.code)
+      let fileName = item.fileName
+      isBundleCss && (fileName = bundleCssName)
+      isHydrateJs && (fileName = hydrateJsName)
 
-        if (data === "\n") {
-          data = ""
-        }
-        return {
-          fileName,
-          data,
-        }
-      })
-      .filter((item) => item.data)
-  }
+      if (isCss && Object.hasOwn(cssNameBugFix, fileName)) {
+        fileName = cssNameBugFix[fileName]
+      }
+      fileName = fileName.replace(/-ministaDuplicateName\d*/, "")
 
-  generateItems = optimizeItems([...assetItems, ...hydrateItems])
+      let data = ""
+      item.source && (data = item.source)
+      item.code && (data = item.code)
+
+      if (data === "\n") {
+        data = ""
+      }
+      return {
+        fileName,
+        data,
+      }
+    })
+    .filter((item) => item.data)
+
   generateItems = [...htmlItems, ...generateItems]
 
   if (hasSearch && ssgPages.length) {
