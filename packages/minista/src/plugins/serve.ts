@@ -53,96 +53,91 @@ export function pluginServe(config: ResolvedConfig): Plugin {
       server = _server
 
       return () => {
-        server.middlewares.use(async (req, res) => {
+        server.middlewares.use(async (req, res, next) => {
           try {
-            if (req.url?.endsWith(".html")) {
-              const resolvedBase = resolveBase(config.main.base)
+            const resolvedBase = resolveBase(config.main.base)
 
-              let url = req.originalUrl || ""
+            let url = req.originalUrl || ""
 
-              if (resolvedBase.match(/^\/.*\/$/)) {
-                const reg = new RegExp(`^${resolvedBase}`)
-                url = url.replace(reg, "/")
-              }
+            if (resolvedBase.match(/^\/.*\/$/)) {
+              const reg = new RegExp(`^${resolvedBase}`)
+              url = url.replace(reg, "/")
+            }
 
-              const { getSources } = (await server.ssrLoadModule(
-                __dirname + "/../server/sources.js"
-              )) as { getSources: GetSources }
-              const { resolvedGlobal, resolvedPages } = await getSources()
+            const { getSources } = (await server.ssrLoadModule(
+              __dirname + "/../server/sources.js"
+            )) as { getSources: GetSources }
+            const { resolvedGlobal, resolvedPages } = await getSources()
 
-              const { headTags, startTags, endTags } = transformEntryTags({
-                mode: "serve",
-                pathname: url,
-                config,
-              })
+            const { headTags, startTags, endTags } = transformEntryTags({
+              mode: "serve",
+              pathname: url,
+              config,
+            })
 
-              let html = transformPage({
-                url,
+            let html = transformPage({
+              url,
+              resolvedGlobal,
+              resolvedPages,
+              headTags,
+              startTags,
+              endTags,
+            })
+
+            const targetAttr = "data-minista-transform-target"
+            const commentReg = new RegExp(
+              `<div[^<>]*?${targetAttr}="comment".*?>`
+            )
+            const markdownReg = new RegExp(
+              `<div[^<>]*?${targetAttr}="markdown".*?>`
+            )
+            const deliListReg = new RegExp(
+              `<div[^<>]*?${targetAttr}="delivery-list".*?>`
+            )
+
+            if (html.match(commentReg)) {
+              html = transformComment(html)
+            }
+            if (html.match(markdownReg)) {
+              html = await transformMarkdown(html, config.mdx)
+            }
+            if (useVirtualModule || html.match(deliListReg)) {
+              ssgPages = await transformPages({
                 resolvedGlobal,
                 resolvedPages,
-                headTags,
-                startTags,
-                endTags,
+                config,
               })
+            }
+            if (html.match(deliListReg)) {
+              html = transformDelivery({ html, ssgPages, config })
+            }
 
-              const targetAttr = "data-minista-transform-target"
-              const commentReg = new RegExp(
-                `<div[^<>]*?${targetAttr}="comment".*?>`
-              )
-              const markdownReg = new RegExp(
-                `<div[^<>]*?${targetAttr}="markdown".*?>`
-              )
-              const deliListReg = new RegExp(
-                `<div[^<>]*?${targetAttr}="delivery-list".*?>`
-              )
+            html = await server.transformIndexHtml(url, html)
 
-              if (html.match(commentReg)) {
-                html = transformComment(html)
-              }
-              if (html.match(markdownReg)) {
-                html = await transformMarkdown(html, config.mdx)
-              }
-              if (useVirtualModule || html.match(deliListReg)) {
-                ssgPages = await transformPages({
-                  resolvedGlobal,
-                  resolvedPages,
-                  config,
-                })
-              }
-              if (html.match(deliListReg)) {
-                html = transformDelivery({ html, ssgPages, config })
-              }
+            if (resolvedBase.match(/^\/.*\/$/)) {
+              const wrongBase = path.join(resolvedBase, resolvedBase)
+              const wrongSrc = `src="${wrongBase}`
+              const resolvedSrc = `src="${resolvedBase}`
+              const reg = new RegExp(wrongSrc, "g")
 
-              html = await server.transformIndexHtml(url, html)
+              html = html.replace(reg, resolvedSrc)
+            }
 
-              if (resolvedBase.match(/^\/.*\/$/)) {
-                const wrongBase = path.join(resolvedBase, resolvedBase)
-                const wrongSrc = `src="${wrongBase}`
-                const resolvedSrc = `src="${resolvedBase}`
-                const reg = new RegExp(wrongSrc, "g")
+            const charsets = html.match(
+              /<meta[^<>]*?charset=["|'](.*?)["|'].*?\/>/i
+            )
+            const charset = charsets ? charsets[1] : "UTF-8"
 
-                html = html.replace(reg, resolvedSrc)
-              }
-
-              const charsets = html.match(
-                /<meta[^<>]*?charset=["|'](.*?)["|'].*?\/>/i
-              )
-              const charset = charsets ? charsets[1] : "UTF-8"
-
-              if (charset.match(/^utf[\s-_]*8$/i)) {
-                res.statusCode = 200
-                res.end(html)
-              } else {
-                res.statusCode = 200
-                res.end(transformEncode(html, charset))
-              }
+            if (charset.match(/^utf[\s-_]*8$/i)) {
+              res.statusCode = 200
+              res.end(html)
+            } else {
+              res.statusCode = 200
+              res.end(transformEncode(html, charset))
             }
           } catch (e: any) {
             server.ssrFixStacktrace(e)
-            console.error(e)
-
-            res.statusCode = 500
-            res.end(e.message)
+            next(e)
           }
         })
       }
