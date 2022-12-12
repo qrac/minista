@@ -1,3 +1,4 @@
+import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import { parse as parseHtml } from "node-html-parser"
 import { compile as compileMdx, run as runMdx } from "@mdx-js/mdx"
 import { createElement } from "react"
@@ -6,12 +7,12 @@ import { renderToString } from "react-dom/server"
 import type { ResolvedMdxConfig } from "../config/mdx.js"
 
 export async function transformMarkdown(
-  html: string,
+  parsedHtml: NHTMLElement,
   config: ResolvedMdxConfig
-): Promise<string> {
-  let parsedHtml = parseHtml(html, { comment: true })
+) {
+  let html = parsedHtml
 
-  const targets = parsedHtml.querySelectorAll(
+  const targets = html.querySelectorAll(
     `[data-minista-transform-target="markdown"]`
   )
 
@@ -43,6 +44,5 @@ export async function transformMarkdown(
     })
   )
 
-  const htmlStr = parsedHtml.toString()
-  return htmlStr
+  return html
 }

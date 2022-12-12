@@ -96,18 +96,16 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               parsedHtml = transformComment(parsedHtml)
             }
 
+            if (parsedHtml.querySelector(`[${targetAttr}="markdown"]`)) {
+              parsedHtml = await transformMarkdown(parsedHtml, config.mdx)
+            }
+
             html = parsedHtml.toString()
 
-            const markdownReg = new RegExp(
-              `<div[^<>]*?${targetAttr}="markdown".*?>`
-            )
             const deliListReg = new RegExp(
               `<div[^<>]*?${targetAttr}="delivery-list".*?>`
             )
 
-            if (html.match(markdownReg)) {
-              html = await transformMarkdown(html, config.mdx)
-            }
             if (useVirtualModule || html.match(deliListReg)) {
               ssgPages = await transformPages({
                 resolvedGlobal,

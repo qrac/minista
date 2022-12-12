@@ -71,13 +71,12 @@ export async function transformPages({
         parsedHtml = transformComment(parsedHtml)
       }
 
+      if (parsedHtml.querySelector(`[${targetAttr}="markdown"]`)) {
+        parsedHtml = await transformMarkdown(parsedHtml, config.mdx)
+      }
+
       html = parsedHtml.toString()
 
-      const markdownReg = new RegExp(`<div[^<>]*?${targetAttr}="markdown".*?>`)
-
-      if (html.match(markdownReg)) {
-        html = await transformMarkdown(html, config.mdx)
-      }
       return {
         path: page.path,
         basedPath: page.basedPath,
