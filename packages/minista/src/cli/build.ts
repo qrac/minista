@@ -442,12 +442,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
           hydrateEl?.remove()
         }
 
-        const targetAttr = "data-minista-transform-target"
-        const deliListAttr = `[${targetAttr}="delivery-list"]`
-
         data = parsedHtml.toString()
 
-        if (parsedHtml.querySelector(deliListAttr)) {
+        const targetAttr = "data-minista-transform-target"
+
+        if (parsedHtml.querySelector(`[${targetAttr}="delivery-list"]`)) {
           data = transformDelivery({ html: data, ssgPages, config })
         }
 

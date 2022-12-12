@@ -102,18 +102,18 @@ export function pluginServe(config: ResolvedConfig): Plugin {
 
             html = parsedHtml.toString()
 
-            const deliListReg = new RegExp(
-              `<div[^<>]*?${targetAttr}="delivery-list".*?>`
-            )
-
-            if (useVirtualModule || html.match(deliListReg)) {
+            if (
+              useVirtualModule ||
+              parsedHtml.querySelector(`[${targetAttr}="delivery-list"]`)
+            ) {
               ssgPages = await transformPages({
                 resolvedGlobal,
                 resolvedPages,
                 config,
               })
             }
-            if (html.match(deliListReg)) {
+
+            if (parsedHtml.querySelector(`[${targetAttr}="delivery-list"]`)) {
               html = transformDelivery({ html, ssgPages, config })
             }
 
