@@ -124,12 +124,12 @@ export function transformDelivery({
   ssgPages: SsgPage[]
   config: ResolvedConfig
 }) {
-  let replacedHtml = html
+  let _html = html
 
   const listData = transformListDataDelivery({ ssgPages, config })
   const listStr = transformListStrDelivery(listData)
 
-  replacedHtml = replacedHtml.replace(
+  _html = _html.replace(
     /<div[^<>]*?data-minista-transform-target="delivery-list".*?>\s*\n*<\/div>/gi,
     listStr
   )
@@ -138,10 +138,10 @@ export function transformDelivery({
     const buttonsData = transformButtonsDataDelivery(config)
     const buttonsStr = transformButtonsStrDelivery(buttonsData)
 
-    replacedHtml = replacedHtml.replace(
+    _html = _html.replace(
       /<div[^<>]*?data-minista-transform-target="delivery-buttons".*?>\s*\n*<\/div>/gi,
       buttonsStr
     )
   }
-  return replacedHtml
+  return _html
 }

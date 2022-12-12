@@ -10,9 +10,9 @@ export async function transformMarkdown(
   parsedHtml: NHTMLElement,
   config: ResolvedMdxConfig
 ) {
-  let html = parsedHtml
+  let _parsedHtml = parsedHtml
 
-  const targets = html.querySelectorAll(
+  const targets = _parsedHtml.querySelectorAll(
     `[data-minista-transform-target="markdown"]`
   )
 
@@ -44,5 +44,5 @@ export async function transformMarkdown(
     })
   )
 
-  return html
+  return _parsedHtml
 }

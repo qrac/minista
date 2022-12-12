@@ -29,9 +29,9 @@ export function transformMultiComment(text: string) {
 }
 
 export function transformComment(parsedHtml: NHTMLElement) {
-  let html = parsedHtml
+  let _parsedHtml = parsedHtml
 
-  const targets = html.querySelectorAll(
+  const targets = _parsedHtml.querySelectorAll(
     `[data-minista-transform-target="comment"]`
   )
 
@@ -51,5 +51,5 @@ export function transformComment(parsedHtml: NHTMLElement) {
     return parent.exchangeChild(target, parsedContent)
   })
 
-  return html
+  return _parsedHtml
 }
