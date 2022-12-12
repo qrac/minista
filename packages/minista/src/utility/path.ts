@@ -52,7 +52,7 @@ export function resolveRelativeImagePath({
   pathname: string
   replaceTarget: string
   assetPath: string
-}): string {
+}) {
   let resolvedPath = assetPath.replace(/\n/, "").trim()
 
   if (!resolvedPath.includes(",") && resolvedPath.startsWith(replaceTarget)) {
@@ -77,7 +77,7 @@ export function resolveRelativeImagePath({
   return resolvedPath
 }
 
-export function isLocalPath(root: string, url: string): boolean {
+export function isLocalPath(root: string, url: string) {
   const isAbsolute = parseUrl(url).protocol
 
   if (!url || isAbsolute) {

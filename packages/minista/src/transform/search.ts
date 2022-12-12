@@ -1,4 +1,4 @@
-import type { HTMLElement as NhpHTMLElement } from "node-html-parser"
+import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import picomatch from "picomatch"
 import { parse } from "node-html-parser"
 import mojigiri from "mojigiri"
@@ -63,9 +63,7 @@ export async function transformSearch({
 
       let contents: { type: string; value: string[] }[] = []
 
-      async function getContent(
-        element: NhpHTMLElement & { _rawText?: string }
-      ) {
+      async function getContent(element: NHTMLElement & { _rawText?: string }) {
         if (element.id) {
           contents.push({ type: "id", value: [element.id] })
         }
