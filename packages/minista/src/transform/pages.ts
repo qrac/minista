@@ -1,4 +1,6 @@
+import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
+import { parse as parseHtml } from "node-html-parser"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedGlobal } from "../server/global.js"
@@ -59,13 +61,20 @@ export async function transformPages({
     pages.map(async (page) => {
       let html = page.html
 
+      let parsedHtml = parseHtml(html, {
+        comment: true,
+      }) as NHTMLElement
+
       const targetAttr = "data-minista-transform-target"
-      const commentReg = new RegExp(`<div[^<>]*?${targetAttr}="comment".*?>`)
+
+      if (parsedHtml.querySelector(`[${targetAttr}="comment"]`)) {
+        parsedHtml = transformComment(parsedHtml)
+      }
+
+      html = parsedHtml.toString()
+
       const markdownReg = new RegExp(`<div[^<>]*?${targetAttr}="markdown".*?>`)
 
-      if (html.match(commentReg)) {
-        html = transformComment(html)
-      }
       if (html.match(markdownReg)) {
         html = await transformMarkdown(html, config.mdx)
       }

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
+import { parse as parseHtml } from "node-html-parser"
 
 import {
   transformOneComment,
@@ -42,11 +43,12 @@ describe("transformComment", () => {
     const htmlPath = "../_data/comment.html"
     const htmlFile = path.relative(".", path.join(__dirname, htmlPath))
     const html = await fs.readFile(htmlFile, "utf8")
-    const result = transformComment(html)
+    const parsedHtml = parseHtml(html)
+    const result = transformComment(parsedHtml)
 
     //console.log(result)
     expect(
-      result.includes(`data-minista-transform-target="comment"`)
+      result.toString().includes(`data-minista-transform-target="comment"`)
     ).toBeFalsy()
   })
 })

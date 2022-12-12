@@ -1,6 +1,8 @@
 import type { Plugin, ViteDevServer } from "vite"
+import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { parse as parseHtml } from "node-html-parser"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
@@ -84,10 +86,18 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               endTags,
             })
 
+            let parsedHtml = parseHtml(html, {
+              comment: true,
+            }) as NHTMLElement
+
             const targetAttr = "data-minista-transform-target"
-            const commentReg = new RegExp(
-              `<div[^<>]*?${targetAttr}="comment".*?>`
-            )
+
+            if (parsedHtml.querySelector(`[${targetAttr}="comment"]`)) {
+              parsedHtml = transformComment(parsedHtml)
+            }
+
+            html = parsedHtml.toString()
+
             const markdownReg = new RegExp(
               `<div[^<>]*?${targetAttr}="markdown".*?>`
             )
@@ -95,9 +105,6 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               `<div[^<>]*?${targetAttr}="delivery-list".*?>`
             )
 
-            if (html.match(commentReg)) {
-              html = transformComment(html)
-            }
             if (html.match(markdownReg)) {
               html = await transformMarkdown(html, config.mdx)
             }

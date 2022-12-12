@@ -1,10 +1,11 @@
+import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import { parse as parseHtml } from "node-html-parser"
 
-export function transformOneComment(text: string): string {
+export function transformOneComment(text: string) {
   return "<!-- " + text + " -->"
 }
 
-export function transformMultiComment(text: string): string {
+export function transformMultiComment(text: string) {
   let multiText = text
   let spaceArray: string[] = []
   let spaceNums: number[] = []
@@ -27,10 +28,10 @@ export function transformMultiComment(text: string): string {
   return "<!--" + "\n" + startSpace + multiText + "\n" + endSpace + "-->"
 }
 
-export function transformComment(html: string): string {
-  let parsedHtml = parseHtml(html)
+export function transformComment(parsedHtml: NHTMLElement) {
+  let html = parsedHtml
 
-  const targets = parsedHtml.querySelectorAll(
+  const targets = html.querySelectorAll(
     `[data-minista-transform-target="comment"]`
   )
 
@@ -50,6 +51,5 @@ export function transformComment(html: string): string {
     return parent.exchangeChild(target, parsedContent)
   })
 
-  const htmlStr = parsedHtml.toString()
-  return htmlStr
+  return html
 }
