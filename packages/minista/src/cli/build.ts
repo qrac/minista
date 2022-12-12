@@ -420,18 +420,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
           .find((el) => el.hasAttribute(bundleAttr))
         const bundlePath = bundleEl?.getAttribute(bundleAttr) || ""
 
-        const hydrateAttr = "data-minista-build-hydrate-src"
-        const hydrateEl = parsedHtml
-          .querySelectorAll("script")
-          .find((el) => el.hasAttribute(hydrateAttr))
-        const hydratePath = hydrateEl?.getAttribute(hydrateAttr) || ""
-
-        const partialAttr = `[data-${assets.partial.rootAttrSuffix}]`
-        const partialEl = parsedHtml.querySelector(partialAttr)
-
-        const targetAttr = "data-minista-transform-target"
-        const deliListAttr = `[${targetAttr}="delivery-list"]`
-
         if (hasBundleCss) {
           bundleEl?.removeAttribute(bundleAttr)
           bundleEl?.setAttribute("href", bundlePath)
@@ -439,12 +427,23 @@ export async function build(inlineConfig: InlineConfig = {}) {
           bundleEl?.remove()
         }
 
+        const partialAttr = `[data-${assets.partial.rootAttrSuffix}]`
+        const partialEl = parsedHtml.querySelector(partialAttr)
+        const hydrateAttr = "data-minista-build-hydrate-src"
+        const hydrateEl = parsedHtml
+          .querySelectorAll("script")
+          .find((el) => el.hasAttribute(hydrateAttr))
+        const hydratePath = hydrateEl?.getAttribute(hydrateAttr) || ""
+
         if (partialEl) {
           hydrateEl?.removeAttribute(hydrateAttr)
           hydrateEl?.setAttribute("src", hydratePath)
         } else {
           hydrateEl?.remove()
         }
+
+        const targetAttr = "data-minista-transform-target"
+        const deliListAttr = `[${targetAttr}="delivery-list"]`
 
         data = parsedHtml.toString()
 
