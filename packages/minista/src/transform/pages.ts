@@ -61,9 +61,7 @@ export async function transformPages({
     pages.map(async (page) => {
       let html = page.html
 
-      let parsedHtml = parseHtml(html, {
-        comment: true,
-      }) as NHTMLElement
+      let parsedHtml = parseHtml(html, { comment: true }) as NHTMLElement
 
       const targetAttr = "data-minista-transform-target"
 

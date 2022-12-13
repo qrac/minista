@@ -1,5 +1,6 @@
 import type { RollupOutput } from "rollup"
 import type { PluginOption } from "vite"
+import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 import fs from "fs-extra"
 import pc from "picocolors"
@@ -16,6 +17,7 @@ import beautify from "js-beautify"
 import archiver from "archiver"
 
 import type { InlineConfig } from "../config/index.js"
+import type { ResolvedViteEntry } from "../config/entry.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
@@ -28,6 +30,7 @@ import { pluginPartial } from "../plugins/partial.js"
 import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
+import { transformDynamicEntries } from "../transform/entry.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
@@ -45,8 +48,6 @@ type BuildItem = RollupOutput["output"][0] & {
   source?: string
   code?: string
 }
-
-type BuildEntry = { [key: string]: string }
 
 type CssNameBugFix = { [key: string]: string }
 
@@ -76,10 +77,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let hydrateItems: BuildItem[]
 
   let ssgPages: SsgPage[] = []
-  let ssgLinks: BuildEntry = {}
-  let ssgScripts: BuildEntry = {}
-  let ssgEntries: BuildEntry = {}
-  let assetEntries: BuildEntry = {}
+
+  let linkEntries: ResolvedViteEntry = {}
+  let scriptEntries: ResolvedViteEntry = {}
+  let ssgEntries: ResolvedViteEntry = {}
+  let assetEntries: ResolvedViteEntry = {}
 
   let htmlItems: GenerateItem[] = []
   let generateItems: GenerateItem[] = []
@@ -128,100 +130,18 @@ export async function build(inlineConfig: InlineConfig = {}) {
     htmlItems = ssgPages.map((page) => {
       const pathname = page.path
 
-      let parsedHtml = parseHtml(page.html, { comment: true })
+      let parsedHtml = parseHtml(page.html, { comment: true }) as NHTMLElement
 
-      const links = parsedHtml.querySelectorAll("link").filter((el) => {
-        const url = el.getAttribute("href") || ""
-        return isLocalPath(resolvedRoot, url)
-      }) as unknown as HTMLElement[]
-
-      const scripts = parsedHtml.querySelectorAll("script").filter((el) => {
-        const url = el.getAttribute("src") || ""
-        return isLocalPath(resolvedRoot, url)
-      }) as unknown as HTMLElement[]
-
-      const images = parsedHtml.querySelectorAll(
-        "img, source"
-      ) as unknown as HTMLElement[]
-
-      const icons = parsedHtml.querySelectorAll(
-        "use"
-      ) as unknown as HTMLElement[]
-
-      function registerSsgEntry(
-        el: HTMLElement,
-        selfEntries: { [key: string]: string },
-        otherEntries: { [key: string]: string }
-      ) {
-        const tagName = el.tagName.toLowerCase()
-        const isScript = tagName === "script"
-        const srcAttr = isScript ? "src" : "href"
-        const outExt = isScript ? "js" : "css"
-
-        let src = ""
-        src = el.getAttribute(srcAttr) || ""
-        src = path.join(resolvedRoot, src)
-
-        let name = ""
-        name = el.getAttribute("data-minista-entry-name") || ""
-        name = name ? name : path.parse(src).name
-
-        let attributes = ""
-        attributes = el.getAttribute("data-minista-entry-attributes") || ""
-
-        let assetPath = ""
-        assetPath = path.join(assets.outDir, name + "." + outExt)
-        assetPath = getBasedAssetPath({
-          base: config.main.base,
-          pathname,
-          assetPath,
-        })
-
-        if (isScript && attributes) {
-          el.removeAttribute("type")
-        }
-        if (attributes && attributes !== "false") {
-          const attrStrArray = attributes.split(/\s+/)
-
-          let attrObj: { [key: string]: string } = {}
-
-          attrStrArray.map((attrStr) => {
-            const parts = attrStr.split("=")
-            const key = parts[0]
-            const value = parts[1].replace(/\"/g, "")
-            return (attrObj[key] = value)
-          })
-          for (const key in attrObj) {
-            el.setAttribute(key, attrObj[key])
-          }
-        }
-
-        el.setAttribute(srcAttr, assetPath)
-        el.removeAttribute("data-minista-entry-name")
-        el.removeAttribute("data-minista-entry-attributes")
-
-        const duplicateName = `${name}-ministaDuplicateName0`
-
-        if (Object.hasOwn(selfEntries, name)) {
-          return
-        }
-        if (Object.hasOwn(selfEntries, duplicateName)) {
-          return
-        }
-        if (Object.hasOwn(otherEntries, name)) {
-          selfEntries[duplicateName] = src
-          return
-        }
-        selfEntries[name] = src
-        return
-      }
-
-      links.map((el) => {
-        return registerSsgEntry(el, ssgLinks, ssgScripts)
+      parsedHtml = transformDynamicEntries({
+        parsedHtml,
+        pathname,
+        config,
+        linkEntries,
+        scriptEntries,
       })
-      scripts.map((el) => {
-        return registerSsgEntry(el, ssgScripts, ssgLinks)
-      })
+
+      const images = parsedHtml.querySelectorAll("img, source")
+      const icons = parsedHtml.querySelectorAll("use")
 
       if (config.main.base === "" || config.main.base === "./") {
         images.map((el) => {
@@ -278,7 +198,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     })
   }
 
-  ssgEntries = { ...ssgLinks, ...ssgScripts }
+  ssgEntries = { ...linkEntries, ...scriptEntries }
   assetEntries = resolveViteEntry(resolvedRoot, resolvedEntry)
   assetEntries = { ...assetEntries, ...ssgEntries }
 

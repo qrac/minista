@@ -14,7 +14,7 @@ type EntryObject = {
   attributes?: string | false
 }
 
-type ResolvedViteEntry = { [key: string]: string }
+export type ResolvedViteEntry = { [key: string]: string }
 
 export type ResolvedEntry = ResolvedEntryObject[]
 

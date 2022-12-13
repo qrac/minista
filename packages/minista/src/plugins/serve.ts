@@ -86,9 +86,7 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               endTags,
             })
 
-            let parsedHtml = parseHtml(html, {
-              comment: true,
-            }) as NHTMLElement
+            let parsedHtml = parseHtml(html, { comment: true }) as NHTMLElement
 
             const targetAttr = "data-minista-transform-target"
 
