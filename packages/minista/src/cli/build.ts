@@ -31,14 +31,10 @@ import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
 import { transformDynamicEntries } from "../transform/entry.js"
+import { transformRelativeImages } from "../transform/image.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
-import {
-  getBasedAssetPath,
-  resolveRelativeImagePath,
-  isLocalPath,
-} from "../utility/path.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -140,52 +136,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
         scriptEntries,
       })
 
-      const images = parsedHtml.querySelectorAll("img, source")
-      const icons = parsedHtml.querySelectorAll("use")
-
       if (config.main.base === "" || config.main.base === "./") {
-        images.map((el) => {
-          const src = el.getAttribute("src") || ""
-          const srcset = el.getAttribute("srcset") || ""
-
-          if (src) {
-            const resolvedPath = resolveRelativeImagePath({
-              pathname,
-              replaceTarget: path.join("/", assets.images.outDir),
-              assetPath: src,
-            })
-            if (src !== resolvedPath) {
-              el.setAttribute("src", resolvedPath)
-            }
-          }
-
-          if (srcset) {
-            const resolvedPath = resolveRelativeImagePath({
-              pathname,
-              replaceTarget: path.join("/", assets.images.outDir),
-              assetPath: srcset,
-            })
-            if (srcset !== resolvedPath) {
-              el.setAttribute("srcset", resolvedPath)
-            }
-          }
-          return
-        })
-
-        icons.map((el) => {
-          const href = el.getAttribute("href") || ""
-
-          if (href) {
-            const resolvedPath = resolveRelativeImagePath({
-              pathname,
-              replaceTarget: path.join("/", assets.icons.outDir),
-              assetPath: href,
-            })
-            if (href !== resolvedPath) {
-              el.setAttribute("href", resolvedPath)
-            }
-          }
-          return
+        parsedHtml = transformRelativeImages({
+          parsedHtml,
+          pathname,
+          config,
         })
       }
 
