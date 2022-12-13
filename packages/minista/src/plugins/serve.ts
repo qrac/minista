@@ -115,17 +115,6 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               html = transformDelivery({ html, ssgPages, config })
             }
 
-            html = await server.transformIndexHtml(url, html)
-
-            if (resolvedBase.match(/^\/.*\/$/)) {
-              const wrongBase = path.join(resolvedBase, resolvedBase)
-              const wrongSrc = `src="${wrongBase}`
-              const resolvedSrc = `src="${resolvedBase}`
-              const reg = new RegExp(wrongSrc, "g")
-
-              html = html.replace(reg, resolvedSrc)
-            }
-
             const charsets = html.match(
               /<meta[^<>]*?charset=["|'](.*?)["|'].*?\/>/i
             )
