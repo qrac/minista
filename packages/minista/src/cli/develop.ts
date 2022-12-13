@@ -23,15 +23,6 @@ export async function develop(inlineConfig: InlineConfig = {}) {
   const mergedViteConfig = mergeViteConfig(
     config.vite,
     defineViteConfig({
-      optimizeDeps: {
-        exclude: ["minista"],
-        include: [
-          "react-helmet-async",
-          "dayjs",
-          "dayjs/plugin/utc.js",
-          "dayjs/plugin/timezone.js",
-        ],
-      },
       plugins: [
         pluginReact(),
         pluginPreact(config),
