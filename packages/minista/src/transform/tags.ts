@@ -120,13 +120,13 @@ export function transformEntryTags({
   let endScriptTags: string[] = []
 
   let bundleHeadLinkTag = ""
-  let bundleEndScriptTag = ""
+  let bundleHeadScriptTag = ""
   let hydrateHeadScriptTag = ""
-  let hydrateEndScriptTag = ""
+  //let hydrateEndScriptTag = ""
 
   if (mode === "serve") {
-    bundleEndScriptTag = `<script type="module" src="/@minista/dist/server/bundle.js"></script>`
-    hydrateEndScriptTag = `<script type="module" src="/@minista/dist/server/hydrate.js"></script>`
+    bundleHeadScriptTag = `<script type="module" src="/@minista/dist/server/bundle.js"></script>`
+    hydrateHeadScriptTag = `<script type="module" src="/@minista/dist/server/hydrate.js"></script>`
   }
   if (mode === "ssg") {
     const bundleCss = getBasedAssetPath({
@@ -180,6 +180,7 @@ export function transformEntryTags({
     ...headLinkTags,
     bundleHeadLinkTag,
     ...headScriptTags,
+    bundleHeadScriptTag,
     hydrateHeadScriptTag,
   ]
     .filter((tag) => tag)
@@ -189,14 +190,7 @@ export function transformEntryTags({
     .filter((tag) => tag)
     .join("\n")
 
-  endTags = [
-    ...endLinkTags,
-    ...endScriptTags,
-    bundleEndScriptTag,
-    hydrateEndScriptTag,
-  ]
-    .filter((tag) => tag)
-    .join("\n")
+  endTags = [...endLinkTags, ...endScriptTags].filter((tag) => tag).join("\n")
 
   return {
     headTags,

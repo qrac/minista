@@ -98,6 +98,15 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               parsedHtml = await transformMarkdown(parsedHtml, config.mdx)
             }
 
+            const dummyHtml = `<!DOCTYPE html><html><head></head><body></body></html>`
+            const reactHtml = await server.transformIndexHtml(url, dummyHtml)
+            const parsedReactHtml = parseHtml(reactHtml)
+            const serverScripts = parsedReactHtml.querySelectorAll("script")
+
+            serverScripts.map((script) => {
+              return parsedHtml.querySelector("head")?.appendChild(script)
+            })
+
             html = parsedHtml.toString()
 
             if (
