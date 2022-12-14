@@ -123,10 +123,10 @@ describe("transformEntryTags", () => {
 
     //console.log(result)
     expect(result).toEqual({
-      headTags: ``,
-      startTags: ``,
-      endTags: `<script type="module" src="/@minista/dist/server/bundle.js"></script>
+      headTags: `<script type="module" src="/@minista/dist/server/bundle.js"></script>
 <script type="module" src="/@minista/dist/server/hydrate.js"></script>`,
+      startTags: ``,
+      endTags: ``,
     })
   })
 
@@ -142,10 +142,11 @@ describe("transformEntryTags", () => {
 
     //console.log(result)
     expect(result).toEqual({
-      headTags: `<link rel="stylesheet" href="/@minista-project-root/src/assets/style.scss">`,
-      startTags: ``,
-      endTags: `<script type="module" src="/@minista/dist/server/bundle.js"></script>
+      headTags: `<link rel="stylesheet" href="/@minista-project-root/src/assets/style.scss">
+<script type="module" src="/@minista/dist/server/bundle.js"></script>
 <script type="module" src="/@minista/dist/server/hydrate.js"></script>`,
+      startTags: ``,
+      endTags: ``,
     })
   })
 
