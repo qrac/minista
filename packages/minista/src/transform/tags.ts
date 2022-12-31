@@ -122,7 +122,6 @@ export function transformEntryTags({
   let bundleHeadLinkTag = ""
   let bundleHeadScriptTag = ""
   let hydrateHeadScriptTag = ""
-  //let hydrateEndScriptTag = ""
 
   if (mode === "serve") {
     bundleHeadScriptTag = `<script type="module" src="/@minista/dist/server/bundle.js"></script>`
