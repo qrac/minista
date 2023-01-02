@@ -17,6 +17,7 @@ import { deepmergeCustom } from "deepmerge-ts"
 import type { ResolvedUserConfig } from "./user.js"
 import type { EntryPatterns } from "./entry.js"
 import type { AliasPatterns } from "./alias.js"
+import type { ImageOptimize } from "./image.js"
 
 export type MainConfig = {
   root: string
@@ -30,6 +31,7 @@ export type MainConfig = {
     images: {
       outDir: string
       outName: string
+      optimize: ImageOptimize
     }
     fonts: {
       outDir: string
@@ -136,6 +138,21 @@ export const defaultMainConfig: MainConfig = {
     images: {
       outDir: "assets/images",
       outName: "[name]",
+      optimize: {
+        remoteName: "remote",
+        layout: "constrained",
+        breakpoints: [
+          320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840,
+        ],
+        resolution: [1, 2],
+        format: "inherit",
+        formatOptions: {},
+        quality: undefined,
+        aspect: undefined,
+        background: undefined,
+        fit: "cover",
+        position: "centre",
+      },
     },
     fonts: {
       outDir: "assets/fonts",

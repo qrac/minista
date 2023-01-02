@@ -7,11 +7,13 @@ import { parse as parseHtml } from "node-html-parser"
 import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
 import type { SsgPage } from "../server/ssg.js"
+import type { EntryImages, CreateImages } from "../transform/image.js"
 import { transformPage } from "../transform/page.js"
 import { transformPages } from "../transform/pages.js"
 import { transformEntryTags } from "../transform/tags.js"
 import { transformComment } from "../transform/comment.js"
 import { transformMarkdown } from "../transform/markdown.js"
+import { transformEntryImages } from "../transform/image.js"
 import { transformEncode } from "../transform/encode.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
@@ -26,11 +28,10 @@ export function pluginServe(config: ResolvedConfig): Plugin {
 
   let server: ViteDevServer
 
-  let useVirtualModule: boolean
-  let ssgPages: SsgPage[]
-
-  useVirtualModule = false
-  ssgPages = []
+  let useVirtualModule: boolean = false
+  let ssgPages: SsgPage[] = []
+  let entryImages: EntryImages = {}
+  let createImages: CreateImages = {}
 
   return {
     name: "minista-vite-plugin:serve",
@@ -96,6 +97,16 @@ export function pluginServe(config: ResolvedConfig): Plugin {
 
             if (parsedHtml.querySelector(`[${targetAttr}="markdown"]`)) {
               parsedHtml = await transformMarkdown(parsedHtml, config.mdx)
+            }
+
+            if (parsedHtml.querySelector(`[${targetAttr}="image"]`)) {
+              parsedHtml = await transformEntryImages({
+                command: "serve",
+                parsedHtml,
+                config,
+                entryImages,
+                createImages,
+              })
             }
 
             const dummyHtml = `<!DOCTYPE html><html><head></head><body></body></html>`

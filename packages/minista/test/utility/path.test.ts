@@ -11,8 +11,9 @@ import {
   getRelativeAssetPath,
   getBasedAssetPath,
   getNodeModulesPath,
-  isLocalPath,
   resolveRelativeImagePath,
+  isLocalPath,
+  isRemotePath,
 } from "../../src/utility/path"
 
 describe("getHtmlPath", () => {
@@ -190,6 +191,22 @@ describe("isLocalPath", () => {
 
   it("No file", () => {
     const result = isLocalPath(__dirname, "test.js")
+
+    //console.log(result)
+    expect(result).toBeFalsy()
+  })
+})
+
+describe("isRemotePath", () => {
+  it("Default", () => {
+    const result = isRemotePath("https://example.com/image.jpg")
+
+    //console.log(result)
+    expect(result).toBeTruthy()
+  })
+
+  it("Protocol none", () => {
+    const result = isRemotePath("/image.jpg")
 
     //console.log(result)
     expect(result).toBeFalsy()

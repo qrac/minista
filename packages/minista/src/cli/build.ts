@@ -14,14 +14,17 @@ import { default as pluginReact } from "@vitejs/plugin-react"
 import { default as pluginMdx } from "@mdx-js/rollup"
 import { parse as parseHtml } from "node-html-parser"
 import beautify from "js-beautify"
+import sharp from "sharp"
 import archiver from "archiver"
 
 import type { InlineConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
+import type { EntryImages, CreateImages } from "../transform/image.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
 import { pluginPreact } from "../plugins/preact.js"
+import { pluginImage } from "../plugins/image.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 import { pluginSprite } from "../plugins/sprite.js"
 import { pluginFetch } from "../plugins/fetch.js"
@@ -31,7 +34,10 @@ import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
 import { transformDynamicEntries } from "../transform/entry.js"
-import { transformRelativeImages } from "../transform/image.js"
+import {
+  transformEntryImages,
+  transformRelativeImages,
+} from "../transform/image.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
@@ -79,6 +85,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let ssgEntries: ResolvedViteEntry = {}
   let assetEntries: ResolvedViteEntry = {}
 
+  let entryImages: EntryImages = {}
+  let createImages: CreateImages = {}
+
   let htmlItems: GenerateItem[] = []
   let generateItems: GenerateItem[] = []
 
@@ -97,6 +106,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       plugins: [
         pluginReact(),
         pluginMdx(config.mdx) as PluginOption,
+        pluginImage(config),
         pluginSvgr(config),
         pluginSprite(config, true),
         pluginFetch(config),
@@ -123,34 +133,48 @@ export async function build(inlineConfig: InlineConfig = {}) {
   }
 
   if (ssgPages.length > 0) {
-    htmlItems = ssgPages.map((page) => {
-      const pathname = page.path
+    htmlItems = await Promise.all(
+      ssgPages.map(async (page) => {
+        const pathname = page.path
 
-      let parsedHtml = parseHtml(page.html, { comment: true }) as NHTMLElement
+        let parsedHtml = parseHtml(page.html, { comment: true }) as NHTMLElement
 
-      parsedHtml = transformDynamicEntries({
-        parsedHtml,
-        pathname,
-        config,
-        linkEntries,
-        scriptEntries,
-      })
-
-      if (config.main.base === "" || config.main.base === "./") {
-        parsedHtml = transformRelativeImages({
+        parsedHtml = transformDynamicEntries({
           parsedHtml,
           pathname,
           config,
+          linkEntries,
+          scriptEntries,
         })
-      }
 
-      const htmlStr = parsedHtml.toString()
+        const targetAttr = "data-minista-transform-target"
 
-      return {
-        fileName: page.fileName,
-        data: htmlStr,
-      }
-    })
+        if (parsedHtml.querySelector(`[${targetAttr}="image"]`)) {
+          parsedHtml = await transformEntryImages({
+            command: "build",
+            parsedHtml,
+            config,
+            entryImages,
+            createImages,
+          })
+        }
+
+        if (config.main.base === "" || config.main.base === "./") {
+          parsedHtml = transformRelativeImages({
+            parsedHtml,
+            pathname,
+            config,
+          })
+        }
+
+        const htmlStr = parsedHtml.toString()
+
+        return {
+          fileName: page.fileName,
+          data: htmlStr,
+        }
+      })
+    )
   }
 
   ssgEntries = { ...linkEntries, ...scriptEntries }
@@ -270,10 +294,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
   }
 
   const distItemNames = generateItems.map((item) => item.fileName)
+  const createItemNames = Object.keys(createImages).map((item) => item)
   const archiveItemNames = delivery.archives.map((item) =>
     path.join(item.outDir, item.outName + "." + item.format)
   )
-  const mergedItemNames = [...distItemNames, ...archiveItemNames]
+  const mergedItemNames = [
+    ...distItemNames,
+    ...createItemNames,
+    ...archiveItemNames,
+  ]
   const nameLengths = mergedItemNames.map((item) => item.length)
   const maxNameLength = nameLengths.reduce((a, b) => (a > b ? a : b), 0)
 
@@ -370,6 +399,59 @@ export async function build(inlineConfig: InlineConfig = {}) {
         })
     })
   )
+
+  const createImagesArray = Object.entries(createImages)
+
+  if (createImagesArray.length) {
+    await Promise.all(
+      createImagesArray.map(async (item) => {
+        const fileName = item[0]
+        const createImage = item[1]
+        const { input, width, height, resizeOptions } = createImage
+        const { format, formatOptions } = createImage
+
+        const image = sharp(input)
+        image.resize(width, height, resizeOptions)
+
+        switch (format) {
+          case "jpg":
+            image.jpeg({ ...formatOptions?.jpg })
+            break
+          case "png":
+            image.png({ ...formatOptions?.png })
+            break
+          case "webp":
+            image.webp({ ...formatOptions?.webp })
+            break
+          case "avif":
+            image.avif({ ...formatOptions?.avif })
+            break
+        }
+        const data = await image.toBuffer()
+
+        const nameLength = fileName.length
+        const spaceCount = maxNameLength - nameLength + 3
+        const space = " ".repeat(spaceCount)
+
+        const routePath = path.join(resolvedRoot, config.main.out, fileName)
+        const relativePath = path.relative(process.cwd(), routePath)
+        const dataSize = (data.length / 1024).toFixed(2)
+
+        return await fs
+          .outputFile(routePath, data)
+          .then(() => {
+            console.log(
+              `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
+                space +
+                pc.gray(`${dataSize} KiB`)
+            )
+          })
+          .catch((err) => {
+            console.error(err)
+          })
+      })
+    )
+  }
 
   if (delivery.archives.length) {
     const cwd = path.relative(process.cwd(), resolvedRoot)

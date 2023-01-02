@@ -20,6 +20,7 @@ import { deepmergeCustom } from "deepmerge-ts"
 
 import type { EntryPatterns } from "./entry.js"
 import type { AliasPatterns } from "./alias.js"
+import type { ImageOptimize } from "./image.js"
 import type { InlineConfig } from "./index.js"
 import { getNodeModulesPath } from "../utility/path.js"
 
@@ -35,6 +36,7 @@ export type UserConfig = {
     images?: {
       outDir?: string
       outName?: string
+      optimize?: Partial<ImageOptimize>
     }
     fonts?: {
       outDir?: string

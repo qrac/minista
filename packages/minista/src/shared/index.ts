@@ -3,6 +3,7 @@ export * from "./define.js"
 export * from "./delivery.js"
 export * from "./head.js"
 export * from "./icon.js"
+export * from "./image.js"
 export * from "./markdown.js"
 export * from "./search.js"
 

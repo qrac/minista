@@ -86,7 +86,9 @@
     "fast-glob": "^3.2.12",
     "fs-extra": "^11.1.0",
     "iconv-lite": "^0.6.3",
+    "image-size": "^1.0.2",
     "js-beautify": "^1.14.7",
+    "mime-types": "^2.1.35",
     "mojigiri": "^0.3.0",
     "node-html-parser": "^6.1.4",
     "picomatch": "^2.3.1",
@@ -96,6 +98,7 @@
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
     "remark-mdx-frontmatter": "^2.1.1",
+    "sharp": "^0.31.2",
     "undici": "^5.14.0",
     "vite": "^4.0.0"
   }

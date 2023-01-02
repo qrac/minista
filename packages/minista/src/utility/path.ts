@@ -86,3 +86,11 @@ export function isLocalPath(root: string, url: string) {
   const filePath = path.join(root, url)
   return fs.existsSync(filePath)
 }
+
+export function isRemotePath(url: string) {
+  if (url.match(/^https?:\/\//) && parseUrl(url)) {
+    return true
+  } else {
+    return false
+  }
+}

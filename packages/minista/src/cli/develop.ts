@@ -10,6 +10,7 @@ import { default as pluginMdx } from "@mdx-js/rollup"
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginPreact } from "../plugins/preact.js"
+import { pluginImage } from "../plugins/image.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 import { pluginSprite } from "../plugins/sprite.js"
 import { pluginFetch } from "../plugins/fetch.js"
@@ -27,6 +28,7 @@ export async function develop(inlineConfig: InlineConfig = {}) {
         pluginReact(),
         pluginPreact(config),
         pluginMdx(config.mdx) as PluginOption,
+        pluginImage(config),
         pluginSvgr(config),
         pluginSprite(config, true),
         pluginFetch(config),
