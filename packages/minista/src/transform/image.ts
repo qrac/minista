@@ -72,6 +72,8 @@ export async function resolveRemoteImage({
   entryImages: EntryImages
 }) {
   const { tempDir } = config.sub
+  const outDir = path.join(tempDir, "images", "remote")
+
   const { remoteName } = optimize
   const remoteIndex =
     Object.values(entryImages).filter((item) =>
@@ -99,26 +101,27 @@ export async function resolveRemoteImage({
 
     contentType = res.headers.get("content-type") || ""
 
-    const stream = fs.createWriteStream(fileName)
+    extName = extension(contentType) || getRemoteFileExtName(url)
+    extName = extName === "jpeg" ? "jpg" : extName
 
-    const readableWebStream = res.body
-    const readableNodeStream = Readable.fromWeb(readableWebStream)
+    fileName = getRemoteFileName(url)
+    fileName = fileName || `${remoteName}-${remoteIndex}.${extName}`
+    fileName = path.join(outDir, fileName)
 
-    readableNodeStream.pipe(stream)
+    const arrayBuffer = await res.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
 
-    stream.on("error", (err) => {
-      const message = pc.red(err.message)
-      console.error(`${pc.bold(pc.red("ERROR"))} ${message}`)
-      return ""
+    await fs.outputFile(fileName, buffer).catch((err) => {
+      console.error(err)
     })
-    stream.on("finish", () => {})
+  } else {
+    extName = getRemoteFileExtName(url)
+    extName = extName === "jpeg" ? "jpg" : extName
+
+    fileName = getRemoteFileName(url)
+    fileName = fileName || `${remoteName}-${remoteIndex}.${extName}`
+    fileName = path.join(outDir, fileName)
   }
-
-  extName = extension(contentType) || getRemoteFileExtName(url)
-  extName = extName === "jpeg" ? "jpg" : extName
-
-  fileName = getRemoteFileName(url) || `${remoteName}-${remoteIndex}.${extName}`
-  fileName = path.join(tempDir, "images", "remote", fileName)
 
   return fileName
 }

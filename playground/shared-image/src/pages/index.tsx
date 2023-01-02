@@ -22,6 +22,10 @@ export default function () {
           formats={["webp", "inherit"]}
         />
       </div>
+
+      <div>
+        <Image src="https://picsum.photos/id/1/800/600" width={800} />
+      </div>
     </>
   )
 }
