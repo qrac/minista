@@ -52,12 +52,6 @@ export type UserConfig = {
       outName?: string
       svgstoreOptions?: SvgstoreAddOptions
     }
-    download?: {
-      useRemote?: boolean
-      remoteUrl?: string[]
-      remoteName?: string
-      outDir?: string
-    }
     bundle?: {
       outName?: string
     }

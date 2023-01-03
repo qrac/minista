@@ -47,12 +47,6 @@ export type MainConfig = {
       outName: string
       svgstoreOptions: SvgstoreAddOptions
     }
-    download: {
-      useRemote: boolean
-      remoteUrl: string[]
-      remoteName: string
-      outDir: string
-    }
     bundle: {
       outName: string
     }
@@ -169,12 +163,6 @@ export const defaultMainConfig: MainConfig = {
       svgstoreOptions: {
         cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
       },
-    },
-    download: {
-      useRemote: false,
-      remoteUrl: ["https://", "http://"],
-      remoteName: "remote-[index]",
-      outDir: "assets/images",
     },
     bundle: {
       outName: "bundle",
