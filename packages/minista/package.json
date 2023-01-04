@@ -74,7 +74,6 @@
   "dependencies": {
     "@mdx-js/mdx": "^2.1.5",
     "@mdx-js/rollup": "^2.1.5",
-    "@nuxt/devalue": "^2.0.0",
     "@qrac/svgstore": "^3.0.3",
     "@svgr/core": "^6.5.1",
     "@vitejs/plugin-react": "^3.0.0",
