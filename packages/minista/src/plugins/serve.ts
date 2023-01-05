@@ -12,7 +12,6 @@ import { transformPage } from "../transform/page.js"
 import { transformPages } from "../transform/pages.js"
 import { transformEntryTags } from "../transform/tags.js"
 import { transformComment } from "../transform/comment.js"
-import { transformMarkdown } from "../transform/markdown.js"
 import { transformEntryImages } from "../transform/image.js"
 import { transformEncode } from "../transform/encode.js"
 import { transformSearch } from "../transform/search.js"
@@ -93,10 +92,6 @@ export function pluginServe(config: ResolvedConfig): Plugin {
 
             if (parsedHtml.querySelector(`[${targetAttr}="comment"]`)) {
               parsedHtml = transformComment(parsedHtml)
-            }
-
-            if (parsedHtml.querySelector(`[${targetAttr}="markdown"]`)) {
-              parsedHtml = await transformMarkdown(parsedHtml, config.mdx)
             }
 
             if (parsedHtml.querySelector(`[${targetAttr}="image"]`)) {

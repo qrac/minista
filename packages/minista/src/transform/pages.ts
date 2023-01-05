@@ -8,7 +8,6 @@ import type { ResolvedPages } from "../server/pages.js"
 import { transformPage } from "./page.js"
 import { transformEntryTags } from "./tags.js"
 import { transformComment } from "./comment.js"
-import { transformMarkdown } from "./markdown.js"
 import { getHtmlPath } from "../utility/path.js"
 import { resolveBase } from "../utility/base.js"
 
@@ -67,10 +66,6 @@ export async function transformPages({
 
       if (parsedHtml.querySelector(`[${targetAttr}="comment"]`)) {
         parsedHtml = transformComment(parsedHtml)
-      }
-
-      if (parsedHtml.querySelector(`[${targetAttr}="markdown"]`)) {
-        parsedHtml = await transformMarkdown(parsedHtml, config.mdx)
       }
 
       html = parsedHtml.toString()
