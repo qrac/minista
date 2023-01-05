@@ -1,12 +1,14 @@
 import { Markdown, Image } from "minista"
 
-const components = {
-  img: (el: HTMLImageElement) => <Image src={el.src} alt={el.alt} />,
-}
-
 const mdContent = `# Heading 1
 ## Heading 2`
 const textVar = "variable"
+
+const components = {
+  img: (props: React.HTMLProps<HTMLElement>) => (
+    <Image src={props.src} alt={props.alt} />
+  ),
+}
 
 export default function () {
   return (

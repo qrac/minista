@@ -4,7 +4,9 @@ export const getStaticData = async () => {
   return {
     props: {
       components: {
-        img: (el: HTMLImageElement) => <Image src={el.src} alt={el.alt} />,
+        img: (el: React.HTMLProps<HTMLElement>) => (
+          <Image src={el.src} alt={el.alt} />
+        ),
       },
     },
   }
