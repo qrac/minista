@@ -104,15 +104,6 @@ export function pluginServe(config: ResolvedConfig): Plugin {
               })
             }
 
-            const dummyHtml = `<!DOCTYPE html><html><head></head><body></body></html>`
-            const reactHtml = await server.transformIndexHtml(url, dummyHtml)
-            const parsedReactHtml = parseHtml(reactHtml)
-            const serverScripts = parsedReactHtml.querySelectorAll("script")
-
-            serverScripts.map((script) => {
-              return parsedHtml.querySelector("head")?.appendChild(script)
-            })
-
             html = parsedHtml.toString()
 
             if (
@@ -128,6 +119,17 @@ export function pluginServe(config: ResolvedConfig): Plugin {
 
             if (parsedHtml.querySelector(`[${targetAttr}="delivery-list"]`)) {
               html = transformDelivery({ html, ssgPages, config })
+            }
+
+            html = await server.transformIndexHtml(url, html)
+
+            if (resolvedBase.match(/^\/.*\/$/)) {
+              const wrongBase = path.join(resolvedBase, resolvedBase)
+              const wrongSrc = `src="${wrongBase}`
+              const resolvedSrc = `src="${resolvedBase}`
+              const reg = new RegExp(wrongSrc, "g")
+
+              html = html.replace(reg, resolvedSrc)
             }
 
             const charsets = html.match(
