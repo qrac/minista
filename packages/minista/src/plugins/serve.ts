@@ -72,7 +72,7 @@ export function pluginServe(config: ResolvedConfig): Plugin {
             const { resolvedGlobal, resolvedPages } = await getSources()
 
             const { headTags, startTags, endTags } = transformEntryTags({
-              mode: "serve",
+              command: "serve",
               pathname: url,
               config,
             })

@@ -11,7 +11,7 @@ describe("transformLinkTag", () => {
   it("Serve", async () => {
     const config = await resolveConfig({})
     const result = transformLinkTag({
-      mode: "serve",
+      command: "serve",
       pathname: "/",
       entry: {
         name: "style",
@@ -32,7 +32,7 @@ describe("transformLinkTag", () => {
   it("Ssg", async () => {
     const config = await resolveConfig({})
     const result = transformLinkTag({
-      mode: "ssg",
+      command: "build",
       pathname: "/",
       entry: {
         name: "style",
@@ -53,7 +53,7 @@ describe("transformScriptTag", () => {
   it("Serve", async () => {
     const config = await resolveConfig({})
     const result = transformScriptTag({
-      mode: "serve",
+      command: "serve",
       pathname: "/",
       entry: {
         name: "script",
@@ -74,7 +74,7 @@ describe("transformScriptTag", () => {
   it("Ssg", async () => {
     const config = await resolveConfig({})
     const result = transformScriptTag({
-      mode: "ssg",
+      command: "build",
       pathname: "/",
       entry: {
         name: "script",
@@ -95,7 +95,7 @@ describe("transformScriptTag", () => {
   it("Ssg attributes false", async () => {
     const config = await resolveConfig({})
     const result = transformScriptTag({
-      mode: "ssg",
+      command: "build",
       pathname: "/",
       entry: {
         name: "script",
@@ -116,7 +116,7 @@ describe("transformEntryTags", () => {
   it("Serve blank", async () => {
     const config = await resolveConfig({})
     const result = transformEntryTags({
-      mode: "serve",
+      command: "serve",
       pathname: "/",
       config,
     })
@@ -135,7 +135,7 @@ describe("transformEntryTags", () => {
       assets: { entry: "src/assets/style.scss" },
     })
     const result = transformEntryTags({
-      mode: "serve",
+      command: "serve",
       pathname: "/",
       config,
     })
@@ -153,7 +153,7 @@ describe("transformEntryTags", () => {
   it("Ssg blank", async () => {
     const config = await resolveConfig({})
     const result = transformEntryTags({
-      mode: "ssg",
+      command: "build",
       pathname: "/",
       config,
     })
@@ -172,7 +172,7 @@ describe("transformEntryTags", () => {
       assets: { entry: "src/assets/style.scss" },
     })
     const result = transformEntryTags({
-      mode: "ssg",
+      command: "build",
       pathname: "/",
       config,
     })
@@ -192,7 +192,7 @@ describe("transformEntryTags", () => {
       assets: { entry: ["src/assets/index.ts", "src/assets/index.css"] },
     })
     const result = transformEntryTags({
-      mode: "ssg",
+      command: "build",
       pathname: "/",
       config,
     })

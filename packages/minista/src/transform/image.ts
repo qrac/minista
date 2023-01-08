@@ -472,7 +472,7 @@ export async function transformEntryImages({
   entryImages,
   createImages,
 }: {
-  command: "serve" | "build"
+  command: "build" | "serve"
   parsedHtml: NHTMLElement
   config: ResolvedConfig
   entryImages: EntryImages

@@ -6,12 +6,12 @@ import type { ResolvedEntry } from "../config/entry.js"
 import { getBasedAssetPath } from "../utility/path.js"
 
 export function transformLinkTag({
-  mode,
+  command,
   pathname,
   entry,
   config,
 }: {
-  mode: "serve" | "ssg"
+  command: "build" | "serve"
   pathname: string
   entry: ResolvedEntry[0]
   config: ResolvedConfig
@@ -21,7 +21,7 @@ export function transformLinkTag({
 
   attributes = entry.attributes ? " " + entry.attributes : ""
 
-  if (mode === "serve") {
+  if (command === "serve") {
     assetPath = path.join("/", "@minista-project-root", entry.input)
     return `<link rel="stylesheet"${attributes} href="${assetPath}">`
   }
@@ -33,12 +33,12 @@ export function transformLinkTag({
 }
 
 export function transformScriptTag({
-  mode,
+  command,
   pathname,
   entry,
   config,
 }: {
-  mode: "serve" | "ssg"
+  command: "build" | "serve"
   pathname: string
   entry: ResolvedEntry[0]
   config: ResolvedConfig
@@ -49,7 +49,7 @@ export function transformScriptTag({
   attributes = entry.attributes ? " " + entry.attributes : ` type="module"`
   attributes = entry.attributes === false ? "" : attributes
 
-  if (mode === "serve") {
+  if (command === "serve") {
     assetPath = path.join("/", "@minista-project-root", entry.input)
     return `<script${attributes} src="${assetPath}"></script>`
   }
@@ -61,11 +61,11 @@ export function transformScriptTag({
 }
 
 export function transformEntryTags({
-  mode,
+  command,
   pathname,
   config,
 }: {
-  mode: "serve" | "ssg"
+  command: "build" | "serve"
   pathname: string
   config: ResolvedConfig
 }) {
@@ -88,7 +88,7 @@ export function transformEntryTags({
     if (linkEntries.length > 0) {
       linkTags = linkEntries.map((entry) => {
         return transformLinkTag({
-          mode,
+          command,
           pathname,
           entry,
           config,
@@ -98,7 +98,7 @@ export function transformEntryTags({
     if (scriptEntries.length > 0) {
       scriptTags = scriptEntries.map((entry) => {
         return transformScriptTag({
-          mode,
+          command,
           pathname,
           entry,
           config,
@@ -123,11 +123,11 @@ export function transformEntryTags({
   let bundleHeadScriptTag = ""
   let hydrateHeadScriptTag = ""
 
-  if (mode === "serve") {
+  if (command === "serve") {
     bundleHeadScriptTag = `<script type="module" src="/@minista/dist/server/bundle.js"></script>`
     hydrateHeadScriptTag = `<script type="module" src="/@minista/dist/server/hydrate.js"></script>`
   }
-  if (mode === "ssg") {
+  if (command === "build") {
     const bundleCss = getBasedAssetPath({
       base: config.main.base,
       pathname,
@@ -169,7 +169,7 @@ export function transformEntryTags({
     startScriptTags = scriptTags
   }
 
-  if (endEntries.length > 0 || mode === "serve") {
+  if (endEntries.length > 0 || command === "serve") {
     const { linkTags, scriptTags } = createTags(endEntries)
     endLinkTags = linkTags
     endScriptTags = scriptTags

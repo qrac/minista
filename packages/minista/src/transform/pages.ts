@@ -27,7 +27,7 @@ export async function transformPages({
       ? path.join(resolvedBase, page.path)
       : page.path
     const { headTags, startTags, endTags } = transformEntryTags({
-      mode: "ssg",
+      command: "build",
       pathname: basedPath,
       config,
     })
