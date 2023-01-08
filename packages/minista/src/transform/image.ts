@@ -1,7 +1,6 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import type { ResizeOptions } from "sharp"
 import path from "node:path"
-import { Readable } from "node:stream"
 import { fetch } from "undici"
 import fs from "fs-extra"
 import pc from "picocolors"
