@@ -5,6 +5,7 @@ export default function () {
     <>
       <Icon iconId="plus" />
       <Icon iconId="heart" />
+      <Icon iconId="star" srcDir="/src/assets/more-icons" />
     </>
   )
 }
