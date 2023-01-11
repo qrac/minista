@@ -34,7 +34,7 @@ export async function generateTempIcon({
   })
 }
 
-export async function generateIcon({
+async function generateIcon({
   fileName,
   srcDir,
   config,
@@ -54,8 +54,8 @@ export async function generateIcon({
   if (!svgFiles.length) {
     return
   }
-
   const data = transformSprite({ svgFiles, options })
+
   const space = getSpace({ nameLength: fileName.length, maxNameLength, min: 3 })
 
   const routePath = path.join(resolvedRoot, config.main.out, fileName)
