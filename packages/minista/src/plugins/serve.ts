@@ -8,11 +8,13 @@ import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
 import type { SsgPage } from "../server/ssg.js"
 import type { EntryImages, CreateImages } from "../transform/image.js"
+import type { CreateIcons } from "../transform/icon.js"
 import { transformPage } from "../transform/page.js"
 import { transformPages } from "../transform/pages.js"
 import { transformEntryTags } from "../transform/tags.js"
 import { transformComment } from "../transform/comment.js"
 import { transformEntryImages } from "../transform/image.js"
+import { transformIcons } from "../transform/icon.js"
 import { transformEncode } from "../transform/encode.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
@@ -31,6 +33,7 @@ export function pluginServe(config: ResolvedConfig): Plugin {
   let ssgPages: SsgPage[] = []
   let entryImages: EntryImages = {}
   let createImages: CreateImages = {}
+  let createIcons: CreateIcons = {}
 
   return {
     name: "minista-vite-plugin:serve",
@@ -101,6 +104,15 @@ export function pluginServe(config: ResolvedConfig): Plugin {
                 config,
                 entryImages,
                 createImages,
+              })
+            }
+
+            if (parsedHtml.querySelector(`[${targetAttr}="icon"]`)) {
+              parsedHtml = await transformIcons({
+                command: "serve",
+                parsedHtml,
+                config,
+                createIcons,
               })
             }
 

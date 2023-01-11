@@ -3,6 +3,7 @@ import type { PluginOption } from "vite"
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 import fs from "fs-extra"
+import fg from "fast-glob"
 import pc from "picocolors"
 import {
   defineConfig as defineViteConfig,
@@ -21,12 +22,13 @@ import type { InlineConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
 import type { EntryImages, CreateImages } from "../transform/image.js"
+import type { CreateIcons } from "../transform/icon.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
 import { pluginPreact } from "../plugins/preact.js"
 import { pluginImage } from "../plugins/image.js"
 import { pluginSvgr } from "../plugins/svgr.js"
-import { pluginSprite } from "../plugins/sprite.js"
+import { pluginIcon } from "../plugins/icon.js"
 import { pluginFetch } from "../plugins/fetch.js"
 import { pluginSsg } from "../plugins/ssg.js"
 import { pluginPartial } from "../plugins/partial.js"
@@ -38,6 +40,8 @@ import {
   transformEntryImages,
   transformRelativeImages,
 } from "../transform/image.js"
+import { transformIcons } from "../transform/icon.js"
+import { transformSprite } from "../transform/sprite.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
@@ -87,6 +91,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   let entryImages: EntryImages = {}
   let createImages: CreateImages = {}
+  let createIcons: CreateIcons = {}
 
   let htmlItems: GenerateItem[] = []
   let generateItems: GenerateItem[] = []
@@ -108,7 +113,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
         pluginMdx(config.mdx) as PluginOption,
         pluginImage(config),
         pluginSvgr(config),
-        pluginSprite(config, true),
+        pluginIcon(config),
         pluginFetch(config),
         pluginSsg(),
         pluginPartial(config),
@@ -159,6 +164,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
           })
         }
 
+        if (parsedHtml.querySelector(`[${targetAttr}="icon"]`)) {
+          parsedHtml = await transformIcons({
+            command: "build",
+            parsedHtml,
+            config,
+            createIcons,
+          })
+        }
+
         if (config.main.base === "" || config.main.base === "./") {
           parsedHtml = transformRelativeImages({
             parsedHtml,
@@ -194,7 +208,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
         pluginReact(),
         pluginMdx(config.mdx) as PluginOption,
         pluginSvgr(config),
-        pluginSprite(config),
         pluginBundle(),
       ],
       customLogger: createLogger("warn", { prefix: "[minista]" }),
@@ -209,7 +222,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
         pluginPreact(config),
         pluginMdx(config.mdx) as PluginOption,
         pluginSvgr(config),
-        pluginSprite(config),
         pluginHydrate(),
         pluginSearch(config),
       ],
@@ -293,15 +305,17 @@ export async function build(inlineConfig: InlineConfig = {}) {
     generateItems.push({ fileName, data })
   }
 
-  const distItemNames = generateItems.map((item) => item.fileName)
-  const createItemNames = Object.keys(createImages).map((item) => item)
-  const archiveItemNames = delivery.archives.map((item) =>
+  const generateNames = generateItems.map((item) => item.fileName)
+  const imageNames = Object.keys(createImages).map((item) => item)
+  const iconNames = Object.keys(createIcons).map((item) => item)
+  const archiveNames = delivery.archives.map((item) =>
     path.join(item.outDir, item.outName + "." + item.format)
   )
   const mergedItemNames = [
-    ...distItemNames,
-    ...createItemNames,
-    ...archiveItemNames,
+    ...generateNames,
+    ...imageNames,
+    ...iconNames,
+    ...archiveNames,
   ]
   const nameLengths = mergedItemNames.map((item) => item.length)
   const maxNameLength = nameLengths.reduce((a, b) => (a > b ? a : b), 0)
@@ -428,6 +442,47 @@ export async function build(inlineConfig: InlineConfig = {}) {
             break
         }
         const data = await image.toBuffer()
+
+        const nameLength = fileName.length
+        const spaceCount = maxNameLength - nameLength + 3
+        const space = " ".repeat(spaceCount)
+
+        const routePath = path.join(resolvedRoot, config.main.out, fileName)
+        const relativePath = path.relative(process.cwd(), routePath)
+        const dataSize = (data.length / 1024).toFixed(2)
+
+        return await fs
+          .outputFile(routePath, data)
+          .then(() => {
+            console.log(
+              `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
+                space +
+                pc.gray(`${dataSize} KiB`)
+            )
+          })
+          .catch((err) => {
+            console.error(err)
+          })
+      })
+    )
+  }
+
+  const createIconsArray = Object.entries(createIcons)
+
+  if (createIconsArray.length) {
+    await Promise.all(
+      createIconsArray.map(async (item) => {
+        const fileName = item[0]
+        const createIcon = item[1]
+        const { srcDir, options } = createIcon
+
+        const svgFiles = await fg(path.join(srcDir, "**/*.svg"))
+
+        if (!svgFiles.length) {
+          return
+        }
+
+        const data = transformSprite({ svgFiles, options })
 
         const nameLength = fileName.length
         const spaceCount = maxNameLength - nameLength + 3

@@ -33,19 +33,18 @@ export type MainConfig = {
       outName: string
       optimize: ImageOptimize
     }
-    fonts: {
-      outDir: string
-      outName: string
-    }
     svgr: {
       svgrOptions: SvgrOptions
     }
     icons: {
-      useSprite: boolean
       srcDir: string
       outDir: string
       outName: string
       svgstoreOptions: SvgstoreAddOptions
+    }
+    fonts: {
+      outDir: string
+      outName: string
     }
     bundle: {
       outName: string
@@ -148,21 +147,20 @@ export const defaultMainConfig: MainConfig = {
         position: "centre",
       },
     },
-    fonts: {
-      outDir: "assets/fonts",
-      outName: "[name]",
-    },
     svgr: {
       svgrOptions: {},
     },
     icons: {
-      useSprite: true,
       srcDir: "src/assets/icons",
       outDir: "assets/images",
-      outName: "icons",
+      outName: "[dirname]",
       svgstoreOptions: {
         cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
       },
+    },
+    fonts: {
+      outDir: "assets/fonts",
+      outName: "[name]",
     },
     bundle: {
       outName: "bundle",

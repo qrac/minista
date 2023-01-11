@@ -38,19 +38,18 @@ export type UserConfig = {
       outName?: string
       optimize?: Partial<ImageOptimize>
     }
-    fonts?: {
-      outDir?: string
-      outName?: string
-    }
     svgr?: {
       svgrOptions?: SvgrOptions
     }
     icons?: {
-      useSprite?: boolean
       srcDir?: string
       outDir?: string
       outName?: string
       svgstoreOptions?: SvgstoreAddOptions
+    }
+    fonts?: {
+      outDir?: string
+      outName?: string
     }
     bundle?: {
       outName?: string
