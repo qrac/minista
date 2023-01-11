@@ -24,12 +24,6 @@ export function resolveViteAssetFileNames(
   const filePath = chunkInfo.name || ""
   const fileExt = path.extname(filePath)
 
-  if (filePath.includes("__minista_plugin_sprite.svg")) {
-    return path.join(
-      mainConfig.assets.icons.outDir,
-      mainConfig.assets.icons.outName + ".svg"
-    )
-  }
   if (fileExt.match(/\.(jpg|jpeg|gif|png|webp|svg)/)) {
     return path.join(
       mainConfig.assets.images.outDir,
