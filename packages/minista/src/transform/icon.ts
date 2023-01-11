@@ -1,12 +1,10 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
-import type { SvgstoreAddOptions } from "@qrac/svgstore"
 import path from "node:path"
 import fs from "fs-extra"
-import fg from "fast-glob"
 import { watch } from "chokidar"
 
 import type { ResolvedConfig } from "../config/index.js"
-import { transformSprite } from "./sprite.js"
+import { generateTempIcon } from "../generate/icon.js"
 import { resolveBase } from "../utility/base.js"
 import { cleanElement } from "../utility/element.js"
 
@@ -16,7 +14,6 @@ export type CreateIcons = {
 
 type CreateIcon = {
   srcDir: string
-  options: SvgstoreAddOptions
 }
 
 const cleanAttributes = [
@@ -47,29 +44,6 @@ export function resolveIconAttrs({
   return { href }
 }
 
-async function generateTempIcon({
-  fileName,
-  srcDir,
-  options,
-}: {
-  fileName: string
-  srcDir: string
-  options: SvgstoreAddOptions
-}) {
-  const svgFiles = await fg(path.join(srcDir, "**/*.svg"))
-
-  if (!svgFiles.length) {
-    return ""
-  }
-  const data = transformSprite({
-    svgFiles,
-    options,
-  })
-  await fs.outputFile(fileName, data).catch((err) => {
-    console.error(err)
-  })
-}
-
 async function transformIcon({
   command,
   el,
@@ -84,7 +58,6 @@ async function transformIcon({
   const { assets } = config.main
   const { resolvedRoot, tempDir } = config.sub
   const resolvedBase = resolveBase(config.main.base)
-  const options = assets.icons.svgstoreOptions
 
   let srcDir = ""
   srcDir = el.getAttribute("data-minista-icon-srcdir") || ""
@@ -113,7 +86,7 @@ async function transformIcon({
     const hasTempFile = fs.existsSync(fileName)
 
     if (!hasTempFile) {
-      await generateTempIcon({ fileName, srcDir, options })
+      await generateTempIcon({ fileName, srcDir, config })
 
       const watcher = watch(srcDir)
 
@@ -124,7 +97,7 @@ async function transformIcon({
           await generateTempIcon({
             fileName,
             srcDir,
-            options,
+            config,
           })
         }
       })
@@ -146,7 +119,6 @@ async function transformIcon({
     if (!hasCreateIcon) {
       createIcons[fileName] = {
         srcDir,
-        options,
       }
     }
     el.setAttribute("href", href)

@@ -45,6 +45,7 @@ import { transformSprite } from "../transform/sprite.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
+import { generateIcons } from "../generate/icon.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -467,46 +468,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     )
   }
 
-  const createIconsArray = Object.entries(createIcons)
-
-  if (createIconsArray.length) {
-    await Promise.all(
-      createIconsArray.map(async (item) => {
-        const fileName = item[0]
-        const createIcon = item[1]
-        const { srcDir, options } = createIcon
-
-        const svgFiles = await fg(path.join(srcDir, "**/*.svg"))
-
-        if (!svgFiles.length) {
-          return
-        }
-
-        const data = transformSprite({ svgFiles, options })
-
-        const nameLength = fileName.length
-        const spaceCount = maxNameLength - nameLength + 3
-        const space = " ".repeat(spaceCount)
-
-        const routePath = path.join(resolvedRoot, config.main.out, fileName)
-        const relativePath = path.relative(process.cwd(), routePath)
-        const dataSize = (data.length / 1024).toFixed(2)
-
-        return await fs
-          .outputFile(routePath, data)
-          .then(() => {
-            console.log(
-              `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
-                space +
-                pc.gray(`${dataSize} KiB`)
-            )
-          })
-          .catch((err) => {
-            console.error(err)
-          })
-      })
-    )
-  }
+  await generateIcons({ createIcons, config, maxNameLength })
 
   if (delivery.archives.length) {
     const cwd = path.relative(process.cwd(), resolvedRoot)
