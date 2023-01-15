@@ -109,7 +109,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       ssr: { noExternal: "minista" },
       plugins: [
         pluginReact(),
-        pluginMdx(config.mdx),
+        pluginMdx(config),
         pluginImage(config),
         pluginSvgr(config),
         pluginIcon(config),
@@ -205,7 +205,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       },
       plugins: [
         pluginReact(),
-        pluginMdx(config.mdx),
+        pluginMdx(config),
         pluginSvgr(config),
         pluginBundle(),
       ],
@@ -219,7 +219,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       plugins: [
         pluginReact(),
         pluginPreact(config),
-        pluginMdx(config.mdx),
+        pluginMdx(config),
         pluginSvgr(config),
         pluginHydrate(),
         pluginSearch(config),

@@ -26,7 +26,7 @@ export async function develop(inlineConfig: InlineConfig = {}) {
       plugins: [
         pluginReact(),
         pluginPreact(config),
-        pluginMdx(config.mdx),
+        pluginMdx(config),
         pluginImage(config),
         pluginSvgr(config),
         pluginIcon(config),
