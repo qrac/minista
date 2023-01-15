@@ -30,7 +30,7 @@ export function pluginSearch(config: ResolvedConfig): Plugin {
         command === "serve" &&
         id.match(path.join(__dirname, "../shared/search.js"))
       ) {
-        const importCode = `import { searchObj as data } from "virtual:minista-plugin-serve"`
+        const importCode = `import { searchObj as data } from "virtual:minista-plugin-develop"`
         const replacedCode = code
           .replace(
             /const response = await fetch/,
