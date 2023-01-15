@@ -4,11 +4,11 @@ import {
   defineConfig as defineViteConfig,
   mergeConfig as mergeViteConfig,
 } from "vite"
-import { default as pluginReact } from "@vitejs/plugin-react"
 import { default as pluginMdx } from "@mdx-js/rollup"
 
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
+import { pluginReact } from "../plugins/react.js"
 import { pluginPreact } from "../plugins/preact.js"
 import { pluginImage } from "../plugins/image.js"
 import { pluginSvgr } from "../plugins/svgr.js"

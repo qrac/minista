@@ -11,7 +11,6 @@ import {
   build as viteBuild,
   createLogger,
 } from "vite"
-import { default as pluginReact } from "@vitejs/plugin-react"
 import { default as pluginMdx } from "@mdx-js/rollup"
 import { parse as parseHtml } from "node-html-parser"
 import beautify from "js-beautify"
@@ -25,6 +24,7 @@ import type { EntryImages, CreateImages } from "../transform/image.js"
 import type { CreateSprites } from "../generate/sprite.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
+import { pluginReact } from "../plugins/react.js"
 import { pluginPreact } from "../plugins/preact.js"
 import { pluginImage } from "../plugins/image.js"
 import { pluginSvgr } from "../plugins/svgr.js"
