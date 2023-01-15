@@ -22,7 +22,7 @@ import type { InlineConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
 import type { EntryImages, CreateImages } from "../transform/image.js"
-import type { CreateIcons } from "../transform/icon.js"
+import type { CreateSprites } from "../generate/sprite.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
 import { pluginPreact } from "../plugins/preact.js"
@@ -41,11 +41,10 @@ import {
   transformRelativeImages,
 } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
-import { transformSprite } from "../transform/sprite.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
-import { generateIcons } from "../generate/icon.js"
+import { generateSprites } from "../generate/sprite.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -92,7 +91,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   let entryImages: EntryImages = {}
   let createImages: CreateImages = {}
-  let createIcons: CreateIcons = {}
+  let createSprites: CreateSprites = {}
 
   let htmlItems: GenerateItem[] = []
   let generateItems: GenerateItem[] = []
@@ -170,7 +169,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
             command: "build",
             parsedHtml,
             config,
-            createIcons,
+            createSprites,
           })
         }
 
@@ -308,7 +307,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   const generateNames = generateItems.map((item) => item.fileName)
   const imageNames = Object.keys(createImages).map((item) => item)
-  const iconNames = Object.keys(createIcons).map((item) => item)
+  const iconNames = Object.keys(createSprites).map((item) => item)
   const archiveNames = delivery.archives.map((item) =>
     path.join(item.outDir, item.outName + "." + item.format)
   )
@@ -468,7 +467,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     )
   }
 
-  await generateIcons({ createIcons, config, maxNameLength })
+  await generateSprites({ createSprites, config, maxNameLength })
 
   if (delivery.archives.length) {
     const cwd = path.relative(process.cwd(), resolvedRoot)

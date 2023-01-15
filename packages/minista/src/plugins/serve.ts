@@ -8,7 +8,7 @@ import type { ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
 import type { SsgPage } from "../server/ssg.js"
 import type { EntryImages, CreateImages } from "../transform/image.js"
-import type { CreateIcons } from "../transform/icon.js"
+import type { CreateSprites } from "../generate/sprite.js"
 import { transformPage } from "../transform/page.js"
 import { transformPages } from "../transform/pages.js"
 import { transformEntryTags } from "../transform/tags.js"
@@ -33,7 +33,7 @@ export function pluginServe(config: ResolvedConfig): Plugin {
   let ssgPages: SsgPage[] = []
   let entryImages: EntryImages = {}
   let createImages: CreateImages = {}
-  let createIcons: CreateIcons = {}
+  let createSprites: CreateSprites = {}
 
   return {
     name: "minista-vite-plugin:serve",
@@ -112,7 +112,8 @@ export function pluginServe(config: ResolvedConfig): Plugin {
                 command: "serve",
                 parsedHtml,
                 config,
-                createIcons,
+                createSprites,
+                server,
               })
             }
 

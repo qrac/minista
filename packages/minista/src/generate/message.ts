@@ -7,7 +7,7 @@ export function generateMessage({
 }: {
   fileName: string
   space?: string
-  data?: string
+  data?: string | Buffer
 }) {
   const title = pc.bold(pc.green("BUILD"))
   const main = pc.bold(fileName)
