@@ -1,15 +1,14 @@
-import type { PluginOption } from "vite"
 import {
   createServer as createViteServer,
   defineConfig as defineViteConfig,
   mergeConfig as mergeViteConfig,
 } from "vite"
-import { default as pluginMdx } from "@mdx-js/rollup"
 
 import type { InlineConfig } from "../config/index.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginReact } from "../plugins/react.js"
 import { pluginPreact } from "../plugins/preact.js"
+import { pluginMdx } from "../plugins/mdx.js"
 import { pluginImage } from "../plugins/image.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 import { pluginIcon } from "../plugins/icon.js"
@@ -27,7 +26,7 @@ export async function develop(inlineConfig: InlineConfig = {}) {
       plugins: [
         pluginReact(),
         pluginPreact(config),
-        pluginMdx(config.mdx) as PluginOption,
+        pluginMdx(config.mdx),
         pluginImage(config),
         pluginSvgr(config),
         pluginIcon(config),

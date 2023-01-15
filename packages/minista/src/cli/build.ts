@@ -1,5 +1,4 @@
 import type { RollupOutput } from "rollup"
-import type { PluginOption } from "vite"
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 import fs from "fs-extra"
@@ -11,7 +10,6 @@ import {
   build as viteBuild,
   createLogger,
 } from "vite"
-import { default as pluginMdx } from "@mdx-js/rollup"
 import { parse as parseHtml } from "node-html-parser"
 import beautify from "js-beautify"
 import sharp from "sharp"
@@ -26,6 +24,7 @@ import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
 import { pluginReact } from "../plugins/react.js"
 import { pluginPreact } from "../plugins/preact.js"
+import { pluginMdx } from "../plugins/mdx.js"
 import { pluginImage } from "../plugins/image.js"
 import { pluginSvgr } from "../plugins/svgr.js"
 import { pluginIcon } from "../plugins/icon.js"
@@ -110,7 +109,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       ssr: { noExternal: "minista" },
       plugins: [
         pluginReact(),
-        pluginMdx(config.mdx) as PluginOption,
+        pluginMdx(config.mdx),
         pluginImage(config),
         pluginSvgr(config),
         pluginIcon(config),
@@ -206,7 +205,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       },
       plugins: [
         pluginReact(),
-        pluginMdx(config.mdx) as PluginOption,
+        pluginMdx(config.mdx),
         pluginSvgr(config),
         pluginBundle(),
       ],
@@ -220,7 +219,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       plugins: [
         pluginReact(),
         pluginPreact(config),
-        pluginMdx(config.mdx) as PluginOption,
+        pluginMdx(config.mdx),
         pluginSvgr(config),
         pluginHydrate(),
         pluginSearch(config),
