@@ -42,6 +42,17 @@ function resolveAspect(aspect: string) {
   }
 }
 
+function resolveTarget(src: string) {
+  const regex = /^https?:\/\//i
+  const isRemote = regex.test(src)
+
+  if (isRemote) {
+    return "remote"
+  } else {
+    return "image"
+  }
+}
+
 export function Image({
   src,
   sizes = autoSize,
@@ -50,7 +61,6 @@ export function Image({
   alt = "",
   decoding = "async",
   loading = "lazy",
-  remoteName,
   layout,
   breakpoints,
   resolution,
@@ -88,7 +98,7 @@ export function Image({
       alt={alt}
       decoding={decoding}
       loading={loading}
-      data-minista-transform-target="image"
+      data-minista-transform-target={resolveTarget(src)}
       data-minista-image-src={src}
       data-minista-image-optimize={optimizeStr}
       {...attributes}
@@ -104,7 +114,6 @@ export function Picture({
   alt = "",
   decoding = "async",
   loading = "lazy",
-  remoteName,
   layout,
   breakpoints,
   resolution,
@@ -126,7 +135,6 @@ export function Picture({
   const resolvedAspect = aspect ? resolveAspect(aspect) : undefined
 
   const optimizeObj: Partial<ImageOptimize> = {
-    remoteName,
     layout,
     breakpoints,
     resolution,
@@ -154,7 +162,6 @@ export function Picture({
         if (item.formats && item.formats.length > 0) {
           return item.formats.map((itemFormat, formatIndex) => {
             const sourceOptimizeObj: Partial<ImageOptimize> = {
-              remoteName: item.remoteName || remoteName,
               layout: item.layout || layout,
               breakpoints: item.breakpoints || breakpoints,
               resolution: item.resolution || resolution,
@@ -176,7 +183,7 @@ export function Picture({
                 sizes={sourceSizes}
                 width={sourceWidth}
                 height={sourceHeight}
-                data-minista-transform-target="image"
+                data-minista-transform-target={resolveTarget(src)}
                 data-minista-image-src={src}
                 data-minista-image-optimize={sourceOptimizeStr}
               />
@@ -184,7 +191,6 @@ export function Picture({
           })
         } else {
           const sourceOptimizeObj: Partial<ImageOptimize> = {
-            remoteName: item.remoteName || remoteName,
             layout: item.layout || layout,
             breakpoints: item.breakpoints || breakpoints,
             resolution: item.resolution || resolution,
@@ -206,7 +212,7 @@ export function Picture({
               sizes={sourceSizes}
               width={sourceWidth}
               height={sourceHeight}
-              data-minista-transform-target="image"
+              data-minista-transform-target={resolveTarget(src)}
               data-minista-image-src={src}
               data-minista-image-optimize={sourceOptimizeStr}
             />
@@ -216,7 +222,6 @@ export function Picture({
 
       {otherFormats.map((item, index) => {
         const sourceOptimizeObj: Partial<ImageOptimize> = {
-          remoteName,
           layout,
           breakpoints,
           resolution,
@@ -237,7 +242,7 @@ export function Picture({
             sizes={sizes}
             width={width}
             height={height}
-            data-minista-transform-target="image"
+            data-minista-transform-target={resolveTarget(src)}
             data-minista-image-src={src}
             data-minista-image-optimize={sourceOptimizeStr}
           />
@@ -253,7 +258,7 @@ export function Picture({
         alt={alt}
         decoding={decoding}
         loading={loading}
-        data-minista-transform-target="image"
+        data-minista-transform-target={resolveTarget(src)}
         data-minista-image-src={src}
         data-minista-image-optimize={optimizeStr}
         {...attributes}

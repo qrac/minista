@@ -26,6 +26,10 @@ export default function () {
       <div>
         <Image src="https://picsum.photos/id/1/800/600" width={800} />
       </div>
+
+      <div>
+        <Image src="https://picsum.photos/id/10/800/600" width={800} />
+      </div>
     </>
   )
 }

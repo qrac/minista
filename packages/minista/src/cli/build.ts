@@ -19,6 +19,7 @@ import type { InlineConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
 import type { EntryImages, CreateImages } from "../transform/image.js"
+import type { TempRemotes } from "../generate/remote.js"
 import type { CreateSprites } from "../generate/sprite.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
@@ -34,6 +35,7 @@ import { pluginPartial } from "../plugins/partial.js"
 import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
+import { transformRemotesAll } from "../transform/remote.js"
 import { transformDynamicEntries } from "../transform/entry.js"
 import {
   transformEntryImages,
@@ -55,6 +57,8 @@ type BuildItem = RollupOutput["output"][0] & {
 }
 
 type CssNameBugFix = { [key: string]: string }
+
+export type ParsedPage = Omit<SsgPage, "html"> & { parsedHtml: NHTMLElement }
 
 type GenerateItem = {
   fileName: string
@@ -82,12 +86,14 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let hydrateItems: BuildItem[]
 
   let ssgPages: SsgPage[] = []
+  let parsedPages: ParsedPage[] = []
 
   let linkEntries: ResolvedViteEntry = {}
   let scriptEntries: ResolvedViteEntry = {}
   let ssgEntries: ResolvedViteEntry = {}
   let assetEntries: ResolvedViteEntry = {}
 
+  let tempRemotes: TempRemotes = {}
   let entryImages: EntryImages = {}
   let createImages: CreateImages = {}
   let createSprites: CreateSprites = {}
@@ -129,19 +135,32 @@ export async function build(inlineConfig: InlineConfig = {}) {
   if (ssgItems.length > 0) {
     const ssgPath = path.join(tempDir, "ssg.mjs")
     const ssgData = ssgItems[0].source || ssgItems[0].code || ""
-
     await fs.outputFile(ssgPath, ssgData)
-
     const { runSsg }: { runSsg: RunSsg } = await import(ssgPath)
     ssgPages = await runSsg(config)
   }
 
   if (ssgPages.length > 0) {
+    parsedPages = ssgPages.map((page) => {
+      const parsedHtml = parseHtml(page.html, { comment: true }) as NHTMLElement
+      return {
+        fileName: page.fileName,
+        path: page.path,
+        title: page.path,
+        parsedHtml,
+      }
+    })
+    parsedPages = await transformRemotesAll({
+      parsedPages,
+      config,
+      tempRemotes,
+    })
+
     htmlItems = await Promise.all(
-      ssgPages.map(async (page) => {
+      parsedPages.map(async (page) => {
         const pathname = page.path
 
-        let parsedHtml = parseHtml(page.html, { comment: true }) as NHTMLElement
+        let parsedHtml = page.parsedHtml
 
         parsedHtml = transformDynamicEntries({
           parsedHtml,

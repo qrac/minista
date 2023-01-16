@@ -12,7 +12,8 @@ import { parse as parseHtml } from "node-html-parser"
 import type { InlineConfig, ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
 import type { SsgPage } from "../server/ssg.js"
-import type { RemoteImages, EntryImages } from "../transform/image.js"
+import type { EntryImages } from "../transform/image.js"
+import type { TempRemotes } from "../generate/remote.js"
 import type { CreateImages } from "../generate/image.js"
 import type { CreateSprites } from "../generate/sprite.js"
 import { resolveConfig } from "../config/index.js"
@@ -29,6 +30,7 @@ import { transformPage } from "../transform/page.js"
 import { transformPages } from "../transform/pages.js"
 import { transformEntryTags } from "../transform/tags.js"
 import { transformComment } from "../transform/comment.js"
+import { transformRemotes } from "../transform/remote.js"
 import { transformImages } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
 import { transformEncode } from "../transform/encode.js"
@@ -74,7 +76,7 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
   let useVirtualModule: boolean = false
   let ssgPages: SsgPage[] = []
 
-  let remoteImages: RemoteImages = []
+  let tempRemotes: TempRemotes = {}
   let entryImages: EntryImages = {}
   let createImages: CreateImages = {}
   let createSprites: CreateSprites = {}
@@ -140,6 +142,14 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
 
             if (parsedHtml.querySelector(`[${targetAttr}="comment"]`)) {
               parsedHtml = transformComment(parsedHtml)
+            }
+
+            if (parsedHtml.querySelector(`[${targetAttr}="remote"]`)) {
+              parsedHtml = await transformRemotes({
+                parsedHtml,
+                config,
+                tempRemotes,
+              })
             }
 
             if (parsedHtml.querySelector(`[${targetAttr}="image"]`)) {

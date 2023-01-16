@@ -36,6 +36,7 @@ export type UserConfig = {
     images?: {
       outDir?: string
       outName?: string
+      remoteName?: string
       optimize?: Partial<ImageOptimize>
     }
     svgr?: {

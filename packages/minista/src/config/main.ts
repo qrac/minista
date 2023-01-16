@@ -31,6 +31,7 @@ export type MainConfig = {
     images: {
       outDir: string
       outName: string
+      remoteName: string
       optimize: ImageOptimize
     }
     svgr: {
@@ -131,8 +132,8 @@ export const defaultMainConfig: MainConfig = {
     images: {
       outDir: "assets/images",
       outName: "[name]",
+      remoteName: "remote",
       optimize: {
-        remoteName: "remote",
         layout: "constrained",
         breakpoints: [
           320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840,
