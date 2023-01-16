@@ -86,15 +86,16 @@ export async function transformRemote({
   )
   await Promise.all(
     createRemotes.map(async (item) => {
-      return await generateTempRemote({
+      await generateTempRemote({
         url: item.url,
         fileName: item.fileName,
         data: item.data,
         tempRemotes,
       })
+      return
     })
   )
-  return remoteEls.map((el) => {
+  remoteEls.map((el) => {
     const remoteSrc = el.getAttribute("data-minista-image-src") || ""
     const fileName = tempRemotes[remoteSrc].fileName || ""
     const filePath = fileName.replace(resolvedRoot, "")
