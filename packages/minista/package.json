@@ -88,6 +88,7 @@
     "js-beautify": "^1.14.7",
     "mime-types": "^2.1.35",
     "mojigiri": "^0.3.0",
+    "node-fetch": "^3.3.0",
     "node-html-parser": "^6.1.4",
     "picomatch": "^2.3.1",
     "react-helmet-async": "^1.3.0",
@@ -101,7 +102,6 @@
     "remark-parse": "^10.0.1",
     "remark-rehype": "^10.1.0",
     "sharp": "^0.31.3",
-    "undici": "^5.14.0",
     "unified": "^10.1.2",
     "vite": "^4.0.4"
   }

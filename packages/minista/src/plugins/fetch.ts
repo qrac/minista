@@ -31,7 +31,7 @@ export function pluginFetch(config: ResolvedConfig): Plugin {
           !useNodeFetch
         ) {
           return {
-            code: `import { fetch } from "undici"\n` + code,
+            code: `import fetch from "node-fetch"\n` + code,
             map: null,
           }
         }
