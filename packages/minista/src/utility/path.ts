@@ -54,12 +54,18 @@ export function resolveRelativeImagePath({
   assetPath: string
 }) {
   let resolvedPath = assetPath.replace(/\n/, "").trim()
+export function getUniquePaths(paths: string[], excludes?: string[]) {
+  const uniquePaths = [...new Set(paths)].sort()
 
   if (!resolvedPath.includes(",") && resolvedPath.startsWith(replaceTarget)) {
     return getRelativeAssetPath({ pathname, assetPath: resolvedPath })
   }
   if (!resolvedPath.includes(",")) {
     return resolvedPath
+  if (excludes) {
+    return uniquePaths.filter((url) => !excludes.includes(url))
+  } else {
+    return uniquePaths
   }
 
   resolvedPath = resolvedPath

@@ -12,6 +12,7 @@ import {
   getBasedAssetPath,
   getNodeModulesPath,
   resolveRelativeImagePath,
+  getUniquePaths,
   isLocalPath,
   isRemotePath,
 } from "../../src/utility/path"
@@ -157,6 +158,11 @@ describe("resolveRelativeImagePath", () => {
     expect(result).toEqual(
       "assets/images/image.png 768w, assets/images/image.png 1024w"
     )
+describe("getUniquePaths", () => {
+  it("Default", () => {
+    const urls = ["BB", "AA", "AA", "BB", "CC", "DD"]
+    const result = getUniquePaths(urls)
+    expect(result).toEqual(["AA", "BB", "CC", "DD"])
   })
 
   it("Nest multiple", () => {
@@ -171,6 +177,11 @@ describe("resolveRelativeImagePath", () => {
     expect(result).toEqual(
       "../assets/images/image.png 768w, ../assets/images/image.png 1024w"
     )
+  it("With excludes", () => {
+    const urls = ["BB", "AA", "AA", "BB", "CC", "DD"]
+    const excludes = ["BB", "CC"]
+    const result = getUniquePaths(urls, excludes)
+    expect(result).toEqual(["AA", "DD"])
   })
 })
 
