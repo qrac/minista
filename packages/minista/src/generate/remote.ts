@@ -2,6 +2,7 @@ import fs from "fs-extra"
 
 export type CreateRemotes = CreateRemote[]
 type CreateRemote = {
+import { logger } from "../cli/logger.js"
   url: string
   fileName: string
   filePath: string
@@ -33,9 +34,14 @@ export async function generateRemotes(createRemotes: CreateRemotes) {
   if (createRemotes.length > 0) {
     await Promise.all(
       createRemotes.map(async (item) => {
-        await fs.outputFile(item.fileName, item.data).catch((err) => {
-          console.error(err)
-        })
+        await fs
+          .outputFile(item.fileName, item.data)
+          .then(() => {
+            logger({ label: "FETCH", main: item.url })
+          })
+          .catch((err) => {
+            console.error(err)
+          })
         return
       })
     )

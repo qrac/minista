@@ -3,8 +3,8 @@ import fs from "fs-extra"
 import fg from "fast-glob"
 
 import type { ResolvedConfig } from "../config/index.js"
+import { logger } from "../cli/logger.js"
 import { transformSprite } from "../transform/sprite.js"
-import { generateMessage } from "./message.js"
 import { getSpace } from "../utility/space.js"
 
 export type CreateSprites = {
@@ -66,7 +66,7 @@ async function generateSprite({
   return await fs
     .outputFile(routePath, data)
     .then(() => {
-      generateMessage({ fileName: relativePath, space, data })
+      logger({ main: relativePath, space, data })
     })
     .catch((err) => {
       console.error(err)
