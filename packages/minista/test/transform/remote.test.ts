@@ -12,7 +12,6 @@ const __dirname = path.dirname(__filename)
 
 import {
   getRemoteList,
-  getFetchUrls,
   getRemoteExt,
   fetchRemote,
 } from "../../src/transform/remote"
@@ -25,21 +24,6 @@ describe("getRemoteList", () => {
     const list = getRemoteList(elements)
     const result = list.map((item) => item.src)
     expect(result).toEqual(["A", "B"])
-  })
-})
-
-describe("getFetchUrls", () => {
-  it("Default", () => {
-    const urls = [
-      "http://a.com",
-      "http://a.com",
-      "http://b.com",
-      "http://c.com",
-      "http://d.com",
-    ]
-    const excludes = ["http://b.com", "http://c.com"]
-    const result = getFetchUrls(urls, excludes)
-    expect(result).toEqual(["http://a.com", "http://d.com"])
   })
 })
 

@@ -10,18 +10,13 @@ import type { ResolvedConfig } from "../config/index.js"
 import type { CreateRemotes, CreatedRemotes } from "../generate/remote.js"
 import { generateRemoteCache, generateRemotes } from "../generate/remote.js"
 import { getElements } from "../utility/element.js"
+import { getUniquePaths } from "../utility/path.js"
 
 export function getRemoteList(elements: NHTMLElement[]) {
   const list = elements.map((el) => {
-    const srcAttr = "data-minista-image-src"
-    return { el: el, src: el.getAttribute(srcAttr) || "" }
+    return { el: el, src: el.getAttribute("data-minista-image-src") || "" }
   })
   return list.filter((item) => item.src)
-}
-
-export function getFetchUrls(urls: string[], excludes: string[]) {
-  const uniqueUrls = [...new Set(urls)].sort()
-  return uniqueUrls.filter((url) => !excludes.includes(url))
 }
 
 export function getRemoteExt(url: string) {
@@ -99,7 +94,7 @@ export async function transformRemotes({
   const remoteList = getRemoteList(remoteEls)
   const remoteUrls = remoteList.map((item) => item.src)
   const excludesUrls = Object.keys(createdRemotes)
-  const fetchUrls = getFetchUrls(remoteUrls, excludesUrls)
+  const fetchUrls = getUniquePaths(remoteUrls, excludesUrls)
 
   const fetchedRemotes = await Promise.all(
     fetchUrls
@@ -119,27 +114,19 @@ export async function transformRemotes({
       createRemotes.push({
         url: item.url,
         fileName: item.fileName,
-        filePath: item.fileName.replace(resolvedRoot, ""),
         data: item.data,
       })
+      createdRemotes[item.url] = item.fileName.replace(resolvedRoot, "")
       return
     })
     await generateRemotes(createRemotes)
-
-    createRemotes.map((item) => {
-      createdRemotes[item.url] = {
-        fileName: item.fileName,
-        filePath: item.filePath,
-      }
-      return
-    })
 
     if (command === "serve") {
       await generateRemoteCache(cacheFile, createdRemotes)
     }
   }
   remoteList.map((item) => {
-    const filePath = createdRemotes[item.src].filePath || ""
+    const filePath = createdRemotes[item.src] || ""
     item.el.setAttribute("data-minista-image-src", filePath)
     item.el.setAttribute("data-minista-transform-target", "image")
     return

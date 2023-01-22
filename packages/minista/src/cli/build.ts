@@ -19,7 +19,6 @@ import type { InlineConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
 import type { EntryImages, CreateImages } from "../transform/image.js"
-import type { TempRemotes } from "../generate/remote.js"
 import type { CreateSprites } from "../generate/sprite.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
@@ -35,7 +34,7 @@ import { pluginPartial } from "../plugins/partial.js"
 import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
-import { transformRemotesAll } from "../transform/remote.js"
+import { transformRemotes } from "../transform/remote.js"
 import { transformDynamicEntries } from "../transform/entry.js"
 import {
   transformEntryImages,
@@ -93,7 +92,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let ssgEntries: ResolvedViteEntry = {}
   let assetEntries: ResolvedViteEntry = {}
 
-  let tempRemotes: TempRemotes = {}
   let entryImages: EntryImages = {}
   let createImages: CreateImages = {}
   let createSprites: CreateSprites = {}
@@ -150,7 +148,13 @@ export async function build(inlineConfig: InlineConfig = {}) {
         parsedHtml,
       }
     })
-    parsedPages = await transformRemotesAll({
+    let parsedData = parsedPages.map((item) => item.parsedHtml)
+
+    await transformRemotes({
+      command: "build",
+      parsedData,
+      config,
+    })
       parsedPages,
       config,
       tempRemotes,

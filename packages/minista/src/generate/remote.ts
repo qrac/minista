@@ -1,20 +1,14 @@
 import fs from "fs-extra"
 
-export type CreateRemotes = CreateRemote[]
-type CreateRemote = {
 import { logger } from "../cli/logger.js"
+
+export type CreateRemotes = {
   url: string
   fileName: string
-  filePath: string
   data: string | Buffer
-}
-
+}[]
 export type CreatedRemotes = {
-  [url: string]: CreatedRemote
-}
-type CreatedRemote = {
-  fileName: string
-  filePath: string
+  [url: string]: string
 }
 
 export async function generateRemoteCache(
