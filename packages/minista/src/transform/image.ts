@@ -140,9 +140,9 @@ export async function transformImages({
   createImages?: CreateImages
 }) {
   const targetAttr = `[data-minista-transform-target="image"]`
-  const imageEls = getElements(parsedData, targetAttr)
+  const targetEls = getElements(parsedData, targetAttr)
 
-  if (imageEls.length === 0) {
+  if (targetEls.length === 0) {
     return
   }
   const { resolvedRoot, resolvedBase, tempDir } = config.sub
@@ -158,7 +158,7 @@ export async function transformImages({
     }
   }
 
-  const imageList = imageEls
+  const targetList = targetEls
     .map((el) => {
       return {
         el: el,
@@ -176,13 +176,13 @@ export async function transformImages({
     })
     .filter((item) => item.src)
 
-  const imageSrcs = getUniquePaths(
-    imageList.map((item) => item.src),
+  const targetSrcs = getUniquePaths(
+    targetList.map((item) => item.src),
     Object.keys(cacheData)
   )
 
   await Promise.all(
-    imageSrcs.map(async (src) => {
+    targetSrcs.map(async (src) => {
       const fileName = path.join(resolvedRoot, src)
       const { width, height } = await getImageSize(fileName)
       const { aspectWidth, aspectHeight } = getImageAspects(width, height)
@@ -199,7 +199,7 @@ export async function transformImages({
   )
 
   await Promise.all(
-    imageList.map(async (item) => {
+    targetList.map(async (item) => {
       const { tagName, el } = item
       const entry = cacheData[item.src]
 
@@ -383,7 +383,7 @@ export async function transformImages({
     })
   )
 
-  if (command === "serve" && imageSrcs.length > 0) {
+  if (command === "serve" && targetSrcs.length > 0) {
     await generateImageCache(cacheJson, cacheData)
   }
 }
