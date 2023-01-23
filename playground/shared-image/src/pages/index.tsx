@@ -7,6 +7,9 @@ export default function () {
         <Image src="/src/assets/image.png" width={800} />
       </div>
       <div>
+        <Image src="/src/assets/image2.png" width={200} />
+      </div>
+      <div>
         <Image
           src="/src/assets/image.png"
           width={200}

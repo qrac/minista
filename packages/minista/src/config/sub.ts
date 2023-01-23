@@ -6,10 +6,12 @@ import type { ResolvedEntry } from "./entry.js"
 import type { ResolvedAlias } from "./alias.js"
 import { resolveEntry } from "./entry.js"
 import { resolveAlias } from "./alias.js"
+import { resolveBase } from "../utility/base.js"
 import { getNodeModulesPath } from "../utility/path.js"
 
 export type ResolvedSubConfig = {
   resolvedRoot: string
+  resolvedBase: string
   resolvedEntry: ResolvedEntry
   resolvedAlias: ResolvedAlias
   tempDir: string
@@ -21,6 +23,7 @@ export async function resolveSubConfig(
   const resolvedRoot = normalizePath(
     mainConfig.root ? path.resolve(mainConfig.root) : process.cwd()
   )
+  const resolvedBase = resolveBase(mainConfig.base)
 
   const configEntry = mainConfig.assets.entry
   const viteConfigEntry = mainConfig.vite.build?.rollupOptions?.input || ""
@@ -34,6 +37,7 @@ export async function resolveSubConfig(
 
   return {
     resolvedRoot,
+    resolvedBase,
     resolvedEntry,
     resolvedAlias,
     tempDir,

@@ -44,43 +44,14 @@ export function getNodeModulesPath(root: string): string {
   }
 }
 
-export function resolveRelativeImagePath({
-  pathname,
-  replaceTarget,
-  assetPath,
-}: {
-  pathname: string
-  replaceTarget: string
-  assetPath: string
-}) {
-  let resolvedPath = assetPath.replace(/\n/, "").trim()
 export function getUniquePaths(paths: string[], excludes?: string[]) {
   const uniquePaths = [...new Set(paths)].sort()
 
-  if (!resolvedPath.includes(",") && resolvedPath.startsWith(replaceTarget)) {
-    return getRelativeAssetPath({ pathname, assetPath: resolvedPath })
-  }
-  if (!resolvedPath.includes(",")) {
-    return resolvedPath
   if (excludes) {
     return uniquePaths.filter((url) => !excludes.includes(url))
   } else {
     return uniquePaths
   }
-
-  resolvedPath = resolvedPath
-    .split(",")
-    .map((s) => s.trim())
-    .map((s) => {
-      let [url, density] = s.split(/\s+/)
-
-      if (url.startsWith(replaceTarget)) {
-        url = getRelativeAssetPath({ pathname, assetPath: url })
-      }
-      return `${url} ${density}`
-    })
-    .join(", ")
-  return resolvedPath
 }
 
 export function isLocalPath(root: string, url: string) {
@@ -91,12 +62,4 @@ export function isLocalPath(root: string, url: string) {
   }
   const filePath = path.join(root, url)
   return fs.existsSync(filePath)
-}
-
-export function isRemotePath(url: string) {
-  if (url.match(/^https?:\/\//) && parseUrl(url)) {
-    return true
-  } else {
-    return false
-  }
 }

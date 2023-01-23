@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -11,10 +10,8 @@ import {
   getRelativeAssetPath,
   getBasedAssetPath,
   getNodeModulesPath,
-  resolveRelativeImagePath,
   getUniquePaths,
   isLocalPath,
-  isRemotePath,
 } from "../../src/utility/path"
 
 describe("getHtmlPath", () => {
@@ -123,41 +120,6 @@ describe("getNodeModulesPath", () => {
   })
 })
 
-describe("resolveRelativeImagePath", () => {
-  it("Root", () => {
-    const result = resolveRelativeImagePath({
-      pathname: "/",
-      replaceTarget: "/assets/images",
-      assetPath: "/assets/images/image.png",
-    })
-
-    //console.log(result)
-    expect(result).toEqual("assets/images/image.png")
-  })
-
-  it("Nest", () => {
-    const result = resolveRelativeImagePath({
-      pathname: "/about/",
-      replaceTarget: "/assets/images",
-      assetPath: "/assets/images/image.png",
-    })
-
-    //console.log(result)
-    expect(result).toEqual("../assets/images/image.png")
-  })
-
-  it("Root multiple", () => {
-    const result = resolveRelativeImagePath({
-      pathname: "/",
-      replaceTarget: "/assets/images",
-      assetPath:
-        "/assets/images/image.png 768w, /assets/images/image.png 1024w",
-    })
-
-    //console.log(result)
-    expect(result).toEqual(
-      "assets/images/image.png 768w, assets/images/image.png 1024w"
-    )
 describe("getUniquePaths", () => {
   it("Default", () => {
     const urls = ["BB", "AA", "AA", "BB", "CC", "DD"]
@@ -165,18 +127,6 @@ describe("getUniquePaths", () => {
     expect(result).toEqual(["AA", "BB", "CC", "DD"])
   })
 
-  it("Nest multiple", () => {
-    const result = resolveRelativeImagePath({
-      pathname: "/about/",
-      replaceTarget: "/assets/images",
-      assetPath:
-        "/assets/images/image.png 768w, /assets/images/image.png 1024w",
-    })
-
-    //console.log(result)
-    expect(result).toEqual(
-      "../assets/images/image.png 768w, ../assets/images/image.png 1024w"
-    )
   it("With excludes", () => {
     const urls = ["BB", "AA", "AA", "BB", "CC", "DD"]
     const excludes = ["BB", "CC"]
@@ -202,22 +152,6 @@ describe("isLocalPath", () => {
 
   it("No file", () => {
     const result = isLocalPath(__dirname, "test.js")
-
-    //console.log(result)
-    expect(result).toBeFalsy()
-  })
-})
-
-describe("isRemotePath", () => {
-  it("Default", () => {
-    const result = isRemotePath("https://example.com/image.jpg")
-
-    //console.log(result)
-    expect(result).toBeTruthy()
-  })
-
-  it("Protocol none", () => {
-    const result = isRemotePath("/image.jpg")
 
     //console.log(result)
     expect(result).toBeFalsy()

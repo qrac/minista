@@ -6,8 +6,10 @@ import type {
   ResizeOptions,
 } from "sharp"
 
+export type ImageFormat = "inherit" | "jpg" | "png" | "webp" | "avif"
+export type ResolvedImageFormat = Omit<ImageFormat, "inherit">
+
 export type ImageOptimize = {
-  remoteName: string
   layout: "constrained" | "fixed"
   breakpoints:
     | number[]
@@ -31,18 +33,31 @@ export type ImagesOptimize = {
   formats: ImageFormat[]
 } & Omit<ImageOptimize, "format">
 
-export type ImageFormat = "inherit" | "jpg" | "png" | "webp" | "avif"
-export type ResolvedImageFormat = "jpg" | "png" | "webp" | "avif"
-
 export type ResolvedImageOptimize = ImageOptimize
 
 export function resolveImageOptimize(
-  imageConfig: ImageOptimize,
-  inlineConfig: string
+  base: ImageOptimize,
+  inline: string | Partial<ImageOptimize>
 ): ResolvedImageOptimize {
-  let _inlineConfig = inlineConfig
-  _inlineConfig = _inlineConfig.match(/^{.*}$/) ? _inlineConfig : "{}"
+  let inlineObj = {}
 
-  const inlineObj = (JSON.parse(_inlineConfig) || {}) as Partial<ImageOptimize>
-  return { ...imageConfig, ...inlineObj }
+  if (typeof inline === "string" || !inline) {
+    const inlineStr = inline.match(/^{.*}$/) ? inline : "{}"
+    inlineObj = (JSON.parse(inlineStr) || {}) as Partial<ImageOptimize>
+  } else {
+    inlineObj = inline
+  }
+  let mergedOptimize = { ...base, ...inlineObj }
+  let { formatOptions, quality } = mergedOptimize
+
+  formatOptions = {
+    jpg: { quality },
+    png: { quality },
+    webp: { quality },
+    avif: { quality },
+    ...formatOptions,
+  }
+  mergedOptimize.formatOptions = formatOptions
+
+  return mergedOptimize
 }

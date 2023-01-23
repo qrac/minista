@@ -10,22 +10,7 @@ import { setupServer } from "msw/node"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-import {
-  getRemoteList,
-  getRemoteExt,
-  fetchRemote,
-} from "../../src/transform/remote"
-
-describe("getRemoteList", () => {
-  it("Default", () => {
-    const htmlStr = `<img data-minista-image-src="A"><img ><img data-minista-image-src="B">`
-    const parsedHtml = parseHtml(htmlStr) as NHTMLElement
-    const elements = parsedHtml.querySelectorAll("img")
-    const list = getRemoteList(elements)
-    const result = list.map((item) => item.src)
-    expect(result).toEqual(["A", "B"])
-  })
-})
+import { getRemoteExt, fetchRemote } from "../../src/transform/remote"
 
 describe("getRemoteExt", () => {
   it("Default", () => {

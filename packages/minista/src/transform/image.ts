@@ -1,38 +1,19 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
-import type { ResizeOptions } from "sharp"
 import path from "node:path"
-import { fetch } from "undici"
 import fs from "fs-extra"
-import pc from "picocolors"
-import { extension, lookup } from "mime-types"
+import { lookup } from "mime-types"
 import imageSize from "image-size"
-import sharp from "sharp"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type {
   ResolvedImageOptimize,
   ResolvedImageFormat,
 } from "../config/image.js"
+import type { EntryImages, CreateImages } from "../generate/image.js"
 import { resolveImageOptimize } from "../config/image.js"
-import { resolveBase } from "../utility/base.js"
-import { getRemoteFileName, getRemoteFileExtName } from "../utility/name.js"
-import {
-  resolveRelativeImagePath,
-  isLocalPath,
-  isRemotePath,
-} from "../utility/path.js"
-
-export type EntryImages = {
-  [key: string]: EntryImage
-}
-
-type EntryImage = {
-  fileName: string
-  width: number
-  height: number
-  aspectWidth: number
-  aspectHeight: number
-}
+import { generateImageCache, generateTempImage } from "../generate/image.js"
+import { getElements, cleanElement } from "../utility/element.js"
+import { getUniquePaths } from "../utility/path.js"
 
 type ViewImage = {
   width: string
@@ -44,163 +25,56 @@ type ViewImage = {
   changeHeight: boolean
 }
 
-export type CreateImages = {
-  [key: string]: CreateImage
-}
+const cleanAttributes = [
+  "data-minista-transform-target",
+  "data-minista-image-src",
+  "data-minista-image-outname",
+  "data-minista-image-optimize",
+]
 
-type CreateImage = {
-  input: string
-  width: number
-  height: number
-  resizeOptions: ResizeOptions
-  format: ResolvedImageFormat
-  formatOptions: ResolvedImageOptimize["formatOptions"]
-}
-
-export async function resolveRemoteImage({
-  useBuild,
-  url,
-  config,
-  optimize,
-  entryImages,
-}: {
-  useBuild: boolean
-  url: string
-  config: ResolvedConfig
-  optimize: ResolvedImageOptimize
-  entryImages: EntryImages
-}) {
-  const { tempDir } = config.sub
-  const outDir = path.join(tempDir, "images", "remote")
-
-  const { remoteName } = optimize
-  const remoteIndex =
-    Object.values(entryImages).filter((item) =>
-      item.fileName.startsWith(remoteName)
-    ).length + 1
-
-  let fileName = ""
-  let extName = ""
-  let contentType = ""
-
-  if (useBuild) {
-    const res = await fetch(url)
-
-    if (!res.ok) {
-      const message = pc.red("Unexpected response: " + res.statusText)
-      console.error(`${pc.bold(pc.red("ERROR"))} ${message}`)
-      return ""
-    }
-
-    if (!res.body) {
-      const message = pc.red("Cannot detect file: " + res.statusText)
-      console.error(`${pc.bold(pc.red("ERROR"))} ${message}`)
-      return ""
-    }
-
-    contentType = res.headers.get("content-type") || ""
-
-    extName = extension(contentType) || getRemoteFileExtName(url)
-    extName = extName === "jpeg" ? "jpg" : extName
-
-    fileName = getRemoteFileName(url)
-    fileName = fileName || `${remoteName}-${remoteIndex}.${extName}`
-    fileName = path.join(outDir, fileName)
-
-    const arrayBuffer = await res.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    await fs.outputFile(fileName, buffer).catch((err) => {
-      console.error(err)
-    })
-  } else {
-    extName = getRemoteFileExtName(url)
-    extName = extName === "jpeg" ? "jpg" : extName
-
-    fileName = getRemoteFileName(url)
-    fileName = fileName || `${remoteName}-${remoteIndex}.${extName}`
-    fileName = path.join(outDir, fileName)
+export async function getImageSize(fileName: string) {
+  if (!(await fs.pathExists(fileName))) {
+    return { width: 0, height: 0 }
   }
-
-  return fileName
+  const size = imageSize(fileName)
+  return { width: size.width || 0, height: size.height || 0 }
 }
 
-export function resolveEntryImage(entry: EntryImage) {
-  const size = imageSize(entry.fileName)
-
-  entry.width = size.width || 0
-  entry.height = size.height || 0
-
-  entry.aspectWidth = Math.round((entry.width / entry.height) * 100) / 100
-  entry.aspectWidth = !entry.aspectWidth ? 1 : entry.aspectWidth
-
-  entry.aspectHeight = Math.round((entry.height / entry.width) * 100) / 100
-  entry.aspectHeight = !entry.aspectHeight ? 1 : entry.aspectHeight
-
-  return entry
+export function getImageAspect(base: number | string, other: number | string) {
+  const _base: number = Number(base)
+  const _other: number = Number(other)
+  return Math.round((_base / _other) * 100) / 100
 }
 
-export function resolveViewImage({
-  view,
-  entry,
-  resolvedOptimize,
-}: {
-  view: ViewImage
-  entry: EntryImage
-  resolvedOptimize: ResolvedImageOptimize
-}) {
-  const { layout, aspect } = resolvedOptimize
-
-  const autoSize = "__minista_image_auto_size"
-
-  const isAutoWidth = view.width === autoSize
-  const isAutoHeight = view.height === autoSize
-  const isAutoSizes = view.sizes === autoSize
+export function getImageAspects(
+  width: number | string,
+  height: number | string,
+  aspect?: string
+) {
+  let aspectWidth: number
+  let aspectHeight: number
 
   if (aspect) {
     const regex = /^(\d+\.?\d*):(\d+\.?\d*)$/
     const aspectArray = aspect.match(regex) || ["1:1", "1", "1"]
-    const aWidth = Number(aspectArray[1])
-    const aHeight = Number(aspectArray[2])
+    width = aspectArray[1]
+    height = aspectArray[2]
+  }
+  aspectWidth = getImageAspect(width, height)
+  aspectWidth = !aspectWidth ? 1 : aspectWidth
 
-    view.aspectWidth = Math.round((aWidth / aHeight) * 100) / 100
-    view.aspectHeight = Math.round((aHeight / aWidth) * 100) / 100
-  } else {
-    view.aspectWidth = entry.aspectWidth
-    view.aspectHeight = entry.aspectHeight
-  }
+  aspectHeight = getImageAspect(height, width)
+  aspectHeight = !aspectHeight ? 1 : aspectHeight
 
-  if (isAutoWidth && isAutoHeight) {
-    view.width = entry.width.toString()
-    view.height = entry.height.toString()
-    view.changeWidth = true
-    view.changeHeight = true
-  }
-  if (isAutoWidth && !isAutoHeight) {
-    let width = Math.round(Number(view.height) * view.aspectWidth)
-    view.width = width.toString()
-    view.changeWidth = true
-  }
-  if (isAutoHeight && !isAutoWidth) {
-    let height = Math.round(Number(view.width) * view.aspectHeight)
-    view.height = height.toString()
-    view.changeHeight = true
-  }
-  if (!isAutoWidth && !isAutoHeight) {
-    view.aspectWidth =
-      Math.round((Number(view.width) / Number(view.height)) * 100) / 100
-    view.aspectHeight =
-      Math.round((Number(view.height) / Number(view.width)) * 100) / 100
-  }
+  return { aspectWidth, aspectHeight }
+}
 
-  if (isAutoSizes && layout === "constrained") {
-    view.sizes = `(min-width: ${entry.width}px) ${entry.width}px, 100vw`
-  }
-  if (isAutoSizes && layout === "fixed") {
-    view.sizes = `(min-width: ${view.width}px) ${view.width}px, 100vw`
-  }
-
-  return view
+export function getImageLength(
+  otherLength: number | string,
+  baseAspect: number
+) {
+  const _otherLength: number = Number(otherLength)
+  return Math.round(_otherLength * baseAspect)
 }
 
 export function resolveOutFormat(
@@ -248,420 +122,268 @@ export function resolveBreakpoints(
       _breakpoints.push(num)
     }
   }
-
   _breakpoints.push(maxWidth)
   _breakpoints = _breakpoints.sort((a, b) => a - b)
 
   return _breakpoints
 }
 
-export function resolveCreateImage({
-  inputPath,
-  width,
-  height,
-  outFormat,
-  resolvedOptimize,
-}: {
-  inputPath: string
-  width: number
-  height: number
-  outFormat: ResolvedImageFormat
-  resolvedOptimize: ResolvedImageOptimize
-}) {
-  const { background, fit, position } = resolvedOptimize
-  const resizeOptions = { background, fit, position }
-
-  let { formatOptions, quality } = resolvedOptimize
-
-  formatOptions = {
-    jpg: {
-      quality,
-    },
-    png: {
-      quality,
-    },
-    webp: {
-      quality,
-    },
-    avif: {
-      quality,
-    },
-    ...formatOptions,
-  }
-
-  return {
-    input: inputPath,
-    width,
-    height,
-    resizeOptions,
-    format: outFormat,
-    formatOptions,
-  } as CreateImage
-}
-
-export async function resolveServeImage({
-  useBuild,
-  entry,
-  view,
-  createImages,
-  tempOutDir,
-  resolvedOptimize,
-  config,
-}: {
-  useBuild: boolean
-  entry: EntryImage
-  view: ViewImage
-  createImages: CreateImages
-  tempOutDir: string
-  resolvedOptimize: ResolvedImageOptimize
-  config: ResolvedConfig
-}) {
-  const { resolvedRoot } = config.sub
-  const { format } = resolvedOptimize
-
-  const parsedFileName = path.parse(entry.fileName)
-  const name = parsedFileName.name
-  const ext = parsedFileName.ext.replace(/^\./, "")
-  const outFormat = resolveOutFormat(ext, format)
-
-  let filePath = entry.fileName
-  let width = 1
-  let height = 1
-
-  const isSameAspect = view.aspectHeight === entry.aspectHeight
-
-  if (!isSameAspect) {
-    width = entry.height * view.aspectWidth
-    width = width > entry.width ? entry.width : width
-    height = entry.width * view.aspectHeight
-    height = height > entry.height ? entry.height : height
-
-    const tempFileName = `${name}-${width}x${height}.${ext}`
-
-    filePath = path.join(tempOutDir, tempFileName)
-  }
-
-  const hasCreateImage = Object.hasOwn(createImages, filePath)
-
-  if (useBuild && !isSameAspect && !hasCreateImage) {
-    await fs.ensureDir(tempOutDir)
-
-    if (!fs.existsSync(filePath)) {
-      const tempImage = sharp(entry.fileName)
-      const { background, fit, position } = resolvedOptimize
-      const resizeOptions = { background, fit, position }
-
-      tempImage.resize(width, height, resizeOptions)
-
-      await tempImage.toFile(filePath)
-    }
-
-    const createImage = resolveCreateImage({
-      inputPath: filePath,
-      outFormat,
-      width,
-      height,
-      resolvedOptimize,
-    })
-    createImages[filePath] = createImage
-  }
-
-  filePath = filePath.replace(resolvedRoot, "")
-
-  return { src: filePath, srcset: filePath }
-}
-
-export function resolveBuildImage({
-  entry,
-  view,
-  createImages,
-  resolvedOptimize,
-  config,
-}: {
-  entry: EntryImage
-  view: ViewImage
-  createImages: CreateImages
-  resolvedOptimize: ResolvedImageOptimize
-  config: ResolvedConfig
-}) {
-  const { assets } = config.main
-  const resolvedBase = resolveBase(config.main.base)
-  const outDir = path.join(resolvedBase, assets.images.outDir)
-
-  const { layout, format } = resolvedOptimize
-  const { breakpoints, resolution } = resolvedOptimize
-
-  const parsedFileName = path.parse(entry.fileName)
-  const name = parsedFileName.name
-  const ext = parsedFileName.ext.replace(/^\./, "")
-  const outFormat = resolveOutFormat(ext, format)
-
-  let src = ""
-  let srcset: string[] = []
-
-  if (layout === "constrained") {
-    const resolvedBreakpoints = resolveBreakpoints(breakpoints, entry.width)
-
-    srcset = resolvedBreakpoints.map((breakpoint) => {
-      let width = breakpoint
-      let height = Math.round(width * entry.aspectHeight)
-
-      breakpoint >= entry.width && (width = entry.width)
-      breakpoint >= entry.width && (height = entry.height)
-
-      if (height > entry.height) {
-        return ""
-      }
-
-      const createImage = resolveCreateImage({
-        inputPath: entry.fileName,
-        outFormat,
-        width,
-        height,
-        resolvedOptimize,
-      })
-      let filePath = `${name}-${width}x${height}.${outFormat}`
-      filePath = path.join(outDir, filePath)
-
-      createImages[filePath] = createImage
-      src = filePath
-      return `${filePath} ${width}w`
-    })
-
-    srcset = srcset.filter((item) => item)
-    srcset = [...new Set(srcset)]
-  }
-
-  if (layout === "fixed") {
-    srcset = resolution.map((scale, index) => {
-      const width = Number(view.width) * scale
-      const height = Number(view.height) * scale
-
-      const createImage = resolveCreateImage({
-        inputPath: entry.fileName,
-        outFormat,
-        width,
-        height,
-        resolvedOptimize,
-      })
-      let filePath = `${name}-${width}x${height}.${outFormat}`
-      filePath = path.join(outDir, filePath)
-
-      createImages[filePath] = createImage
-
-      index === 0 && (src = filePath)
-      return `${filePath} ${scale}x`
-    })
-  }
-
-  const srcsetStr = srcset.join(", ")
-
-  return { src, srcset: srcsetStr, outFormat }
-}
-
-function cleanImage(el: NHTMLElement) {
-  el.removeAttribute("data-minista-transform-target")
-  el.removeAttribute("data-minista-image-src")
-  el.removeAttribute("data-minista-image-optimize")
-}
-
-export async function transformEntryImages({
+export async function transformImages({
   command,
-  parsedHtml,
+  parsedData,
   config,
-  entryImages,
   createImages,
 }: {
   command: "build" | "serve"
-  parsedHtml: NHTMLElement
+  parsedData: NHTMLElement | NHTMLElement[]
   config: ResolvedConfig
-  entryImages: EntryImages
-  createImages: CreateImages
+  createImages?: CreateImages
 }) {
-  const { optimize } = config.main.assets.images
-  const { resolvedRoot, tempDir } = config.sub
+  const targetAttr = `[data-minista-transform-target="image"]`
+  const imageEls = getElements(parsedData, targetAttr)
 
-  const images = parsedHtml.querySelectorAll(
-    `[data-minista-transform-target="image"]`
-  )
+  if (imageEls.length === 0) {
+    return
+  }
+  const { resolvedRoot, resolvedBase, tempDir } = config.sub
+  const { outDir, optimize } = config.main.assets.images
+  const cacheDir = path.join(tempDir, "images", "serve")
+  const cacheJson = path.join(tempDir, "images", "image-cache.json")
 
-  await Promise.all(
-    images.map(async (el) => {
-      const src = el.getAttribute("data-minista-image-src") || ""
+  let cacheData: EntryImages = {}
 
-      if (!src) {
-        cleanImage(el)
-        return
-      }
+  if (command === "serve") {
+    if (await fs.pathExists(cacheJson)) {
+      cacheData = await fs.readJSON(cacheJson)
+    }
+  }
 
-      const optimizeAttr = "data-minista-image-optimize"
-      const inlineOptimize = el.getAttribute(optimizeAttr) || "{}"
-      const resolvedOptimize = resolveImageOptimize(optimize, inlineOptimize)
-
-      const hasEntryImage = Object.hasOwn(entryImages, src)
-      const isRemote = isRemotePath(src)
-
-      let entry: EntryImage = {
-        fileName: "",
-        width: 0,
-        height: 0,
-        aspectWidth: 1,
-        aspectHeight: 1,
-      }
-
-      let view: ViewImage = {
+  const imageList = imageEls
+    .map((el) => {
+      return {
+        el: el,
+        tagName: el.tagName.toLowerCase(),
+        src: el.getAttribute("data-minista-image-src") || "",
+        outName: el.getAttribute("data-minista-image-outname") || "",
+        optimize: resolveImageOptimize(
+          optimize,
+          el.getAttribute("data-minista-image-optimize") || "{}"
+        ),
         width: el.getAttribute("width") || "",
         height: el.getAttribute("height") || "",
         sizes: el.getAttribute("sizes") || "",
+      }
+    })
+    .filter((item) => item.src)
+
+  const imageSrcs = getUniquePaths(
+    imageList.map((item) => item.src),
+    Object.keys(cacheData)
+  )
+
+  await Promise.all(
+    imageSrcs.map(async (src) => {
+      const fileName = path.join(resolvedRoot, src)
+      const { width, height } = await getImageSize(fileName)
+      const { aspectWidth, aspectHeight } = getImageAspects(width, height)
+
+      cacheData[src] = {
+        fileName,
+        width,
+        height,
+        aspectWidth,
+        aspectHeight,
+      }
+      return
+    })
+  )
+
+  await Promise.all(
+    imageList.map(async (item) => {
+      const { tagName, el } = item
+      const entry = cacheData[item.src]
+
+      const { layout, aspect } = item.optimize
+      const { resolution, breakpoints } = item.optimize
+      const { format, formatOptions } = item.optimize
+      const { background, fit, position } = item.optimize
+      const resizeOptions = { background, fit, position }
+
+      const parsedFileName = path.parse(entry.fileName)
+      const name = parsedFileName.name
+      const ext = parsedFileName.ext.replace(/^\./, "")
+      const outFormat = resolveOutFormat(ext, format)
+
+      let view: ViewImage = {
+        width: item.width,
+        height: item.height,
+        sizes: item.sizes,
         aspectWidth: 1,
         aspectHeight: 1,
         changeWidth: false,
         changeHeight: false,
       }
+      const autoSize = "__minista_image_auto_size"
+      const isAutoWidth = view.width === autoSize
+      const isAutoHeight = view.height === autoSize
+      const isAutoSizes = view.sizes === autoSize
 
-      if (hasEntryImage) {
-        entry = entryImages[src]
+      if (aspect) {
+        const { aspectWidth, aspectHeight } = getImageAspects(0, 0, aspect)
+        view.aspectWidth = aspectWidth
+        view.aspectHeight = aspectHeight
+      } else {
+        view.aspectWidth = entry.aspectWidth
+        view.aspectHeight = entry.aspectHeight
       }
-
-      if (!hasEntryImage && isRemote) {
-        entry.fileName = await resolveRemoteImage({
-          useBuild: true,
-          url: src,
-          config,
-          optimize: resolvedOptimize,
-          entryImages,
-        })
-
-        if (!entry.fileName) {
-          cleanImage(el)
-          return
-        }
+      if (isAutoWidth && isAutoHeight) {
+        view.width = entry.width.toString()
+        view.height = entry.height.toString()
+        view.changeWidth = true
+        view.changeHeight = true
       }
-
-      if (!hasEntryImage && !isRemote && isLocalPath(resolvedRoot, src)) {
-        entry.fileName = path.join(resolvedRoot, src)
+      if (isAutoWidth && !isAutoHeight) {
+        let width = getImageLength(view.height, view.aspectWidth)
+        view.width = width.toString()
+        view.changeWidth = true
       }
-
-      if (!hasEntryImage) {
-        entry = resolveEntryImage(entry)
+      if (isAutoHeight && !isAutoWidth) {
+        let height = getImageLength(view.width, view.aspectHeight)
+        view.height = height.toString()
+        view.changeHeight = true
       }
-
-      view = resolveViewImage({ view, entry, resolvedOptimize })
-
+      if (!isAutoWidth && !isAutoHeight) {
+        view.aspectWidth = getImageAspect(view.width, view.height)
+        view.aspectHeight = getImageAspect(view.height, view.width)
+      }
+      if (isAutoSizes && layout === "constrained") {
+        view.sizes = `(min-width: ${entry.width}px) ${entry.width}px, 100vw`
+      }
+      if (isAutoSizes && layout === "fixed") {
+        view.sizes = `(min-width: ${view.width}px) ${view.width}px, 100vw`
+      }
       view.changeWidth && el.setAttribute("width", view.width)
       view.changeHeight && el.setAttribute("height", view.height)
       el.setAttribute("sizes", view.sizes)
 
-      const tagName = el.tagName.toLowerCase()
-
       if (command === "serve") {
-        const tempOutDir = path.join(tempDir, "images", "serve")
+        let fileName = entry.fileName
+        let filePath = fileName.replace(resolvedRoot, "")
 
-        const serve = await resolveServeImage({
-          useBuild: true,
-          entry,
-          view,
-          createImages,
-          tempOutDir,
-          resolvedOptimize,
-          config,
-        })
+        if (view.aspectHeight !== entry.aspectHeight) {
+          let width = 1
+          let height = 1
 
+          width = entry.height * view.aspectWidth
+          width = width > entry.width ? entry.width : width
+          height = entry.width * view.aspectHeight
+          height = height > entry.height ? entry.height : height
+
+          const tempFileName = `${name}-${width}x${height}.${ext}`
+
+          fileName = path.join(cacheDir, tempFileName)
+          filePath = fileName.replace(resolvedRoot, "")
+
+          if (!(await fs.pathExists(fileName))) {
+            const createImage = {
+              input: entry.fileName,
+              width,
+              height,
+              resizeOptions,
+              format: outFormat,
+              formatOptions,
+            }
+            await generateTempImage({ fileName, filePath, createImage })
+          }
+        }
         tagName === "img" && el.removeAttribute("srcset")
-        tagName === "img" && el.setAttribute("src", serve.src)
-        tagName === "source" && el.setAttribute("srcset", serve.srcset)
+        tagName === "img" && el.setAttribute("src", filePath)
+        tagName === "source" && el.setAttribute("srcset", filePath)
       }
 
       if (command === "build") {
-        const build = resolveBuildImage({
-          entry,
-          view,
-          createImages,
-          resolvedOptimize,
-          config,
-        })
+        let src = ""
+        let srcset = ""
+        let srcsetArray: string[] = []
 
-        if (
-          (tagName === "source" && build.outFormat === "webp") ||
-          (tagName === "source" && build.outFormat === "avif")
-        ) {
-          const type = lookup(build.outFormat) || ""
-          el.setAttribute("type", type)
+        if (layout === "constrained") {
+          const resolvedBreakpoints = resolveBreakpoints(
+            breakpoints,
+            entry.width
+          )
+          srcsetArray = resolvedBreakpoints.map((breakpoint) => {
+            let width = breakpoint
+            let height = Math.round(width * entry.aspectHeight)
+
+            breakpoint >= entry.width && (width = entry.width)
+            breakpoint >= entry.width && (height = entry.height)
+
+            if (height > entry.height) {
+              return ""
+            }
+            const createImage = {
+              input: entry.fileName,
+              width,
+              height,
+              resizeOptions,
+              format: outFormat,
+              formatOptions,
+            }
+            let fileName = `${name}-${width}x${height}.${outFormat}`
+            fileName = path.join(outDir, fileName)
+
+            createImages && (createImages[fileName] = createImage)
+
+            const filePath = path.join(resolvedBase, fileName)
+
+            src = filePath
+            return `${filePath} ${width}w`
+          })
+          srcsetArray = srcsetArray.filter((item) => item)
+          srcsetArray = [...new Set(srcsetArray)]
         }
 
-        tagName === "img" && el.setAttribute("src", build.src)
-        el.setAttribute("srcset", build.srcset)
+        if (layout === "fixed") {
+          srcsetArray = resolution.map((scale, index) => {
+            const width = Number(view.width) * scale
+            const height = Number(view.height) * scale
+
+            const createImage = {
+              input: entry.fileName,
+              width,
+              height,
+              resizeOptions,
+              format: outFormat,
+              formatOptions,
+            }
+            let fileName = `${name}-${width}x${height}.${outFormat}`
+            fileName = path.join(outDir, fileName)
+
+            createImages && (createImages[fileName] = createImage)
+
+            const filePath = path.join(resolvedBase, fileName)
+
+            index === 0 && (src = filePath)
+            return `${filePath} ${scale}x`
+          })
+        }
+        srcset = srcsetArray.join(", ")
+
+        if (tagName === "source" && outFormat.match(/webp|avif/)) {
+          const formatStr = outFormat as string
+          const type = lookup(formatStr) || ""
+          type && el.setAttribute("type", type)
+        }
+        tagName === "img" && el.setAttribute("src", src)
+        el.setAttribute("srcset", srcset)
       }
 
-      if (!hasEntryImage) {
-        entryImages[src] = entry
-      }
-
-      cleanImage(el)
+      cleanElement(el, cleanAttributes)
       return
     })
   )
 
-  return parsedHtml
-}
-
-export function transformRelativeImages({
-  parsedHtml,
-  pathname,
-  config,
-}: {
-  parsedHtml: NHTMLElement
-  pathname: string
-  config: ResolvedConfig
-}) {
-  const { assets } = config.main
-
-  const images = parsedHtml.querySelectorAll("img, source")
-  const icons = parsedHtml.querySelectorAll("use")
-
-  images.map((el) => {
-    const src = el.getAttribute("src") || ""
-    const srcset = el.getAttribute("srcset") || ""
-
-    if (src) {
-      const resolvedPath = resolveRelativeImagePath({
-        pathname,
-        replaceTarget: path.join("/", assets.images.outDir),
-        assetPath: src,
-      })
-      if (src !== resolvedPath) {
-        el.setAttribute("src", resolvedPath)
-      }
-    }
-
-    if (srcset) {
-      const resolvedPath = resolveRelativeImagePath({
-        pathname,
-        replaceTarget: path.join("/", assets.images.outDir),
-        assetPath: srcset,
-      })
-      if (srcset !== resolvedPath) {
-        el.setAttribute("srcset", resolvedPath)
-      }
-    }
-    return
-  })
-
-  icons.map((el) => {
-    const href = el.getAttribute("href") || ""
-
-    if (href) {
-      const resolvedPath = resolveRelativeImagePath({
-        pathname,
-        replaceTarget: path.join("/", assets.icons.outDir),
-        assetPath: href,
-      })
-      if (href !== resolvedPath) {
-        el.setAttribute("href", resolvedPath)
-      }
-    }
-    return
-  })
-
-  return parsedHtml
+  if (command === "serve" && imageSrcs.length > 0) {
+    await generateImageCache(cacheJson, cacheData)
+  }
 }

@@ -2,7 +2,6 @@ import type { RollupOutput } from "rollup"
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 import fs from "fs-extra"
-import fg from "fast-glob"
 import pc from "picocolors"
 import {
   defineConfig as defineViteConfig,
@@ -12,13 +11,12 @@ import {
 } from "vite"
 import { parse as parseHtml } from "node-html-parser"
 import beautify from "js-beautify"
-import sharp from "sharp"
 import archiver from "archiver"
 
 import type { InlineConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
-import type { EntryImages, CreateImages } from "../transform/image.js"
+import type { CreateImages } from "../generate/image.js"
 import type { CreateSprites } from "../generate/sprite.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
@@ -36,20 +34,18 @@ import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
 import { transformRemotes } from "../transform/remote.js"
 import { transformDynamicEntries } from "../transform/entry.js"
-import {
-  transformEntryImages,
-  transformRelativeImages,
-} from "../transform/image.js"
+import { transformImages } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
+import { transformRelative } from "../transform/relative.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
+import { generateImages } from "../generate/image.js"
 import { generateSprites } from "../generate/sprite.js"
 
 export type BuildResult = {
   output: BuildItem[]
 }
-
 type BuildItem = RollupOutput["output"][0] & {
   source?: string
   code?: string
@@ -92,7 +88,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let ssgEntries: ResolvedViteEntry = {}
   let assetEntries: ResolvedViteEntry = {}
 
-  let entryImages: EntryImages = {}
   let createImages: CreateImages = {}
   let createSprites: CreateSprites = {}
 
@@ -155,9 +150,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
       parsedData,
       config,
     })
-      parsedPages,
+    await transformImages({
+      command: "build",
+      parsedData,
       config,
-      tempRemotes,
+      createImages,
     })
 
     htmlItems = await Promise.all(
@@ -176,16 +173,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
         const targetAttr = "data-minista-transform-target"
 
-        if (parsedHtml.querySelector(`[${targetAttr}="image"]`)) {
-          parsedHtml = await transformEntryImages({
-            command: "build",
-            parsedHtml,
-            config,
-            entryImages,
-            createImages,
-          })
-        }
-
         if (parsedHtml.querySelector(`[${targetAttr}="icon"]`)) {
           parsedHtml = await transformIcons({
             command: "build",
@@ -196,7 +183,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
         }
 
         if (config.main.base === "" || config.main.base === "./") {
-          parsedHtml = transformRelativeImages({
+          parsedHtml = transformRelative({
             parsedHtml,
             pathname,
             config,
@@ -436,59 +423,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
     })
   )
 
-  const createImagesArray = Object.entries(createImages)
-
-  if (createImagesArray.length) {
-    await Promise.all(
-      createImagesArray.map(async (item) => {
-        const fileName = item[0]
-        const createImage = item[1]
-        const { input, width, height, resizeOptions } = createImage
-        const { format, formatOptions } = createImage
-
-        const image = sharp(input)
-        image.resize(width, height, resizeOptions)
-
-        switch (format) {
-          case "jpg":
-            image.jpeg({ ...formatOptions?.jpg })
-            break
-          case "png":
-            image.png({ ...formatOptions?.png })
-            break
-          case "webp":
-            image.webp({ ...formatOptions?.webp })
-            break
-          case "avif":
-            image.avif({ ...formatOptions?.avif })
-            break
-        }
-        const data = await image.toBuffer()
-
-        const nameLength = fileName.length
-        const spaceCount = maxNameLength - nameLength + 3
-        const space = " ".repeat(spaceCount)
-
-        const routePath = path.join(resolvedRoot, config.main.out, fileName)
-        const relativePath = path.relative(process.cwd(), routePath)
-        const dataSize = (data.length / 1024).toFixed(2)
-
-        return await fs
-          .outputFile(routePath, data)
-          .then(() => {
-            console.log(
-              `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
-                space +
-                pc.gray(`${dataSize} KiB`)
-            )
-          })
-          .catch((err) => {
-            console.error(err)
-          })
-      })
-    )
-  }
-
+  await generateImages({ createImages, config, maxNameLength })
   await generateSprites({ createSprites, config, maxNameLength })
 
   if (delivery.archives.length) {

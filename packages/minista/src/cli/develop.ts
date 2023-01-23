@@ -12,8 +12,6 @@ import { parse as parseHtml } from "node-html-parser"
 import type { InlineConfig, ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
 import type { SsgPage } from "../server/ssg.js"
-import type { EntryImages } from "../transform/image.js"
-import type { TempRemotes } from "../generate/remote.js"
 import type { CreateImages } from "../generate/image.js"
 import type { CreateSprites } from "../generate/sprite.js"
 import { resolveConfig } from "../config/index.js"
@@ -76,9 +74,6 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
   let useVirtualModule: boolean = false
   let ssgPages: SsgPage[] = []
 
-  let tempRemotes: TempRemotes = {}
-  let entryImages: EntryImages = {}
-  let createImages: CreateImages = {}
   let createSprites: CreateSprites = {}
 
   return {
@@ -143,25 +138,16 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
             if (parsedHtml.querySelector(`[${targetAttr}="comment"]`)) {
               parsedHtml = transformComment(parsedHtml)
             }
-
-            if (parsedHtml.querySelector(`[${targetAttr}="remote"]`)) {
-              parsedHtml = await transformRemotes({
-                parsedHtml,
-                config,
-                tempRemotes,
-              })
-            }
-
-            if (parsedHtml.querySelector(`[${targetAttr}="image"]`)) {
-              parsedHtml = await transformImages({
-                command: "serve",
-                parsedHtml,
-                config,
-                remoteImages,
-                entryImages,
-                createImages,
-              })
-            }
+            await transformRemotes({
+              command: "serve",
+              parsedData: parsedHtml,
+              config,
+            })
+            await transformImages({
+              command: "serve",
+              parsedData: parsedHtml,
+              config,
+            })
 
             if (parsedHtml.querySelector(`[${targetAttr}="icon"]`)) {
               parsedHtml = await transformIcons({

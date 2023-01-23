@@ -2,6 +2,7 @@ import type { ImageOptimize, ImagesOptimize } from "../config/image.js"
 
 type ImageProps = {
   src: string
+  outName?: string
   sizes?: string
   width?: number | string
   height?: number | string
@@ -13,6 +14,7 @@ type ImageProps = {
 
 type PictureProps = {
   src: string
+  outName?: string
   sizes?: string
   width?: number | string
   height?: number | string
@@ -55,6 +57,7 @@ function resolveTarget(src: string) {
 
 export function Image({
   src,
+  outName = "",
   sizes = autoSize,
   width = autoSize,
   height = autoSize,
@@ -74,7 +77,6 @@ export function Image({
   ...attributes
 }: ImageProps) {
   const optimizeObj: Partial<ImageOptimize> = {
-    remoteName,
     layout,
     breakpoints,
     resolution,
@@ -100,6 +102,7 @@ export function Image({
       loading={loading}
       data-minista-transform-target={resolveTarget(src)}
       data-minista-image-src={src}
+      data-minista-image-outname={outName}
       data-minista-image-optimize={optimizeStr}
       {...attributes}
     />
@@ -108,6 +111,7 @@ export function Image({
 
 export function Picture({
   src,
+  outName = "",
   sizes = autoSize,
   width = autoSize,
   height = autoSize,
@@ -185,6 +189,7 @@ export function Picture({
                 height={sourceHeight}
                 data-minista-transform-target={resolveTarget(src)}
                 data-minista-image-src={src}
+                data-minista-image-outname={outName}
                 data-minista-image-optimize={sourceOptimizeStr}
               />
             )
@@ -214,6 +219,7 @@ export function Picture({
               height={sourceHeight}
               data-minista-transform-target={resolveTarget(src)}
               data-minista-image-src={src}
+              data-minista-image-outname={outName}
               data-minista-image-optimize={sourceOptimizeStr}
             />
           )
@@ -244,6 +250,7 @@ export function Picture({
             height={height}
             data-minista-transform-target={resolveTarget(src)}
             data-minista-image-src={src}
+            data-minista-image-outname={outName}
             data-minista-image-optimize={sourceOptimizeStr}
           />
         )
@@ -260,17 +267,10 @@ export function Picture({
         loading={loading}
         data-minista-transform-target={resolveTarget(src)}
         data-minista-image-src={src}
+        data-minista-image-outname={outName}
         data-minista-image-optimize={optimizeStr}
         {...attributes}
       />
     </picture>
-  )
-}
-
-function test() {
-  return (
-    <>
-      <Image src="/test.png" />
-    </>
   )
 }

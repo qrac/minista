@@ -33,11 +33,13 @@ export function logger({
         return pc.bold(main)
     }
   })()
-  const subStr = sub ? pc.gray(sub) : ""
-  const texts = [labelStr, mainStr, subStr].join(" ")
+
+  let texts = [labelStr, mainStr]
+
+  sub && texts.push(pc.gray(sub))
 
   const dataSize = data ? (data.length / 1024).toFixed(2) : ""
   const size = dataSize ? pc.gray(`${dataSize} KiB`) : ""
 
-  console.log(texts + space + size)
+  console.log(texts.join(" ") + space + size)
 }

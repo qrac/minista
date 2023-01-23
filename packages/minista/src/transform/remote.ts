@@ -12,13 +12,6 @@ import { generateRemoteCache, generateRemotes } from "../generate/remote.js"
 import { getElements } from "../utility/element.js"
 import { getUniquePaths } from "../utility/path.js"
 
-export function getRemoteList(elements: NHTMLElement[]) {
-  const list = elements.map((el) => {
-    return { el: el, src: el.getAttribute("data-minista-image-src") || "" }
-  })
-  return list.filter((item) => item.src)
-}
-
 export function getRemoteExt(url: string) {
   const pathname = parseUrl(url).pathname || ""
   const parsedName = path.parse(pathname)
@@ -79,54 +72,63 @@ export async function transformRemotes({
   }
   const { resolvedRoot, tempDir } = config.sub
   const { remoteName } = config.main.assets.images
-  const outDir = path.join(tempDir, "images", "remote")
-  const cacheFile = path.join(tempDir, "images", "remote-cache.json")
+  const cacheDir = path.join(tempDir, "images", "remote")
+  const cacheJson = path.join(tempDir, "images", "remote-cache.json")
 
-  let createRemotes: CreateRemotes = []
-  let createdRemotes: CreatedRemotes = {}
+  let cacheData: CreatedRemotes = {}
+  let cacheCount = 0
 
   if (command === "serve") {
-    if (await fs.pathExists(cacheFile)) {
-      createdRemotes = await fs.readJSON(cacheFile)
+    if (await fs.pathExists(cacheJson)) {
+      cacheData = await fs.readJSON(cacheJson)
     }
+    cacheCount = (await fg(path.join(cacheDir, "*"))).length
   }
-  const count = (await fg(path.join(outDir, "*"))).length
-  const remoteList = getRemoteList(remoteEls)
-  const remoteUrls = remoteList.map((item) => item.src)
-  const excludesUrls = Object.keys(createdRemotes)
-  const fetchUrls = getUniquePaths(remoteUrls, excludesUrls)
+
+  const remoteList = remoteEls
+    .map((el) => {
+      return { el: el, src: el.getAttribute("data-minista-image-src") || "" }
+    })
+    .filter((item) => item.src)
+
+  const remoteUrls = getUniquePaths(
+    remoteList.map((item) => item.src),
+    Object.keys(cacheData)
+  )
 
   const fetchedRemotes = await Promise.all(
-    fetchUrls
+    remoteUrls
       .map(async (url, index) => {
         return await fetchRemote({
           url,
-          outDir,
+          outDir: cacheDir,
           remoteName,
-          remoteCount: count + index + 1,
+          remoteCount: cacheCount + index + 1,
         })
       })
       .filter(async (item) => (await item).data)
   )
 
   if (fetchedRemotes.length > 0) {
+    let createItems: CreateRemotes = []
+
     fetchedRemotes.map((item) => {
-      createRemotes.push({
+      createItems.push({
         url: item.url,
         fileName: item.fileName,
         data: item.data,
       })
-      createdRemotes[item.url] = item.fileName.replace(resolvedRoot, "")
+      cacheData[item.url] = item.fileName.replace(resolvedRoot, "")
       return
     })
-    await generateRemotes(createRemotes)
+    await generateRemotes(createItems)
 
     if (command === "serve") {
-      await generateRemoteCache(cacheFile, createdRemotes)
+      await generateRemoteCache(cacheJson, cacheData)
     }
   }
   remoteList.map((item) => {
-    const filePath = createdRemotes[item.src] || ""
+    const filePath = cacheData[item.src] || ""
     item.el.setAttribute("data-minista-image-src", filePath)
     item.el.setAttribute("data-minista-transform-target", "image")
     return
