@@ -1,7 +1,7 @@
 {
   "name": "minista",
   "description": "Static site generator with 100% static export from React and Vite",
-  "version": "3.0.0-alpha.27",
+  "version": "3.0.0-alpha.28",
   "type": "module",
   "engines": {
     "node": ">=14.15.0"
