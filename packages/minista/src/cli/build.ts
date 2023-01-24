@@ -156,6 +156,12 @@ export async function build(inlineConfig: InlineConfig = {}) {
       config,
       createImages,
     })
+    await transformIcons({
+      command: "build",
+      parsedData,
+      config,
+      createSprites,
+    })
 
     htmlItems = await Promise.all(
       parsedPages.map(async (page) => {
@@ -170,17 +176,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
           linkEntries,
           scriptEntries,
         })
-
-        const targetAttr = "data-minista-transform-target"
-
-        if (parsedHtml.querySelector(`[${targetAttr}="icon"]`)) {
-          parsedHtml = await transformIcons({
-            command: "build",
-            parsedHtml,
-            config,
-            createSprites,
-          })
-        }
 
         if (config.main.base === "" || config.main.base === "./") {
           parsedHtml = transformRelative({

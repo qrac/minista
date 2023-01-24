@@ -8,23 +8,21 @@ import { transformSprite } from "../transform/sprite.js"
 import { getSpace } from "../utility/space.js"
 
 export type CreateSprites = {
-  [key: string]: CreateSprite
-}
-type CreateSprite = {
-  srcDir: string
+  [srcDir: string]: string
 }
 
 export async function generateTempSprite({
-  fileName,
   srcDir,
+  fileName,
   config,
 }: {
-  fileName: string
   srcDir: string
+  fileName: string
   config: ResolvedConfig
 }) {
-  const { assets } = config.main
-  const options = assets.icons.svgstoreOptions
+  const { resolvedRoot } = config.sub
+  const options = config.main.assets.icons.svgstoreOptions
+  const filePath = fileName.replace(resolvedRoot, "")
   const svgFiles = await fg(path.join(srcDir, "**/*.svg"))
 
   if (!svgFiles.length) {
@@ -34,39 +32,10 @@ export async function generateTempSprite({
     svgFiles,
     options,
   })
-  await fs.outputFile(fileName, data).catch((err) => {
-    console.error(err)
-  })
-}
-
-async function generateSprite({
-  fileName,
-  srcDir,
-  config,
-  maxNameLength,
-}: {
-  fileName: string
-  srcDir: string
-  config: ResolvedConfig
-  maxNameLength?: number
-}) {
-  const { resolvedRoot } = config.sub
-  const { assets } = config.main
-  const options = assets.icons.svgstoreOptions
-  const svgFiles = await fg(path.join(srcDir, "**/*.svg"))
-
-  if (!svgFiles.length) {
-    return
-  }
-  const data = transformSprite({ svgFiles, options })
-  const space = getSpace({ nameLength: fileName.length, maxNameLength, min: 3 })
-  const routePath = path.join(resolvedRoot, config.main.out, fileName)
-  const relativePath = path.relative(process.cwd(), routePath)
-
-  return await fs
-    .outputFile(routePath, data)
+  await fs
+    .outputFile(fileName, data)
     .then(() => {
-      logger({ main: relativePath, space, data })
+      logger({ label: "BUILD", main: filePath })
     })
     .catch((err) => {
       console.error(err)
@@ -82,16 +51,40 @@ export async function generateSprites({
   config: ResolvedConfig
   maxNameLength?: number
 }) {
-  const createSpritesArray = Object.entries(createSprites)
+  const { resolvedRoot } = config.sub
+  const options = config.main.assets.icons.svgstoreOptions
+  const createArray = Object.entries(createSprites)
 
-  if (createSpritesArray.length) {
-    await Promise.all(
-      createSpritesArray.map(async (item) => {
-        const fileName = item[0]
-        const createData = item[1]
-        const { srcDir } = createData
-        return await generateSprite({ fileName, srcDir, config, maxNameLength })
-      })
-    )
+  if (!createArray.length) {
+    return
   }
+  await Promise.all(
+    createArray.map(async (item) => {
+      const srcDir = item[0]
+      const fileName = item[1]
+      const svgFiles = await fg(path.join(srcDir, "**/*.svg"))
+
+      if (!svgFiles.length) {
+        return
+      }
+      const data = transformSprite({ svgFiles, options })
+      const space = getSpace({
+        nameLength: fileName.length,
+        maxNameLength,
+        min: 3,
+      })
+      const routePath = path.join(resolvedRoot, config.main.out, fileName)
+      const relativePath = path.relative(process.cwd(), routePath)
+
+      await fs
+        .outputFile(routePath, data)
+        .then(() => {
+          logger({ label: "BUILD", main: relativePath, space, data })
+        })
+        .catch((err) => {
+          console.error(err)
+        })
+      return
+    })
+  )
 }

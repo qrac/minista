@@ -6,17 +6,16 @@ import fs from "fs-extra"
 import type { ResolvedConfig } from "../config/index.js"
 import type { CreateSprites } from "../generate/sprite.js"
 import { syncTempSprite } from "../server/sprite.js"
-import { resolveBase } from "../utility/base.js"
-import { cleanElement } from "../utility/element.js"
+import { getElements, cleanElement } from "../utility/element.js"
+import { getUniquePaths } from "../utility/path.js"
 
 const cleanAttributes = [
   "data-minista-transform-target",
   "data-minista-icon-iconid",
   "data-minista-icon-srcdir",
-  "data-minista-icon-options",
 ]
 
-export function getIconAttrs(
+export function getIconHref(
   fileName: string,
   iconId: string,
   options?: { add?: string; remove?: string }
@@ -26,90 +25,77 @@ export function getIconAttrs(
   options?.add && (href = path.join(options.add, href))
   options?.remove && (href = href.replace(options.remove, ""))
 
-  href = `${href}#${iconId}`
-  return { href }
-}
-
-async function transformIcon({
-  command,
-  el,
-  config,
-  createSprites,
-  server,
-}: {
-  command: "build" | "serve"
-  el: NHTMLElement
-  config: ResolvedConfig
-  createSprites: CreateSprites
-  server?: ViteDevServer
-}) {
-  const { resolvedRoot, tempDir } = config.sub
-  const { assets } = config.main
-  const resolvedBase = resolveBase(config.main.base)
-
-  const attrSrcDir = el.getAttribute("data-minista-icon-srcdir") || ""
-  const attrIconId = el.getAttribute("data-minista-icon-iconid") || ""
-
-  const srcDir = attrSrcDir
-    ? path.join(resolvedRoot, attrSrcDir)
-    : path.join(resolvedRoot, assets.icons.srcDir)
-  const iconId = attrIconId
-  const dirName = path.basename(srcDir)
-  const outName = assets.icons.outName.replace(/\[dirname\]/, dirName)
-
-  if (!srcDir || !iconId) {
-    cleanElement(el, cleanAttributes)
-    return
-  }
-
-  if (command === "serve") {
-    const outDir = path.join(tempDir, "icons", "serve")
-    const fileName = path.join(outDir, outName + ".svg")
-    const attrs = getIconAttrs(fileName, iconId, { remove: resolvedRoot })
-
-    el.setAttribute("href", attrs.href)
-
-    if (!(await fs.pathExists(fileName)) && server) {
-      await syncTempSprite({ fileName, srcDir, config, server })
-    }
-  }
-
-  if (command === "build") {
-    const fileName = path.join(assets.icons.outDir, outName + ".svg")
-    const attrs = getIconAttrs(fileName, iconId, { add: resolvedBase })
-
-    el.setAttribute("href", attrs.href)
-
-    if (!Object.hasOwn(createSprites, fileName)) {
-      createSprites[fileName] = {
-        srcDir,
-      }
-    }
-  }
-  cleanElement(el, cleanAttributes)
-  return
+  return `${href}#${iconId}`
 }
 
 export async function transformIcons({
   command,
-  parsedHtml,
+  parsedData,
   config,
   createSprites,
   server,
 }: {
   command: "build" | "serve"
-  parsedHtml: NHTMLElement
+  parsedData: NHTMLElement | NHTMLElement[]
   config: ResolvedConfig
-  createSprites: CreateSprites
+  createSprites?: CreateSprites
   server?: ViteDevServer
 }) {
-  const icons = parsedHtml.querySelectorAll(
-    `[data-minista-transform-target="icon"]`
-  )
+  const targetAttr = `[data-minista-transform-target="icon"]`
+  const targetEls = getElements(parsedData, targetAttr)
+
+  if (!targetEls.length) {
+    return
+  }
+  const { resolvedRoot, resolvedBase, tempDir } = config.sub
+  const { icons } = config.main.assets
+  const cacheDir = path.join(tempDir, "icons", "serve")
+
+  let cacheData: CreateSprites = {}
+
+  const targetList = targetEls.map((el) => {
+    const attrSrcDir = el.getAttribute("data-minista-icon-srcdir") || ""
+    const attrIconId = el.getAttribute("data-minista-icon-iconid") || ""
+    return {
+      el,
+      srcDir: attrSrcDir
+        ? path.join(resolvedRoot, attrSrcDir)
+        : path.join(resolvedRoot, icons.srcDir),
+      iconId: attrIconId,
+    }
+  })
+  const targetSrcDirs = getUniquePaths(targetList.map((item) => item.srcDir))
+
   await Promise.all(
-    icons.map(async (el) => {
-      return await transformIcon({ command, el, config, createSprites, server })
+    targetSrcDirs.map(async (srcDir) => {
+      const dirName = path.basename(srcDir)
+      const outName = icons.outName.replace(/\[dirname\]/, dirName)
+      const outDir = command === "serve" ? cacheDir : icons.outDir
+      const fileName = path.join(outDir, outName + ".svg")
+
+      cacheData[srcDir] = fileName
+
+      if (command === "serve") {
+        if (!(await fs.pathExists(fileName)) && server) {
+          await syncTempSprite({ srcDir, fileName, config, server })
+        }
+      }
+      if (command === "build") {
+        createSprites && (createSprites[srcDir] = fileName)
+      }
+      return
     })
   )
-  return parsedHtml
+
+  targetList.map((item) => {
+    const { el, srcDir, iconId } = item
+    const fileName = cacheData[srcDir]
+    const hrefOptions =
+      command === "serve" ? { remove: resolvedRoot } : { add: resolvedBase }
+    const href = getIconHref(fileName, iconId, hrefOptions)
+
+    el.setAttribute("href", href)
+    cleanElement(el, cleanAttributes)
+    return
+  })
 }

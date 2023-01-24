@@ -142,7 +142,7 @@ export async function transformImages({
   const targetAttr = `[data-minista-transform-target="image"]`
   const targetEls = getElements(parsedData, targetAttr)
 
-  if (targetEls.length === 0) {
+  if (!targetEls.length) {
     return
   }
   const { resolvedRoot, resolvedBase, tempDir } = config.sub
@@ -158,23 +158,21 @@ export async function transformImages({
     }
   }
 
-  const targetList = targetEls
-    .map((el) => {
-      return {
-        el: el,
-        tagName: el.tagName.toLowerCase(),
-        src: el.getAttribute("data-minista-image-src") || "",
-        outName: el.getAttribute("data-minista-image-outname") || "",
-        optimize: resolveImageOptimize(
-          optimize,
-          el.getAttribute("data-minista-image-optimize") || "{}"
-        ),
-        width: el.getAttribute("width") || "",
-        height: el.getAttribute("height") || "",
-        sizes: el.getAttribute("sizes") || "",
-      }
-    })
-    .filter((item) => item.src)
+  const targetList = targetEls.map((el) => {
+    return {
+      el,
+      tagName: el.tagName.toLowerCase(),
+      src: el.getAttribute("data-minista-image-src") || "",
+      outName: el.getAttribute("data-minista-image-outname") || "",
+      optimize: resolveImageOptimize(
+        optimize,
+        el.getAttribute("data-minista-image-optimize") || "{}"
+      ),
+      width: el.getAttribute("width") || "",
+      height: el.getAttribute("height") || "",
+      sizes: el.getAttribute("sizes") || "",
+    }
+  })
 
   const targetSrcs = getUniquePaths(
     targetList.map((item) => item.src),

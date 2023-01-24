@@ -12,7 +12,7 @@ import { logger } from "../cli/logger.js"
 import { getSpace } from "../utility/space.js"
 
 export type EntryImages = {
-  [key: string]: {
+  [src: string]: {
     fileName: string
     width: number
     height: number
@@ -22,7 +22,7 @@ export type EntryImages = {
 }
 
 export type CreateImages = {
-  [key: string]: CreateImage
+  [fileName: string]: CreateImage
 }
 type CreateImage = {
   input: string
@@ -77,13 +77,13 @@ export async function generateImages({
   maxNameLength?: number
 }) {
   const { resolvedRoot } = config.sub
-  const createImagesArray = Object.entries(createImages)
+  const createArray = Object.entries(createImages)
 
-  if (createImagesArray.length === 0) {
+  if (!createArray.length) {
     return
   }
   await Promise.all(
-    createImagesArray.map(async (item) => {
+    createArray.map(async (item) => {
       const fileName = item[0]
       const createImage = item[1]
       const { input, width, height, resizeOptions } = createImage

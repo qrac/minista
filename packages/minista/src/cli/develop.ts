@@ -12,7 +12,6 @@ import { parse as parseHtml } from "node-html-parser"
 import type { InlineConfig, ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
 import type { SsgPage } from "../server/ssg.js"
-import type { CreateImages } from "../generate/image.js"
 import type { CreateSprites } from "../generate/sprite.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginReact } from "../plugins/react.js"
@@ -70,11 +69,8 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
   const resolvedVirtualModuleId = "\0" + virtualModuleId
 
   let server: ViteDevServer
-
   let useVirtualModule: boolean = false
   let ssgPages: SsgPage[] = []
-
-  let createSprites: CreateSprites = {}
 
   return {
     name: "minista-vite-plugin:develop",
@@ -148,16 +144,12 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
               parsedData: parsedHtml,
               config,
             })
-
-            if (parsedHtml.querySelector(`[${targetAttr}="icon"]`)) {
-              parsedHtml = await transformIcons({
-                command: "serve",
-                parsedHtml,
-                config,
-                createSprites,
-                server,
-              })
-            }
+            await transformIcons({
+              command: "serve",
+              parsedData: parsedHtml,
+              config,
+              server,
+            })
 
             html = parsedHtml.toString()
 

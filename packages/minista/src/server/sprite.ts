@@ -4,17 +4,17 @@ import type { ResolvedConfig } from "../config/index.js"
 import { generateTempSprite } from "../generate/sprite.js"
 
 export async function syncTempSprite({
-  fileName,
   srcDir,
+  fileName,
   config,
   server,
 }: {
-  fileName: string
   srcDir: string
+  fileName: string
   config: ResolvedConfig
   server: ViteDevServer
 }) {
-  await generateTempSprite({ fileName, srcDir, config })
+  await generateTempSprite({ srcDir, fileName, config })
 
   const watcher = server.watcher.add(srcDir)
 
@@ -22,7 +22,7 @@ export async function syncTempSprite({
     const triggers = ["add", "change", "unlink"]
 
     if (triggers.includes(eventName) && path.includes(srcDir)) {
-      await generateTempSprite({ fileName, srcDir, config })
+      await generateTempSprite({ srcDir, fileName, config })
       server.ws.send({ type: "full-reload" })
     }
   })

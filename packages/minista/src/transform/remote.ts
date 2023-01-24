@@ -67,7 +67,7 @@ export async function transformRemotes({
   const targetAttr = `[data-minista-transform-target="remote"]`
   const targetEls = getElements(parsedData, targetAttr)
 
-  if (targetEls.length === 0) {
+  if (!targetEls.length) {
     return
   }
   const { resolvedRoot, tempDir } = config.sub
@@ -85,11 +85,9 @@ export async function transformRemotes({
     cacheCount = (await fg(path.join(cacheDir, "*"))).length
   }
 
-  const targetList = targetEls
-    .map((el) => {
-      return { el: el, src: el.getAttribute("data-minista-image-src") || "" }
-    })
-    .filter((item) => item.src)
+  const targetList = targetEls.map((el) => {
+    return { el, src: el.getAttribute("data-minista-image-src") || "" }
+  })
 
   const targetSrcs = getUniquePaths(
     targetList.map((item) => item.src),
@@ -129,9 +127,10 @@ export async function transformRemotes({
   }
 
   targetList.map((item) => {
-    const filePath = cacheData[item.src] || ""
-    item.el.setAttribute("data-minista-image-src", filePath)
-    item.el.setAttribute("data-minista-transform-target", "image")
+    const { el, src } = item
+    const filePath = cacheData[src] || ""
+    el.setAttribute("data-minista-image-src", filePath)
+    el.setAttribute("data-minista-transform-target", "image")
     return
   })
 }

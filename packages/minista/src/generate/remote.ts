@@ -15,7 +15,7 @@ export async function generateRemoteCache(
   fileName: string,
   data: CreatedRemotes
 ) {
-  if (Object.keys(data).length === 0) {
+  if (!Object.keys(data).length) {
     return
   }
   await fs.outputJson(fileName, data, { spaces: 2 }).catch((err) => {
@@ -24,7 +24,7 @@ export async function generateRemoteCache(
 }
 
 export async function generateRemotes(items: CreateRemotes) {
-  if (items.length === 0) {
+  if (!items.length) {
     return
   }
   await Promise.all(
