@@ -4,7 +4,8 @@ import type {
 } from "vite"
 import type { Config as SvgrOptions } from "@svgr/core"
 import type { SvgstoreAddOptions } from "@qrac/svgstore"
-import type { Options as HighlightOptions } from "rehype-highlight"
+import type { Options as RemarkGfmOptions } from "remark-gfm"
+import type { Options as RehypeHighlightOptions } from "rehype-highlight"
 import type { Options as MdxOptions } from "@mdx-js/rollup"
 import type { Format as ArchiverFormat, ArchiverOptions } from "archiver"
 import type {
@@ -70,8 +71,10 @@ export type MainConfig = {
   }
   css: ViteCSSOptions
   markdown: {
-    syntaxHighlighter: "highlight" | "none"
-    highlightOptions: HighlightOptions
+    useRemarkGfm: boolean
+    useRehypeHighlight: boolean
+    remarkGfmOptions: RemarkGfmOptions
+    rehypeHighlightOptions: RehypeHighlightOptions
     mdxOptions: MdxOptions
   }
   search: {
@@ -199,8 +202,10 @@ export const defaultMainConfig: MainConfig = {
     },
   },
   markdown: {
-    syntaxHighlighter: "highlight",
-    highlightOptions: {},
+    useRemarkGfm: true,
+    useRehypeHighlight: true,
+    remarkGfmOptions: {},
+    rehypeHighlightOptions: {},
     mdxOptions: {
       remarkPlugins: [],
       rehypePlugins: [],
