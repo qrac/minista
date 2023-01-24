@@ -17,8 +17,6 @@ describe("transformSearch", () => {
       ],
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual({
       words: [" ", "body", "title"],
       hits: [1, 2],
@@ -46,8 +44,6 @@ describe("transformSearch", () => {
       ],
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual({
       words: [" ", "body", "heading", "title"],
       hits: [1, 2, 3],

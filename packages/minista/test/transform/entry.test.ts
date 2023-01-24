@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parse as parseHtml } from "node-html-parser"
@@ -32,8 +31,6 @@ describe("transformDynamicEntries", () => {
       linkEntries: {},
       scriptEntries: {},
     })
-
-    //console.log(result)
     expect(result.toString())
       .toEqual(`<link rel="stylesheet" href="/assets/index.css">
 <script type="module" src="/assets/index.js"></script>`)

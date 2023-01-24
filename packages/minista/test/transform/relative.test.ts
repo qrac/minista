@@ -9,8 +9,6 @@ describe("resolveRelativePath", () => {
       replaceTarget: "/assets/images",
       assetPath: "/assets/images/image.png",
     })
-
-    //console.log(result)
     expect(result).toEqual("assets/images/image.png")
   })
 
@@ -20,8 +18,6 @@ describe("resolveRelativePath", () => {
       replaceTarget: "/assets/images",
       assetPath: "/assets/images/image.png",
     })
-
-    //console.log(result)
     expect(result).toEqual("../assets/images/image.png")
   })
 
@@ -32,8 +28,6 @@ describe("resolveRelativePath", () => {
       assetPath:
         "/assets/images/image.png 768w, /assets/images/image.png 1024w",
     })
-
-    //console.log(result)
     expect(result).toEqual(
       "assets/images/image.png 768w, assets/images/image.png 1024w"
     )
@@ -46,8 +40,6 @@ describe("resolveRelativePath", () => {
       assetPath:
         "/assets/images/image.png 768w, /assets/images/image.png 1024w",
     })
-
-    //console.log(result)
     expect(result).toEqual(
       "../assets/images/image.png 768w, ../assets/images/image.png 1024w"
     )

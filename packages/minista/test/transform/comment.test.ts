@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
@@ -17,8 +16,6 @@ const __dirname = path.dirname(__filename)
 describe("transformOneComment", () => {
   it("Default", () => {
     const result = transformOneComment("test")
-
-    //console.log(result)
     expect(result).toEqual(`<!-- test -->`)
   })
 })
@@ -28,8 +25,6 @@ describe("transformMultiComment", () => {
     const result = transformMultiComment(`test
 test 2
 test 3`)
-
-    //console.log(result)
     expect(result).toEqual(`<!--
   test
   test 2
@@ -45,8 +40,6 @@ describe("transformComment", () => {
     const html = await fs.readFile(htmlFile, "utf8")
     const parsedHtml = parseHtml(html)
     const result = transformComment(parsedHtml)
-
-    //console.log(result)
     expect(
       result.toString().includes(`data-minista-transform-target="comment"`)
     ).toBeFalsy()

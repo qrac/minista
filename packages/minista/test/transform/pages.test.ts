@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-
 import beautify from "js-beautify"
 
 import { transformPages } from "../../src/transform/pages"
@@ -36,8 +35,6 @@ describe("transformPages", () => {
         html: beautify.html(page.html, config.main.beautify.htmlOptions),
       }
     })
-
-    //console.log(result)
     expect(result[0].html).toEqual(`<!doctype html>
 <html lang="ja">
   <head>
@@ -79,8 +76,6 @@ describe("transformPages", () => {
         html: beautify.html(page.html, config.main.beautify.htmlOptions),
       }
     })
-
-    //console.log(result)
     expect(result[0].html).toEqual(`<!doctype html>
 <html lang="ja">
   <head>

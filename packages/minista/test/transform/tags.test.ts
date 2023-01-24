@@ -22,8 +22,6 @@ describe("transformLinkTag", () => {
       },
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual(
       `<link rel="stylesheet" href="/@minista-project-root/src/assets/style.scss">`
     )
@@ -43,8 +41,6 @@ describe("transformLinkTag", () => {
       },
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual(`<link rel="stylesheet" href="/assets/style.css">`)
   })
 })
@@ -64,8 +60,6 @@ describe("transformScriptTag", () => {
       },
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual(
       `<script defer src="/@minista-project-root/src/assets/script.ts"></script>`
     )
@@ -85,8 +79,6 @@ describe("transformScriptTag", () => {
       },
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual(
       `<script type="module" src="/assets/script.js"></script>`
     )
@@ -106,8 +98,6 @@ describe("transformScriptTag", () => {
       },
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual(`<script src="/assets/script.js"></script>`)
   })
 })
@@ -120,8 +110,6 @@ describe("transformEntryTags", () => {
       pathname: "/",
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual({
       headTags: `<script type="module" src="/@minista/dist/server/bundle.js"></script>
 <script type="module" src="/@minista/dist/server/hydrate.js"></script>`,
@@ -139,8 +127,6 @@ describe("transformEntryTags", () => {
       pathname: "/",
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" href="/@minista-project-root/src/assets/style.scss">
 <script type="module" src="/@minista/dist/server/bundle.js"></script>
@@ -157,8 +143,6 @@ describe("transformEntryTags", () => {
       pathname: "/",
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
 <script type="module" data-minista-build-hydrate-src="/assets/hydrate.js"></script>`,
@@ -176,8 +160,6 @@ describe("transformEntryTags", () => {
       pathname: "/",
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" href="/assets/style.css">
 <link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
@@ -196,8 +178,6 @@ describe("transformEntryTags", () => {
       pathname: "/",
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual({
       headTags: `<link rel="stylesheet" href="/assets/index.css">
 <link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">

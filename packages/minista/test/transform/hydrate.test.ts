@@ -15,8 +15,6 @@ describe("transformPartial", () => {
         thresholds: [0],
       },
     })
-
-    //console.log(result)
     expect(result).toEqual(
       `import * as ReactDOM from "react-dom/client"
 import App from "/test/module.js"
@@ -54,8 +52,6 @@ if (targets) {
         thresholds: [0],
       },
     })
-
-    //console.log(result)
     expect(result).toEqual(
       `import * as ReactDOM from "react-dom/client"
 import App from "/test/module.js"
@@ -93,8 +89,6 @@ if (targets) {
         thresholds: [0],
       },
     })
-
-    //console.log(result)
     expect(result).toEqual(
       `import * as ReactDOM from "react-dom/client"
 import App from "/test/module.js"

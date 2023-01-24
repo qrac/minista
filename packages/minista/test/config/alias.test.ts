@@ -7,8 +7,6 @@ describe("resolveAlias", () => {
     const configAlias = {}
     const viteConfigAlias = {}
     const result = await resolveAlias(configAlias, viteConfigAlias)
-
-    //console.log(result)
     expect(result).toEqual([])
   })
 
@@ -16,8 +14,6 @@ describe("resolveAlias", () => {
     const configAlias = { test: "../test" }
     const viteConfigAlias = {}
     const result = await resolveAlias(configAlias, viteConfigAlias)
-
-    //console.log(result)
     expect(result).toEqual([{ find: "test", replacement: "../test" }])
   })
 
@@ -25,8 +21,6 @@ describe("resolveAlias", () => {
     const configAlias = { test: "../test", test_2: "../../test2" }
     const viteConfigAlias = {}
     const result = await resolveAlias(configAlias, viteConfigAlias)
-
-    //console.log(result)
     expect(result).toEqual([
       { find: "test", replacement: "../test" },
       { find: "test_2", replacement: "../../test2" },
@@ -37,8 +31,6 @@ describe("resolveAlias", () => {
     const configAlias = [{ find: "test", replacement: "../test" }]
     const viteConfigAlias = {}
     const result = await resolveAlias(configAlias, viteConfigAlias)
-
-    //console.log(result)
     expect(result).toEqual([{ find: "test", replacement: "../test" }])
   })
 
@@ -46,8 +38,6 @@ describe("resolveAlias", () => {
     const configAlias = {}
     const viteConfigAlias = { test: "../test" }
     const result = await resolveAlias(configAlias, viteConfigAlias)
-
-    //console.log(result)
     expect(result).toEqual([{ find: "test", replacement: "../test" }])
   })
 
@@ -55,8 +45,6 @@ describe("resolveAlias", () => {
     const configAlias = { test: "../test" }
     const viteConfigAlias = { test_2: "../../test2" }
     const result = await resolveAlias(configAlias, viteConfigAlias)
-
-    //console.log(result)
     expect(result).toEqual([
       { find: "test", replacement: "../test" },
       { find: "test_2", replacement: "../../test2" },

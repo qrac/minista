@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -11,8 +10,6 @@ const __dirname = path.dirname(__filename)
 describe("resolveUserConfig", () => {
   it("No file", async () => {
     const result = await resolveUserConfig()
-
-    //console.log(result)
     expect(result).toEqual({})
   })
 
@@ -20,15 +17,11 @@ describe("resolveUserConfig", () => {
     const configPath = "../_data/config.ts"
     const configFile = path.relative(".", path.join(__dirname, configPath))
     const result = await resolveUserConfig({ configFile })
-
-    //console.log(result)
     expect(result).toEqual({ out: "out" })
   })
 
   it("No file with inline", async () => {
     const result = await resolveUserConfig({ public: "static" })
-
-    //console.log(result)
     expect(result).toEqual({ public: "static" })
   })
 
@@ -36,8 +29,6 @@ describe("resolveUserConfig", () => {
     const configPath = "../_data/config.ts"
     const configFile = path.relative(".", path.join(__dirname, configPath))
     const result = await resolveUserConfig({ configFile, public: "static" })
-
-    //console.log(result)
     expect(result).toEqual({ public: "static", out: "out" })
   })
 
@@ -45,8 +36,6 @@ describe("resolveUserConfig", () => {
     const configPath = "../_data/config2.ts"
     const configFile = path.relative(".", path.join(__dirname, configPath))
     const result = await resolveUserConfig({ configFile })
-
-    //console.log(result)
     expect(result).toEqual({ out: "out" })
   })
 })

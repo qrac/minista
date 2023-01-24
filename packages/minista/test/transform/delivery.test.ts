@@ -35,8 +35,6 @@ describe("transformListDataDelivery", () => {
       ],
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual([
       {
         title: "HOME",
@@ -74,8 +72,6 @@ describe("transformListDataDelivery", () => {
       ],
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual([
       {
         title: "ABOUT",
@@ -92,8 +88,6 @@ describe("transformListDataDelivery", () => {
 describe("transformListStrDelivery", () => {
   it("Blank", () => {
     const result = transformListStrDelivery([])
-
-    //console.log(result)
     expect(result).toEqual("")
   })
 
@@ -108,8 +102,6 @@ describe("transformListStrDelivery", () => {
         path: "/about",
       },
     ])
-
-    //console.log(result)
     expect(result).toEqual(`<ul class="minista-delivery-list">
 <li class="minista-delivery-item">
   <div class="minista-delivery-item-content">
@@ -173,8 +165,6 @@ describe("transformButtonsDataDelivery", () => {
 describe("transformButtonsStrDelivery", () => {
   it("Blank", () => {
     const result = transformButtonsStrDelivery([])
-
-    //console.log(result)
     expect(result).toEqual("")
   })
 
@@ -182,8 +172,6 @@ describe("transformButtonsStrDelivery", () => {
     const result = transformButtonsStrDelivery([
       { title: "Download", path: "/archive.zip", color: "blue" },
     ])
-
-    //console.log(result)
     expect(result).toEqual(`<a
   class="minista-delivery-button"
   href="/archive.zip"
@@ -223,8 +211,6 @@ describe("transformDelivery", () => {
       ],
       config,
     })
-
-    //console.log(result)
     expect(result).toEqual(`<div>
 <ul class="minista-delivery-list">
 <li class="minista-delivery-item">

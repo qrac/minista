@@ -9,8 +9,6 @@ describe("getSpace", () => {
       maxNameLength: 5,
       min: 3,
     })
-
-    //console.log(result)
     expect(result).toEqual("    ")
   })
 
@@ -20,8 +18,6 @@ describe("getSpace", () => {
       maxNameLength: 5,
       min: -3,
     })
-
-    //console.log(result)
     expect(result).toEqual("")
   })
 })

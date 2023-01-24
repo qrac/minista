@@ -1,9 +1,7 @@
-import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import { describe, expect, it, beforeAll, afterEach, afterAll } from "vitest"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
-import { parse as parseHtml } from "node-html-parser"
 import { rest } from "msw"
 import { setupServer } from "msw/node"
 

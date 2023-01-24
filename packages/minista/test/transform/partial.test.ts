@@ -11,8 +11,6 @@ describe("transformPartial", () => {
       dataAttr: `data-partial-hydration="ph-1"`,
       style,
     })
-
-    //console.log(result)
     expect(result).toEqual(
       `import App from "/test/module.js"
 export default function () {

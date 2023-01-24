@@ -15,7 +15,7 @@ export type SsgPage = {
 export async function runSsg(config: ResolvedConfig): Promise<SsgPage[]> {
   const { resolvedGlobal, resolvedPages } = await getSources()
 
-  if (resolvedPages.length === 0) {
+  if (!resolvedPages.length) {
     return []
   }
   return await transformPages({ resolvedGlobal, resolvedPages, config })

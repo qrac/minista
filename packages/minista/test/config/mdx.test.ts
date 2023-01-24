@@ -7,17 +7,12 @@ import { defaultMainConfig, resolveMainConfig } from "../../src/config/main"
 describe("getMdxPluginNames", () => {
   it("No plugins", () => {
     const result = getMdxPluginNames([])
-
-    //console.log(result)
     expect(result).toEqual([])
   })
 
   it("Set plugin", () => {
     const plugins = [remarkGfm]
     const result = getMdxPluginNames(plugins)
-
-    //console.log("plugins:", plugins[0].name)
-    //console.log("result", result)
     expect(result).toEqual(["remarkGfm"])
   })
 })
@@ -25,8 +20,6 @@ describe("getMdxPluginNames", () => {
 describe("resolveMdxConfig", () => {
   it("No plugins", async () => {
     const result = await resolveMdxConfig(defaultMainConfig)
-
-    //console.log(result)
     expect(result.remarkPlugins?.includes(remarkGfm)).toBeTruthy()
   })
 
@@ -36,12 +29,9 @@ describe("resolveMdxConfig", () => {
     }
     const mergedConfig = await resolveMainConfig(userConfig)
     const result = await resolveMdxConfig(mergedConfig)
-
     const filteredResult = result.remarkPlugins?.filter(
       (plugin) => plugin === remarkGfm
     )
-
-    //console.log(result)
     expect(filteredResult?.length).toEqual(1)
   })
 })

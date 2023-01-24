@@ -11,22 +11,16 @@ import {
 describe("resolveEntryInclude", () => {
   it("String", () => {
     const result = resolveEntryInclude("/test/test1")
-
-    //console.log(result)
     expect(result).toEqual(["/test/test1"])
   })
 
   it("Array", () => {
     const result = resolveEntryInclude(["/test/test1", "/test/test2"])
-
-    //console.log(result)
     expect(result).toEqual(["/test/test1", "/test/test2"])
   })
 
   it("Object", () => {
     const result = resolveEntryInclude({ include: ["/test/test1"] })
-
-    //console.log(result)
     expect(result).toEqual(["/test/test1"])
   })
 })
@@ -34,15 +28,11 @@ describe("resolveEntryInclude", () => {
 describe("resolveEntryExclude", () => {
   it("String", () => {
     const result = resolveEntryExclude("/test/test1")
-
-    //console.log(result)
     expect(result).toEqual([])
   })
 
   it("Array", () => {
     const result = resolveEntryExclude(["/test/test1", "!/test/test2"])
-
-    //console.log(result)
     expect(result).toEqual(["/test/test2"])
   })
 
@@ -51,8 +41,6 @@ describe("resolveEntryExclude", () => {
       include: ["/test/test1"],
       exclude: ["/test/test2"],
     })
-
-    //console.log(result)
     expect(result).toEqual(["/test/test2"])
   })
 })
@@ -60,8 +48,6 @@ describe("resolveEntryExclude", () => {
 describe("resolveViteEntry", () => {
   it("No entry", () => {
     const result = resolveViteEntry("", [])
-
-    //console.log(result)
     expect(result).toEqual({})
   })
 
@@ -76,9 +62,6 @@ describe("resolveViteEntry", () => {
       },
     ]
     const result = resolveViteEntry("", entries)
-
-    //console.log("plugins:", plugins[0].name)
-    //console.log("result", result)
     expect(result).toEqual({ script: "src/assets/script.ts" })
   })
 })
@@ -87,16 +70,12 @@ describe("resolveEntry", () => {
   it("No props", async () => {
     const configEntry: EntryPatterns = ""
     const result = await resolveEntry(configEntry)
-
-    //console.log(result)
     expect(result).toEqual([])
   })
 
   it("String", async () => {
     const configEntry: EntryPatterns = "src/assets/script.ts"
     const result = await resolveEntry(configEntry)
-
-    //console.log(result)
     expect(result).toEqual([
       {
         name: "script",
@@ -114,8 +93,6 @@ describe("resolveEntry", () => {
       "src/assets/style.css",
     ]
     const result = await resolveEntry(configEntry)
-
-    //console.log(result)
     expect(result).toEqual([
       {
         name: "script",
@@ -140,8 +117,6 @@ describe("resolveEntry", () => {
       "src/assets/index.css",
     ]
     const result = await resolveEntry(configEntry)
-
-    //console.log(result)
     expect(result).toEqual([
       {
         name: "index-ministaDuplicateName0",
@@ -163,8 +138,6 @@ describe("resolveEntry", () => {
   it("Object", async () => {
     const configEntry: EntryPatterns = { script: "src/assets/index.ts" }
     const result = await resolveEntry(configEntry)
-
-    //console.log(result)
     expect(result).toEqual([
       {
         name: "script",
@@ -201,8 +174,6 @@ describe("resolveEntry", () => {
       },
     ]
     const result = await resolveEntry(configEntry)
-
-    //console.log(result)
     expect(result).toEqual([
       {
         name: "test1",
