@@ -25,7 +25,7 @@ import { pluginSearch } from "../plugins/search.js"
 import { transformPage } from "../transform/page.js"
 import { transformPages } from "../transform/pages.js"
 import { transformEntryTags } from "../transform/tags.js"
-import { transformComment } from "../transform/comment.js"
+import { transformComments } from "../transform/comment.js"
 import { transformRemotes } from "../transform/remote.js"
 import { transformImages } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
@@ -127,11 +127,8 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
 
             let parsedHtml = parseHtml(html, { comment: true }) as NHTMLElement
 
-            const targetAttr = "data-minista-transform-target"
+            transformComments(parsedHtml)
 
-            if (parsedHtml.querySelector(`[${targetAttr}="comment"]`)) {
-              parsedHtml = transformComment(parsedHtml)
-            }
             await transformRemotes({
               command: "serve",
               parsedData: parsedHtml,
@@ -150,6 +147,8 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
             })
 
             html = parsedHtml.toString()
+
+            const targetAttr = "data-minista-transform-target"
 
             if (
               useVirtualModule ||

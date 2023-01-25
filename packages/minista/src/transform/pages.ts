@@ -7,7 +7,7 @@ import type { ResolvedGlobal } from "../server/global.js"
 import type { ResolvedPages } from "../server/pages.js"
 import { transformPage } from "./page.js"
 import { transformEntryTags } from "./tags.js"
-import { transformComment } from "./comment.js"
+import { transformComments } from "./comment.js"
 import { getHtmlPath } from "../utility/path.js"
 
 export async function transformPages({
@@ -58,14 +58,9 @@ export async function transformPages({
   pages = await Promise.all(
     pages.map(async (page) => {
       let html = page.html
-
       let parsedHtml = parseHtml(html, { comment: true }) as NHTMLElement
 
-      const targetAttr = "data-minista-transform-target"
-
-      if (parsedHtml.querySelector(`[${targetAttr}="comment"]`)) {
-        parsedHtml = transformComment(parsedHtml)
-      }
+      transformComments(parsedHtml)
 
       html = parsedHtml.toString()
 

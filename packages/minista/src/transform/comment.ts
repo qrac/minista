@@ -1,6 +1,8 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import { parse as parseHtml } from "node-html-parser"
 
+import { getElements } from "../utility/element"
+
 export function transformOneComment(text: string) {
   return "<!-- " + text + " -->"
 }
@@ -28,18 +30,18 @@ export function transformMultiComment(text: string) {
   return "<!--" + "\n" + startSpace + multiText + "\n" + endSpace + "-->"
 }
 
-export function transformComment(parsedHtml: NHTMLElement) {
-  let _parsedHtml = parsedHtml
+export function transformComments(parsedData: NHTMLElement | NHTMLElement[]) {
+  const targetAttr = `[data-minista-transform-target="comment"]`
+  const targetEls = getElements(parsedData, targetAttr)
 
-  const targets = _parsedHtml.querySelectorAll(
-    `[data-minista-transform-target="comment"]`
-  )
-
-  targets.map((target) => {
+  if (!targetEls.length) {
+    return
+  }
+  targetEls.map((el) => {
     let commentTag = ""
 
-    const parent = target.parentNode
-    const text = target.innerText
+    const parent = el.parentNode
+    const text = el.innerText
 
     if (!text.includes("\n")) {
       commentTag = transformOneComment(text)
@@ -48,8 +50,7 @@ export function transformComment(parsedHtml: NHTMLElement) {
     }
     const content = "\n\n" + commentTag + "\n\n"
     const parsedContent = parseHtml(content, { comment: true })
-    return parent.exchangeChild(target, parsedContent)
+    parent.exchangeChild(el, parsedContent)
+    return
   })
-
-  return _parsedHtml
 }
