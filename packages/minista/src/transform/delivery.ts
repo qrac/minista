@@ -3,7 +3,6 @@ import picomatch from "picomatch"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { SsgPage } from "../server/ssg.js"
-import { resolveBase } from "../utility/base.js"
 
 export function transformListDataDelivery({
   ssgPages,
@@ -81,7 +80,7 @@ export function transformListStrDelivery(
 }
 
 export function transformButtonsDataDelivery(config: ResolvedConfig) {
-  const resolvedBase = resolveBase(config.main.base)
+  const { resolvedBase } = config.sub
 
   return config.main.delivery.archives.map((item) => {
     const outFile = item.outName + "." + item.format

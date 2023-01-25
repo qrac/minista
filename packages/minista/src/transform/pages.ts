@@ -9,7 +9,6 @@ import { transformPage } from "./page.js"
 import { transformEntryTags } from "./tags.js"
 import { transformComment } from "./comment.js"
 import { getHtmlPath } from "../utility/path.js"
-import { resolveBase } from "../utility/base.js"
 
 export async function transformPages({
   resolvedGlobal,
@@ -20,7 +19,7 @@ export async function transformPages({
   resolvedPages: ResolvedPages
   config: ResolvedConfig
 }) {
-  const resolvedBase = resolveBase(config.main.base)
+  const { resolvedBase } = config.sub
 
   let pages = resolvedPages.map((page) => {
     const basedPath = resolvedBase.match(/^\/.*\/$/)

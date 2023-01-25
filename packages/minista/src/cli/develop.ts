@@ -12,7 +12,6 @@ import { parse as parseHtml } from "node-html-parser"
 import type { InlineConfig, ResolvedConfig } from "../config/index.js"
 import type { GetSources } from "../server/sources.js"
 import type { SsgPage } from "../server/ssg.js"
-import type { CreateSprites } from "../generate/sprite.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginReact } from "../plugins/react.js"
 import { pluginPreact } from "../plugins/preact.js"
@@ -33,7 +32,6 @@ import { transformIcons } from "../transform/icon.js"
 import { transformEncode } from "../transform/encode.js"
 import { transformSearch } from "../transform/search.js"
 import { transformDelivery } from "../transform/delivery.js"
-import { resolveBase } from "../utility/base.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -97,7 +95,7 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
       return () => {
         server.middlewares.use(async (req, res, next) => {
           try {
-            const resolvedBase = resolveBase(config.main.base)
+            const { resolvedBase } = config.sub
 
             let originalUrl = req.originalUrl || ""
             let url = originalUrl

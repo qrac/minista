@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 
 import type { ResolvedConfig } from "../config/index.js"
-import { resolveBase } from "../utility/base.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -55,7 +54,7 @@ export function pluginSearch(config: ResolvedConfig): Plugin {
           activeSearch = true
         }
 
-        const resolvedBase = resolveBase(config.main.base)
+        const { resolvedBase } = config.sub
 
         let filePath = path.join(
           config.main.search.outDir,
