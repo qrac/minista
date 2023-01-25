@@ -1,7 +1,7 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import { parse as parseHtml } from "node-html-parser"
 
-import { getElements } from "../utility/element"
+import { getElements } from "../utility/element.js"
 
 export function transformOneComment(text: string) {
   return "<!-- " + text + " -->"
