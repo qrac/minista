@@ -41,14 +41,15 @@ export async function transformIcons({
   createSprites?: CreateSprites
   server?: ViteDevServer
 }) {
+  const { resolvedRoot, resolvedBase, tempDir } = config.sub
+  const { icons } = config.main.assets
+
   const targetAttr = `[data-minista-transform-target="icon"]`
   const targetEls = getElements(parsedData, targetAttr)
 
   if (!targetEls.length) {
     return
   }
-  const { resolvedRoot, resolvedBase, tempDir } = config.sub
-  const { icons } = config.main.assets
   const cacheDir = path.join(tempDir, "icons", "serve")
 
   let cacheData: CreateSprites = {}

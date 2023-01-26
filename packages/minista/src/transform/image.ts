@@ -139,14 +139,15 @@ export async function transformImages({
   config: ResolvedConfig
   createImages?: CreateImages
 }) {
+  const { resolvedRoot, resolvedBase, tempDir } = config.sub
+  const { outDir, optimize } = config.main.assets.images
+
   const targetAttr = `[data-minista-transform-target="image"]`
   const targetEls = getElements(parsedData, targetAttr)
 
   if (!targetEls.length) {
     return
   }
-  const { resolvedRoot, resolvedBase, tempDir } = config.sub
-  const { outDir, optimize } = config.main.assets.images
   const cacheDir = path.join(tempDir, "images", "serve")
   const cacheJson = path.join(tempDir, "images", "image-cache.json")
 

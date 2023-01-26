@@ -64,14 +64,15 @@ export async function transformRemotes({
   parsedData: NHTMLElement | NHTMLElement[]
   config: ResolvedConfig
 }) {
+  const { resolvedRoot, tempDir } = config.sub
+  const { remoteName } = config.main.assets.images
+
   const targetAttr = `[data-minista-transform-target="remote"]`
   const targetEls = getElements(parsedData, targetAttr)
 
   if (!targetEls.length) {
     return
   }
-  const { resolvedRoot, tempDir } = config.sub
-  const { remoteName } = config.main.assets.images
   const cacheDir = path.join(tempDir, "images", "remote")
   const cacheJson = path.join(tempDir, "images", "remote-cache.json")
 
