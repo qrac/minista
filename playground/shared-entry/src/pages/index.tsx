@@ -21,7 +21,7 @@ export default function () {
         type="module"
         src="/src/assets/entry2.ts"
         data-minista-entry-name="test/custom"
-        data-minista-entry-attributes={false}
+        data-minista-entry-type={false}
       />
     </>
   )

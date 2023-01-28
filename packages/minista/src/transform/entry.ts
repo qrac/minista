@@ -70,6 +70,12 @@ export async function transformEntries({
     const assetPath = path.join(resolvedBase, outDir, `${outName}.${outExt}`)
 
     isScript ? (scriptEntries[name] = src) : (linkEntries[name] = src)
+
+    if (isScript && item.type) {
+      item.type === "false"
+        ? el.removeAttribute("type")
+        : el.setAttribute("type", item.type)
+    }
     el.setAttribute(srcAttr, assetPath)
     cleanElement(el, cleanAttributes)
     return
