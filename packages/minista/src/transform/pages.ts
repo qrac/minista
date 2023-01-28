@@ -6,7 +6,7 @@ import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedGlobal } from "../server/global.js"
 import type { ResolvedPages } from "../server/pages.js"
 import { transformPage } from "./page.js"
-import { transformTags } from "./tags.js"
+import { transformTags } from "./tag.js"
 import { transformComments } from "./comment.js"
 import { getHtmlPath } from "../utility/path.js"
 

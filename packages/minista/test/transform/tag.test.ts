@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { getLinkTag, getScriptTag } from "../../src/transform/tags"
+import { getLinkTag, getScriptTag } from "../../src/transform/tag"
 import { resolveConfig } from "../../src/config"
 
 describe("getLinkTag", () => {
