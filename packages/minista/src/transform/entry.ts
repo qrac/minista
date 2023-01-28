@@ -4,6 +4,7 @@ import fs from "fs-extra"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
+import { flags } from "../config/system.js"
 import { getElements, cleanElement } from "../utility/element.js"
 import { getUniquePaths } from "../utility/path.js"
 
@@ -30,6 +31,12 @@ export async function transformEntries({
   const targetAttr = `link[href^='/'], script[src^='/']`
   let targetEls = getElements(parsedData, targetAttr)
 
+  targetEls = targetEls.filter((el) => {
+    const isEntried = el.hasAttribute(flags.entried)
+    isEntried && el.removeAttribute(flags.entried)
+    return isEntried
+  })
+
   if (!targetEls.length) {
     return
   }
@@ -40,6 +47,7 @@ export async function transformEntries({
     const type = el.getAttribute("data-minista-entry-type") || ""
     return { el, tagName, src, name, type }
   })
+
   let targetSrcs = getUniquePaths(targetList.map((item) => item.src))
 
   targetSrcs = await Promise.all(

@@ -25,7 +25,9 @@ describe("getLinkTag", () => {
       input: "src/assets/style.scss",
       config,
     })
-    expect(result).toEqual(`<link rel="stylesheet" href="/assets/style.css">`)
+    expect(result).toEqual(
+      `<link rel="stylesheet" href="/assets/style.css" data-minista-flag-entried>`
+    )
   })
 })
 
@@ -53,7 +55,7 @@ describe("getScriptTag", () => {
       config,
     })
     expect(result).toEqual(
-      `<script type="module" src="/assets/script.js"></script>`
+      `<script type="module" src="/assets/script.js" data-minista-flag-entried></script>`
     )
   })
 
@@ -66,6 +68,8 @@ describe("getScriptTag", () => {
       attributes: false,
       config,
     })
-    expect(result).toEqual(`<script src="/assets/script.js"></script>`)
+    expect(result).toEqual(
+      `<script src="/assets/script.js" data-minista-flag-entried></script>`
+    )
   })
 })

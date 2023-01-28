@@ -18,6 +18,7 @@ import type { ResolvedViteEntry } from "../config/entry.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
 import type { CreateImages } from "../generate/image.js"
 import type { CreateSprites } from "../generate/sprite.js"
+import { flags } from "../config/system.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
 import { pluginReact } from "../plugins/react.js"
@@ -330,30 +331,20 @@ export async function build(inlineConfig: InlineConfig = {}) {
       if (isHtml) {
         let parsedHtml = parseHtml(data, { comment: true })
 
-        const bundleAttr = "data-minista-build-bundle-href"
-        const bundleEl = parsedHtml
-          .querySelectorAll("link")
-          .find((el) => el.hasAttribute(bundleAttr))
-        const bundlePath = bundleEl?.getAttribute(bundleAttr) || ""
+        const bundleEl = parsedHtml.querySelector(`link[${flags.bundle}]`)
 
         if (hasBundleCss) {
-          bundleEl?.removeAttribute(bundleAttr)
-          bundleEl?.setAttribute("href", bundlePath)
+          bundleEl?.removeAttribute(flags.bundle)
         } else {
           bundleEl?.remove()
         }
 
         const partialAttr = `[data-${assets.partial.rootAttrSuffix}]`
         const partialEl = parsedHtml.querySelector(partialAttr)
-        const hydrateAttr = "data-minista-build-hydrate-src"
-        const hydrateEl = parsedHtml
-          .querySelectorAll("script")
-          .find((el) => el.hasAttribute(hydrateAttr))
-        const hydratePath = hydrateEl?.getAttribute(hydrateAttr) || ""
+        const hydrateEl = parsedHtml.querySelector(`script[${flags.hydrate}]`)
 
         if (partialEl) {
-          hydrateEl?.removeAttribute(hydrateAttr)
-          hydrateEl?.setAttribute("src", hydratePath)
+          hydrateEl?.removeAttribute(flags.hydrate)
         } else {
           hydrateEl?.remove()
         }

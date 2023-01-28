@@ -41,8 +41,8 @@ describe("transformPages", () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
-    <link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
-    <script type="module" data-minista-build-hydrate-src="/assets/hydrate.js"></script>
+    <link rel="stylesheet" href="/assets/bundle.css" data-minista-flag-entried data-minista-flag-bundle>
+    <script type="module" src="/assets/hydrate.js" data-minista-flag-entried data-minista-flag-hydrate></script>
   </head>
   <body>
     <h1>index</h1>
@@ -82,8 +82,8 @@ describe("transformPages", () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
-    <link rel="stylesheet" data-minista-build-bundle-href="/assets/bundle.css">
-    <script type="module" data-minista-build-hydrate-src="/assets/hydrate.js"></script>
+    <link rel="stylesheet" href="/assets/bundle.css" data-minista-flag-entried data-minista-flag-bundle>
+    <script type="module" src="/assets/hydrate.js" data-minista-flag-entried data-minista-flag-hydrate></script>
   </head>
   <body>
     <div>

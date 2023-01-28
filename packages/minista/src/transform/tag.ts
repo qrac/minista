@@ -3,6 +3,7 @@ import picomatch from "picomatch"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedEntry } from "../config/entry.js"
+import { flags } from "../config/system.js"
 
 export function getLinkTag({
   command,
@@ -32,7 +33,7 @@ export function getLinkTag({
   assetPath = path.join(resolvedBase, assets.outDir, name + ".css")
   assetPath = assetPath.replace(/-ministaDuplicateName\d*/, "")
 
-  return `<link rel="stylesheet"${attrs} href="${assetPath}">`
+  return `<link rel="stylesheet"${attrs} href="${assetPath}" ${flags.entried}>`
 }
 
 export function getScriptTag({
@@ -64,7 +65,7 @@ export function getScriptTag({
   assetPath = path.join(resolvedBase, assets.outDir, name + ".js")
   assetPath = assetPath.replace(/-ministaDuplicateName\d*/, "")
 
-  return `<script${attrs} src="${assetPath}"></script>`
+  return `<script${attrs} src="${assetPath}" ${flags.entried}></script>`
 }
 
 export function transformTags({
@@ -136,22 +137,24 @@ export function transformTags({
   let hydrateHeadScriptTag = ""
 
   if (command === "serve") {
-    bundleHeadScriptTag = `<script type="module" src="/@minista/dist/server/bundle.js"></script>`
-    hydrateHeadScriptTag = `<script type="module" src="/@minista/dist/server/hydrate.js"></script>`
+    const bundlePath = "/@minista/dist/server/bundle.js"
+    const hydratePath = "/@minista/dist/server/hydrate.js"
+    bundleHeadScriptTag = `<script type="module" src="${bundlePath}"></script>`
+    hydrateHeadScriptTag = `<script type="module" src="${hydratePath}"></script>`
   }
   if (command === "build") {
-    const bundleCss = path.join(
+    const bundlePath = path.join(
       resolvedBase,
       assets.outDir,
       assets.bundle.outName + ".css"
     )
-    const hydrateJs = path.join(
+    const hydratePath = path.join(
       resolvedBase,
       assets.outDir,
       assets.partial.outName + ".js"
     )
-    bundleHeadLinkTag = `<link rel="stylesheet" data-minista-build-bundle-href="${bundleCss}">`
-    hydrateHeadScriptTag = `<script type="module" data-minista-build-hydrate-src="${hydrateJs}"></script>`
+    bundleHeadLinkTag = `<link rel="stylesheet" href="${bundlePath}" ${flags.entried} ${flags.bundle}>`
+    hydrateHeadScriptTag = `<script type="module" src="${hydratePath}" ${flags.entried} ${flags.hydrate}></script>`
   }
 
   const pageEntries = config.sub.resolvedEntry.filter((entry) => {
