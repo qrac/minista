@@ -33,7 +33,7 @@ import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
 import { transformRemotes } from "../transform/remote.js"
-import { transformDynamicEntries } from "../transform/entry.js"
+import { transformEntries } from "../transform/entry.js"
 import { transformImages } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
 import { transformRelative } from "../transform/relative.js"
@@ -83,9 +83,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let ssgPages: SsgPage[] = []
   let parsedPages: ParsedPage[] = []
 
-  let linkEntries: ResolvedViteEntry = {}
-  let scriptEntries: ResolvedViteEntry = {}
-  let ssgEntries: ResolvedViteEntry = {}
+  let dynamicEntries: ResolvedViteEntry = {}
   let assetEntries: ResolvedViteEntry = {}
 
   let createImages: CreateImages = {}
@@ -162,20 +160,17 @@ export async function build(inlineConfig: InlineConfig = {}) {
       config,
       createSprites,
     })
+    await transformEntries({
+      parsedData,
+      config,
+      dynamicEntries,
+    })
 
     htmlItems = await Promise.all(
       parsedPages.map(async (page) => {
         const pathname = page.path
 
         let parsedHtml = page.parsedHtml
-
-        parsedHtml = transformDynamicEntries({
-          parsedHtml,
-          pathname,
-          config,
-          linkEntries,
-          scriptEntries,
-        })
 
         if (config.main.base === "" || config.main.base === "./") {
           parsedHtml = transformRelative({
@@ -195,9 +190,8 @@ export async function build(inlineConfig: InlineConfig = {}) {
     )
   }
 
-  ssgEntries = { ...linkEntries, ...scriptEntries }
   assetEntries = resolveViteEntry(resolvedRoot, resolvedEntry)
-  assetEntries = { ...assetEntries, ...ssgEntries }
+  assetEntries = { ...assetEntries, ...dynamicEntries }
 
   const assetsConfig = mergeViteConfig(
     config.vite,

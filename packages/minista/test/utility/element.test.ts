@@ -23,6 +23,21 @@ describe("getElements", () => {
     const result = elements.map((el) => el.toString()).join("")
     expect(result).toEqual(`<img src="" data-1><img src="" data-1>`)
   })
+
+  it("Dynamic entries", () => {
+    const htmlStr = `<link href="/test.scss"><link href="https://example.com/test2.css">
+<img src=""><link href="/test3.css"><script>console.log("test")</script>
+<script src="/test.ts"></script><script src="https://example.com/test2.ts"></script>`
+    const parsedHtml = parseHtml(htmlStr) as NHTMLElement
+    const elements = getElements(
+      parsedHtml,
+      "link[href^='/'], script[src^='/']"
+    )
+    const result = elements.map((el) => el.toString()).join("")
+    expect(result).toEqual(
+      `<link href="/test.scss"><link href="/test3.css"><script src="/test.ts"></script>`
+    )
+  })
 })
 
 describe("cleanElement", () => {

@@ -1,134 +1,89 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
+import fs from "fs-extra"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
-import { getBasedAssetPath, isLocalPath } from "../utility/path.js"
+import { getElements, cleanElement } from "../utility/element.js"
+import { getUniquePaths } from "../utility/path.js"
 
-export function transformDynamicEntry({
-  el,
-  pathname,
-  config,
-  selfEntries,
-  otherEntries,
-}: {
-  el: NHTMLElement
-  pathname: string
-  config: ResolvedConfig
-  selfEntries: ResolvedViteEntry
-  otherEntries: ResolvedViteEntry
-}) {
-  const { assets } = config.main
-  const { resolvedRoot } = config.sub
+const cleanAttributes = ["data-minista-entry-name", "data-minista-entry-type"]
 
-  const tagName = el.tagName.toLowerCase()
-  const isScript = tagName === "script"
-  const srcAttr = isScript ? "src" : "href"
-  const outExt = isScript ? "js" : "css"
-
-  let src = ""
-  src = el.getAttribute(srcAttr) || ""
-  src = path.join(resolvedRoot, src)
-
-  let name = ""
-  name = el.getAttribute("data-minista-entry-name") || ""
-  name = name ? name : path.parse(src).name
-
-  let attributes = ""
-  attributes = el.getAttribute("data-minista-entry-attributes") || ""
-
-  let assetPath = ""
-  assetPath = path.join(assets.outDir, name + "." + outExt)
-  assetPath = getBasedAssetPath({
-    base: config.main.base,
-    pathname,
-    assetPath,
-  })
-
-  if (isScript && attributes) {
-    el.removeAttribute("type")
-  }
-  if (attributes && attributes !== "false") {
-    const attrStrArray = attributes.split(/\s+/)
-
-    let attrObj: { [key: string]: string } = {}
-
-    attrStrArray.map((attrStr) => {
-      const parts = attrStr.split("=")
-      const key = parts[0]
-      const value = parts[1].replace(/\"/g, "")
-      return (attrObj[key] = value)
-    })
-    for (const key in attrObj) {
-      el.setAttribute(key, attrObj[key])
-    }
-  }
-
-  el.setAttribute(srcAttr, assetPath)
-  el.removeAttribute("data-minista-entry-name")
-  el.removeAttribute("data-minista-entry-attributes")
-
-  const duplicateName = `${name}-ministaDuplicateName0`
-
-  if (Object.hasOwn(selfEntries, name)) {
-    return
-  }
-  if (Object.hasOwn(selfEntries, duplicateName)) {
-    return
-  }
-  if (Object.hasOwn(otherEntries, name)) {
-    selfEntries[duplicateName] = src
-    return
-  }
-  selfEntries[name] = src
-  return
+export function getEntrySrc(el: NHTMLElement) {
+  return el.tagName.toLowerCase() === "link"
+    ? el.getAttribute("href") || ""
+    : el.getAttribute("src") || ""
 }
 
-export function transformDynamicEntries({
-  parsedHtml,
-  pathname,
+export async function transformEntries({
+  parsedData,
   config,
-  linkEntries,
-  scriptEntries,
+  dynamicEntries,
 }: {
-  parsedHtml: NHTMLElement
-  pathname: string
+  parsedData: NHTMLElement | NHTMLElement[]
   config: ResolvedConfig
-  linkEntries: ResolvedViteEntry
-  scriptEntries: ResolvedViteEntry
+  dynamicEntries: ResolvedViteEntry
 }) {
-  const { resolvedRoot } = config.sub
+  const { resolvedRoot, resolvedBase } = config.sub
+  const { assets } = config.main
 
-  let _parsedHtml = parsedHtml
+  const targetAttr = `link[href^='/'], script[src^='/']`
+  let targetEls = getElements(parsedData, targetAttr)
 
-  const links = _parsedHtml.querySelectorAll("link").filter((el) => {
-    const url = el.getAttribute("href") || ""
-    return isLocalPath(resolvedRoot, url)
+  if (!targetEls.length) {
+    return
+  }
+  let targetList = targetEls.map((el) => {
+    const tagName = el.tagName.toLowerCase()
+    const src = getEntrySrc(el)
+    const name = el.getAttribute("data-minista-entry-name") || ""
+    const type = el.getAttribute("data-minista-entry-type") || ""
+    return { el, tagName, src, name, type }
   })
+  let targetSrcs = getUniquePaths(targetList.map((item) => item.src))
 
-  const scripts = _parsedHtml.querySelectorAll("script").filter((el) => {
-    const url = el.getAttribute("src") || ""
-    return isLocalPath(resolvedRoot, url)
-  })
-
-  links.map((el) => {
-    return transformDynamicEntry({
-      el,
-      pathname,
-      config,
-      selfEntries: linkEntries,
-      otherEntries: scriptEntries,
+  targetSrcs = await Promise.all(
+    targetSrcs.filter(async (src) => {
+      return await fs.pathExists(path.join(resolvedRoot, src))
     })
-  })
-  scripts.map((el) => {
-    return transformDynamicEntry({
-      el,
-      pathname,
-      config,
-      selfEntries: scriptEntries,
-      otherEntries: linkEntries,
-    })
+  )
+
+  if (!targetSrcs.length) {
+    return
+  }
+  targetList = targetList.filter((item) => targetSrcs.includes(item.src))
+
+  let linkEntries: ResolvedViteEntry = {}
+  let scriptEntries: ResolvedViteEntry = {}
+
+  targetList.map((item) => {
+    const { tagName, el } = item
+
+    const isScript = tagName === "script"
+    const srcAttr = isScript ? "src" : "href"
+    const outExt = isScript ? "js" : "css"
+
+    const src = path.join(resolvedRoot, item.src)
+    const name = item.name ? item.name : path.parse(src).name
+    const outDir = assets.outDir
+    const outName = assets.outName.replace(/\[name\]/, name)
+    const assetPath = path.join(resolvedBase, outDir, `${outName}.${outExt}`)
+
+    isScript ? (scriptEntries[name] = src) : (linkEntries[name] = src)
+    el.setAttribute(srcAttr, assetPath)
+    cleanElement(el, cleanAttributes)
+    return
   })
 
-  return _parsedHtml
+  Object.entries(linkEntries).map((item) => {
+    dynamicEntries[item[0]] = item[1]
+    return
+  })
+  Object.entries(scriptEntries).map((item) => {
+    const entryId = Object.hasOwn(dynamicEntries, item[0])
+      ? `${item[0]}-ministaDuplicateName0`
+      : item[0]
+    dynamicEntries[entryId] = item[1]
+    return
+  })
 }
