@@ -43,10 +43,15 @@ export async function transformEntries({
   let targetSrcs = getUniquePaths(targetList.map((item) => item.src))
 
   targetSrcs = await Promise.all(
-    targetSrcs.filter(async (src) => {
-      return await fs.pathExists(path.join(resolvedRoot, src))
+    targetSrcs.map(async (src) => {
+      if (await fs.pathExists(path.join(resolvedRoot, src))) {
+        return src
+      } else {
+        return ""
+      }
     })
   )
+  targetSrcs = targetSrcs.filter((src) => src)
 
   if (!targetSrcs.length) {
     return

@@ -6,7 +6,7 @@ import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedGlobal } from "../server/global.js"
 import type { ResolvedPages } from "../server/pages.js"
 import { transformPage } from "./page.js"
-import { transformEntryTags } from "./tags.js"
+import { transformTags } from "./tags.js"
 import { transformComments } from "./comment.js"
 import { getHtmlPath } from "../utility/path.js"
 
@@ -25,7 +25,7 @@ export async function transformPages({
     const basedPath = resolvedBase.match(/^\/.*\/$/)
       ? path.join(resolvedBase, page.path)
       : page.path
-    const { headTags, startTags, endTags } = transformEntryTags({
+    const { headTags, startTags, endTags } = transformTags({
       command: "build",
       pathname: basedPath,
       config,

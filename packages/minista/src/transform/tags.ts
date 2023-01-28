@@ -3,64 +3,71 @@ import picomatch from "picomatch"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedEntry } from "../config/entry.js"
-import { getBasedAssetPath } from "../utility/path.js"
 
-export function transformLinkTag({
+export function getLinkTag({
   command,
-  pathname,
-  entry,
+  name,
+  input,
+  attributes,
   config,
 }: {
   command: "build" | "serve"
-  pathname: string
-  entry: ResolvedEntry[0]
+  name: string
+  input: string
+  attributes?: string | false
   config: ResolvedConfig
 }) {
-  let assetPath = ""
-  let attributes = ""
+  const { resolvedBase } = config.sub
+  const { assets } = config.main
 
-  attributes = entry.attributes ? " " + entry.attributes : ""
+  let assetPath = ""
+  let attrs = ""
+
+  attrs = attributes ? " " + attributes : ""
 
   if (command === "serve") {
-    assetPath = path.join("/", "@minista-project-root", entry.input)
-    return `<link rel="stylesheet"${attributes} href="${assetPath}">`
+    assetPath = path.join("/", "@minista-project-root", input)
+    return `<link rel="stylesheet"${attrs} href="${assetPath}">`
   }
-  assetPath = path.join(config.main.assets.outDir, entry.name + ".css")
-  assetPath = getBasedAssetPath({ base: config.main.base, pathname, assetPath })
+  assetPath = path.join(resolvedBase, assets.outDir, name + ".css")
   assetPath = assetPath.replace(/-ministaDuplicateName\d*/, "")
 
-  return `<link rel="stylesheet"${attributes} href="${assetPath}">`
+  return `<link rel="stylesheet"${attrs} href="${assetPath}">`
 }
 
-export function transformScriptTag({
+export function getScriptTag({
   command,
-  pathname,
-  entry,
+  name,
+  input,
+  attributes,
   config,
 }: {
   command: "build" | "serve"
-  pathname: string
-  entry: ResolvedEntry[0]
+  name: string
+  input: string
+  attributes?: string | false
   config: ResolvedConfig
 }) {
-  let assetPath = ""
-  let attributes = ""
+  const { resolvedBase } = config.sub
+  const { assets } = config.main
 
-  attributes = entry.attributes ? " " + entry.attributes : ` type="module"`
-  attributes = entry.attributes === false ? "" : attributes
+  let assetPath = ""
+  let attrs = ""
+
+  attrs = attributes ? " " + attributes : ` type="module"`
+  attrs = attributes === false ? "" : attrs
 
   if (command === "serve") {
-    assetPath = path.join("/", "@minista-project-root", entry.input)
-    return `<script${attributes} src="${assetPath}"></script>`
+    assetPath = path.join("/", "@minista-project-root", input)
+    return `<script${attrs} src="${assetPath}"></script>`
   }
-  assetPath = path.join(config.main.assets.outDir, entry.name + ".js")
-  assetPath = getBasedAssetPath({ base: config.main.base, pathname, assetPath })
+  assetPath = path.join(resolvedBase, assets.outDir, name + ".js")
   assetPath = assetPath.replace(/-ministaDuplicateName\d*/, "")
 
-  return `<script${attributes} src="${assetPath}"></script>`
+  return `<script${attrs} src="${assetPath}"></script>`
 }
 
-export function transformEntryTags({
+export function transformTags({
   command,
   pathname,
   config,
@@ -69,6 +76,9 @@ export function transformEntryTags({
   pathname: string
   config: ResolvedConfig
 }) {
+  const { resolvedBase } = config.sub
+  const { assets } = config.main
+
   function scriptFilter(entries: ResolvedEntry, isScript: boolean) {
     const regex = /\.(js|cjs|mjs|jsx|ts|tsx)$/
     if (isScript) {
@@ -87,20 +97,22 @@ export function transformEntryTags({
 
     if (linkEntries.length > 0) {
       linkTags = linkEntries.map((entry) => {
-        return transformLinkTag({
+        return getLinkTag({
           command,
-          pathname,
-          entry,
+          name: entry.name,
+          input: entry.input,
+          attributes: entry.attributes,
           config,
         })
       })
     }
     if (scriptEntries.length > 0) {
       scriptTags = scriptEntries.map((entry) => {
-        return transformScriptTag({
+        return getScriptTag({
           command,
-          pathname,
-          entry,
+          name: entry.name,
+          input: entry.input,
+          attributes: entry.attributes,
           config,
         })
       })
@@ -128,22 +140,16 @@ export function transformEntryTags({
     hydrateHeadScriptTag = `<script type="module" src="/@minista/dist/server/hydrate.js"></script>`
   }
   if (command === "build") {
-    const bundleCss = getBasedAssetPath({
-      base: config.main.base,
-      pathname,
-      assetPath: path.join(
-        config.main.assets.outDir,
-        config.main.assets.bundle.outName + ".css"
-      ),
-    })
-    const hydrateJs = getBasedAssetPath({
-      base: config.main.base,
-      pathname,
-      assetPath: path.join(
-        config.main.assets.outDir,
-        config.main.assets.partial.outName + ".js"
-      ),
-    })
+    const bundleCss = path.join(
+      resolvedBase,
+      assets.outDir,
+      assets.bundle.outName + ".css"
+    )
+    const hydrateJs = path.join(
+      resolvedBase,
+      assets.outDir,
+      assets.partial.outName + ".js"
+    )
     bundleHeadLinkTag = `<link rel="stylesheet" data-minista-build-bundle-href="${bundleCss}">`
     hydrateHeadScriptTag = `<script type="module" data-minista-build-hydrate-src="${hydrateJs}"></script>`
   }

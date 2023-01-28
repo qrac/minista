@@ -8,7 +8,6 @@ const __dirname = path.dirname(__filename)
 import {
   getHtmlPath,
   getRelativeAssetPath,
-  getBasedAssetPath,
   getNodeModulesPath,
   getUniquePaths,
   isLocalPath,
@@ -50,35 +49,6 @@ describe("getRelativeAssetPath", () => {
 
   it("Nest", () => {
     const result = getRelativeAssetPath({
-      pathname: "/about/",
-      assetPath: "style.css",
-    })
-    expect(result).toEqual("../style.css")
-  })
-})
-
-describe("getBasedAssetPath", () => {
-  it("Default", () => {
-    const result = getBasedAssetPath({
-      base: "/",
-      pathname: "/",
-      assetPath: "style.css",
-    })
-    expect(result).toEqual("/style.css")
-  })
-
-  it("Base", () => {
-    const result = getBasedAssetPath({
-      base: "./",
-      pathname: "/",
-      assetPath: "style.css",
-    })
-    expect(result).toEqual("style.css")
-  })
-
-  it("Base with nest", () => {
-    const result = getBasedAssetPath({
-      base: "./",
       pathname: "/about/",
       assetPath: "style.css",
     })

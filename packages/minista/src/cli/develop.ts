@@ -24,7 +24,7 @@ import { pluginPartial } from "../plugins/partial.js"
 import { pluginSearch } from "../plugins/search.js"
 import { transformPage } from "../transform/page.js"
 import { transformPages } from "../transform/pages.js"
-import { transformEntryTags } from "../transform/tags.js"
+import { transformTags } from "../transform/tags.js"
 import { transformComments } from "../transform/comment.js"
 import { transformRemotes } from "../transform/remote.js"
 import { transformImages } from "../transform/image.js"
@@ -110,7 +110,7 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
             )) as { getSources: GetSources }
             const { resolvedGlobal, resolvedPages } = await getSources()
 
-            const { headTags, startTags, endTags } = transformEntryTags({
+            const { headTags, startTags, endTags } = transformTags({
               command: "serve",
               pathname: url,
               config,

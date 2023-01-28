@@ -2,7 +2,7 @@ import path from "node:path"
 
 export function resolveBase(base: string) {
   if (base === "/" || base === "./") {
-    return base
+    return "/"
   }
 
   let fixBase = base

@@ -21,21 +21,6 @@ export function getRelativeAssetPath({
   return path.relative(pagePath, path.join("./", assetPath))
 }
 
-export function getBasedAssetPath({
-  base,
-  pathname,
-  assetPath,
-}: {
-  base: string
-  pathname: string
-  assetPath: string
-}) {
-  if (base === "" || base === "./") {
-    return getRelativeAssetPath({ pathname, assetPath })
-  }
-  return path.join(base, assetPath)
-}
-
 export function getNodeModulesPath(root: string): string {
   if (fs.existsSync(path.join(root, "package.json"))) {
     return path.join(root, "node_modules")

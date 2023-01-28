@@ -10,7 +10,7 @@ describe("resolveBase", () => {
 
   it("Relative", () => {
     const result = resolveBase("./")
-    expect(result).toEqual("./")
+    expect(result).toEqual("/")
   })
 
   it("Absolute", () => {
