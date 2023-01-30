@@ -28,14 +28,16 @@ export async function transformEntries({
   const { resolvedRoot, resolvedBase } = config.sub
   const { assets } = config.main
 
-  const targetAttr = `link[href^='/'], script[src^='/']`
-  let targetEls = getElements(parsedData, targetAttr)
+  const targetLinkAttr = `link[href^="/"]:not([${flags.entried}])`
+  const targetScriptAttr = `script[src^="/"]:not([${flags.entried}])`
+  const targetAttr = `${targetLinkAttr}, ${targetScriptAttr}`
+  const targetEls = getElements(parsedData, targetAttr)
 
-  targetEls = targetEls.filter((el) => {
-    const isEntried = el.hasAttribute(flags.entried)
-    isEntried && el.removeAttribute(flags.entried)
-    return isEntried
-  })
+  const entriedLinkAttr = `link[href^="/"][${flags.entried}]`
+  const entriedScriptAttr = `script[src^="/"][${flags.entried}]`
+  const entriedAttr = `${entriedLinkAttr}, ${entriedScriptAttr}`
+  const entriedEls = getElements(parsedData, entriedAttr)
+  entriedEls.map((el) => el.removeAttribute(flags.entried))
 
   if (!targetEls.length) {
     return
