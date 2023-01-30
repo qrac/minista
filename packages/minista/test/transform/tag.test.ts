@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-import { getLinkTag, getScriptTag } from "../../src/transform/tag"
 import { resolveConfig } from "../../src/config"
+import { flags } from "../../src/config/system"
+import { getLinkTag, getScriptTag } from "../../src/transform/tag"
 
 describe("getLinkTag", () => {
   it("Serve", async () => {
@@ -26,7 +27,7 @@ describe("getLinkTag", () => {
       config,
     })
     expect(result).toEqual(
-      `<link rel="stylesheet" href="/assets/style.css" data-minista-flag-entried>`
+      `<link rel="stylesheet" href="/assets/style.css" ${flags.entried}>`
     )
   })
 })
@@ -55,7 +56,7 @@ describe("getScriptTag", () => {
       config,
     })
     expect(result).toEqual(
-      `<script type="module" src="/assets/script.js" data-minista-flag-entried></script>`
+      `<script type="module" src="/assets/script.js" ${flags.entried}></script>`
     )
   })
 
@@ -69,7 +70,7 @@ describe("getScriptTag", () => {
       config,
     })
     expect(result).toEqual(
-      `<script src="/assets/script.js" data-minista-flag-entried></script>`
+      `<script src="/assets/script.js" ${flags.entried}></script>`
     )
   })
 })
