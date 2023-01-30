@@ -10,17 +10,6 @@ export function getHtmlPath(pathname: string) {
   return fileName
 }
 
-export function getRelativeAssetPath({
-  pathname,
-  assetPath,
-}: {
-  pathname: string
-  assetPath: string
-}) {
-  const pagePath = path.dirname(getHtmlPath(pathname))
-  return path.relative(pagePath, path.join("./", assetPath))
-}
-
 export function getNodeModulesPath(root: string): string {
   if (fs.existsSync(path.join(root, "package.json"))) {
     return path.join(root, "node_modules")

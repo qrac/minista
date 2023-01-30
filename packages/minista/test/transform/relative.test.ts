@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { resolveRelativePath } from "../../src/transform/relative"
+import { getRelativePath } from "../../src/transform/relative"
 
-describe("resolveRelativePath", () => {
+describe("getRelativePath", () => {
   it("Root", () => {
-    const result = resolveRelativePath({
+    const result = getRelativePath({
       pathname: "/",
       replaceTarget: "/assets/images",
       assetPath: "/assets/images/image.png",
@@ -13,7 +13,7 @@ describe("resolveRelativePath", () => {
   })
 
   it("Nest", () => {
-    const result = resolveRelativePath({
+    const result = getRelativePath({
       pathname: "/about/",
       replaceTarget: "/assets/images",
       assetPath: "/assets/images/image.png",
@@ -22,7 +22,7 @@ describe("resolveRelativePath", () => {
   })
 
   it("Root multiple", () => {
-    const result = resolveRelativePath({
+    const result = getRelativePath({
       pathname: "/",
       replaceTarget: "/assets/images",
       assetPath:
@@ -34,7 +34,7 @@ describe("resolveRelativePath", () => {
   })
 
   it("Nest multiple", () => {
-    const result = resolveRelativePath({
+    const result = getRelativePath({
       pathname: "/about/",
       replaceTarget: "/assets/images",
       assetPath:

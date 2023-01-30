@@ -7,7 +7,6 @@ const __dirname = path.dirname(__filename)
 
 import {
   getHtmlPath,
-  getRelativeAssetPath,
   getNodeModulesPath,
   getUniquePaths,
   isLocalPath,
@@ -27,32 +26,6 @@ describe("getHtmlPath", () => {
   it("Nest 2", () => {
     const result = getHtmlPath("/about/")
     expect(result).toEqual("about/index.html")
-  })
-})
-
-describe("getRelativeAssetPath", () => {
-  it("Default", () => {
-    const result = getRelativeAssetPath({
-      pathname: "/",
-      assetPath: "style.css",
-    })
-    expect(result).toEqual("style.css")
-  })
-
-  it("Has id", () => {
-    const result = getRelativeAssetPath({
-      pathname: "/",
-      assetPath: "icons.svg#heart",
-    })
-    expect(result).toEqual("icons.svg#heart")
-  })
-
-  it("Nest", () => {
-    const result = getRelativeAssetPath({
-      pathname: "/about/",
-      assetPath: "style.css",
-    })
-    expect(result).toEqual("../style.css")
   })
 })
 

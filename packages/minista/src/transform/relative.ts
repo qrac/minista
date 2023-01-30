@@ -2,9 +2,9 @@ import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 
 import type { ResolvedConfig } from "../config/index.js"
-import { getRelativeAssetPath } from "../utility/path.js"
+import { getHtmlPath } from "../utility/path.js"
 
-export function resolveRelativePath({
+export function getRelativePath({
   pathname,
   replaceTarget,
   assetPath,
@@ -13,15 +13,16 @@ export function resolveRelativePath({
   replaceTarget: string
   assetPath: string
 }) {
+  const pagePath = path.dirname(getHtmlPath(pathname))
+
   let resolvedPath = assetPath.replace(/\n/, "").trim()
 
   if (!resolvedPath.includes(",") && resolvedPath.startsWith(replaceTarget)) {
-    return getRelativeAssetPath({ pathname, assetPath: resolvedPath })
+    return path.relative(pagePath, path.join("./", resolvedPath))
   }
   if (!resolvedPath.includes(",")) {
     return resolvedPath
   }
-
   resolvedPath = resolvedPath
     .split(",")
     .map((s) => s.trim())
@@ -29,7 +30,7 @@ export function resolveRelativePath({
       let [url, density] = s.split(/\s+/)
 
       if (url.startsWith(replaceTarget)) {
-        url = getRelativeAssetPath({ pathname, assetPath: url })
+        url = path.relative(pagePath, path.join("./", url))
       }
       return `${url} ${density}`
     })
@@ -48,52 +49,36 @@ export function transformRelative({
 }) {
   const { assets } = config.main
 
-  const images = parsedHtml.querySelectorAll("img, source")
-  const icons = parsedHtml.querySelectorAll("use")
-
-  images.map((el) => {
-    const src = el.getAttribute("src") || ""
-    const srcset = el.getAttribute("srcset") || ""
-
-    if (src) {
-      const resolvedPath = resolveRelativePath({
-        pathname,
-        replaceTarget: path.join("/", assets.images.outDir),
-        assetPath: src,
-      })
-      if (src !== resolvedPath) {
-        el.setAttribute("src", resolvedPath)
+  const targetEls = parsedHtml.querySelectorAll(
+    "link, script, img, source, use"
+  )
+  targetEls.map((el) => {
+    const tagName = el.tagName.toLowerCase()
+    const outDir = (() => {
+      switch (tagName) {
+        case "img":
+        case "source":
+          return assets.images.outDir
+        case "use":
+          return assets.icons.outDir
+        default:
+          return assets.outDir
       }
-    }
+    })()
+    const attrs = ["src", "srcset", "href"]
 
-    if (srcset) {
-      const resolvedPath = resolveRelativePath({
-        pathname,
-        replaceTarget: path.join("/", assets.images.outDir),
-        assetPath: srcset,
-      })
-      if (srcset !== resolvedPath) {
-        el.setAttribute("srcset", resolvedPath)
+    attrs.map((attr) => {
+      const assetPath = el.getAttribute(attr) || ""
+
+      if (assetPath) {
+        const relativePaths = getRelativePath({
+          pathname,
+          replaceTarget: path.join("/", outDir),
+          assetPath,
+        })
+        el.setAttribute(attr, relativePaths)
       }
-    }
+    })
     return
   })
-
-  icons.map((el) => {
-    const href = el.getAttribute("href") || ""
-
-    if (href) {
-      const resolvedPath = resolveRelativePath({
-        pathname,
-        replaceTarget: path.join("/", assets.icons.outDir),
-        assetPath: href,
-      })
-      if (href !== resolvedPath) {
-        el.setAttribute("href", resolvedPath)
-      }
-    }
-    return
-  })
-
-  return parsedHtml
 }

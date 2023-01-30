@@ -170,22 +170,18 @@ export async function build(inlineConfig: InlineConfig = {}) {
     htmlItems = await Promise.all(
       parsedPages.map(async (page) => {
         const pathname = page.path
-
         let parsedHtml = page.parsedHtml
 
         if (config.main.base === "" || config.main.base === "./") {
-          parsedHtml = transformRelative({
+          transformRelative({
             parsedHtml,
             pathname,
             config,
           })
         }
-
-        const htmlStr = parsedHtml.toString()
-
         return {
           fileName: page.fileName,
-          data: htmlStr,
+          data: parsedHtml.toString(),
         }
       })
     )
