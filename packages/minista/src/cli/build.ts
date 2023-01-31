@@ -15,6 +15,8 @@ import beautify from "js-beautify"
 import type { InlineConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
 import type { RunSsg, SsgPage } from "../server/ssg.js"
+import type { CreatePages } from "../generate/page.js"
+import type { CreateAssets } from "../generate/asset.js"
 import type { CreateImages } from "../generate/image.js"
 import type { CreateSprites } from "../generate/sprite.js"
 import { flags } from "../config/system.js"
@@ -41,6 +43,8 @@ import { transformIcons } from "../transform/icon.js"
 import { transformRelative } from "../transform/relative.js"
 import { transformSearch } from "../transform/search.js"
 import { transformEncode } from "../transform/encode.js"
+import { generatePages } from "../generate/page.js"
+import { generateAssets } from "../generate/asset.js"
 import { generateImages } from "../generate/image.js"
 import { generateSprites } from "../generate/sprite.js"
 import { generateArchives } from "../generate/archive.js"
@@ -57,15 +61,10 @@ type CssNameBugFix = { [key: string]: string }
 
 export type ParsedPage = Omit<SsgPage, "html"> & { parsedHtml: NHTMLElement }
 
-type GenerateItem = {
-  fileName: string
-  data: string
-}
-
 export async function build(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
-  const { assets, search, delivery } = config.main
   const { resolvedRoot, resolvedEntry, tempDir } = config.sub
+  const { assets, search, delivery } = config.main
 
   const resolvedOut = path.join(resolvedRoot, config.main.out)
   const resolvedPublic = path.join(resolvedRoot, config.main.public)
@@ -88,11 +87,10 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let dynamicEntries: ResolvedViteEntry = {}
   let assetEntries: ResolvedViteEntry = {}
 
+  let createPages: CreatePages = []
+  let createAssets: CreateAssets = []
   let createImages: CreateImages = {}
   let createSprites: CreateSprites = {}
-
-  let htmlItems: GenerateItem[] = []
-  let generateItems: GenerateItem[] = []
 
   let cssNameBugFix: CssNameBugFix = {}
 
@@ -121,9 +119,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
   )
 
   ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult
-  ssgItems = ssgResult.output.filter((item) =>
-    item.fileName.match(/__minista_plugin_ssg\.js$/)
-  )
+  ssgItems = ssgResult.output.filter((item) => {
+    return item.fileName.match(/__minista_plugin_ssg\.js$/)
+  })
 
   if (ssgItems.length > 0) {
     const ssgPath = path.join(tempDir, "ssg.mjs")
@@ -171,7 +169,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       dynamicEntries,
     })
 
-    htmlItems = await Promise.all(
+    createPages = await Promise.all(
       parsedPages.map(async (page) => {
         const pathname = page.path
         let parsedHtml = page.parsedHtml
@@ -230,12 +228,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult
 
-  hasBundleCss = assetsResult.output.some(
-    (item) =>
-      item.fileName === bundleCssName || item.fileName === bugBundleCssName
-  )
-  hasHydrate = fs.existsSync(path.join(tempDir, "phs"))
-  hasSearch = fs.existsSync(path.join(tempDir, "search.txt"))
+  hasBundleCss = assetsResult.output.some((item) => {
+    return item.fileName === bundleCssName || item.fileName === bugBundleCssName
+  })
+  hasHydrate = await fs.pathExists(path.join(tempDir, "phs"))
+  hasSearch = await fs.pathExists(path.join(tempDir, "search.txt"))
 
   if (hasHydrate) {
     hydrateResult = (await viteBuild(hydrateConfig)) as unknown as BuildResult
@@ -245,15 +242,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   await fs.emptyDir(resolvedOut)
 
-  hasPublic = fs.existsSync(resolvedPublic)
+  hasPublic = await fs.pathExists(resolvedPublic)
   hasPublic && (await fs.copy(resolvedPublic, resolvedOut))
 
-  assetItems = assetsResult.output.filter(
-    (item) => !item.fileName.match(/__minista_plugin_bundle\.js$/)
-  )
-  hydrateItems = hydrateResult.output.filter((item) =>
-    item.fileName.match(/__minista_plugin_hydrate\.js$/)
-  )
+  assetItems = assetsResult.output.filter((item) => {
+    return !item.fileName.match(/__minista_plugin_bundle\.js$/)
+  })
+  hydrateItems = hydrateResult.output.filter((item) => {
+    return item.fileName.match(/__minista_plugin_hydrate\.js$/)
+  })
 
   cssNameBugFix = Object.fromEntries(
     Object.entries(assetEntries).map((item) => {
@@ -265,53 +262,49 @@ export async function build(inlineConfig: InlineConfig = {}) {
   )
   cssNameBugFix = { ...cssNameBugFix, ...{ [bugBundleCssName]: bundleCssName } }
 
-  generateItems = [...assetItems, ...hydrateItems]
-    .map((item) => {
-      const isCss = item.fileName.match(/.*\.css$/)
-      const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
-      const isHydrateJs = item.fileName.match(/__minista_plugin_hydrate\.js$/)
+  createAssets = [...assetItems, ...hydrateItems].map((item) => {
+    const isCss = item.fileName.match(/.*\.css$/)
+    const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
+    const isHydrateJs = item.fileName.match(/__minista_plugin_hydrate\.js$/)
 
-      let fileName = item.fileName
-      isBundleCss && (fileName = bundleCssName)
-      isHydrateJs && (fileName = hydrateJsName)
+    let fileName = item.fileName
+    isBundleCss && (fileName = bundleCssName)
+    isHydrateJs && (fileName = hydrateJsName)
 
-      if (isCss && Object.hasOwn(cssNameBugFix, fileName)) {
-        fileName = cssNameBugFix[fileName]
-      }
-      fileName = fileName.replace(/-ministaDuplicateName\d*/, "")
+    if (isCss && Object.hasOwn(cssNameBugFix, fileName)) {
+      fileName = cssNameBugFix[fileName]
+    }
+    fileName = fileName.replace(/-ministaDuplicateName\d*/, "")
 
-      let data = ""
-      item.source && (data = item.source)
-      item.code && (data = item.code)
+    let data = ""
+    item.source && (data = item.source)
+    item.code && (data = item.code)
+    data === "\n" && (data = "")
 
-      if (data === "\n") {
-        data = ""
-      }
-      return {
-        fileName,
-        data,
-      }
-    })
-    .filter((item) => item.data)
-
-  generateItems = [...htmlItems, ...generateItems]
+    return {
+      fileName,
+      data,
+    }
+  })
+  createAssets = createAssets.filter((item) => item.data)
 
   if (hasSearch && ssgPages.length) {
     const fileName = path.join(search.outDir, search.outName + ".json")
     const searchObj = await transformSearch({ ssgPages, config })
     const data = JSON.stringify(searchObj)
-
-    generateItems.push({ fileName, data })
+    createAssets.push({ fileName, data })
   }
 
-  const generateNames = generateItems.map((item) => item.fileName)
+  const pageNames = createPages.map((item) => item.fileName)
+  const assetNames = createAssets.map((item) => item.fileName)
   const imageNames = Object.keys(createImages).map((item) => item)
   const iconNames = Object.keys(createSprites).map((item) => item)
-  const archiveNames = delivery.archives.map((item) =>
-    path.join(item.outDir, item.outName + "." + item.format)
-  )
+  const archiveNames = delivery.archives.map((item) => {
+    return path.join(item.outDir, item.outName + "." + item.format)
+  })
   const mergedItemNames = [
-    ...generateNames,
+    ...pageNames,
+    ...assetNames,
     ...imageNames,
     ...iconNames,
     ...archiveNames,
@@ -319,84 +312,8 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const nameLengths = mergedItemNames.map((item) => item.length)
   const maxNameLength = nameLengths.reduce((a, b) => (a > b ? a : b), 0)
 
-  await Promise.all(
-    generateItems.map(async (item) => {
-      const isHtml = item.fileName.match(/.*\.html$/)
-      const isCss = item.fileName.match(/.*\.css$/)
-      const isJs = item.fileName.match(/.*\.js$/)
-
-      let fileName = item.fileName
-      let data: string | Buffer = item.data
-
-      if (isHtml) {
-        let parsedHtml = parseHtml(data, { comment: true })
-
-        const bundleEl = parsedHtml.querySelector(`link[${flags.bundle}]`)
-
-        if (hasBundleCss) {
-          bundleEl?.removeAttribute(flags.bundle)
-        } else {
-          bundleEl?.remove()
-        }
-
-        const partialAttr = `[data-${assets.partial.rootAttrSuffix}]`
-        const partialEl = parsedHtml.querySelector(partialAttr)
-        const hydrateEl = parsedHtml.querySelector(`script[${flags.hydrate}]`)
-
-        if (partialEl) {
-          hydrateEl?.removeAttribute(flags.hydrate)
-        } else {
-          hydrateEl?.remove()
-        }
-
-        data = parsedHtml.toString()
-
-        if (config.main.beautify.useHtml) {
-          data = beautify.html(data, config.main.beautify.htmlOptions)
-        }
-      }
-
-      if (isCss && config.main.beautify.useAssets) {
-        data = beautify.css(data, config.main.beautify.cssOptions)
-      }
-      if (isJs && config.main.beautify.useAssets) {
-        data = beautify.js(data, config.main.beautify.jsOptions)
-      }
-
-      if (isHtml) {
-        const charsets = data.match(
-          /<meta[^<>]*?charset=["|'](.*?)["|'].*?\/>/i
-        )
-        const charset = charsets ? charsets[1] : "UTF-8"
-
-        if (!charset.match(/^utf[\s-_]*8$/i)) {
-          data = transformEncode(data, charset)
-        }
-      }
-
-      const nameLength = fileName.length
-      const spaceCount = maxNameLength - nameLength + 3
-      const space = " ".repeat(spaceCount)
-
-      const routePath = path.join(resolvedRoot, config.main.out, fileName)
-      const relativePath = path.relative(process.cwd(), routePath)
-      const dataSize = (data.length / 1024).toFixed(2)
-
-      return await fs
-        .outputFile(routePath, data)
-        .then(() => {
-          console.log(
-            `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
-              space +
-              pc.gray(`${dataSize} KiB`)
-          )
-        })
-        .catch((err) => {
-          console.error(err)
-        })
-    })
-  )
-
+  await generatePages({ createPages, config, hasBundleCss, maxNameLength })
+  await generateAssets({ createAssets, config, maxNameLength })
   await generateImages({ createImages, config, maxNameLength })
   await generateSprites({ createSprites, config, maxNameLength })
   await generateArchives({ config, maxNameLength })

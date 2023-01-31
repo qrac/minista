@@ -47,7 +47,7 @@ export async function generateArchives({
         const relativePath = path.relative(process.cwd(), routePath)
         const dataLength = archive.pointer()
 
-        return await fs
+        await fs
           .copy(archiveFile, routePath)
           .then(() => {
             logger({ label: "BUILD", main: relativePath, space, dataLength })
@@ -55,6 +55,7 @@ export async function generateArchives({
           .catch((err) => {
             console.error(err)
           })
+        return
       })
 
       archive.pipe(output)
