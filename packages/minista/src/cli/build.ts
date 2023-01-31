@@ -11,7 +11,6 @@ import {
 } from "vite"
 import { parse as parseHtml } from "node-html-parser"
 import beautify from "js-beautify"
-import archiver from "archiver"
 
 import type { InlineConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
@@ -44,6 +43,7 @@ import { transformSearch } from "../transform/search.js"
 import { transformEncode } from "../transform/encode.js"
 import { generateImages } from "../generate/image.js"
 import { generateSprites } from "../generate/sprite.js"
+import { generateArchives } from "../generate/archive.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -399,55 +399,5 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   await generateImages({ createImages, config, maxNameLength })
   await generateSprites({ createSprites, config, maxNameLength })
-
-  if (delivery.archives.length) {
-    const cwd = path.relative(process.cwd(), resolvedRoot)
-    const archivesDir = path.join(tempDir, "archives")
-
-    await fs.emptyDir(archivesDir)
-
-    await Promise.all(
-      delivery.archives.map(async (item) => {
-        const srcDir = item.srcDir
-        const outFile = item.outName + "." + item.format
-        const fileName = path.join(item.outDir, outFile)
-        const archiveFile = path.join(archivesDir, fileName)
-
-        await fs.ensureFile(archiveFile)
-        const output = fs.createWriteStream(archiveFile)
-        const options = item.options ? item.options : {}
-        const ignore = item.ignore ? item.ignore : ""
-        const archive = archiver(item.format, options)
-
-        output.on("close", async () => {
-          const nameLength = fileName.length
-          const spaceCount = maxNameLength - nameLength + 3
-          const space = " ".repeat(spaceCount)
-
-          const routePath = path.join(resolvedRoot, config.main.out, fileName)
-          const relativePath = path.relative(process.cwd(), routePath)
-          const dataSize = (archive.pointer() / 1024).toFixed(2)
-
-          return await fs
-            .copy(archiveFile, routePath)
-            .then(() => {
-              console.log(
-                `${pc.bold(pc.green("BUILD"))} ${pc.bold(relativePath)}` +
-                  space +
-                  pc.gray(`${dataSize} KiB`)
-              )
-            })
-            .catch((err) => {
-              console.error(err)
-            })
-        })
-
-        archive.pipe(output)
-        archive.glob(path.join(srcDir, "**/*"), { cwd, ignore })
-
-        await archive.finalize()
-        return
-      })
-    )
-  }
+  await generateArchives({ config, maxNameLength })
 }
