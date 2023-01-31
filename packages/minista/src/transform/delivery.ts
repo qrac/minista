@@ -1,10 +1,15 @@
-import path from "node:path"
+import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import picomatch from "picomatch"
+import { parse as parseHtml } from "node-html-parser"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { SsgPage } from "../server/ssg.js"
+import { flags } from "../config/system.js"
+import { getElements, cleanElement } from "../utility/element.js"
 
-export function transformListDataDelivery({
+const cleanAttributes = ["data-minista-transform-target"]
+
+export function getDeliveryData({
   ssgPages,
   config,
 }: {
@@ -52,18 +57,20 @@ export function transformListDataDelivery({
     })
 }
 
-export function transformListStrDelivery(
-  data: {
+export function getDeliveryTag(
+  deliveryData: {
     title: string
     path: string
-  }[]
+  }[],
+  hasRelativeFlag?: boolean
 ) {
-  const items = data.map((item) => {
+  const flag = hasRelativeFlag ? `\n      ${flags.relative}` : ""
+  const tags = deliveryData.map((item) => {
     return `<li class="minista-delivery-item">
   <div class="minista-delivery-item-content">
     <a
       class="minista-delivery-item-content-link"
-      href="${item.path}"
+      href="${item.path}"${flag}
     ></a>
     <div class="minista-delivery-item-content-inner">
       <p class="minista-delivery-item-content-name">${item.title}</p>
@@ -73,74 +80,37 @@ export function transformListStrDelivery(
   </div>
 </li>`
   })
-  const itemsStr = items.join("\n")
-  return itemsStr
-    ? `<ul class="minista-delivery-list">\n` + itemsStr + `\n</ul>`
+  const tagsStr = tags.join("\n")
+  return tagsStr
+    ? `<ul class="minista-delivery-list">\n` + tagsStr + `\n</ul>`
     : ""
 }
 
-export function transformButtonsDataDelivery(config: ResolvedConfig) {
-  const { resolvedBase } = config.sub
-
-  return config.main.delivery.archives.map((item) => {
-    const outFile = item.outName + "." + item.format
-    const fileName = path.join(item.outDir, outFile)
-    const title = item.button?.title ? item.button.title : fileName
-    const link = path.join(resolvedBase, fileName)
-    const color = item.button?.color ? item.button.color : ""
-    return { title, path: link, color }
-  })
-}
-
-export function transformButtonsStrDelivery(
-  data: {
-    title: string
-    path: string
-    color: string
-  }[]
-) {
-  const items = data.map((item) => {
-    const colorStr = item.color
-      ? `\n  style="background-color: ${item.color};"`
-      : ""
-    return `<a
-  class="minista-delivery-button"
-  href="${item.path}"${colorStr}
->
-  ${item.title}
-</a>`
-  })
-  const itemsStr = items.join("\n")
-  return itemsStr
-}
-
-export function transformDelivery({
-  html,
+export function transformDeliveries({
+  parsedData,
   ssgPages,
   config,
 }: {
-  html: string
+  parsedData: NHTMLElement | NHTMLElement[]
   ssgPages: SsgPage[]
   config: ResolvedConfig
 }) {
-  let _html = html
+  const { base } = config.main
 
-  const listData = transformListDataDelivery({ ssgPages, config })
-  const listStr = transformListStrDelivery(listData)
+  const targetAttr = `[data-minista-transform-target="delivery"]`
+  const targetEls = getElements(parsedData, targetAttr)
 
-  _html = _html.replace(
-    /<div[^<>]*?data-minista-transform-target="delivery-list".*?>\s*\n*<\/div>/gi,
-    listStr
-  )
-
-  if (config.main.delivery.archives.length > 0) {
-    const buttonsData = transformButtonsDataDelivery(config)
-    const buttonsStr = transformButtonsStrDelivery(buttonsData)
-
-    _html = _html.replace(
-      /<div[^<>]*?data-minista-transform-target="delivery-buttons".*?>\s*\n*<\/div>/gi,
-      buttonsStr
-    )
+  if (!targetEls.length || !ssgPages.length) {
+    return
   }
-  return _html
+  const deliveryData = getDeliveryData({ ssgPages, config })
+  const hasRelativeFlag = base === "" || base === "./"
+  const insertTag = getDeliveryTag(deliveryData, hasRelativeFlag)
+  const insertEl = parseHtml(insertTag)
+
+  targetEls.map((el) => {
+    el.parentNode.exchangeChild(el, insertEl)
+    cleanElement(el, cleanAttributes)
+    return
+  })
 }

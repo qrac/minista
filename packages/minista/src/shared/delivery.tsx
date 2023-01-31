@@ -1,6 +1,6 @@
 import dayjs from "dayjs"
-import utc from "dayjs/plugin/utc.js"
-import timezone from "dayjs/plugin/timezone.js"
+import { default as pluginTimezone } from "dayjs/plugin/timezone.js"
+import { default as pluginUtc } from "dayjs/plugin/utc.js"
 
 import { Head } from "./head.js"
 
@@ -56,6 +56,7 @@ export function Delivery({
   title = "Project",
   bodyClass = "minista-delivery",
   dateFormat = "YYYY.MM.DD - HH:mm",
+  timezone = "Asia/Tokyo",
   styles,
   header,
   items,
@@ -63,13 +64,14 @@ export function Delivery({
   title?: string
   bodyClass?: string
   dateFormat?: string
+  timezone?: string
   styles?: StylesProps
   header?: HeaderProps
   items?: Item[]
 }) {
-  dayjs.extend(timezone)
-  dayjs.extend(utc)
-  dayjs.tz.setDefault("Asia/Tokyo")
+  dayjs.extend(pluginTimezone)
+  dayjs.extend(pluginUtc)
+  dayjs.tz.setDefault(timezone)
   const now = dayjs().tz().format(dateFormat)
   return (
     <>
@@ -88,7 +90,7 @@ export function Delivery({
             {items ? (
               <DeliveryList items={items} />
             ) : (
-              <div data-minista-transform-target="delivery-list" />
+              <div data-minista-transform-target="delivery" />
             )}
           </DeliveryNav>
         </DeliveryMain>
@@ -153,16 +155,17 @@ export function DeliveryHeader({
             {hasButtons ? (
               buttons.map((item, index) => (
                 <a
+                  key={index}
                   className="minista-delivery-button"
                   href={item.path}
                   style={item.color ? { backgroundColor: item.color } : {}}
-                  key={index}
+                  download
                 >
                   {item.title}
                 </a>
               ))
             ) : (
-              <div data-minista-transform-target="delivery-buttons" />
+              <div data-minista-transform-target="archive" />
             )}
           </div>
         </div>

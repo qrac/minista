@@ -26,12 +26,13 @@ import { transformPage } from "../transform/page.js"
 import { transformPages } from "../transform/pages.js"
 import { transformTags } from "../transform/tag.js"
 import { transformComments } from "../transform/comment.js"
+import { transformDeliveries } from "../transform/delivery.js"
+import { transformArchives } from "../transform/archive.js"
 import { transformRemotes } from "../transform/remote.js"
 import { transformImages } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
 import { transformEncode } from "../transform/encode.js"
 import { transformSearch } from "../transform/search.js"
-import { transformDelivery } from "../transform/delivery.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -127,7 +128,21 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
 
             let parsedHtml = parseHtml(html, { comment: true }) as NHTMLElement
 
+            if (
+              useVirtualModule ||
+              parsedHtml.querySelector(
+                `[data-minista-transform-target="delivery"]`
+              )
+            ) {
+              ssgPages = await transformPages({
+                resolvedGlobal,
+                resolvedPages,
+                config,
+              })
+            }
             transformComments(parsedHtml)
+            transformDeliveries({ parsedData: parsedHtml, ssgPages, config })
+            transformArchives({ parsedData: parsedHtml, config })
 
             await transformRemotes({
               command: "serve",
@@ -147,24 +162,6 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
             })
 
             html = parsedHtml.toString()
-
-            const targetAttr = "data-minista-transform-target"
-
-            if (
-              useVirtualModule ||
-              parsedHtml.querySelector(`[${targetAttr}="delivery-list"]`)
-            ) {
-              ssgPages = await transformPages({
-                resolvedGlobal,
-                resolvedPages,
-                config,
-              })
-            }
-
-            if (parsedHtml.querySelector(`[${targetAttr}="delivery-list"]`)) {
-              html = transformDelivery({ html, ssgPages, config })
-            }
-
             html = await server.transformIndexHtml(originalUrl, html)
 
             const charsets = html.match(

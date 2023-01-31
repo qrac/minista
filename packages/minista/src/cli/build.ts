@@ -33,13 +33,14 @@ import { pluginPartial } from "../plugins/partial.js"
 import { pluginHydrate } from "../plugins/hydrate.js"
 import { pluginBundle } from "../plugins/bundle.js"
 import { pluginSearch } from "../plugins/search.js"
+import { transformDeliveries } from "../transform/delivery.js"
+import { transformArchives } from "../transform/archive.js"
 import { transformRemotes } from "../transform/remote.js"
 import { transformEntries } from "../transform/entry.js"
 import { transformImages } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
 import { transformRelative } from "../transform/relative.js"
 import { transformSearch } from "../transform/search.js"
-import { transformDelivery } from "../transform/delivery.js"
 import { transformEncode } from "../transform/encode.js"
 import { generateImages } from "../generate/image.js"
 import { generateSprites } from "../generate/sprite.js"
@@ -143,6 +144,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
       }
     })
     let parsedData = parsedPages.map((item) => item.parsedHtml)
+
+    transformDeliveries({ parsedData, ssgPages, config })
+    transformArchives({ parsedData, config })
 
     await transformRemotes({
       command: "build",
@@ -346,12 +350,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
         }
 
         data = parsedHtml.toString()
-
-        const targetAttr = "data-minista-transform-target"
-
-        if (parsedHtml.querySelector(`[${targetAttr}="delivery-list"]`)) {
-          data = transformDelivery({ html: data, ssgPages, config })
-        }
 
         if (config.main.beautify.useHtml) {
           data = beautify.html(data, config.main.beautify.htmlOptions)
