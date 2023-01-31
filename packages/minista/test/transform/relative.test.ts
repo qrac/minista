@@ -44,4 +44,22 @@ describe("getRelativePath", () => {
       "../assets/images/image.png 768w, ../assets/images/image.png 1024w"
     )
   })
+
+  it("Anchor root", () => {
+    const result = getRelativePath({
+      pathname: "/",
+      replaceTarget: "/",
+      assetPath: "/about/",
+    })
+    expect(result).toEqual("about")
+  })
+
+  it("Anchor nest", () => {
+    const result = getRelativePath({
+      pathname: "/about/",
+      replaceTarget: "/",
+      assetPath: "/",
+    })
+    expect(result).toEqual("..")
+  })
 })

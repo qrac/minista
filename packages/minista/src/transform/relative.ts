@@ -2,7 +2,11 @@ import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 
 import type { ResolvedConfig } from "../config/index.js"
+import { flags } from "../config/system.js"
+import { cleanElement } from "../utility/element.js"
 import { getHtmlPath } from "../utility/path.js"
+
+const cleanAttributes = [flags.relative]
 
 export function getRelativePath({
   pathname,
@@ -50,12 +54,14 @@ export function transformRelative({
   const { assets } = config.main
 
   const targetEls = parsedHtml.querySelectorAll(
-    "link, script, img, source, use"
+    `link, script, img, source, use, a[${flags.relative}]`
   )
   targetEls.map((el) => {
     const tagName = el.tagName.toLowerCase()
     const outDir = (() => {
       switch (tagName) {
+        case "a":
+          return ""
         case "img":
         case "source":
           return assets.images.outDir
@@ -79,6 +85,9 @@ export function transformRelative({
         el.setAttribute(attr, relativePaths)
       }
     })
+    if (tagName === "a") {
+      cleanElement(el, cleanAttributes)
+    }
     return
   })
 }
