@@ -1,22 +1,17 @@
 import type { ResolvedConfig } from "../config/index.js"
-import { getSources } from "./sources.js"
-import { transformPages } from "../transform/pages.js"
+import type { SsgPages } from "../transform/ssg.js"
+import { getSources } from "./source.js"
+import { transformSsg } from "../transform/ssg.js"
 
 export type RunSsg = {
-  (config: ResolvedConfig): Promise<SsgPage[]>
-}
-export type SsgPage = {
-  fileName: string
-  path: string
-  title: string
-  html: string
+  (config: ResolvedConfig): Promise<SsgPages>
 }
 
-export async function runSsg(config: ResolvedConfig): Promise<SsgPage[]> {
+export async function runSsg(config: ResolvedConfig): Promise<SsgPages> {
   const { resolvedGlobal, resolvedPages } = await getSources()
 
   if (!resolvedPages.length) {
     return []
   }
-  return await transformPages({ resolvedGlobal, resolvedPages, config })
+  return await transformSsg({ resolvedGlobal, resolvedPages, config })
 }

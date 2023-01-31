@@ -5,7 +5,7 @@ import { HelmetProvider } from "react-helmet-async"
 import { Route, Routes } from "react-router-dom"
 
 import type { ResolvedGlobal } from "../server/global.js"
-import type { ResolvedPages } from "../server/pages.js"
+import type { ResolvedPages } from "../server/page.js"
 
 export function Page({
   resolvedGlobal,

@@ -4,13 +4,20 @@ import { parse as parseHtml } from "node-html-parser"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedGlobal } from "../server/global.js"
-import type { ResolvedPages } from "../server/pages.js"
+import type { ResolvedPages } from "../server/page.js"
 import { transformPage } from "./page.js"
 import { transformTags } from "./tag.js"
 import { transformComments } from "./comment.js"
 import { getHtmlPath } from "../utility/path.js"
 
-export async function transformPages({
+export type SsgPages = {
+  fileName: string
+  path: string
+  title: string
+  html: string
+}[]
+
+export async function transformSsg({
   resolvedGlobal,
   resolvedPages,
   config,
@@ -18,7 +25,7 @@ export async function transformPages({
   resolvedGlobal: ResolvedGlobal
   resolvedPages: ResolvedPages
   config: ResolvedConfig
-}) {
+}): Promise<SsgPages> {
   const { resolvedBase } = config.sub
 
   let pages = resolvedPages.map((page) => {
@@ -55,23 +62,21 @@ export async function transformPages({
     return []
   }
 
-  pages = await Promise.all(
-    pages.map(async (page) => {
-      let html = page.html
-      let parsedHtml = parseHtml(html, { comment: true }) as NHTMLElement
+  pages = pages.map((page) => {
+    let html = page.html
+    let parsedHtml = parseHtml(html, { comment: true }) as NHTMLElement
 
-      transformComments(parsedHtml)
+    transformComments(parsedHtml)
 
-      html = parsedHtml.toString()
+    html = parsedHtml.toString()
 
-      return {
-        path: page.path,
-        basedPath: page.basedPath,
-        title: page.title,
-        html,
-      }
-    })
-  )
+    return {
+      path: page.path,
+      basedPath: page.basedPath,
+      title: page.title,
+      html,
+    }
+  })
 
   return pages.map((page) => {
     const fileName = getHtmlPath(page.path)

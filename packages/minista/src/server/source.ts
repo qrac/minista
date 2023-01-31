@@ -1,7 +1,7 @@
 import type { ResolvedGlobal } from "./global.js"
-import type { ResolvedPages } from "./pages.js"
+import type { ResolvedPages } from "./page.js"
 import { getGlobal, resolveGlobal } from "./global.js"
-import { getPages, resolvePages } from "./pages.js"
+import { getPages, resolvePages } from "./page.js"
 
 export type GetSources = {
   (): Promise<{ resolvedGlobal: ResolvedGlobal; resolvedPages: ResolvedPages }>

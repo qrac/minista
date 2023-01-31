@@ -2,7 +2,6 @@ import type { RollupOutput } from "rollup"
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 import fs from "fs-extra"
-import pc from "picocolors"
 import {
   defineConfig as defineViteConfig,
   mergeConfig as mergeViteConfig,
@@ -10,16 +9,15 @@ import {
   createLogger,
 } from "vite"
 import { parse as parseHtml } from "node-html-parser"
-import beautify from "js-beautify"
 
 import type { InlineConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
-import type { RunSsg, SsgPage } from "../server/ssg.js"
+import type { RunSsg } from "../server/ssg.js"
+import type { SsgPages } from "../transform/ssg.js"
 import type { CreatePages } from "../generate/page.js"
 import type { CreateAssets } from "../generate/asset.js"
 import type { CreateImages } from "../generate/image.js"
 import type { CreateSprites } from "../generate/sprite.js"
-import { flags } from "../config/system.js"
 import { resolveConfig } from "../config/index.js"
 import { resolveViteEntry } from "../config/entry.js"
 import { pluginReact } from "../plugins/react.js"
@@ -42,7 +40,6 @@ import { transformImages } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
 import { transformRelative } from "../transform/relative.js"
 import { transformSearch } from "../transform/search.js"
-import { transformEncode } from "../transform/encode.js"
 import { generatePages } from "../generate/page.js"
 import { generateAssets } from "../generate/asset.js"
 import { generateImages } from "../generate/image.js"
@@ -59,7 +56,9 @@ type BuildItem = RollupOutput["output"][0] & {
 
 type CssNameBugFix = { [key: string]: string }
 
-export type ParsedPage = Omit<SsgPage, "html"> & { parsedHtml: NHTMLElement }
+export type ParsedPage = Omit<SsgPages[0], "html"> & {
+  parsedHtml: NHTMLElement
+}
 
 export async function build(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
@@ -81,7 +80,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let assetItems: BuildItem[]
   let hydrateItems: BuildItem[]
 
-  let ssgPages: SsgPage[] = []
+  let ssgPages: SsgPages = []
   let parsedPages: ParsedPage[] = []
 
   let dynamicEntries: ResolvedViteEntry = {}
@@ -225,7 +224,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
-
   assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult
 
   hasBundleCss = assetsResult.output.some((item) => {

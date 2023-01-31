@@ -10,8 +10,8 @@ import {
 import { parse as parseHtml } from "node-html-parser"
 
 import type { InlineConfig, ResolvedConfig } from "../config/index.js"
-import type { GetSources } from "../server/sources.js"
-import type { SsgPage } from "../server/ssg.js"
+import type { GetSources } from "../server/source.js"
+import type { SsgPages } from "../transform/ssg.js"
 import { resolveConfig } from "../config/index.js"
 import { pluginReact } from "../plugins/react.js"
 import { pluginPreact } from "../plugins/preact.js"
@@ -23,7 +23,7 @@ import { pluginFetch } from "../plugins/fetch.js"
 import { pluginPartial } from "../plugins/partial.js"
 import { pluginSearch } from "../plugins/search.js"
 import { transformPage } from "../transform/page.js"
-import { transformPages } from "../transform/pages.js"
+import { transformSsg } from "../transform/ssg.js"
 import { transformTags } from "../transform/tag.js"
 import { transformComments } from "../transform/comment.js"
 import { transformDeliveries } from "../transform/delivery.js"
@@ -69,7 +69,7 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
 
   let server: ViteDevServer
   let useVirtualModule: boolean = false
-  let ssgPages: SsgPage[] = []
+  let ssgPages: SsgPages = []
 
   return {
     name: "minista-vite-plugin:develop",
@@ -107,7 +107,7 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
             }
 
             const { getSources } = (await server.ssrLoadModule(
-              __dirname + "/../server/sources.js"
+              __dirname + "/../server/source.js"
             )) as { getSources: GetSources }
             const { resolvedGlobal, resolvedPages } = await getSources()
 
@@ -134,7 +134,7 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
                 `[data-minista-transform-target="delivery"]`
               )
             ) {
-              ssgPages = await transformPages({
+              ssgPages = await transformSsg({
                 resolvedGlobal,
                 resolvedPages,
                 config,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import beautify from "js-beautify"
 
-import { transformPages } from "../../src/transform/pages"
+import { transformSsg } from "../../src/transform/ssg"
 import { resolveConfig } from "../../src/config"
 import global from "../_data/global"
 import page from "../_data/page"
@@ -9,11 +9,11 @@ import page from "../_data/page"
 const Global = global as unknown as new () => React.Component<any, any, any>
 const Page = page as unknown as new () => React.Component<any, any, any>
 
-describe("transformPages", () => {
+describe("transformSsg", () => {
   it("Default", async () => {
     const config = await resolveConfig({})
 
-    let result = await transformPages({
+    let result = await transformSsg({
       resolvedGlobal: {
         staticData: { props: {} },
       },
@@ -53,7 +53,7 @@ describe("transformPages", () => {
   it("with global", async () => {
     const config = await resolveConfig({})
 
-    let result = await transformPages({
+    let result = await transformSsg({
       resolvedGlobal: {
         staticData: { props: {} },
         component: Global,

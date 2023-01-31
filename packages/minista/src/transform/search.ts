@@ -4,13 +4,13 @@ import { parse } from "node-html-parser"
 import mojigiri from "mojigiri"
 
 import type { ResolvedConfig } from "../config/index.js"
-import type { SsgPage } from "../server/ssg.js"
+import type { SsgPages } from "../transform/ssg.js"
 
 export async function transformSearch({
   ssgPages,
   config,
 }: {
-  ssgPages: SsgPage[]
+  ssgPages: SsgPages
   config: ResolvedConfig
 }) {
   const { include, exclude, trimTitle, targetSelector, hit } =

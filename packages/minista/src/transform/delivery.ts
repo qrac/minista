@@ -3,7 +3,7 @@ import picomatch from "picomatch"
 import { parse as parseHtml } from "node-html-parser"
 
 import type { ResolvedConfig } from "../config/index.js"
-import type { SsgPage } from "../server/ssg.js"
+import type { SsgPages } from "../transform/ssg.js"
 import { flags } from "../config/system.js"
 import { getElements, cleanElement } from "../utility/element.js"
 
@@ -13,7 +13,7 @@ export function getDeliveryData({
   ssgPages,
   config,
 }: {
-  ssgPages: SsgPage[]
+  ssgPages: SsgPages
   config: ResolvedConfig
 }) {
   const { include, exclude, trimTitle, sortBy } = config.main.delivery
@@ -92,7 +92,7 @@ export function transformDeliveries({
   config,
 }: {
   parsedData: NHTMLElement | NHTMLElement[]
-  ssgPages: SsgPage[]
+  ssgPages: SsgPages
   config: ResolvedConfig
 }) {
   const { base } = config.main
