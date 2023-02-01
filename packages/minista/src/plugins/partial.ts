@@ -34,15 +34,15 @@ export function pluginPartial(config: ResolvedConfig): Plugin {
         "react-dom",
         "package.json"
       )
-      const hasRoot = fs.existsSync(rootReactDomPkgPath)
-      const hasCwd = fs.existsSync(cwdReactDomPkgPath)
+      const hasRoot = await fs.pathExists(rootReactDomPkgPath)
+      const hasCwd = await fs.pathExists(cwdReactDomPkgPath)
 
       if (!hasRoot && !hasCwd) {
         return
       }
 
       const reactDomPkgPath = hasRoot ? rootReactDomPkgPath : cwdReactDomPkgPath
-      const reactDomPkg = JSON.parse(fs.readFileSync(reactDomPkgPath, "utf8"))
+      const reactDomPkg = JSON.parse(await fs.readFile(reactDomPkgPath, "utf8"))
       const version = reactDomPkg.version.match(/[0-9]*(?=\.)/)[0]
 
       useLegacy = version < 18 ? true : false
