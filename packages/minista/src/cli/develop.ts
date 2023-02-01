@@ -128,6 +128,9 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
 
             let parsedHtml = parseHtml(html, { comment: true }) as NHTMLElement
 
+            const charsetEl = parsedHtml.querySelector(`meta[charset]`)
+            const charset = charsetEl?.getAttribute("charset") || "UTF-8"
+
             if (
               useVirtualModule ||
               parsedHtml.querySelector(
@@ -163,11 +166,6 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
 
             html = parsedHtml.toString()
             html = await server.transformIndexHtml(originalUrl, html)
-
-            const charsets = html.match(
-              /<meta[^<>]*?charset=["|'](.*?)["|'].*?\/>/i
-            )
-            const charset = charsets ? charsets[1] : "UTF-8"
 
             if (charset.match(/^utf[\s-_]*8$/i)) {
               res.statusCode = 200
