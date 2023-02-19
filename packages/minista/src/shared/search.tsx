@@ -221,21 +221,14 @@ export function SearchField(props: SearchFieldProps) {
     if (setSearchResults) {
       setSearchResults(resultHitPages)
     }
-    //console.log("inputValues", inputValues)
-    //console.log("hitValues", hitValues)
-    //console.log("mergedHitValues", mergedHitValues)
-    //console.log("hitIndexes", hitIndexes)
-    //console.log("hitPages", hitPages)
-    //console.log("sortedHitPages", sortedHitPages)
-    //console.log("resultHitPages", resultHitPages)
     return
   }
 
   useEffect(() => {
     if (callSearchData) {
       const getSearchData = async () => {
-        //prettier-ignore
-        const response = await fetch("/@minista-temp/__minista_plugin_search.json")
+        const filePath = "/@minista-temp/__minista_plugin_search.json"
+        const response = await fetch(filePath)
         const data = await response.json()
         setSearchData(data)
 
@@ -265,17 +258,17 @@ export function SearchField(props: SearchFieldProps) {
         }
       }
       getSearchData()
-      //console.log("callSearchData", true)
     }
   }, [callSearchData])
-
-  /*useEffect(() => {
-    console.log("searchData", searchData)
-  }, [searchData])*/
   return (
     <div {...attributes}>
       {insertBeforeElement}
-      <input type="search" placeholder={placeholder} onChange={searchHandler} />
+      <input
+        type="search"
+        data-full-text-search=""
+        placeholder={placeholder}
+        onChange={searchHandler}
+      />
       {insertAfterElement}
     </div>
   )
@@ -291,10 +284,6 @@ export function SearchList(props: SearchListProps) {
   if (checkValues && checkHitValues && checkResults) {
     const regValues = new RegExp(`(${searchValues.join("|")})`, "ig")
     const regHitValues = new RegExp(`(${searchHitValues.join("|")})`, "ig")
-    //console.log("searchValues", searchValues)
-    //console.log("regValues", regValues)
-    //console.log("regHitValues", regHitValues)
-
     return (
       <ul {...attributes}>
         {searchResults.map((item, index) => {
@@ -316,10 +305,6 @@ export function SearchList(props: SearchListProps) {
             }
           })
           const content = renderdWords
-          //console.log("words", words)
-          //console.log("filteredWords", filteredWords)
-          //console.log("renderdWords", renderdWords)
-
           return (
             <li key={index}>
               <a href={item.path}>

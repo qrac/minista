@@ -10,50 +10,36 @@ const __dirname = path.dirname(__filename)
 
 export function pluginSearch(config: ResolvedConfig): Plugin {
   let command: "build" | "serve"
-  let activeSearch = false
 
-  const output = path.join(config.sub.tempDir, "search.txt")
+  const tempFileName = "__minista_plugin_search.json"
+  const tempFind = path.join("/@minista-temp", tempFileName)
+  const tempReplacement = path.join(config.sub.tempDir, tempFileName)
 
   return {
     name: "minista-vite-plugin:search",
-    config(_, viteConfig) {
+    config: (_, viteConfig) => {
       command = viteConfig.command
+      return {
+        resolve: {
+          alias: [
+            {
+              find: tempFind,
+              replacement: tempReplacement,
+            },
+          ],
+        },
+      }
     },
     async buildStart() {
-      if (command === "build") {
-        await fs.remove(output)
+      if (command === "serve") {
+        await fs.remove(tempReplacement)
       }
     },
     async transform(code, id) {
       if (
-        command === "serve" &&
-        id.match(path.join(__dirname, "../shared/search.js"))
-      ) {
-        const importCode = `import { searchObj as data } from "virtual:minista-plugin-develop"`
-        const replacedCode = code
-          .replace(
-            /const response = await fetch/,
-            "//const response = await fetch"
-          )
-          .replace(
-            /const data = await response/,
-            "//const data = await response"
-          )
-        return {
-          code: importCode + "\n\n" + replacedCode,
-          map: null,
-        }
-      }
-
-      if (
         command === "build" &&
         id.match(path.join(__dirname, "../shared/search.js"))
       ) {
-        if (!activeSearch) {
-          await fs.outputFile(output, "")
-          activeSearch = true
-        }
-
         const { resolvedBase } = config.sub
 
         let filePath = path.join(

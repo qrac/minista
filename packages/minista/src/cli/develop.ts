@@ -33,6 +33,8 @@ import { transformImages } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
 import { transformEncode } from "../transform/encode.js"
 import { transformSearch } from "../transform/search.js"
+import { generateTempSearch } from "../generate/search.js"
+import { hasElement } from "../utility/element.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -64,32 +66,11 @@ export async function develop(inlineConfig: InlineConfig = {}) {
 }
 
 function pluginDevelop(config: ResolvedConfig): Plugin {
-  const virtualModuleId = "virtual:minista-plugin-develop"
-  const resolvedVirtualModuleId = "\0" + virtualModuleId
-
   let server: ViteDevServer
-  let useVirtualModule: boolean = false
   let ssgPages: SsgPages = []
 
   return {
     name: "minista-vite-plugin:develop",
-    resolveId(id) {
-      if (id === virtualModuleId) {
-        useVirtualModule = true
-        return resolvedVirtualModuleId
-      }
-    },
-    async load(id) {
-      if (id === resolvedVirtualModuleId) {
-        const { moduleGraph } = server
-        const module = moduleGraph.getModuleById(resolvedVirtualModuleId)!
-        moduleGraph.invalidateModule(module)
-
-        const searchObj = await transformSearch({ ssgPages, config })
-
-        return `export const searchObj = ${JSON.stringify(searchObj)}`
-      }
-    },
     configureServer(_server) {
       server = _server
 
@@ -131,17 +112,22 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
             const charsetEl = parsedHtml.querySelector(`meta[charset]`)
             const charset = charsetEl?.getAttribute("charset") || "UTF-8"
 
-            if (
-              useVirtualModule ||
-              parsedHtml.querySelector(
-                `[data-minista-transform-target="delivery"]`
-              )
-            ) {
+            const searchAttr = `[data-full-text-search]`
+            const deliveryAttr = `[data-minista-transform-target="delivery"]`
+            const hasSearch = hasElement(parsedHtml, searchAttr)
+            const hasDelivery = hasElement(parsedHtml, deliveryAttr)
+
+            if (hasSearch || hasDelivery) {
               ssgPages = await transformSsg({
                 resolvedGlobal,
                 resolvedPages,
                 config,
               })
+            }
+            if (hasSearch) {
+              const searchObj = await transformSearch({ ssgPages, config })
+              const data = JSON.stringify(searchObj)
+              await generateTempSearch({ data, config })
             }
             transformComments(parsedHtml)
             transformDeliveries({ parsedData: parsedHtml, ssgPages, config })

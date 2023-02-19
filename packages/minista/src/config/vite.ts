@@ -98,10 +98,6 @@ export async function resolveViteConfig(
           find: "/@minista-project-root",
           replacement: path.resolve(subConfig.resolvedRoot),
         },
-        {
-          find: "/@minista-temp",
-          replacement: path.resolve(subConfig.tempDir),
-        },
       ],
     },
     optimizeDeps: {
