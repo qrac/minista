@@ -26,7 +26,7 @@ export async function generateTempSprite({
   const svgFiles = await fg(path.join(srcDir, "**/*.svg"))
 
   if (!svgFiles.length) {
-    return ""
+    return
   }
   const data = transformSprite({
     svgFiles,
