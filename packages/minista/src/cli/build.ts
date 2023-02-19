@@ -40,11 +40,13 @@ import { transformImages } from "../transform/image.js"
 import { transformIcons } from "../transform/icon.js"
 import { transformRelative } from "../transform/relative.js"
 import { transformSearch } from "../transform/search.js"
+import { generatePublics } from "../generate/public.js"
 import { generatePages } from "../generate/page.js"
 import { generateAssets } from "../generate/asset.js"
 import { generateImages } from "../generate/image.js"
 import { generateSprites } from "../generate/sprite.js"
 import { generateArchives } from "../generate/archive.js"
+import { hasElement } from "../utility/element.js"
 
 export type BuildResult = {
   output: BuildItem[]
@@ -64,9 +66,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const config = await resolveConfig(inlineConfig)
   const { resolvedRoot, resolvedEntry, tempDir } = config.sub
   const { assets, search, delivery } = config.main
+  const { partial } = assets
 
   const resolvedOut = path.join(resolvedRoot, config.main.out)
-  const resolvedPublic = path.join(resolvedRoot, config.main.public)
 
   const bundleCssName = path.join(assets.outDir, assets.bundle.outName + ".css")
   const bugBundleCssName = path.join(assets.outDir, "bundle.css")
@@ -96,7 +98,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
   let hasBundleCss = false
   let hasHydrate = false
   let hasSearch = false
-  let hasPublic = false
 
   const ssgConfig = mergeViteConfig(
     config.vite,
@@ -116,7 +117,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
-
   ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult
   ssgItems = ssgResult.output.filter((item) => {
     return item.fileName.match(/__minista_plugin_ssg\.js$/)
@@ -141,6 +141,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
       }
     })
     let parsedData = parsedPages.map((item) => item.parsedHtml)
+
+    hasSearch = hasElement(parsedData, `[data-full-text-search]`)
+    hasHydrate = hasElement(parsedData, `[data-${partial.rootAttrSuffix}]`)
 
     transformDeliveries({ parsedData, ssgPages, config })
     transformArchives({ parsedData, config })
@@ -209,6 +212,8 @@ export async function build(inlineConfig: InlineConfig = {}) {
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
+  assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult
+
   const hydrateConfig = mergeViteConfig(
     config.vite,
     defineViteConfig({
@@ -224,24 +229,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
       customLogger: createLogger("warn", { prefix: "[minista]" }),
     })
   )
-  assetsResult = (await viteBuild(assetsConfig)) as unknown as BuildResult
-
-  hasBundleCss = assetsResult.output.some((item) => {
-    return item.fileName === bundleCssName || item.fileName === bugBundleCssName
-  })
-  hasHydrate = await fs.pathExists(path.join(tempDir, "phs"))
-  hasSearch = await fs.pathExists(path.join(tempDir, "search.txt"))
-
   if (hasHydrate) {
     hydrateResult = (await viteBuild(hydrateConfig)) as unknown as BuildResult
   } else {
     hydrateResult = { output: [] }
   }
-
-  await fs.emptyDir(resolvedOut)
-
-  hasPublic = await fs.pathExists(resolvedPublic)
-  hasPublic && (await fs.copy(resolvedPublic, resolvedOut))
 
   assetItems = assetsResult.output.filter((item) => {
     return !item.fileName.match(/__minista_plugin_bundle\.js$/)
@@ -249,7 +241,9 @@ export async function build(inlineConfig: InlineConfig = {}) {
   hydrateItems = hydrateResult.output.filter((item) => {
     return item.fileName.match(/__minista_plugin_hydrate\.js$/)
   })
-
+  hasBundleCss = assetsResult.output.some((item) => {
+    return item.fileName === bundleCssName || item.fileName === bugBundleCssName
+  })
   cssNameBugFix = Object.fromEntries(
     Object.entries(assetEntries).map((item) => {
       return [
@@ -310,6 +304,8 @@ export async function build(inlineConfig: InlineConfig = {}) {
   const nameLengths = mergedItemNames.map((item) => item.length)
   const maxNameLength = nameLengths.reduce((a, b) => (a > b ? a : b), 0)
 
+  await fs.emptyDir(resolvedOut)
+  await generatePublics({ config })
   await generatePages({ createPages, config, hasBundleCss, maxNameLength })
   await generateAssets({ createAssets, config, maxNameLength })
   await generateImages({ createImages, config, maxNameLength })
