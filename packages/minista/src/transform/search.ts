@@ -1,4 +1,5 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
+import path from "node:path"
 import picomatch from "picomatch"
 import { parse } from "node-html-parser"
 import mojigiri from "mojigiri"
@@ -7,13 +8,15 @@ import type { ResolvedConfig } from "../config/index.js"
 import type { SsgPages } from "../transform/ssg.js"
 
 export async function transformSearch({
+  command,
   ssgPages,
   config,
 }: {
+  command: "build" | "serve"
   ssgPages: SsgPages
   config: ResolvedConfig
 }) {
-  const { include, exclude, trimTitle, targetSelector, hit } =
+  const { include, exclude, baseUrl, trimTitle, targetSelector, hit } =
     config.main.search
   const filterdPages = ssgPages.filter((page) => {
     return picomatch.isMatch(page.path, include, {
@@ -53,7 +56,7 @@ export async function transformSearch({
       if (!targetContent) {
         tempWords.push(title)
         tempPages.push({
-          path: page.path,
+          path: command === "build" ? path.join(baseUrl, page.path) : page.path,
           toc: [],
           title: titleArray,
           content: [],

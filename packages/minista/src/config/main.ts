@@ -82,6 +82,7 @@ export type MainConfig = {
     outName: string
     include: string[]
     exclude: string[]
+    baseUrl: string
     trimTitle: string
     targetSelector: string
     hit: {
@@ -216,6 +217,7 @@ export const defaultMainConfig: MainConfig = {
     outName: "search",
     include: ["**/*"],
     exclude: ["/404"],
+    baseUrl: "",
     trimTitle: "",
     targetSelector: "[data-search]",
     hit: {

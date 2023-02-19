@@ -13,17 +13,17 @@ describe("resolveBase", () => {
     expect(result).toEqual("/")
   })
 
-  it("Absolute", () => {
+  it("Sub directory", () => {
     const result = resolveBase("./test")
     expect(result).toEqual("/test/")
   })
 
-  it("Absolute 2", () => {
+  it("Sub directory 2", () => {
     const result = resolveBase("test")
     expect(result).toEqual("/test/")
   })
 
-  it("Absolute 3", () => {
+  it("Sub directory 3", () => {
     const result = resolveBase("/test/")
     expect(result).toEqual("/test/")
   })

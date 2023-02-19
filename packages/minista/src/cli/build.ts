@@ -282,7 +282,11 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   if (hasSearch && ssgPages.length) {
     const fileName = path.join(search.outDir, search.outName + ".json")
-    const searchObj = await transformSearch({ ssgPages, config })
+    const searchObj = await transformSearch({
+      command: "build",
+      ssgPages,
+      config,
+    })
     const data = JSON.stringify(searchObj)
     createAssets.push({ fileName, data })
   }

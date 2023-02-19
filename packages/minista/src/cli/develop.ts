@@ -125,7 +125,11 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
               })
             }
             if (hasSearch) {
-              const searchObj = await transformSearch({ ssgPages, config })
+              const searchObj = await transformSearch({
+                command: "serve",
+                ssgPages,
+                config,
+              })
               const data = JSON.stringify(searchObj)
               await generateTempSearch({ data, config })
             }

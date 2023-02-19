@@ -40,16 +40,15 @@ export function pluginSearch(config: ResolvedConfig): Plugin {
         command === "build" &&
         id.match(path.join(__dirname, "../shared/search.js"))
       ) {
+        const { search } = config.main
         const { resolvedBase } = config.sub
 
-        let filePath = path.join(
-          config.main.search.outDir,
-          config.main.search.outName + ".json"
+        const filePath = path.join(
+          search.baseUrl,
+          resolvedBase,
+          search.outDir,
+          search.outName + ".json"
         )
-        filePath = resolvedBase.match(/^\/.*\/$/)
-          ? path.join(resolvedBase, filePath)
-          : path.join("/", filePath)
-
         const replacedCode = code.replace(
           /\/@minista-temp\/__minista_plugin_search\.json/,
           filePath

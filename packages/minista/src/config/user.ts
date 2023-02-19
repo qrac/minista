@@ -87,6 +87,7 @@ export type UserConfig = {
     outName?: string
     include?: string[]
     exclude?: string[]
+    baseUrl?: string
     trimTitle?: string
     targetSelector?: string
     hit?: {

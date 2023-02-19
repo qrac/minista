@@ -7,6 +7,7 @@ describe("transformSearch", () => {
   it("Default", async () => {
     const config = await resolveConfig({})
     const result = await transformSearch({
+      command: "serve",
       ssgPages: [
         {
           fileName: "index.html",
@@ -34,6 +35,7 @@ describe("transformSearch", () => {
   it("Toc", async () => {
     const config = await resolveConfig({})
     const result = await transformSearch({
+      command: "serve",
       ssgPages: [
         {
           fileName: "index.html",
