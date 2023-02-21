@@ -86,13 +86,13 @@ export function Delivery({
       <DeliveryContainer>
         <DeliveryHeader title={title} date={now} {...header} />
         <DeliveryMain>
-          <DeliveryNav>
-            {items ? (
+          {items ? (
+            <DeliveryNav>
               <DeliveryList items={items} />
-            ) : (
-              <div data-minista-transform-target="delivery" />
-            )}
-          </DeliveryNav>
+            </DeliveryNav>
+          ) : (
+            <div data-minista-transform-target="delivery" />
+          )}
         </DeliveryMain>
       </DeliveryContainer>
     </>

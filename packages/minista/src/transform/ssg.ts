@@ -13,6 +13,7 @@ import { getHtmlPath } from "../utility/path.js"
 export type SsgPages = {
   fileName: string
   path: string
+  group: string
   title: string
   html: string
 }[]
@@ -37,11 +38,13 @@ export async function transformSsg({
       pathname: basedPath,
       config,
     })
+    const group = page.frontmatter?.group || ""
     const title = page.frontmatter?.title || ""
     const draft = page.frontmatter?.draft || false
     return {
       path: page.path,
       basedPath,
+      group,
       title,
       html: draft
         ? ""
@@ -73,6 +76,7 @@ export async function transformSsg({
     return {
       path: page.path,
       basedPath: page.basedPath,
+      group: page.group,
       title: page.title,
       html,
     }
@@ -83,6 +87,7 @@ export async function transformSsg({
     return {
       fileName,
       path: page.basedPath,
+      group: page.group,
       title: page.title,
       html: page.html,
     }

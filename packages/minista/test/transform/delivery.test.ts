@@ -1,28 +1,35 @@
 import { describe, expect, it } from "vitest"
 
-import { getDeliveryData, getDeliveryTag } from "../../src/transform/delivery"
+import {
+  getDeliveryItems,
+  getDeliveryGroups,
+  getDeliveryTag,
+} from "../../src/transform/delivery"
 import { resolveConfig } from "../../src/config"
 
-describe("getDeliveryData", () => {
+describe("getDeliveryItems", () => {
   it("Default", async () => {
     const config = await resolveConfig({})
-    const result = getDeliveryData({
+    const result = getDeliveryItems({
       ssgPages: [
         {
           fileName: "",
           path: "/about",
+          group: "",
           title: "ABOUT",
           html: "",
         },
         {
           fileName: "",
           path: "/",
+          group: "",
           title: "",
           html: "<title>HOME</title>",
         },
         {
           fileName: "",
           path: "/404",
+          group: "",
           title: "404",
           html: "",
         },
@@ -31,10 +38,12 @@ describe("getDeliveryData", () => {
     })
     expect(result).toEqual([
       {
+        group: "",
         title: "HOME",
         path: "/",
       },
       {
+        group: "",
         title: "ABOUT",
         path: "/about",
       },
@@ -43,23 +52,26 @@ describe("getDeliveryData", () => {
 
   it("Sort by title", async () => {
     const config = await resolveConfig({ delivery: { sortBy: "title" } })
-    const result = getDeliveryData({
+    const result = getDeliveryItems({
       ssgPages: [
         {
           fileName: "",
           path: "/about",
+          group: "",
           title: "ABOUT",
           html: "",
         },
         {
           fileName: "",
           path: "/",
+          group: "",
           title: "",
           html: "<title>HOME</title>",
         },
         {
           fileName: "",
           path: "/404",
+          group: "",
           title: "404",
           html: "",
         },
@@ -68,10 +80,12 @@ describe("getDeliveryData", () => {
     })
     expect(result).toEqual([
       {
+        group: "",
         title: "ABOUT",
         path: "/about",
       },
       {
+        group: "",
         title: "HOME",
         path: "/",
       },
@@ -79,24 +93,99 @@ describe("getDeliveryData", () => {
   })
 })
 
-describe("getDeliveryTag", () => {
+describe("getDeliveryGroups", () => {
   it("Blank", () => {
-    const result = getDeliveryTag([])
-    expect(result).toEqual("")
+    const result = getDeliveryGroups([])
+    expect(result).toEqual([])
   })
 
-  it("Default", () => {
-    const result = getDeliveryTag([
+  it("No title", () => {
+    const result = getDeliveryGroups([
       {
+        group: "",
         title: "HOME",
         path: "/",
       },
       {
+        group: "",
         title: "ABOUT",
         path: "/about",
       },
     ])
-    expect(result).toEqual(`<ul class="minista-delivery-list">
+    expect(result).toEqual([
+      {
+        title: "",
+        items: [
+          {
+            title: "HOME",
+            path: "/",
+          },
+          {
+            title: "ABOUT",
+            path: "/about",
+          },
+        ],
+      },
+    ])
+  })
+
+  it("Has title", () => {
+    const result = getDeliveryGroups([
+      {
+        group: "PC",
+        title: "HOME",
+        path: "/",
+      },
+      {
+        group: "SMP",
+        title: "ABOUT",
+        path: "/about",
+      },
+    ])
+    expect(result).toEqual([
+      {
+        title: "PC",
+        items: [
+          {
+            title: "HOME",
+            path: "/",
+          },
+        ],
+      },
+      {
+        title: "SMP",
+        items: [
+          {
+            title: "ABOUT",
+            path: "/about",
+          },
+        ],
+      },
+    ])
+  })
+})
+
+describe("getDeliveryTag", () => {
+  it("Blank", () => {
+    const result = getDeliveryTag({ items: [] })
+    expect(result).toEqual("")
+  })
+
+  it("Default", () => {
+    const result = getDeliveryTag({
+      items: [
+        {
+          title: "HOME",
+          path: "/",
+        },
+        {
+          title: "ABOUT",
+          path: "/about",
+        },
+      ],
+    })
+    expect(result).toEqual(`<nav class="minista-sitemap-nav">
+<ul class="minista-delivery-list">
 <li class="minista-delivery-item">
   <div class="minista-delivery-item-content">
     <a
@@ -123,6 +212,7 @@ describe("getDeliveryTag", () => {
     <div class="minista-delivery-item-content-background"></div>
   </div>
 </li>
-</ul>`)
+</ul>
+</nav>`)
   })
 })

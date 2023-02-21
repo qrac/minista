@@ -7,21 +7,39 @@ import type { SsgPages } from "../transform/ssg.js"
 import { flags } from "../config/system.js"
 import { getElements, cleanElement } from "../utility/element.js"
 
+type DeliveryItems = {
+  group: string
+  title: string
+  path: string
+}[]
+
+type DeliveryGroups = {
+  title: string
+  items: {
+    title: string
+    path: string
+  }[]
+}[]
+
 const cleanAttributes = ["data-minista-transform-target"]
 
-export function getDeliveryData({
+export function getDeliveryItems({
   ssgPages,
   config,
 }: {
   ssgPages: SsgPages
   config: ResolvedConfig
-}) {
+}): DeliveryItems {
   const { include, exclude, trimTitle, sortBy } = config.main.delivery
+
   const filterdPages = ssgPages.filter((page) => {
     return picomatch.isMatch(page.path, include, {
       ignore: exclude,
     })
   })
+  if (!filterdPages.length) {
+    return []
+  }
   return filterdPages
     .map((page) => {
       let title: string
@@ -37,6 +55,7 @@ export function getDeliveryData({
       title = title ? title.replace(regTrimTitle, "") : ""
 
       return {
+        group: page.group,
         title,
         path: page.path,
       }
@@ -57,16 +76,43 @@ export function getDeliveryData({
     })
 }
 
-export function getDeliveryTag(
-  deliveryData: {
-    title: string
-    path: string
-  }[],
+export function getDeliveryGroups(items: DeliveryItems): DeliveryGroups {
+  if (!items.length) {
+    return []
+  }
+  const groupTitles = [...new Set(items.map((item) => item.group))].sort()
+
+  let groups: DeliveryGroups = groupTitles.map((item) => {
+    return { title: item, items: [] }
+  })
+  items.map((item) => {
+    const itemObj = { title: item.title, path: item.path }
+    const target = groups.find((group) => group.title === item.group)
+    target && target.items.push(itemObj)
+    return
+  })
+  return groups
+}
+
+export function getDeliveryTag({
+  title,
+  items,
+  hasRelativeFlag,
+}: {
+  title?: DeliveryGroups[0]["title"]
+  items: DeliveryGroups[0]["items"]
   hasRelativeFlag?: boolean
-) {
+}) {
+  if (!items.length) {
+    return ""
+  }
   const flag = hasRelativeFlag ? `\n      ${flags.relative}` : ""
-  const tags = deliveryData.map((item) => {
-    return `<li class="minista-delivery-item">
+  const titleStr = title
+    ? `\n<h2 class="minista-delivery-nav-title">${title}</h2>\n`
+    : ""
+  const listStr = items
+    .map((item) => {
+      return `<li class="minista-delivery-item">
   <div class="minista-delivery-item-content">
     <a
       class="minista-delivery-item-content-link"
@@ -79,11 +125,13 @@ export function getDeliveryTag(
     <div class="minista-delivery-item-content-background"></div>
   </div>
 </li>`
-  })
-  const tagsStr = tags.join("\n")
-  return tagsStr
-    ? `<ul class="minista-delivery-list">\n` + tagsStr + `\n</ul>`
-    : ""
+    })
+    .join("\n")
+  return `<nav class="minista-delivery-nav">${titleStr}
+<ul class="minista-delivery-list">
+${listStr}
+</ul>
+</nav>`
 }
 
 export function transformDeliveries({
@@ -103,9 +151,17 @@ export function transformDeliveries({
   if (!targetEls.length || !ssgPages.length) {
     return
   }
-  const deliveryData = getDeliveryData({ ssgPages, config })
-  const hasRelativeFlag = base === "" || base === "./"
-  const insertTag = getDeliveryTag(deliveryData, hasRelativeFlag)
+  const items = getDeliveryItems({ ssgPages, config })
+  const groups = getDeliveryGroups(items)
+
+  const insertTags = groups.map((group) => {
+    return getDeliveryTag({
+      title: group.title,
+      items: group.items,
+      hasRelativeFlag: base === "" || base === "./",
+    })
+  })
+  const insertTag = insertTags.join("\n")
   const insertEl = parseHtml(insertTag)
 
   targetEls.map((el) => {

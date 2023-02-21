@@ -136,6 +136,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
       return {
         fileName: page.fileName,
         path: page.path,
+        group: page.group,
         title: page.path,
         parsedHtml,
       }

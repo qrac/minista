@@ -1,5 +1,9 @@
 import { Head } from "minista"
 
+/*export const frontmatter = {
+  group: "test",
+}*/
+
 export default function () {
   return (
     <>

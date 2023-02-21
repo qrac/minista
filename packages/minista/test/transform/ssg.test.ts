@@ -31,6 +31,7 @@ describe("transformSsg", () => {
       return {
         fileName: page.fileName,
         path: page.path,
+        group: page.group,
         title: page.title,
         html: beautify.html(page.html, config.main.beautify.htmlOptions),
       }
@@ -72,6 +73,7 @@ describe("transformSsg", () => {
       return {
         fileName: page.fileName,
         path: page.path,
+        group: page.group,
         title: page.title,
         html: beautify.html(page.html, config.main.beautify.htmlOptions),
       }
