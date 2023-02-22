@@ -20,7 +20,8 @@
   "homepage": "https://minista.qranoko.jp",
   "repository": {
     "type": "git",
-    "url": "https://github.com/qrac/minista"
+    "url": "https://github.com/qrac/minista",
+    "directory": "packages/minista"
   },
   "bugs": {
     "url": "https://github.com/qrac/minista/issues"
