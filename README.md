@@ -16,6 +16,20 @@
 
 https://minista.qranoko.jp
 
+## Packages
+
+<!-- prettier-ignore -->
+| Package Directory | Latest Version |
+| --- | --- |
+| [minista](https://github.com/qrac/minista/tree/main/packages/minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/minista"><img alt="" src="https://img.shields.io/npm/v/minista.svg?style=for-the-badge&labelColor=212121"></a> |
+| [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/create-minista"><img alt="" src="https://img.shields.io/npm/v/create-minista.svg?style=for-the-badge&labelColor=212121"></a> |
+
+## Quick Start
+
+```bash
+$ npm init minista@latest
+```
+
 ## About
 
 minista（ミニスタ）は、React の JSX で書けるスタティックサイトジェネレーターです。
@@ -44,20 +58,6 @@ minista はウェブ制作業務における 2 つの目的で作られていま
 
 - 本物に近いプロトタイプを TypeScript(JSX) でインブラウザデザインする
 - 外部依存を極力排除した死ににくいウェブコンテンツを作る
-
-## Quick Start
-
-```bash
-$ npm init minista@latest
-```
-
-## Packages
-
-<!-- prettier-ignore -->
-| Package Directory | Latest Version |
-| --- | --- |
-| [minista](https://github.com/qrac/minista/tree/main/packages/minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/minista"><img alt="" src="https://img.shields.io/npm/v/minista.svg?style=for-the-badge&labelColor=212121"></a> |
-| [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/create-minista"><img alt="" src="https://img.shields.io/npm/v/create-minista.svg?style=for-the-badge&labelColor=212121"></a> |
 
 ## Media
 
