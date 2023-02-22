@@ -1,7 +1,7 @@
 // Import GetStaticData or StaticData
 // - Arrow Function Type: GetStaticData
 // - Function Result Type: Promise<StaticData>
-import type { StaticData } from "minista"
+import type { StaticData, PageProps } from "minista"
 
 export async function getStaticData(): Promise<StaticData> {
   //const apiUrl = "https://api.github.com/repos/qrac/minista/issues"
@@ -19,7 +19,7 @@ export async function getStaticData(): Promise<StaticData> {
   }
 }
 
-type PageIssuesProps = {
+type PageIssuesProps = PageProps & {
   issues?: { title: string; number: number }[]
 }
 
@@ -30,7 +30,7 @@ export default function (props: PageIssuesProps) {
       <ul>
         {props.issues?.map((item, index) => (
           <li key={index}>
-            <a href={`/issues/${item.number}.html`}>{item.title}</a>
+            <a href={`/issues/${item.number}`}>{item.title}</a>
           </li>
         ))}
       </ul>

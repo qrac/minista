@@ -11,11 +11,30 @@ export type Location = {
   pathname: string
 }
 
+export type Frontmatter = {
+  title?: string
+  group?: string
+  draft?: boolean
+  [key: string]: any
+}
+
+export type PageProps = {
+  url: string
+  title: string
+  group: string
+  draft: boolean
+  [key: string]: any
+}
+
+export type GlobalProps = PageProps & {
+  children: React.ReactNode
+}
+
 export type GetStaticData = {
-  (): Promise<StaticData>
+  (): Promise<StaticData | StaticData[]>
 }
 
 export type StaticData = {
-  props: { [key: string]: string }
   paths?: { [key: string]: string }
+  props: { [key: string]: any }
 }

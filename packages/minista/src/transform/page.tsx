@@ -4,10 +4,32 @@ import { StaticRouter } from "react-router-dom/server.js"
 import { HelmetProvider } from "react-helmet-async"
 import { Route, Routes } from "react-router-dom"
 
+import type { PageProps } from "../shared/index.js"
 import type { ResolvedGlobal } from "../server/global.js"
 import type { ResolvedPages } from "../server/page.js"
 
-export function Page({
+function Wrap({
+  component,
+  props,
+  children,
+}: {
+  component?: new () => React.Component<PageProps>
+  props: PageProps
+  children: React.ReactNode
+}) {
+  const WrapComponent = component
+  return (
+    <>
+      {WrapComponent ? (
+        <WrapComponent {...props}>{children}</WrapComponent>
+      ) : (
+        <>{children}</>
+      )}
+    </>
+  )
+}
+
+function Page({
   resolvedGlobal,
   resolvedPages,
 }: {
@@ -20,49 +42,30 @@ export function Page({
     <>
       <Routes>
         {routes.map((page) => {
-          const location = { pathname: page.path }
-
-          if (global.component) {
-            const GlobalComponent = global.component
-            const PageComponent = page.component
-            return (
-              <Route
-                key={page.path}
-                path={page.path}
-                element={
-                  <GlobalComponent
-                    {...global.staticData.props}
-                    {...page.staticData.props}
-                    frontmatter={page.frontmatter}
-                    location={location}
-                  >
-                    <PageComponent
-                      {...global.staticData.props}
-                      {...page.staticData.props}
-                      frontmatter={page.frontmatter}
-                      location={location}
-                    />
-                  </GlobalComponent>
-                }
-              ></Route>
-            )
-          } else {
-            const PageComponent = page.component
-            return (
-              <Route
-                key={page.path}
-                path={page.path}
-                element={
-                  <PageComponent
-                    {...global.staticData.props}
-                    {...page.staticData.props}
-                    frontmatter={page.frontmatter}
-                    location={location}
-                  />
-                }
-              ></Route>
-            )
+          const WrapComponent = Wrap
+          const PageComponent = page.component
+          const props: PageProps = {
+            title: "",
+            group: "",
+            draft: false,
+            ...global.staticData.props,
+            ...page.staticData.props,
+            ...page.frontmatter,
+            url: page.path,
+            location: { pathname: page.path },
+            frontmatter: { ...page.frontmatter },
           }
+          return (
+            <Route
+              key={page.path}
+              path={page.path}
+              element={
+                <WrapComponent component={global.component} props={props}>
+                  <PageComponent {...props} />
+                </WrapComponent>
+              }
+            />
+          )
         })}
       </Routes>
     </>

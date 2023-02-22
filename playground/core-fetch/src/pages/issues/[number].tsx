@@ -1,7 +1,7 @@
 // Import GetStaticData or StaticData
 // - Arrow Function Type: GetStaticData
 // - Function Result Type: Promise<StaticData>
-import type { StaticData } from "minista"
+import type { StaticData, PageProps } from "minista"
 
 export async function getStaticData(): Promise<StaticData> {
   //const apiUrl = "https://api.github.com/repos/qrac/minista/issues"
@@ -18,7 +18,7 @@ export async function getStaticData(): Promise<StaticData> {
   }))
 }
 
-type PageIssuesTemplateProps = {
+type PageIssuesTemplateProps = PageProps & {
   title: string
   body: string
   number: number

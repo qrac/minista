@@ -1,25 +1,25 @@
-import type { GetStaticData, StaticData } from "../shared/index.js"
+import type { GetStaticData, StaticData, PageProps } from "../shared/index.js"
 
 type Page = {
   path: string
-  component: new () => React.Component<any, any>
+  component: new () => React.Component<PageProps>
   getStaticData?: GetStaticData
-  frontmatter?: { [key: string]: string }
+  frontmatter?: { [key: string]: any }
 }
 
 type ImportedPages = {
   [key: string]: {
-    default: new () => React.Component<any, any>
+    default: new () => React.Component<PageProps>
     getStaticData?: GetStaticData
-    frontmatter?: { [key: string]: string }
+    frontmatter?: { [key: string]: any }
   }
 }
 
 export type ResolvedPages = {
   path: string
   staticData: StaticData
-  component: new () => React.Component<any, any, any>
-  frontmatter?: { [key: string]: string }
+  component: new () => React.Component<PageProps>
+  frontmatter?: { [key: string]: any }
 }[]
 
 export function getPages(): Page[] {

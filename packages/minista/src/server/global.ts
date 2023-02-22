@@ -1,19 +1,19 @@
-import type { GetStaticData, StaticData } from "../shared/index.js"
+import type { GetStaticData, StaticData, PageProps } from "../shared/index.js"
 
 type Global = {
-  component?: new () => React.Component<any, any>
+  component?: new () => React.Component<PageProps>
   getStaticData?: GetStaticData
 }
 
 type ImportedGlobals = {
   [key: string]: {
-    default?: new () => React.Component<any, any>
+    default?: new () => React.Component<PageProps>
     getStaticData?: GetStaticData
   }
 }
 
 export type ResolvedGlobal = {
-  component?: new () => React.Component<any, any>
+  component?: new () => React.Component<PageProps>
   staticData: StaticData
 }
 
@@ -43,11 +43,15 @@ export function getGlobal(): Global {
 }
 
 export async function resolveGlobal(global: Global): Promise<ResolvedGlobal> {
+  let staticData = global.getStaticData
+    ? await global.getStaticData()
+    : { props: {} }
+  if (Array.isArray(staticData)) {
+    staticData = staticData[0]
+  }
   const resolvedGlobal = {
     component: global.component || undefined,
-    staticData: global.getStaticData
-      ? await global.getStaticData()
-      : { props: {} },
+    staticData,
   }
   return resolvedGlobal
 }
