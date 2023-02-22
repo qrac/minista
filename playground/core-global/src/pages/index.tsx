@@ -1,6 +1,6 @@
-import type { Frontmatter, PageProps } from "minista"
+import type { Metadata, PageProps } from "minista"
 
-export const frontmatter: Frontmatter = {
+export const metadata: Metadata = {
   title: "home",
 }
 

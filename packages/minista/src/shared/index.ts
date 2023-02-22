@@ -18,7 +18,15 @@ export type Frontmatter = {
   [key: string]: any
 }
 
+export type Metadata = {
+  title?: string
+  group?: string
+  draft?: boolean
+  [key: string]: any
+}
+
 export type PageProps = {
+  location: Location
   url: string
   title: string
   group: string

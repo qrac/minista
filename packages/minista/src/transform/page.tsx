@@ -48,12 +48,13 @@ function Page({
             title: "",
             group: "",
             draft: false,
+            ...global.metadata,
+            ...page.metadata,
             ...global.staticData.props,
             ...page.staticData.props,
-            ...page.frontmatter,
             url: page.path,
             location: { pathname: page.path },
-            frontmatter: { ...page.frontmatter },
+            frontmatter: page.frontmatter,
           }
           return (
             <Route

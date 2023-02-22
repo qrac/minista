@@ -1,25 +1,34 @@
-import type { GetStaticData, StaticData, PageProps } from "../shared/index.js"
-
-type Page = {
-  path: string
-  component: new () => React.Component<PageProps>
-  getStaticData?: GetStaticData
-  frontmatter?: { [key: string]: any }
-}
+import type {
+  GetStaticData,
+  StaticData,
+  PageProps,
+  Metadata,
+  Frontmatter,
+} from "../shared/index.js"
 
 type ImportedPages = {
   [key: string]: {
     default: new () => React.Component<PageProps>
     getStaticData?: GetStaticData
-    frontmatter?: { [key: string]: any }
+    metadata?: Metadata
+    frontmatter?: Frontmatter
   }
+}
+
+type Page = {
+  path: string
+  component: new () => React.Component<PageProps>
+  getStaticData?: GetStaticData
+  metadata: Metadata
+  frontmatter: Frontmatter
 }
 
 export type ResolvedPages = {
   path: string
-  staticData: StaticData
   component: new () => React.Component<PageProps>
-  frontmatter?: { [key: string]: any }
+  staticData: StaticData
+  metadata: Metadata
+  frontmatter: Frontmatter
 }[]
 
 export function getPages(): Page[] {
@@ -39,11 +48,17 @@ export function getPages(): Page[] {
       .replace(/\[\.{3}.+\]/, "*")
       .replace(/\[(.+)\]/, ":$1")
       .replace(/^.\//, "/")
+    const frontmatter = PAGES[page].frontmatter || {}
+    const metadata = {
+      ...frontmatter,
+      ...(PAGES[page].metadata || {}),
+    }
     return {
       path: pagePath,
       component: PAGES[page].default,
       getStaticData: PAGES[page].getStaticData,
-      frontmatter: PAGES[page].frontmatter,
+      metadata,
+      frontmatter,
     }
   })
   return pages
@@ -60,8 +75,9 @@ export async function resolvePages(pages: Page[]): Promise<ResolvedPages> {
       if (!staticData) {
         return {
           path: page.path,
-          staticData: defaultStaticData,
           component: page.component,
+          staticData: defaultStaticData,
+          metadata: page.metadata,
           frontmatter: page.frontmatter,
         }
       }
@@ -70,8 +86,9 @@ export async function resolvePages(pages: Page[]): Promise<ResolvedPages> {
         const mergedStaticData = { ...defaultStaticData, ...staticData }
         return {
           path: page.path,
-          staticData: mergedStaticData,
           component: page.component,
+          staticData: mergedStaticData,
+          metadata: page.metadata,
           frontmatter: page.frontmatter,
         }
       }
@@ -89,8 +106,9 @@ export async function resolvePages(pages: Page[]): Promise<ResolvedPages> {
         }
         return {
           path: fixedPath,
-          staticData: mergedStaticData,
           component: page.component,
+          staticData: mergedStaticData,
+          metadata: page.metadata,
           frontmatter: page.frontmatter,
         }
       }
@@ -113,8 +131,9 @@ export async function resolvePages(pages: Page[]): Promise<ResolvedPages> {
 
             return {
               path: fixedPath,
-              staticData: mergedStaticData,
               component: page.component,
+              staticData: mergedStaticData,
+              metadata: page.metadata,
               frontmatter: page.frontmatter,
             }
           })
@@ -123,8 +142,9 @@ export async function resolvePages(pages: Page[]): Promise<ResolvedPages> {
 
       return {
         path: page.path,
-        staticData: defaultStaticData,
         component: page.component,
+        staticData: defaultStaticData,
+        metadata: page.metadata,
         frontmatter: page.frontmatter,
       }
     })

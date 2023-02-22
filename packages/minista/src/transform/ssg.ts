@@ -38,9 +38,9 @@ export async function transformSsg({
       pathname: basedPath,
       config,
     })
-    const group = page.frontmatter?.group || ""
-    const title = page.frontmatter?.title || ""
-    const draft = page.frontmatter?.draft || false
+    const group = page.metadata.group || ""
+    const title = page.metadata.title || ""
+    const draft = page.metadata.draft || false
     return {
       path: page.path,
       basedPath,

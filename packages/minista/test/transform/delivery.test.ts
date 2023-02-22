@@ -184,7 +184,7 @@ describe("getDeliveryTag", () => {
         },
       ],
     })
-    expect(result).toEqual(`<nav class="minista-sitemap-nav">
+    expect(result).toEqual(`<nav class="minista-delivery-nav">
 <ul class="minista-delivery-list">
 <li class="minista-delivery-item">
   <div class="minista-delivery-item-content">

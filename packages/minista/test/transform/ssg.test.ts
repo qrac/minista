@@ -16,12 +16,15 @@ describe("transformSsg", () => {
     let result = await transformSsg({
       resolvedGlobal: {
         staticData: { props: {} },
+        metadata: {},
       },
       resolvedPages: [
         {
           path: "/",
-          staticData: { props: {}, paths: {} },
           component: Page,
+          staticData: { props: {}, paths: {} },
+          metadata: {},
+          frontmatter: {},
         },
       ],
       config,
@@ -56,14 +59,17 @@ describe("transformSsg", () => {
 
     let result = await transformSsg({
       resolvedGlobal: {
-        staticData: { props: {} },
         component: Global,
+        staticData: { props: {} },
+        metadata: {},
       },
       resolvedPages: [
         {
           path: "/",
-          staticData: { props: {}, paths: {} },
           component: Page,
+          staticData: { props: {}, paths: {} },
+          metadata: {},
+          frontmatter: {},
         },
       ],
       config,

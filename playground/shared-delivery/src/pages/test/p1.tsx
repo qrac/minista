@@ -1,6 +1,6 @@
 import { Head } from "minista"
 
-/*export const frontmatter = {
+/*export const metadata = {
   group: "test",
 }*/
 
