@@ -29,25 +29,7 @@ $ npm init minista@latest
 
 ## About
 
-minista（ミニスタ）は、React の JSX で書けるスタティックサイトジェネレーターです。
-
-## Feature
-
-- Vite で高速に動作
-- 100% 静的なデータを出力
-- JavaScript ランタイムゼロ
-- TypeScript ファースト
-- 部分的なハイドレーション
-- 内部完結型の全文検索
-- CMS のデータと連携
-- Markdown の変換
-- シンタックスハイライト
-- 画像の最適化
-- リモート画像をダウンロード
-- SVG スプライトアイコン生成
-- 納品を想定した綺麗なデータ
-- 納品リストを自動生成
-- 納品用 Zip を自動生成
+minista（ミニスタ）は React の JSX から綺麗な HTML を作る日本製のスタティックサイトジェネレーターです。
 
 ## Concept
 
@@ -56,6 +38,28 @@ minista はウェブ制作業務における 3 つの目的で作られていま
 - **ゼロストレス**: エディタサポート・動作速度・安定性にこだわる
 - **アーカイブ**: 依存を排除した死ににくいウェブコンテンツを作る
 - **プロトタイプ**: 本物に近い試作品をインブラウザデザインする
+
+## Feature
+
+minsta はウェブ制作者にとって都合の良い機能を備えています。
+
+- React の JSX で書ける
+- TypeScript ファースト
+- Vite による高速処理
+- ランタイムゼロ 100% 静的出力
+- CSS・JS を個別ファイル出力
+- 画像の最適化
+- リモート画像をダウンロード
+- SVG スプライトアイコン
+- CMS のデータと連携
+- Markdown の変換
+- シンタックスハイライト
+- 部分的なハイドレーション
+- 内部完結型の全文検索
+- Shift-JIS 変換
+- 納品想定の綺麗なデータ
+- 納品リストを自動生成
+- 納品用 Zip を自動生成
 
 ## Media
 
@@ -68,11 +72,12 @@ minista はウェブ制作業務における 3 つの目的で作られていま
 ## Respect
 
 - [Next.js by Vercel - The React Framework](https://nextjs.org/)
+- [Tropical — static site generator](https://tropical.js.org/)
+- [Astro](https://astro.build/)
+- [natemoo-re/microsite](https://github.com/natemoo-re/microsite)
 - [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
 - [Eleventy, a simpler static site generator.](https://www.11ty.dev/)
 - [Node Interface | webpack](https://webpack.js.org/api/node/)
-- [natemoo-re/microsite](https://github.com/natemoo-re/microsite)
-- [Astro](https://astro.build/)
 - [テンプレートエンジンに React を使いつつ、きれいな HTML を生成したいんじゃ！！](https://zenn.dev/otsukayuhi/articles/e52651b4e2c5ae7c4a17)
 - [EJS をやめて React で HTML を書く](https://zenn.dev/hisho/scraps/4ef6c6106a6395)
 - [MPA(マルチページアプリ)で webpack を使う](https://www.key-p.com/blog/staff/archives/107125)
