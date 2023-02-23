@@ -73,7 +73,7 @@ minsta はウェブ制作者にとって都合の良い機能を備えていま�
 
 - [Next.js by Vercel - The React Framework](https://nextjs.org/)
 - [Tropical — static site generator](https://tropical.js.org/)
-- [Astro](https://astro.build/)
+- [Astro | Build faster websites](https://astro.build/)
 - [natemoo-re/microsite](https://github.com/natemoo-re/microsite)
 - [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
 - [Eleventy, a simpler static site generator.](https://www.11ty.dev/)
