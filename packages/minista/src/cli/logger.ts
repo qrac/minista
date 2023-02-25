@@ -1,4 +1,4 @@
-import pc from "picocolors"
+import { bold, green, blue, red, gray } from "picocolors"
 
 export function logger({
   label,
@@ -18,11 +18,11 @@ export function logger({
   const labelStr = (() => {
     switch (label) {
       case "BUILD":
-        return pc.bold(pc.green(label))
+        return bold(green(label))
       case "FETCH":
-        return pc.bold(pc.blue(label))
+        return bold(blue(label))
       case "ERROR":
-        return pc.bold(pc.red(label))
+        return bold(red(label))
       default:
         return ""
     }
@@ -30,20 +30,20 @@ export function logger({
   const mainStr = (() => {
     switch (label) {
       case "ERROR":
-        return pc.red(main)
+        return red(main)
       default:
-        return pc.bold(main)
+        return bold(main)
     }
   })()
 
   let texts = [labelStr, mainStr]
-  sub && texts.push(pc.gray(sub))
+  sub && texts.push(gray(sub))
 
   let dataSize = ""
   data && (dataSize = (data.length / 1024).toFixed(2))
   dataLength && (dataSize = (dataLength / 1024).toFixed(2))
 
-  const size = dataSize ? pc.gray(`${dataSize} KiB`) : ""
+  const size = dataSize ? gray(`${dataSize} KiB`) : ""
 
   console.log(texts.join(" ") + space + size)
 }
