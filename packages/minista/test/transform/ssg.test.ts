@@ -14,6 +14,7 @@ describe("transformSsg", () => {
     const config = await resolveConfig({})
 
     let result = await transformSsg({
+      command: "build",
       resolvedGlobal: {
         staticData: { props: {} },
         metadata: {},
@@ -36,6 +37,7 @@ describe("transformSsg", () => {
         path: page.path,
         group: page.group,
         title: page.title,
+        draft: page.draft,
         html: beautify.html(page.html, config.main.beautify.htmlOptions),
       }
     })
@@ -58,6 +60,7 @@ describe("transformSsg", () => {
     const config = await resolveConfig({})
 
     let result = await transformSsg({
+      command: "build",
       resolvedGlobal: {
         component: Global,
         staticData: { props: {} },
@@ -81,6 +84,7 @@ describe("transformSsg", () => {
         path: page.path,
         group: page.group,
         title: page.title,
+        draft: page.draft,
         html: beautify.html(page.html, config.main.beautify.htmlOptions),
       }
     })

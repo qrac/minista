@@ -13,5 +13,10 @@ export async function runSsg(config: ResolvedConfig): Promise<SsgPages> {
   if (!resolvedPages.length) {
     return []
   }
-  return await transformSsg({ resolvedGlobal, resolvedPages, config })
+  return await transformSsg({
+    command: "build",
+    resolvedGlobal,
+    resolvedPages,
+    config,
+  })
 }

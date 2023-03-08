@@ -11,6 +11,7 @@ type DeliveryItems = {
   group: string
   title: string
   path: string
+  draft: boolean
 }[]
 
 type DeliveryGroups = {
@@ -18,6 +19,7 @@ type DeliveryGroups = {
   items: {
     title: string
     path: string
+    draft: boolean
   }[]
 }[]
 
@@ -58,6 +60,7 @@ export function getDeliveryItems({
         group: page.group,
         title,
         path: page.path,
+        draft: page.draft,
       }
     })
     .sort((a, b) => {
@@ -86,7 +89,7 @@ export function getDeliveryGroups(items: DeliveryItems): DeliveryGroups {
     return { title: item, items: [] }
   })
   items.map((item) => {
-    const itemObj = { title: item.title, path: item.path }
+    const itemObj = { title: item.title, path: item.path, draft: item.draft }
     const target = groups.find((group) => group.title === item.group)
     target && target.items.push(itemObj)
     return
@@ -112,7 +115,8 @@ export function getDeliveryTag({
     : ""
   const listStr = items
     .map((item) => {
-      return `<li class="minista-delivery-item">
+      const draftStr = item.draft ? " is-draft" : ""
+      return `<li class="minista-delivery-item${draftStr}">
   <div class="minista-delivery-item-content">
     <a
       class="minista-delivery-item-content-link"

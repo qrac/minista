@@ -119,6 +119,7 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
 
             if (hasSearch || hasDelivery) {
               ssgPages = await transformSsg({
+                command: "serve",
                 resolvedGlobal,
                 resolvedPages,
                 config,

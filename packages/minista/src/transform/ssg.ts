@@ -15,14 +15,17 @@ export type SsgPages = {
   path: string
   group: string
   title: string
+  draft: boolean
   html: string
 }[]
 
 export async function transformSsg({
+  command,
   resolvedGlobal,
   resolvedPages,
   config,
 }: {
+  command: "build" | "serve"
   resolvedGlobal: ResolvedGlobal
   resolvedPages: ResolvedPages
   config: ResolvedConfig
@@ -46,16 +49,18 @@ export async function transformSsg({
       basedPath,
       group,
       title,
-      html: draft
-        ? ""
-        : transformPage({
-            url: page.path,
-            resolvedGlobal,
-            resolvedPages: [page],
-            headTags,
-            startTags,
-            endTags,
-          }),
+      draft,
+      html:
+        command === "build" && draft
+          ? ""
+          : transformPage({
+              url: page.path,
+              resolvedGlobal,
+              resolvedPages: [page],
+              headTags,
+              startTags,
+              endTags,
+            }),
     }
   })
 
@@ -78,6 +83,7 @@ export async function transformSsg({
       basedPath: page.basedPath,
       group: page.group,
       title: page.title,
+      draft: page.draft,
       html,
     }
   })
@@ -89,6 +95,7 @@ export async function transformSsg({
       path: page.basedPath,
       group: page.group,
       title: page.title,
+      draft: page.draft,
       html: page.html,
     }
   })

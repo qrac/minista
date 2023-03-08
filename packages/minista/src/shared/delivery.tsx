@@ -397,6 +397,9 @@ const inlineComponentStyle = /* css */ `
   .minista-delivery-item {
     border-top: 1px solid var(--theme-bd-1);
   }
+  .minista-delivery-item.is-draft .minista-delivery-item-content-inner {
+    opacity: 0.25;
+  }
   .minista-delivery-item-content {
     position: relative;
   }
