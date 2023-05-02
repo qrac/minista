@@ -13,31 +13,9 @@
 
 https://minista.qranoko.jp
 
-## Packages
-
-<!-- prettier-ignore -->
-| Package Directory | Latest Version |
-| --- | --- |
-| [minista](https://github.com/qrac/minista/tree/main/packages/minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/minista"><img alt="" src="https://img.shields.io/npm/v/minista.svg?style=for-the-badge&labelColor=212121"></a> |
-| [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/create-minista"><img alt="" src="https://img.shields.io/npm/v/create-minista.svg?style=for-the-badge&labelColor=212121"></a> |
-
-## Quick Start
-
-```bash
-$ npm init minista@latest
-```
-
 ## About
 
 minista（ミニスタ）は React の JSX から綺麗な HTML を作る日本製のスタティックサイトジェネレーターです。
-
-## Concept
-
-minista はウェブ制作業務における 3 つの目的で作られています。
-
-- **ゼロストレス**：エディタサポート・動作速度・安定性にこだわる
-- **アーカイブ**：依存を排除した死ににくいウェブコンテンツを作る
-- **プロトタイプ**：本物に近い試作品をインブラウザデザインする
 
 ## Feature
 
@@ -60,6 +38,20 @@ minsta はウェブ制作者にとって都合の良い機能を備えていま�
 - 納品想定の綺麗なデータ
 - 納品リストを自動生成
 - 納品用 Zip を自動生成
+
+## Packages
+
+<!-- prettier-ignore -->
+| Package Directory | Latest Version |
+| --- | --- |
+| [minista](https://github.com/qrac/minista/tree/main/packages/minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/minista"><img alt="" src="https://img.shields.io/npm/v/minista.svg?style=for-the-badge&labelColor=212121"></a> |
+| [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/create-minista"><img alt="" src="https://img.shields.io/npm/v/create-minista.svg?style=for-the-badge&labelColor=212121"></a> |
+
+## Quick Start
+
+```bash
+$ npm init minista@latest
+```
 
 ## Media
 
