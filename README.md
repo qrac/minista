@@ -17,28 +17,6 @@ https://minista.qranoko.jp
 
 minista（ミニスタ）は React の JSX から綺麗な HTML を作る日本製のスタティックサイトジェネレーターです。
 
-## Feature
-
-minsta はウェブ制作者にとって都合の良い機能を備えています。
-
-- React の JSX で書ける
-- TypeScript ファースト
-- Vite による高速処理
-- ランタイムゼロ 100% 静的出力
-- CSS・JS を個別ファイル出力
-- 画像の最適化
-- リモート画像をダウンロード
-- SVG スプライトアイコン
-- CMS のデータと連携
-- Markdown の変換
-- シンタックスハイライト
-- 部分的なハイドレーション
-- 内部完結型の全文検索
-- Shift-JIS 変換
-- 納品想定の綺麗なデータ
-- 納品リストを自動生成
-- 納品用 Zip を自動生成
-
 ## Packages
 
 <!-- prettier-ignore -->
@@ -70,6 +48,9 @@ $ npm init minista@latest
 - [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
 - [Eleventy, a simpler static site generator.](https://www.11ty.dev/)
 - [Node Interface | webpack](https://webpack.js.org/api/node/)
+- [astro/packages/create-astro at main · withastro/astro](https://github.com/withastro/astro/tree/main/packages/create-astro)
+- [vite/packages/create-vite at main · vitejs/vite](https://github.com/vitejs/vite/tree/main/packages/create-vite)
+- [vite/cli.ts at main · vitejs/vite](https://github.com/vitejs/vite/blob/main/packages/vite/src/node/cli.ts)
 - [テンプレートエンジンに React を使いつつ、きれいな HTML を生成したいんじゃ！！](https://zenn.dev/otsukayuhi/articles/e52651b4e2c5ae7c4a17)
 - [EJS をやめて React で HTML を書く](https://zenn.dev/hisho/scraps/4ef6c6106a6395)
 - [MPA(マルチページアプリ)で webpack を使う](https://www.key-p.com/blog/staff/archives/107125)
