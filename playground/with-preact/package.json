@@ -8,6 +8,6 @@
     "preview": "minista preview"
   },
   "dependencies": {
-    "preact": "^10.12.1"
+    "preact": "^10.15.1"
   }
 }
