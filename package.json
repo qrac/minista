@@ -1,6 +1,6 @@
 {
   "name": "minista-monorepo",
-  "version": "3.0.0-alpha.32",
+  "version": "3.0.0-alpha.33",
   "private": true,
   "engines": {
     "node": ">=14.15.0"
