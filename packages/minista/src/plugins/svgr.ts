@@ -12,11 +12,14 @@ export function pluginSvgr(config: ResolvedConfig): Plugin {
     async transform(code, id) {
       if (id.endsWith(".svg")) {
         const { transform: transformSvgr } = await import("@svgr/core")
+        const { default: jsx } = await import("@svgr/plugin-jsx")
+
         const svgCode = await fs.readFile(id, "utf8")
         const componentCode = await transformSvgr(svgCode, svgrOptions, {
           filePath: id,
           caller: {
             previousExport: code,
+            defaultPlugins: [jsx],
           },
         })
         const res = await transformWithEsbuild(componentCode, id, {

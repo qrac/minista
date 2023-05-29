@@ -76,6 +76,7 @@
     "@mdx-js/rollup": "^2.3.0",
     "@qrac/svgstore": "^3.0.3",
     "@svgr/core": "^8.0.0",
+    "@svgr/plugin-jsx": "^8.0.1",
     "@vitejs/plugin-react": "^4.0.0",
     "archiver": "^5.3.1",
     "cac": "^6.7.14",
