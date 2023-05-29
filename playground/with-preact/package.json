@@ -1,12 +1,6 @@
 {
   "name": "play-with-preact",
   "private": true,
-  "version": "0.0.0",
-  "scripts": {
-    "dev": "minista",
-    "build": "minista build",
-    "preview": "minista preview"
-  },
   "dependencies": {
     "preact": "^10.15.1"
   }
