@@ -34,6 +34,7 @@
 }
 
 .section-feature-card {
+  position: relative;
   display: grid;
   gap: calc(var(--theme-space-vw) / 4);
   padding: clamp(24px, 5vw, 32px);

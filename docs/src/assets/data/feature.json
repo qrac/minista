@@ -21,20 +21,16 @@
   ],
   "sub": [
     {
-      "title": "⚙️ Zero Config",
-      "text": "設定ファイルを作らなくても大概は良い感じに開発できます。"
-    },
-    {
       "title": "⚙️ TypeScript First",
       "text": "TypeScript(.tsx)による開発を前提に動作検証を行っています。"
     },
     {
-      "title": "⚙️ File-system Routing",
-      "text": "基本的なルーティングはファイルベースなので直感的です。"
+      "title": "⚙️ Relative Path",
+      "text": "サブディレクトリ設置のLPなどを想定し相対パスに完全対応。"
     },
     {
-      "title": "⚙️ Dynamic Routing",
-      "text": "非同期関数getStaticData内でAPIを叩いてページを生成できます。"
+      "title": "⚙️ Multiple Assets",
+      "text": "Headでページに必要なCSSとJSをエントリーし、それぞれ個別出力。"
     },
     {
       "title": "⚙️ Image optimisation",
@@ -45,12 +41,16 @@
       "text": "複数のSVGアイコンファイルをまとめ、スプライト化できます。"
     },
     {
+      "title": "⚙️ Dynamic Routing",
+      "text": "非同期関数でAPIを叩いてページを生成できます。CMSと連携可能。"
+    },
+    {
       "title": "⚙️ Partial Hydration",
       "text": "部分的なReact Component化で動的なエリアを作れます。"
     },
     {
       "title": "⚙️ Beautiful code",
-      "text": "ビルド後のHTMLは読みやすく整形。コンポーネントでコメントも書ける。"
+      "text": "ビルド後のHTMLは読みやすく整形。コンポーネントでコメントを付与。"
     },
     {
       "title": "⚙️ Delivery Support",
