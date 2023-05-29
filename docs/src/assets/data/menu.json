@@ -1,0 +1,72 @@
+{
+  "header": [
+    {
+      "title": "Docs",
+      "url": "/docs/"
+    },
+    {
+      "title": "GitHub",
+      "url": "https://github.com/qrac/minista"
+    }
+  ],
+  "docs": [
+    {
+      "heading": "Getting Started",
+      "items": [
+        {
+          "title": "Introduction",
+          "url": "/docs/"
+        },
+        {
+          "title": "Migration",
+          "url": "/docs/migration"
+        }
+      ]
+    },
+    {
+      "heading": "Basic Features",
+      "items": [
+        {
+          "title": "Setup",
+          "url": "/docs/setup"
+        },
+        {
+          "title": "Directories",
+          "url": "/docs/directories"
+        },
+        {
+          "title": "Commands",
+          "url": "/docs/commands"
+        },
+        {
+          "title": "Pages",
+          "url": "/docs/pages"
+        },
+        {
+          "title": "Markdown",
+          "url": "/docs/markdown"
+        },
+        {
+          "title": "Components",
+          "url": "/docs/components"
+        },
+        {
+          "title": "Root",
+          "url": "/docs/root"
+        },
+        {
+          "title": "Assets",
+          "url": "/docs/assets"
+        },
+        {
+          "title": "Search",
+          "url": "/docs/search"
+        },
+        {
+          "title": "Config",
+          "url": "/docs/config"
+        }
+      ]
+    }
+  ]
+}

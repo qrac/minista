@@ -1,0 +1,34 @@
+:root {
+  --theme-font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Noto Sans Japanese", Meiryo, "Yu Gothic Medium", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --theme-font-sans-en: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --theme-font-mono: "JetBrains Mono", Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", Meiryo, monospace, serif;
+  --theme-font-montserrat: Montserrat, sans-serif;
+  --theme-font-montserrat-mix: Montserrat, "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Noto Sans Japanese", Meiryo,
+    "Yu Gothic Medium", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol";
+  --theme-site-width: 1200px;
+  --theme-sidebar-width: 228px;
+  --theme-space-vw: clamp(24px, 4vw, 48px);
+}
+
+:root {
+  --theme-tx-1: #f7f6f4;
+  --theme-tx-2: #c7c7ca;
+  --theme-tx-3: #747886;
+  --theme-tx-4: #3f404c;
+  --theme-bg-1: #262626;
+  --theme-bg-2: #282a37;
+  --theme-bg-3: #353747;
+  --theme-ac-1: #ff7fc7;
+  --theme-ac-2: #80e3f4;
+  --theme-ac-3: #e5ee8c;
+  --theme-ac-4: #00ea78;
+  --theme-ac-5: #c59cf4;
+  --theme-ac-2-alpha: hsla(189, 84%, 73%, 0.15);
+  --theme-ac-3-alpha: hsla(66, 74%, 74%, 0.15);
+}

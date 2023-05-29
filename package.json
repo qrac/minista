@@ -39,6 +39,9 @@
     "build:create-type": "cd ./packages/create-minista && npm run build:type",
     "test": "vitest run",
     "test:w": "vitest watch",
+    "docs": "npx minista ./docs",
+    "docs:build": "npx minista build ./docs",
+    "docs:preview": "npx minista preview ./docs",
     "play": "npx minista ./playground/_default",
     "play:build": "npx minista build ./playground/_default",
     "play:preview": "npx minista preview ./playground/_default",
@@ -119,6 +122,7 @@
     "clean:create": "cd ./packages/create-minista && npm run clean"
   },
   "workspaces": [
+    "docs",
     "packages/*",
     "playground/*"
   ],

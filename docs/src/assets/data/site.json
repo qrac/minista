@@ -1,0 +1,13 @@
+{
+  "title": "minista",
+  "description": "minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。",
+  "url": "https://minista.qranoko.jp",
+  "twitter": {
+    "id": "Qrac_JP"
+  },
+  "copyright": {
+    "name": "QRANOKO",
+    "url": "https://qranoko.jp",
+    "startYear": 2021
+  }
+}

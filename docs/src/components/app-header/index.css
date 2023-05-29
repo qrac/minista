@@ -1,0 +1,65 @@
+.app-header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: var(--theme-site-width);
+  margin: 0 auto;
+  padding: var(--theme-space-vw);
+}
+
+.app-header-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header-logo {
+  position: relative;
+  top: -1.375px;
+  display: block;
+  width: 147px;
+  height: 32px;
+}
+
+@media (max-width: 400px) {
+  .app-header-logo {
+    width: 129px;
+    height: 28px;
+  }
+}
+
+.app-header-badge {
+  position: relative;
+  top: 1px;
+  display: block;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background-color: var(--theme-ac-2-alpha);
+  color: var(--theme-ac-2);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--theme-font-sans-en);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.app-header-nav ul {
+  display: flex;
+  gap: calc(var(--theme-space-vw) / 3 * 2);
+}
+
+.app-header-nav a {
+  color: var(--theme-tx-1);
+  font-size: 16px;
+  font-weight: 800;
+  font-family: var(--theme-font-montserrat);
+  letter-spacing: 0.0125em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app-header-nav a:hover {
+    color: var(--theme-ac-2);
+  }
+}

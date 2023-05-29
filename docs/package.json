@@ -1,0 +1,15 @@
+{
+  "name": "docs",
+  "version": "3.0.0-alpha.33",
+  "private": true,
+  "dependencies": {
+    "preact": "^10.15.1"
+  },
+  "devDependencies": {
+    "budoux": "^0.5.1",
+    "rehype-autolink-headings": "^6.1.1",
+    "rehype-slug": "^5.1.0",
+    "remark-directive": "^2.0.1",
+    "remark-directive-rehype": "^0.4.2"
+  }
+}

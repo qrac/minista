@@ -1,0 +1,24 @@
+.app-footer {
+  border-top: 1px solid var(--theme-tx-4);
+}
+
+.app-footer-inner {
+  position: relative;
+  max-width: var(--theme-site-width);
+  margin: 0 auto;
+  padding: var(--theme-space-vw);
+}
+
+.app-footer-copyright {
+  color: var(--theme-tx-3);
+  font-size: 16px;
+  font-weight: 800;
+  font-family: var(--theme-font-montserrat);
+  line-height: 1;
+  letter-spacing: 0.0125em;
+}
+
+.app-footer-copyright a {
+  color: var(--theme-tx-3);
+  text-decoration: none;
+}
