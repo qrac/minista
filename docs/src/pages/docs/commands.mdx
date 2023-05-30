@@ -1,0 +1,32 @@
+---
+title: Commands
+layout: docs
+---
+
+| コマンド          | 内容                                                  |
+| ----------------- | ----------------------------------------------------- |
+| `minista`         | ローカルサーバーを立ち上げて開発中のコードを SPA 表示 |
+| `minista build`   | 本番ビルド                                            |
+| `minista preview` | 本番ビルド後のファイルをローカルサーバーで確認        |
+| `minista -h`      | ヘルプ表示                                            |
+| `minista -v`      | バージョン表示                                        |
+
+## Option
+
+コマンド `minista` と `minista preview` は専用の CLI オプションを使えます。
+
+| オプション      | 型                    | 内容                             |
+| --------------- | --------------------- | -------------------------------- |
+| `--host [host]` | `boolean` or `string` | ネットワーク内 IP アドレスの表示 |
+| `--port <port>` | `number`              | サーバのポート指定               |
+| `--strictPort`  | `boolean`             | 自動的に空きポートを探すのを防ぐ |
+| `--https`       | `boolean`             | TLS + HTTP/2 の有効化            |
+| `--open [path]` | `boolean` or `string` | 起動時に自動でブラウザ表示       |
+
+```sh
+# Example: develop --host
+$ npx minista --host
+
+# Example: preview --port
+$ npx minista preview --port 3002
+```
