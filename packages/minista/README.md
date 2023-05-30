@@ -24,13 +24,13 @@ minista（ミニスタ）は React の JSX から綺麗な HTML を作る日本�
 
 ### Automatic Setup
 
-```bash
-$ npm init minista@latest
+```sh
+$ npm create minista@latest
 ```
 
 ### Manual Setup
 
-```bash
+```sh
 $ npm install --save-dev minista react react-dom
 $ touch ./src/pages/index.jsx
 ```

@@ -27,8 +27,8 @@ minista（ミニスタ）は React の JSX から綺麗な HTML を作る日本�
 
 ## Quick Start
 
-```bash
-$ npm init minista@latest
+```sh
+$ npm create minista@latest
 ```
 
 ## Media

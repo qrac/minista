@@ -18,7 +18,7 @@
 
 ## How To Use
 
-```bash
+```sh
 # Interactive
 $ npm create minista@latest
 
