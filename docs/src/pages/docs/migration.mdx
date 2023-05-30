@@ -1,0 +1,154 @@
+---
+title: Migration
+layout: docs
+---
+
+このページに minista v2 と v3 の相違点をまとめています。
+
+## New Development
+
+minista v2 と v3 の最も大きな違いは開発中の動作です。v2 は Vite による React の SPA が動いていましたが、v3 では Vite がサーバーサイドでレンダリングした本番に近い静的ページを表示します。これは DOM を操作する JavaScript を実装する場合に有用です。
+
+## Root to Global
+
+v3 では任意のディレクトリの minista プロジェクトを動かせます。この機能を他のフレームワークの慣習に習って root オプションと命名しました。その関係でページ全体をラップする要素 `root.tsx (or .jsx)` が紛らわしい状態になってしまったため `global.tsx (or .jsx)` に変更しました。
+
+ただ、引き続き `root.tsx (or .jsx)` でも動作はしますので修正は必須ではありません。
+
+## Options
+
+### Root and Pages
+
+v3 では任意のディレクトリの minista プロジェクトを動かせるようになったため、root や pages の位置を変更するオプションを削除しました。v2 のコンフィグで変更していた場合は修正が必要です。
+
+### Remote Image
+
+v3 で実装した画像最適化コンポーネントがリモート画像をダウンロードしつつの width・height も取得できる上位互換となり、解決しづらいバグもあったため、既存のリモート画像ダウンロード機能は削除しました。
+
+v2 の機能を使っていた場合はそのままではダウンロードされなくなります。画像のタグを新しい画像最適化コンポーネントに変更する必要があります。
+
+```tsx
+// Before (v2)
+export default function () {
+  return <img src="https://example.com/xxx.png" alt="" />
+}
+```
+
+```tsx
+// After (v3)
+import { Image } from "minista"
+
+export default function () {
+  return <Image src="https://example.com/xxx.png" />
+}
+```
+
+### Markdown
+
+Markdown コンポーネント実装に伴いオプションを揃えました。例えば `remarkGfmOptions` を変更するには `remarkPlugins` でプラグインのオーバーライドを行う必要がありましたが、Markdown コンポーネントと同じオプションで簡単に変更できるようになっています。
+
+```ts
+// Before (v2)
+export default {
+  markdown: {
+    mdxOptions: {
+      remarkPlugins: [],
+      rehypePlugins: [],
+    },
+  },
+}
+```
+
+```ts
+// After (v3)
+export default {
+  markdown: {
+    useRemarkGfm: true,
+    useRehypeHighlight: true,
+    remarkGfmOptions: {},
+    rehypeHighlightOptions: {},
+    mdxOptions: {
+      remarkPlugins: [],
+      rehypePlugins: [],
+    },
+  },
+}
+```
+
+### CSS Modules
+
+v3 では本番ビルドにおける CSS Modules の処理を開発モードと同じく Vite に統一しました。そのため、esbuild で独自実装していた CSS Modules のキャッシュ機能は失われています。修正せずとも動作はします。
+
+### Partial Hydration
+
+esbuild でページ内の組み合わせ毎にビルドしていたものを、v3 では Vite で 1 ファイルにバンドルビルド（Vite の glob import）するよう変更したため、ページ毎にファイルを生成する `useSplitPerPage` は再現できずを削除しました。
+
+ただし、Partial Hydration が使われていないページでは読み込むスクリプト自体を出力しないので、無関係のページで無駄なコードを読み込むことはありません。
+
+### Search
+
+全文検索の useJson・cache オプションを削除しました。全文検索の機能を使っているかどうか自動判定できるようになったため、useJson は不要となりました。cache は開発中のファイル生成自体がなくなったため削除しました。
+
+## SVGR
+
+SVGR の型定義を Vite の拡張としたことで default export を ReactComponent として扱えなくなったため、named export を ReactComponent に変換する仕様へと変更しました。これによりインラインの SVG と img タグの SVG を選択して使えるようになっています。
+
+今まで通り SVG ファイルをインライン展開するためには、default export で読み込んでいた箇所を named export の読み込みに変更する必要があります。
+
+```tsx
+// Before (v2)
+import Logo from "../assets/logo.svg"
+
+export default function () {
+  return <Logo title="minista" className="svgr-logo" width={400} height={88} />
+}
+```
+
+```tsx
+// After (v3)
+import { ReactComponent as Logo } from "../assets/logo.svg"
+
+export default function () {
+  return <Logo title="minista" className="svgr-logo" width={400} height={88} />
+}
+```
+
+## Sprite Icon
+
+スプライトアイコンの生成は専用コンポーネントによる処理に変更したため修正が必要です。v2 では出力先のパスを指定する必要があり、この仕様は違和感がありました。v3 の専用コンポーネントでは ID のみを渡せばよくなっています。
+
+```tsx
+// Before (v2)
+export default function () {
+  return (
+    <>
+      <svg>
+        <use href="/assets/images/icons.svg#plus"></use>
+      </svg>
+      <svg>
+        <use href="/assets/images/icons.svg#heart"></use>
+      </svg>
+    </>
+  )
+}
+```
+
+```tsx
+// After (v3)
+import { Icon } from "minista"
+
+export default function () {
+  return (
+    <>
+      <Icon iconId="plus" />
+      <Icon iconId="heart" />
+    </>
+  )
+}
+```
+
+## TypeScript
+
+### Location
+
+他の命名と異なり `MinistaLocation` のみスコープ名だったので `Location` に変更しました。v2 で`MinistaLocation` を参照していた部分はエラーが出ますので `Location` に変更してください。

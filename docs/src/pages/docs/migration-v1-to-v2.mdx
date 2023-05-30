@@ -1,0 +1,89 @@
+---
+title: Migration
+layout: docs
+draft: true
+---
+
+import BlockPerformance from "../../components/block-performance"
+
+このページに minista v1 と v2 の相違点をまとめています。
+
+:::div{.block-custom-box.is-warning}
+
+::p[CAUTION]{.block-custom-box-title.is-font-en}
+
+開発途中でのメジャーアップデートはおすすめしません。v1 は webpack ベースでしたが v2 は Vite に変わっています。Vite の処理は webpack よりも厳格でエラーを解決できない場合があります。
+
+:::
+
+## Performance
+
+<BlockPerformance />
+
+minista v1 と v2 の最も大きな違いはパフォーマンスです。v1 はページやコンポーネントが増えるほどに開発サーバーの起動が遅くなっていました。v2 は規模に関係なく 0.6 秒ほどで立ち上がります。本番ビルドの時間も半分近く縮められるでしょう。
+
+## Config
+
+`webpack.config.js` で設定していた内容は、専用のコンフィグファイルに移りました。JavaScript ファイルのエントリーや書き出し先の設定などは似ていますが、ローダーや webpack プラグインは使用できません。拡張は [Vite](https://github.com/vitejs/awesome-vite) と [Rollup](https://github.com/rollup/plugins) のエコシステムを使用することになります。[Config 詳細 →](/docs/config)
+
+```ts
+// minista.config.ts
+export default {
+  assets: {
+    entry: ["src/assets/script.ts", "src/assets/style.css"],
+  },
+}
+```
+
+## Extension
+
+webpack はテンプレートの拡張子を `.js` にできましたが、Vite は `.jsx` でなければエラーとなります。拡張子を一括で変更する場合は以下のようなライブラリを使用した変換が簡単です。
+
+```sh
+$ npm install --save-dev renamer
+$ npx renamer -f .js -r .jsx "src/pages/**"
+$ npx renamer -f .js -r .jsx "src/components/**"
+```
+
+## Pages
+
+`render()` を書く必要がなくなりました！また、非同期関数 `getStaticData` で CMS のデータを取得してダイナミックルーティングを行えるなど開発の幅が広がっています。[Pages 詳細 →](/docs/pages)
+
+```tsx
+const PageHome = () => {
+  return <h1>Home</h1>
+}
+
+export default PageHome
+```
+
+## Componnets
+
+コンポーネントが自身の CSS ファイルを読み込めるようになりました！ファイルの置き場がバラけないので管理が容易です。[Componnets 詳細 →](/docs/pages)
+
+```tsx
+import "./app-header.css"
+
+const AppHeader = () => {
+  return <header className="app-header">minista</header>
+}
+
+export default AppHeader
+```
+
+## Head
+
+`<Head>` が組み込みコンポーネントになりました。依存ライブラリである `react-helmet` をプロジェクト側で呼ぶのは違和感があったため、ラッパーとして実装されています。
+
+```tsx
+import { Head } from "minista"
+
+export default () => {
+  return (
+    <Head>
+      <title>タイトル</title>
+      <meta name="description" content="ディスクリプション" />
+    </Head>
+  )
+}
+```
