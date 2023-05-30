@@ -2,18 +2,18 @@ import DocsMenu from "../docs-menu"
 import DocsMain from "../docs-main"
 
 export default function ({
-  pathname,
+  url,
   title,
   children,
 }: {
-  pathname: string
+  url: string
   title: string
   children: React.ReactNode
 }) {
   return (
     <div className="docs-layout">
       <div className="docs-layout-inner">
-        <DocsMenu pathname={pathname} />
+        <DocsMenu url={url} />
         <DocsMain title={title}>{children}</DocsMain>
       </div>
     </div>

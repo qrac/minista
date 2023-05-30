@@ -15,7 +15,7 @@ import DocsLayout from "../components/docs-layout"
 type CustomGrobalProps = GlobalProps & { layout?: string; noindex?: boolean }
 
 export default function ({
-  location,
+  url,
   title,
   layout,
   noindex,
@@ -24,11 +24,10 @@ export default function ({
   const siteTitle = site.title
   const siteDescription = site.description
   const siteUrl = site.url
-  const pageTitle =
-    location.pathname === "/" ? siteTitle : title + " - " + siteTitle
-  const ogUrl = siteUrl + location.pathname
+  const pageTitle = url === "/" ? siteTitle : title + " - " + siteTitle
+  const ogUrl = siteUrl + url
   const ogImage = siteUrl + "/assets/images/ogp.png"
-  const ogType = location.pathname === "/" ? "website" : "article"
+  const ogType = url === "/" ? "website" : "article"
   const twitterCard = "summary_large_image"
   const twitterId = "@" + site.twitter.id
   const isNoindex = noindex || false
@@ -74,7 +73,7 @@ export default function ({
       </Head>
       <AppLayout>
         {layout === "docs" ? (
-          <DocsLayout pathname={location.pathname} title={title}>
+          <DocsLayout url={url} title={title}>
             {children}
           </DocsLayout>
         ) : (

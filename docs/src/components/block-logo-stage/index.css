@@ -1,0 +1,22 @@
+.block-logo-stage {
+  padding: 40px;
+  border: 2px solid var(--theme-tx-4);
+  border-radius: 8px;
+  font-family: var(--theme-font-mono);
+}
+
+.block-logo-stage-image {
+  display: block;
+  width: auto;
+  height: 40px;
+  margin: 0 auto;
+}
+
+.block-logo-stage-caption {
+  margin-top: 24px;
+  margin-bottom: -24px;
+  color: var(--theme-tx-3);
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: center;
+}

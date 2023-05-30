@@ -1,7 +1,7 @@
 import { docs as menuItems } from "../../assets/data/menu.json"
 import BlockSearch from "../block-search?ph"
 
-export default function ({ pathname }: { pathname: string }) {
+export default function ({ url }: { url: string }) {
   return (
     <aside className="docs-menu">
       <details className="docs-menu-mobile">
@@ -15,7 +15,7 @@ export default function ({ pathname }: { pathname: string }) {
                 {item?.items.map((childItem, childIndex) => (
                   <li
                     className={
-                      pathname === childItem.url
+                      url === childItem.url
                         ? "docs-menu-item is-current"
                         : "docs-menu-item"
                     }
@@ -38,7 +38,7 @@ export default function ({ pathname }: { pathname: string }) {
               {item?.items.map((childItem, childIndex) => (
                 <li
                   className={
-                    pathname === childItem.url
+                    url === childItem.url
                       ? "docs-menu-item is-current"
                       : "docs-menu-item"
                   }

@@ -1,9 +1,9 @@
 import { loadDefaultJapaneseParser } from "budoux"
 
 import { message, description } from "../../assets/data/hero.json"
-import { ReactComponent as Message } from "../../assets/svgs/message.svg"
-import { ReactComponent as BrandReact } from "../../assets/svgs/brand-react.svg"
-import { ReactComponent as BrandVite } from "../../assets/svgs/brand-vite.svg"
+import messageImage from "../../assets/svgs/message.svg"
+import brandReact from "../../assets/svgs/brand-react.svg"
+import brandVite from "../../assets/svgs/brand-vite.svg"
 import ExampleTsx from "../../assets/markdown/example-tsx.md"
 import ExampleHtml from "../../assets/markdown/example-html.md"
 
@@ -15,7 +15,13 @@ export default function () {
         <ul className="section-hero-grid">
           <li className="section-hero-column">
             <h1>
-              <Message className="section-hero-message" title={message} />
+              <img
+                className="section-hero-message"
+                src={messageImage}
+                alt={message}
+                width={480}
+                height={240}
+              />
             </h1>
             <p
               className="section-hero-description"
@@ -48,7 +54,13 @@ export default function () {
                   </div>
                 </div>
                 <div className="section-hero-brand-wrap">
-                  <BrandReact className="section-hero-brand" />
+                  <img
+                    className="section-hero-brand"
+                    src={brandReact}
+                    alt="React"
+                    width={200}
+                    height={200}
+                  />
                 </div>
               </li>
               <li className="section-hero-image">
@@ -65,7 +77,13 @@ export default function () {
                   </div>
                 </div>
                 <div className="section-hero-brand-wrap">
-                  <BrandVite className="section-hero-brand" />
+                  <img
+                    className="section-hero-brand"
+                    src={brandVite}
+                    alt="Vite"
+                    width={200}
+                    height={202}
+                  />
                 </div>
               </li>
             </ul>

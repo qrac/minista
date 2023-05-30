@@ -1,6 +1,6 @@
 import { version } from "../../../package.json"
 import { header as menuItems } from "../../assets/data/menu.json"
-import { ReactComponent as Logo } from "../../assets/svgs/logo.svg"
+import logo from "../../assets/svgs/logo.svg"
 
 export default function () {
   const resolvedVersion = version.replace(new RegExp("-alpha" + ".*"), "")
@@ -9,7 +9,13 @@ export default function () {
       <div className="app-header-inner">
         <div className="app-header-main">
           <a href="/">
-            <Logo className="app-header-logo" />
+            <img
+              className="app-header-logo"
+              src={logo}
+              alt="minista"
+              width={156}
+              height={34}
+            />
           </a>
           <span className="app-header-badge">v{resolvedVersion}</span>
         </div>
