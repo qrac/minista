@@ -1,0 +1,19 @@
+---
+title: PostCSS
+layout: docs
+---
+
+PostCSS はプロジェクトルートに `postcss.config.js` を作成することで使えます。例えば、Autoprefixer を使う場合は npm install して以下のように設定。
+
+```sh
+$ npm install --save-dev autoprefixer
+```
+
+```js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    autoprefixer: { grid: "autoplace" },
+  },
+}
+```

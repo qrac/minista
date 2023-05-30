@@ -24,7 +24,7 @@
       ]
     },
     {
-      "heading": "Basic Features",
+      "heading": "Settings",
       "items": [
         {
           "title": "Setup",
@@ -35,36 +35,106 @@
           "url": "/docs/directories"
         },
         {
+          "title": "Config",
+          "url": "/docs/config"
+        },
+        {
+          "title": "Relative Path",
+          "url": "/docs/relative-path"
+        },
+        {
+          "title": "Resolve Alias",
+          "url": "/docs/resolve-alias"
+        },
+        {
+          "title": "TypeScript",
+          "url": "/docs/typescript"
+        },
+        {
+          "title": "CSS Modules",
+          "url": "/docs/css-modules"
+        },
+        {
+          "title": "Sass",
+          "url": "/docs/sass"
+        },
+        {
+          "title": "PostCSS",
+          "url": "/docs/postcss"
+        }
+      ]
+    },
+    {
+      "heading": "Basic Features",
+      "items": [
+        {
           "title": "Commands",
           "url": "/docs/commands"
+        },
+        {
+          "title": "Public",
+          "url": "/docs/public"
+        },
+        {
+          "title": "Global",
+          "url": "/docs/global"
         },
         {
           "title": "Pages",
           "url": "/docs/pages"
         },
         {
+          "title": "Components",
+          "url": "/docs/components"
+        }
+      ]
+    },
+    {
+      "heading": "Advanced",
+      "items": [
+        {
+          "title": "Metadata",
+          "url": "/docs/metadata"
+        },
+        {
+          "title": "Head",
+          "url": "/docs/head"
+        },
+        {
+          "title": "Entry Assets",
+          "url": "/docs/entry-assets"
+        },
+        {
+          "title": "Image",
+          "url": "/docs/image"
+        },
+        {
+          "title": "Picture",
+          "url": "/docs/picture"
+        },
+        {
           "title": "Markdown",
           "url": "/docs/markdown"
         },
         {
-          "title": "Components",
-          "url": "/docs/components"
+          "title": "Fetch",
+          "url": "/docs/fetch"
         },
         {
-          "title": "Root",
-          "url": "/docs/root"
-        },
-        {
-          "title": "Assets",
-          "url": "/docs/assets"
+          "title": "Partial Hydration",
+          "url": "/docs/partial-hydration"
         },
         {
           "title": "Search",
           "url": "/docs/search"
         },
         {
-          "title": "Config",
-          "url": "/docs/config"
+          "title": "Delivery List",
+          "url": "/docs/delivery-list"
+        },
+        {
+          "title": "Archive",
+          "url": "/docs/archive"
         }
       ]
     }

@@ -1,0 +1,35 @@
+---
+title: Resolve Alias
+layout: docs
+---
+
+エイリアスパスを追加するには 2 つの設定が必要です。まず、`tsconfig.json` または `jsconfig.json` に設定 `compilerOptions.paths` を追加してください。以下の例ではパスの `~` をプロジェクトルートの `src` にマッピングしています。
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./src/*"]
+    }
+  }
+}
+```
+
+次に、`minista.config.ts (or js)` に `resolve.alias` を設定します。
+
+```ts
+import path from "path"
+import { defineConfig } from "minista"
+
+export default defineConfig({
+  resolve: {
+    alias: [{ find: "~/", replacement: path.resolve("src") + "/" }],
+  },
+})
+```
+
+これで `~` をプロジェクトルートの `src` として使えるようになりました。
+
+```tsx
+import AppHeader from "~/components/app-header"
+```

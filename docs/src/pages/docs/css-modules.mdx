@@ -1,0 +1,34 @@
+---
+title: CSS Modules
+layout: docs
+---
+
+CSS Modules はデフォルトで使える状態です。スコープされた CSS と HTML class が出力されます。
+
+```tsx
+// Input: template
+import style from "../../assets/css-modules/style.module.css"
+
+export default () => {
+  return <h2 className={style.test}>test scope style</h2>
+}
+```
+
+```css
+/* Input: style.module.css */
+.test {
+  color: red;
+}
+```
+
+```html
+<!-- Output: html -->
+<h2 class="_test_xl9qq_1">test scope style</h2>
+```
+
+```css
+/* Output: bundle.css */
+._test_xl9qq_1 {
+  color: red;
+}
+```

@@ -1,0 +1,27 @@
+---
+title: TypeScript
+layout: docs
+---
+
+TypeScript は npm install して `tsconfig.json` を設定することで使えます。`compilerOptions.types` に `minista/client` を加えることで、SVG の React Component 化・インポート・ファイルの文字列インポート `*?raw`・Partial Hydration `*?ph` の定義を反映できます。
+
+```sh
+$ npm install --save-dev typescript @types/react @types/react-dom
+```
+
+```json
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noErrorTruncation": true,
+    "jsx": "react-jsx",
+    "types": ["minista/client"]
+  },
+  "include": ["./minista.config.ts", "src"]
+}
+```

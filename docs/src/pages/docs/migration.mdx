@@ -89,6 +89,26 @@ esbuild でページ内の組み合わせ毎にビルドしていたものを、
 
 全文検索の useJson・cache オプションを削除しました。全文検索の機能を使っているかどうか自動判定できるようになったため、useJson は不要となりました。cache は開発中のファイル生成自体がなくなったため削除しました。
 
+## Entry Assets
+
+v2 では個別ファイルに出力する CSS・JS はコンフィグで指定する必要がありましたが、v3 では必要なページに `<link>` `<script>` タグを書くだけでよくなりました。コンフィグでの指定も引き続き可能ですが、新機能の方が簡単で推奨できるためドキュメントには記載していません。
+
+```tsx
+import { Head } from "minista"
+
+export default function () {
+  return (
+    <>
+      <Head>
+        <title>Dynamic Entry</title>
+        <link rel="stylesheet" href="/src/assets/entry.css" />
+        <script type="module" src="/src/assets/entry.ts" />
+      </Head>
+    </>
+  )
+}
+```
+
 ## SVGR
 
 SVGR の型定義を Vite の拡張としたことで default export を ReactComponent として扱えなくなったため、named export を ReactComponent に変換する仕様へと変更しました。これによりインラインの SVG と img タグの SVG を選択して使えるようになっています。

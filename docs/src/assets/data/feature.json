@@ -26,7 +26,7 @@
     },
     {
       "title": "⚙️ Relative Path",
-      "text": "サブディレクトリ設置のLPなどを想定し相対パスに完全対応。"
+      "text": "サブディレクトリ設置のLPなどを想定し相対パスに対応。"
     },
     {
       "title": "⚙️ Multiple Assets",
