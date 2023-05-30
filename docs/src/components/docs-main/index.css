@@ -186,3 +186,7 @@
 .hljs-tag {
   color: var(--theme-tx-1);
 }
+
+.hljs-comment {
+  color: var(--theme-tx-3);
+}
