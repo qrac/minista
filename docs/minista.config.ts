@@ -12,8 +12,8 @@ export default defineConfig({
   },
   search: {
     trimTitle: " - minista",
-    include: ["docs/**/*"],
-    exclude: ["docs/index"],
+    include: ["/docs/**/*"],
+    exclude: ["/docs/"],
   },
   markdown: {
     mdxOptions: {
