@@ -20,15 +20,13 @@ export default function () {
       </div>
       <div className="block-performance-group">
         <div className="block-performance-row">
-          <p className="block-performance-text is-row-head">
-            develop: v1-latest
-          </p>
+          <p className="block-performance-text is-row-head">build: v1-latest</p>
           <div className="block-performance-bar is-bg-ac-1"></div>
           <p className="block-performance-text is-row-end">10.7899s</p>
         </div>
         <div className="block-performance-comparison is-pattern-2"></div>
         <div className="block-performance-row">
-          <p className="block-performance-text is-row-head">develop: v2.0.0</p>
+          <p className="block-performance-text is-row-head">build: v2.0.0</p>
           <div className="block-performance-bar is-flex-grow-pattern-3 is-bg-ac-2"></div>
           <p className="block-performance-text is-row-end is-color-ac-2">
             5.9628s (-44.73%)
