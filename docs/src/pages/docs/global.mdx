@@ -1,0 +1,49 @@
+---
+title: Global
+layout: docs
+---
+
+import InfoStaticPage from "../../assets/markdown/info-static-page.md"
+
+`src/global.tsx (or jsx)` または `/src/pages/_global.tsx (or jsx)` を作成すると、サイト全体を囲うラッパーコンポーネントとなります。`export default` が必須です。
+
+<InfoStaticPage />
+
+```tsx
+// src/global.tsx
+import type { GlobalProps } from "minista"
+import { Head } from "minista"
+
+import "./global.css"
+
+export default function ({ url, title, children }: GlobalProps) {
+  return (
+    <>
+      <Head>
+        <title>{title}</title>
+        <meta property="description" content="description" />
+      </Head>
+      {url === "/" ? (
+        <div className="home">{children}</div>
+      ) : (
+        <div>{children}</div>
+      )}
+    </>
+  )
+}
+```
+
+## GlobalProps
+
+Global ではページデータである `children` の他に、[Pages](/docs/pages) で export した [Metadata](/docs/metadata) を props として利用できます。また、ページの `url` を参照できます。これらの props をもとにページ毎のレイアウト変更などの条件分岐が可能です。
+
+```ts
+type GlobalProps = {
+  url: string
+  title: string
+  group: string
+  draft: boolean
+  children: React.ReactNode
+  [key: string]: any
+}
+```

@@ -1,0 +1,175 @@
+---
+title: Search
+layout: docs
+---
+
+minista には全文検索をサポートする 2 つの機能が備わっています。一つは HTML を解析してインデックス化された JSON を生成する機能。もう一つは JSON をもとに検索するビルトインコンポーネント。
+
+HTML と出力される JSON の関係は以下の通りです。
+
+```html
+<!-- dist/docs/css.html -->
+<head>
+  <title>CSS</title>
+</head>
+<body>
+  <h1>CSS</h1>
+  <div data-search>
+    <h2 id="cms">CMS</h2>
+    <p>CMSで使うCSS。</p>
+  </div>
+</body>
+```
+
+```json
+// dist/assets/search.json
+{
+  "words": ["CMS", "CSS", "。", "う", "で", "使"],
+  "hits": [0, 1],
+  "pages": [
+    {
+      "path": "/docs/css",
+      "title": [1],
+      "toc": [[0, "cms"]],
+      "content": [0, 0, 4, 5, 3, 1, 2]
+    }
+  ]
+}
+```
+
+- `words` にすべての文字が種類ごとに収納されており index で参照が可能
+- `hits` が `[0, 1]` なので、検索対象の文字は「CMS」と「CSS」
+- `pages` は各ページデータ（`title` は「CSS」、見出し ID `cms` の content は 0 番目）
+- `content` には「CMS CMS で使う CSS。」の index が配列形式で格納
+
+## Build JSON
+
+Search コンポーネントを使用していると自動的に開発時・本番ビルドで JSON が生成されます。コンフィグのデフォルト値は以下の通りです。サイトに合わせて必要な部分を調整します。
+
+```ts
+export default {
+  search: {
+    outDir: "assets",
+    outName: "search",
+    include: ["**/*"],
+    exclude: ["/404"],
+    baseUrl: "",
+    trimTitle: "",
+    targetSelector: "[data-search]",
+    hit: {
+      minLength: 3,
+      number: false,
+      english: true,
+      hiragana: false,
+      katakana: true,
+      kanji: true,
+    },
+  },
+}
+```
+
+### cache
+
+`true` にすると、前回作った JSON を再利用します。※開発時のみ
+
+### include
+
+検索対象にしたいディレクトリやファイルを配列と glob 形式を使って設定できます。デフォルトの `["**/*"]` はすべてのページが検索対象になりますので `["posts/**/*"]` などで絞り込むことをお勧めします。
+
+### exclude
+
+検索対象から省きたいディレクトリやファイルを配列と glob 形式を使って設定できます。
+
+### trimTitle
+
+検索したページのタイトルから任意の文字列を削除します。主にサイトタイトルを消す用途で使います。
+
+### targetSelector
+
+検索対象ページのインデックス化するセレクターを設定します。
+
+### hit
+
+検索にヒットする単語の最低文字数 `minLength` や、ヒットする文字の種類を設定します。
+
+## Built-in Component
+
+検索用のコンポーネント `<Search />` が同封されているので生成した JSON をすぐに使えます。
+
+:::div{.block-custom-box.is-warning}
+
+::p[CAUTION]{.block-custom-box-title.is-font-en}
+
+- `<Search />` は [Partial Hydration](/docs/partial-hydration) 化した場所でのみ使えます
+- 固有のスタイルは付属していません（[試用 CSS](https://github.com/qrac/minista/blob/2.7.4/user/src/components/block-search.css)）
+
+:::
+
+まずは、ページかコンポーネントのどこかで Partial Hydration の場所を作り、その中で `<Search />` を使います。`jsonPath` が必須で `search.json` の場所を入力します。
+
+```tsx
+// src/pages/index.tsx
+import BlockSearch from "../components/block-search?ph"
+
+export default function () {
+  return <BlockSearch />
+}
+```
+
+```tsx
+// src/components/block-search.tsx
+import { Search } from "minista"
+
+export default function () {
+  return (
+    <Search
+      jsonPath="/assets/search.json"
+      placeholder="Search..."
+      className="block-search"
+      searchFieldClassName="block-search-field"
+      searchListClassName="block-search-list"
+    />
+  )
+}
+```
+
+## SearchProps
+
+```ts
+type SearchResult = {
+  path: string
+  content: string
+}
+
+type SearchProps = {
+  placeholder?: string
+  minHitLength?: number
+  maxHitPages?: number
+  maxHitWords?: number
+  searchFieldClassName?: string
+  searchFieldInsertBeforeElement?: React.ReactElement
+  searchFieldInsertAfterElement?: React.ReactElement
+  searchListClassName?: string
+  attributes?: React.HTMLAttributes<HTMLElement>
+} & React.HTMLAttributes<HTMLElement>
+
+type SearchFieldProps = {
+  placeholder?: string
+  minHitLength?: number
+  maxHitPages?: number
+  maxHitWords?: number
+  insertBeforeElement?: React.ReactElement
+  insertAfterElement?: React.ReactElement
+  setSearchValues?: React.Dispatch<React.SetStateAction<string[]>>
+  setSearchHitValues?: React.Dispatch<React.SetStateAction<string[]>>
+  setSearchResults?: React.Dispatch<React.SetStateAction<SearchResult[]>>
+  attributes?: React.HTMLAttributes<HTMLElement>
+} & React.HTMLAttributes<HTMLElement>
+
+type SearchListProps = {
+  searchValues?: string[]
+  searchHitValues?: string[]
+  searchResults?: SearchResult[]
+  attributes?: React.HTMLAttributes<HTMLElement>
+} & React.HTMLAttributes<HTMLElement>
+```

@@ -1,0 +1,32 @@
+---
+title: Beautiful Code
+layout: docs
+---
+
+納品先がコーディングデータを再利用しやすいよう、ビルド後のソースコードはデフォルトでは HTML が整形されアセット（CSS・JS） は minify されます。この設定は [Config File](/docs/config-file) で変更可能です。コンフィグの `htmlOptions` `cssOptions` `jsOptions` には [js-beautify](https://github.com/beautify-web/js-beautify) のオプションが使えます。
+
+また、HTML 内にコメントを残したい場合は [Comment](/docs/comment) コンポーネントを使用してください。
+
+```ts
+// Default Settings
+export default {
+  beautify: {
+    useHtml: true, // Pretty: HTML
+    useAssets: false, // Pretty: CSS and JS
+    htmlOptions: {
+      indent_size: 2,
+      max_preserve_newlines: 0,
+      indent_inner_html: true,
+      extra_liners: [],
+      inline: ["span", "strong", "b", "small", "del", "s", "code", "br", "wbr"],
+    },
+    cssOptions: {
+      indent_size: 2,
+      space_around_combinator: true,
+    },
+    jsOptions: {
+      indent_size: 2,
+    },
+  },
+}
+```

@@ -1,0 +1,19 @@
+---
+title: Components
+layout: docs
+---
+
+import InfoComponents from "../../assets/markdown/info-components.md"
+
+[Global](/docs/global)・[Pages](/docs/pages) で読み込むコンポーネントの置き場は決められていません。慣例的には `src/components` にテンプレートを分割したり、切り替えるレイアウトを `src/layouts` に置くことが多いです。
+
+<InfoComponents />
+
+```tsx
+// src/components/app-header/index.tsx
+import "./index.css"
+
+export default function () {
+  return <header className="app-header">HEADER</header>
+}
+```

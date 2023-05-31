@@ -1,0 +1,49 @@
+---
+title: Commands
+layout: docs
+---
+
+| コマンド          | 内容                                                  |
+| ----------------- | ----------------------------------------------------- |
+| `minista`         | ローカルサーバーを立ち上げて開発中のコードを SPA 表示 |
+| `minista build`   | 本番ビルド                                            |
+| `minista preview` | 本番ビルド後のファイルをローカルサーバーで確認        |
+| `minista -h`      | ヘルプ表示                                            |
+| `minista -v`      | バージョン表示                                        |
+
+## Root
+
+コマンドの後にプロジェクトルートとなるディレクトリを追記することで任意の場所のプロジェクトを動かせます。指定ディレクトリに `minista.config.ts (or .js)` があった場合は読み込みます。
+
+```sh
+# Example: develop other root
+$ npx minista ./playground/example
+
+# Example: build other root
+$ npx minista build ./playground/example
+
+# Example: preview other root
+$ npx minista preview ./playground/example
+```
+
+## Option
+
+コマンド `minista` と `minista preview` は専用の CLI オプションを使えます。
+
+| オプション            | 型                    | 内容                               |
+| --------------------- | --------------------- | ---------------------------------- |
+| `-c, --config <file>` | `string`              | コンフィグファイルの場所を渡します |
+| `--base <path>`       | `string`              | パスのベース（デフォルトは `/`）   |
+| `--host [host]`       | `boolean` or `string` | ネットワーク内 IP アドレスの表示   |
+| `--port <port>`       | `number`              | サーバのポート指定                 |
+| `--strictPort`        | `boolean`             | 自動的に空きポートを探すのを防ぐ   |
+| `--https`             | `boolean`             | TLS + HTTP/2 の有効化              |
+| `--open [path]`       | `boolean` or `string` | 起動時に自動でブラウザ表示         |
+
+```sh
+# Example: develop --host
+$ npx minista --host
+
+# Example: preview --port
+$ npx minista preview --port 3002
+```

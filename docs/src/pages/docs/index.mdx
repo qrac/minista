@@ -1,0 +1,48 @@
+---
+title: Introduction
+layout: docs
+---
+
+import BlockLogoStage from "../../components/block-logo-stage"
+import BlockPerformance from "../../components/block-performance"
+
+minista（ミニスタ）は、React の JSX で書けるスタティックサイトジェネレーターです。Next.js 風の快適な環境で開発しながら 100% 静的に出力できます。SaaS の web テンプレートコーディング業務を想定しているため、ビルド後のデータが綺麗（ヒューマンリーダブル）です。
+
+## History
+
+2020 年頃にフロントエンドの主流が Next.js になりました。エディタの補完が優秀な React の JSX で書けて快適です。ただ、SPA を主軸としているため綺麗な HTML を納品する SaaS 開発には不向きです。
+
+最適化されたハッシュ付与・コード分割・preload など、SPA 系フレームワークに実装されている静的書き出しは求めているものと違います。Nuxt が流行っている頃から気づいていました。
+
+では、EJS・Pug・Nunjucks を引っ張り出しますか？いいえ、彼らにはとても助けられてきましたが、使い心地が大きく異なるため Next.js と並行して使い続けるのは辛いものがあります。
+
+### v0 ~ v1
+
+そこで、理想の形を求めてフレームワークを試作。React の `renderToStaticMarkup()` と webpack を組み合わせてパッケージ化したものが初期の minista です。
+
+- [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
+- [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
+
+<BlockLogoStage version={1} />
+
+仕様が単純で拡張しやすく多数の業務で活躍してくれました！ただ、webpack は起動時にすべてをバンドルしてメモリに乗せる設計なので、内容が膨らむほどパフォーマンスが悪化。プロジェクト終盤だと起動に 10 秒以上かかる場合もあり悩みました。
+
+また、Next.js の使い勝手を再現できていない部分も気になっていました。例えば、ページは HTML 化する関数が省略不可、コンポーネントは自身の CSS を import できず、fetch からのダイナミックルーティングや Markdown 統合など気の遠くなる話に思えました。
+
+### v2
+
+そんなパフォーマンスと機能の問題をすべて解決したのが minista v2 です！webpack には感謝しつつも一旦別れを告げ Vite と esbuild を組み込みゼロから開発。
+
+<BlockPerformance />
+
+開発サーバーは規模に関係なく 0.6 秒ほどで立ち上がり、本番ビルドの時間も半分近く短縮。設計を見直したことで Next.js との親和性も増し、よりストレスなく静的サイトを作れるようになりました。
+
+- [Vite と esbuild を組み込み React 製 SSG を再構築 - minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
+- [SSG + Partial Hydration (部分的な React App) - minista v2.4](https://zenn.dev/qrac/articles/b9c65c1c0be901)
+- [SSG に client サイド完結型の全文検索を実装した - minista v2.7](https://zenn.dev/qrac/articles/653f7512b707ff)
+
+### v3
+
+<BlockLogoStage version={3} />
+
+それから 1 年後、minista v3 をリリースしました！基本的な使い方は変わりませんが、本体の完成度を上げるためにソースコードはすべて書き直しています。より厳密なコーディングが行えるよう、開発中も Vite の SPA ではなく本番に近い静的ページが表示されるようになりました。画像の最適化・アセットのダイナミックエントリー・納品ページの自動リストアップ・Zip でまとめる機能などが追加されています。

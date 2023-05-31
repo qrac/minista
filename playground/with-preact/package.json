@@ -1,0 +1,7 @@
+{
+  "name": "play-with-preact",
+  "private": true,
+  "dependencies": {
+    "preact": "^10.15.1"
+  }
+}

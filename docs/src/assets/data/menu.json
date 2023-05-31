@@ -1,0 +1,166 @@
+{
+  "header": [
+    {
+      "title": "Docs",
+      "url": "/docs/"
+    },
+    {
+      "title": "GitHub",
+      "url": "https://github.com/qrac/minista"
+    }
+  ],
+  "docs": [
+    {
+      "heading": "Getting Started",
+      "items": [
+        {
+          "title": "Introduction",
+          "url": "/docs/"
+        },
+        {
+          "title": "Migration",
+          "url": "/docs/migration"
+        }
+      ]
+    },
+    {
+      "heading": "Settings",
+      "items": [
+        {
+          "title": "Setup",
+          "url": "/docs/setup"
+        },
+        {
+          "title": "Directories",
+          "url": "/docs/directories"
+        },
+        {
+          "title": "Config File",
+          "url": "/docs/config-file"
+        },
+        {
+          "title": "Relative Path",
+          "url": "/docs/relative-path"
+        },
+        {
+          "title": "Resolve Alias",
+          "url": "/docs/resolve-alias"
+        },
+        {
+          "title": "TypeScript",
+          "url": "/docs/typescript"
+        },
+        {
+          "title": "CSS Modules",
+          "url": "/docs/css-modules"
+        },
+        {
+          "title": "Sass",
+          "url": "/docs/sass"
+        },
+        {
+          "title": "PostCSS",
+          "url": "/docs/postcss"
+        },
+        {
+          "title": "Beautiful Code",
+          "url": "/docs/beautiful-code"
+        }
+      ]
+    },
+    {
+      "heading": "Basic Features",
+      "items": [
+        {
+          "title": "Commands",
+          "url": "/docs/commands"
+        },
+        {
+          "title": "Public",
+          "url": "/docs/public"
+        },
+        {
+          "title": "Global",
+          "url": "/docs/global"
+        },
+        {
+          "title": "Pages",
+          "url": "/docs/pages"
+        },
+        {
+          "title": "Markdown Pages",
+          "url": "/docs/markdown-pages"
+        },
+        {
+          "title": "Components",
+          "url": "/docs/components"
+        }
+      ]
+    },
+    {
+      "heading": "Advanced",
+      "items": [
+        {
+          "title": "Metadata",
+          "url": "/docs/metadata"
+        },
+        {
+          "title": "Head",
+          "url": "/docs/head"
+        },
+        {
+          "title": "Dynamic Entry",
+          "url": "/docs/dynamic-entry"
+        },
+        {
+          "title": "Image",
+          "url": "/docs/image"
+        },
+        {
+          "title": "Picture",
+          "url": "/docs/picture"
+        },
+        {
+          "title": "SVGR",
+          "url": "/docs/svgr"
+        },
+        {
+          "title": "SVG Sprite Icon",
+          "url": "/docs/svg-sprite-icon"
+        },
+        {
+          "title": "Markdown Import",
+          "url": "/docs/markdown-import"
+        },
+        {
+          "title": "Markdown Component",
+          "url": "/docs/markdown-component"
+        },
+        {
+          "title": "Comment",
+          "url": "/docs/comment"
+        },
+        {
+          "title": "Async Function",
+          "url": "/docs/async-function"
+        },
+        {
+          "title": "Fetch",
+          "url": "/docs/fetch"
+        },
+        {
+          "title": "Partial Hydration",
+          "url": "/docs/partial-hydration"
+        },
+        {
+          "title": "Search",
+          "url": "/docs/search"
+        },
+        {
+          "title": "Delivery Support",
+          "url": "/docs/delivery-support"
+        }
+      ]
+    }
+  ]
+}

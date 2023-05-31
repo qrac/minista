@@ -1,0 +1,73 @@
+{
+  "main": [
+    {
+      "title": "🔥 Modern Development",
+      "text": "ministaは、静的サイト制作の開発体験をNext.js等に近づけ、ツールを持ち替えたときの違和感を減らします。"
+    },
+    {
+      "title": "🔥 100% Static Generate",
+      "text": "ministaは、普通のHTML・CSS・JSを書き出すSSGです。100%静的で無駄のないコードは環境に依存しません。"
+    }
+  ],
+  "lib": [
+    {
+      "title": "💎 Vite 4",
+      "text": "Vite v4をビルドツールとして採用。webpackよりも高速な開発サーバーの立ち上げ・本番ビルドが可能です。",
+      "url": "https://ja.vitejs.dev/",
+      "linkText": "Vite公式サイト"
+    },
+    {
+      "title": "💎 MDX 2",
+      "text": "MDX v2を統合しているので、すぐにMDXやMarkdownでページを書けます。プラグインの追加も簡単。",
+      "url": "https://mdxjs.com/",
+      "linkText": "MDX公式サイト"
+    }
+  ],
+  "sub": [
+    {
+      "title": "⚙️ Relative Path",
+      "text": "サブディレクトリ設置のLPなどを想定し相対パスに対応。",
+      "url": "/docs/relative-path"
+    },
+    {
+      "title": "⚙️ TypeScript",
+      "text": "TypeScript(.tsx)による開発を前提に動作検証を行っています。",
+      "url": "/docs/typeScript"
+    },
+    {
+      "title": "⚙️ Beautiful Code",
+      "text": "ビルド後のHTMLは読みやすく整形。コンポーネントでコメントを付与。",
+      "url": "/docs/beautiful-code"
+    },
+    {
+      "title": "⚙️ Dynamic Entry",
+      "text": "Headでページに必要なCSSとJSをエントリーし、それぞれ個別出力。",
+      "url": "/docs/dynamic-entry"
+    },
+    {
+      "title": "⚙️ Image Optimisation",
+      "text": "専用コンポーネントで画像を最適化、リモート画像をダウンロード。",
+      "url": "/docs/image"
+    },
+    {
+      "title": "⚙️ SVG Sprite Icon",
+      "text": "複数のSVGアイコンファイルをまとめ、スプライト化できます。",
+      "url": "/docs/svg-sprite-icon"
+    },
+    {
+      "title": "⚙️ Fetch",
+      "text": "非同期関数でAPIを叩いてページを生成できます。CMSと連携可能。",
+      "url": "/docs/fetch"
+    },
+    {
+      "title": "⚙️ Partial Hydration",
+      "text": "部分的なReact Component化で動的なエリアを作れます。",
+      "url": "/docs/partial-hydration"
+    },
+    {
+      "title": "⚙️ Delivery Support",
+      "text": "納品用のページリストやZipファイルの生成を自動化します。",
+      "url": "/docs/delivery-support"
+    }
+  ]
+}

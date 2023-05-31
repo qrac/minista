@@ -1,0 +1,13 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-layout > :not(.app-main) {
+  flex: none;
+}
+
+.app-layout > .app-main {
+  flex: 1 0 auto;
+}

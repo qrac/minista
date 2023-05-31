@@ -1,0 +1,48 @@
+---
+title: Directories
+layout: docs
+---
+
+以下は minista の基本的なディレクトリ構成です。
+
+```sh
+├── dist
+├── node_modules
+├── public
+├── src
+│   ├── assets
+│   │   ├── icons
+│   │   │   ├── foo.svg
+│   │   │   └── bar.svg
+│   │   ├── entry.css
+│   │   └── entry.ts
+│   ├── components
+│   │   ├── app-header
+│   │   │   ├── index.css
+│   │   │   └── index.tsx
+│   │   └── app-layout
+│   │       ├── index.css
+│   │       └── index.tsx
+│   ├── pages
+│   │   ├── hello.md
+│   │   ├── custom.mdx
+│   │   ├── index.tsx
+│   │   ├── issues
+│   │   │   └── [number].tsx
+│   │   └── _global.tsx *
+│   └────── global.tsx
+├── minista.config.ts
+├── package-lock.json
+├── package.json
+└── tsconfig.json
+```
+
+| ディレクトリ・ファイル | 内容                                                                                |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| `dist`                 | ビルド後のデータが書き出される場所                                                  |
+| `public`               | ビルドせずルートにコピーするアセットを置く                                          |
+| `src/assets`           | ビルドする JavaScript・SVG スプライト用アイコンなどを置く（[詳細 →](/docs/assets)） |
+| `src/components`       | コンポーネントを置く※任意（[詳細 →](/docs/components)）                             |
+| `src/pages`            | JSX・Markdown・MDX ファイルベースのページルーティング（[詳細 →](/docs/pages)）      |
+| `src/global.tsx`       | 全体を囲むラッパー `src/pages/_global.tsx` も可能（[詳細 →](/docs/root)）           |
+| `minista.config.ts`    | minista のコンフィグファイル（[詳細 →](/docs/config)）                              |

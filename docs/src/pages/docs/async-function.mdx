@@ -1,0 +1,21 @@
+---
+title: Async Function
+layout: docs
+---
+
+import CodeFetch from "../../assets/markdown/code-fetch.md"
+import CodeStaticData from "../../assets/markdown/code-static-data.md"
+
+minista の JSX で使用できる非同期関数です。
+
+## getStaticData
+
+ページ生成前、非同期に処理した結果から `props` と `paths` をページテンプレートに渡せます。主に [Fetch](/docs/fetch) で CMS の API からデータを取得しページ生成する目的で使います。
+
+<CodeFetch />
+
+## StaticData
+
+TypeScript で `getStaticData` に型を付与する場合、アロー関数には `GetStaticData` を、function の戻り値には `Promise<StaticData>` を使います。
+
+<CodeStaticData />

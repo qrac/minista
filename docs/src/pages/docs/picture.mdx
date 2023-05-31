@@ -1,0 +1,71 @@
+---
+title: Picture
+layout: docs
+---
+
+import InfoPicture from "../../assets/markdown/info-picture.md"
+import CodePictureProps from "../../assets/markdown/code-picture-props.md"
+import CodeArtdirective from "../../assets/markdown/code-artdirective.md"
+import CodeImagesOptimize from "../../assets/markdown/code-images-optimize.md"
+import CodeImageOptimize from "../../assets/markdown/code-image-optimize.md"
+
+`<Picture>` は `<picture>` に `<source>` `<img>` タグを内包する詳細な最適化画像の配信方法です。PC とスマホで元画像を切り替えるなど [Image](/docs/image) よりも複雑なアートディレクティブが可能です。
+
+<InfoPicture />
+
+```tsx
+import { Image } from "minista"
+
+export default function () {
+  return <Picture src="/src/assets/image.png" formats={["webp", "inherit"]} />
+}
+```
+
+```html
+<picture>
+  <source
+    srcset="
+      /assets/images/image-320x157.webp    320w,
+      /assets/images/image-400x196.webp    400w,
+      /assets/images/image-640x314.webp    640w,
+      /assets/images/image-800x392.webp    800w,
+      /assets/images/image-1024x502.webp  1024w,
+      /assets/images/image-1280x627.webp  1280w,
+      /assets/images/image-1440x706.webp  1440w,
+      /assets/images/image-1920x941.webp  1920w,
+      /assets/images/image-2208x1080.webp 2208w
+    "
+    sizes="(min-width: 2208px) 2208px, 100vw"
+    width="2208"
+    height="1080"
+    type="image/webp"
+  />
+  <img
+    srcset="
+      /assets/images/image-320x157.png    320w,
+      /assets/images/image-400x196.png    400w,
+      /assets/images/image-640x314.png    640w,
+      /assets/images/image-800x392.png    800w,
+      /assets/images/image-1024x502.png  1024w,
+      /assets/images/image-1280x627.png  1280w,
+      /assets/images/image-1440x706.png  1440w,
+      /assets/images/image-1920x941.png  1920w,
+      /assets/images/image-2208x1080.png 2208w
+    "
+    src="/assets/images/image-2208x1080.png"
+    sizes="(min-width: 2208px) 2208px, 100vw"
+    width="2208"
+    height="1080"
+    alt=""
+    decoding="async"
+    loading="lazy"
+  />
+</picture>
+```
+
+## PictureProps
+
+<CodePictureProps />
+<CodeArtdirective />
+<CodeImagesOptimize />
+<CodeImageOptimize />

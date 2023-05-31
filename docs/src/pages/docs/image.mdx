@@ -1,0 +1,48 @@
+---
+title: Image
+layout: docs
+---
+
+import InfoImage from "../../assets/markdown/info-image.md"
+import CodeImageProps from "../../assets/markdown/code-image-props.md"
+import CodeImageOptimize from "../../assets/markdown/code-image-optimize.md"
+
+ビルトインコンポーネントの `<Image>` で画像の最適化ができます。`<img>` タグに `srcset` 属性のみで最適化画像を配信する設計で、[Picture](/docs/picture) よりも機能は少ないですがシンプルなタグが出力されます。
+
+<InfoImage />
+
+```tsx
+import { Image } from "minista"
+
+export default function () {
+  return <Image src="/src/assets/image.png" />
+}
+```
+
+```html
+<img
+  srcset="
+    /assets/images/image-320x157.png    320w,
+    /assets/images/image-400x196.png    400w,
+    /assets/images/image-640x314.png    640w,
+    /assets/images/image-800x392.png    800w,
+    /assets/images/image-1024x502.png  1024w,
+    /assets/images/image-1280x627.png  1280w,
+    /assets/images/image-1440x706.png  1440w,
+    /assets/images/image-1920x941.png  1920w,
+    /assets/images/image-2208x1080.png 2208w
+  "
+  src="/assets/images/image-2208x1080.png"
+  sizes="(min-width: 2208px) 2208px, 100vw"
+  width="2208"
+  height="1080"
+  alt=""
+  decoding="async"
+  loading="lazy"
+/>
+```
+
+## ImageProps
+
+<CodeImageProps />
+<CodeImageOptimize />

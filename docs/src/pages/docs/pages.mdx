@@ -1,0 +1,45 @@
+---
+title: Pages
+layout: docs
+---
+
+import InfoStaticPage from "../../assets/markdown/info-static-page.md"
+
+`src/pages` 配下はファイルベースルーティングに対応したページファイルを作成できます。使用できる拡張子は `.tsx` または `.jsx` で `export default` が必須です。※Markdown で書く場合は[こちら](/docs/markdown-pages)
+
+<InfoStaticPage />
+
+```tsx
+// src/pages/index.tsx
+import type { PageProps, Metadata } from "minista"
+import { Head } from "minista"
+
+export const metadata: Metadata = {
+  title: "Home",
+}
+
+export default function ({ url, title, children }: PageProps) {
+  return (
+    <>
+      <Head>
+        <title>{title}</title>
+      </Head>
+      <h1>{title}</h1>
+    </>
+  )
+}
+```
+
+## PageProps
+
+Page では export した [Metadata](/docs/metadata) を props として利用できるほか、ページの `url` を参照できます。
+
+```ts
+type PageProps = {
+  url: string
+  title: string
+  group: string
+  draft: boolean
+  [key: string]: any
+}
+```

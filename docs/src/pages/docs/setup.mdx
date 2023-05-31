@@ -1,0 +1,47 @@
+---
+title: Setup
+layout: docs
+---
+
+npm のコマンドで minista プロジェクトをテンプレートから始められます。
+
+```sh
+# Interactive
+$ npm create minista@latest
+
+# Shortcut
+$ npm create minista@latest my-minista-project -- --template minimal-ts
+```
+
+| テンプレート | 内容                            |
+| ------------ | ------------------------------- |
+| `minimal-js` | JavaScript を使った最低限の構成 |
+| `minimal-ts` | TypeScript を使った最低限の構成 |
+
+## Manual
+
+プロジェクトに `minista` `react` `react-dom` をインストールします。
+
+```sh
+$ npm install --save-dev minista react react-dom
+$ touch ./src/pages/index.jsx
+```
+
+`src/pages` ディレクトリに `index.jsx (or .tsx)` を作成。
+
+```js
+// ./src/pages/index.jsx
+export default function () {
+  return <h1>Hello!</h1>
+}
+```
+
+`package.json` を開き、以下のスクリプトを追加します。
+
+```json
+"scripts": {
+  "dev": "minista",
+  "build": "minista build",
+  "preview": "minista preview",
+}
+```

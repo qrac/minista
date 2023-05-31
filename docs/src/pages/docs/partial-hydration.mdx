@@ -1,0 +1,53 @@
+---
+title: Partial Hydration
+layout: docs
+---
+
+コンポーネントを部分的に React App として動くアセットに変換できます。参照パスの末尾に `?ph` を付与することで Partial Hydration の対象となります。
+
+定義したコンポーネントでは React Hooks などを自由に使えます。ただし、コンポーネントは隔離されているためページから props を渡せません。また、named export には対応していません。
+
+```tsx
+// src/pages/index.tsx
+import BlockCounter from "../../components/block-counter?ph"
+
+export default function () {
+  return <BlockCounter /> // You can't pass Props.
+}
+```
+
+```tsx
+// components/block-counter.tsx
+import { useState, useCallback } from "react"
+
+export default () => {
+  const [count, setCount] = useState(0)
+  const increment = useCallback(() => setCount((c) => c + 1), [])
+  return (
+    <div className="block-counter">
+      <button onClick={increment} type="button">
+        increment
+      </button>
+      <p>count: {count}</p>
+    </div>
+  )
+}
+```
+
+本番ビルドした際にすべての Partial Hydration 対象コンポーネントは集められ 1 つの JavaScript ファイルが生成されます。ページファイルには復元用のラップ要素 `div` と静的な HTML が書き込まれます。 Cumulative Layout Shift (CLS) の抑制に有効です。
+
+ブラウザでコンポーネントが画面に表示されると React App として復元されます。
+
+```html
+<head>
+  <script type="module" src="/assets/partial.js"></script>
+</head>
+<body>
+  <div data-partial-hydration="ph-1" style="display:contents;">
+    <div class="block-counter" data-reactroot="">
+      <button type="button">increment</button>
+      <p>count: 0</p>
+    </div>
+  </div>
+</body>
+```

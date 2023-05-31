@@ -1,0 +1,36 @@
+---
+title: Markdown Pages
+layout: docs
+---
+
+`src/pages` 配下では Markdown `.mdx` `.md` ファイルもページファイルになります。本文が自動的に export default され、frontmatter の内容が [Metadata](/docs/metadata) として export されます。
+
+```md
+---
+title: Markdown Pages
+layout: docs
+draft: false
+---
+
+import InfoStaticPage from "../../assets/markdown/info-static-page.md"
+
+Markdown Page の例。
+
+MDX の場合は React Component や他の Markdown を読み込んで配置できる。
+
+<InfoStaticPage />
+
+- リストなど
+- リストなど
+```
+
+## Frontmatter
+
+Markdown の最上部 `---` で囲んだエリアは frontmatter となり [Metadata](/docs/metadata) として export され [Global](/docs/global) で使用できます。また、`draft` は特別で `true` にすると本番ビルドや全文検索から除外されます。
+
+```md
+---
+title: Markdown Pages
+draft: true
+---
+```
