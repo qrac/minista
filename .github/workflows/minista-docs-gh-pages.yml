@@ -36,6 +36,8 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build minista
+        run: npm run build:src
+      - name: Build minista docs
         run: npm run docs:build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
