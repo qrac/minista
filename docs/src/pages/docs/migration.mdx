@@ -25,7 +25,7 @@ v3 では任意のディレクトリの minista プロジェクトを動かせ�
 
 v3 で実装した画像最適化コンポーネントがリモート画像をダウンロードしつつの width・height も取得できる上位互換となり、解決しづらいバグもあったため、既存のリモート画像ダウンロード機能は削除しました。
 
-v2 の機能を使っていた場合はそのままではダウンロードされなくなります。画像のタグを新しい[画像最適化コンポーネント](/docs/image-optimisation)に変更する必要があります。
+v2 の機能を使っていた場合はそのままではダウンロードされなくなります。画像のタグを新しい[画像最適化コンポーネント](/docs/image)に変更する必要があります。
 
 ```tsx
 // Before (v2)
@@ -113,7 +113,7 @@ export default function () {
 
 SVGR の型定義を Vite の拡張としたことで default export を ReactComponent として扱えなくなったため、named export を ReactComponent に変換する仕様へと変更しました。これによりインラインの SVG と img タグの SVG を選択して使えるようになっています。
 
-今まで通り SVG ファイルをインライン展開するためには、default export で読み込んでいた箇所を named export の読み込みに変更する必要があります。現在の仕様は [SVGR](/docs/global) ページ確認できます。
+今まで通り SVG ファイルをインライン展開するためには、default export で読み込んでいた箇所を named export の読み込みに変更する必要があります。現在の仕様は [SVGR](/docs/svgr) ページ確認できます。
 
 ```tsx
 // Before (v2)
