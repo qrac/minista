@@ -1,0 +1,40 @@
+---
+title: Comment
+layout: docs
+---
+
+JSX のコメントはビルドすると消えるため、コメントを残すビルトインコンポーネントを用意しています。
+
+```tsx
+import { Comment } from "minista"
+
+export default function () {
+  return (
+    <>
+      <Comment text="+ comment" />
+      <h1>index</h1>
+      <Comment text="- comment" />
+    </>
+  )
+}
+```
+
+```html
+<!-- + comment -->
+<h1>index</h1>
+<!-- - comment -->
+```
+
+## CommentProps
+
+```ts
+type CommentProps = CommentUseContent | CommentUseChildren
+type CommentUseContent = {
+  text: string
+  children?: string
+}
+type CommentUseChildren = {
+  text?: string
+  children: string
+}
+```

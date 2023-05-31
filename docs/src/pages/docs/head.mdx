@@ -1,0 +1,61 @@
+---
+title: Head
+layout: docs
+---
+
+`<head>` タグの中身を更新するビルトインコンポーネントで [react-helmet-async](https://github.com/staylor/react-helmet-async) の拡張版です。minista プロジェクトのほとんどの JSX 内で使用できます。
+
+ビルドする CSS・JS を読み込む例は [Dynamic Entry](/docs/dynamic-entry) のページをご確認ください。
+
+```tsx
+import { Head } from "minista"
+
+export default function () {
+  return (
+    <Head>
+      <title>タイトル</title>
+    </Head>
+  )
+}
+```
+
+## html, body
+
+minista には `<html>` `<body>` タグを編集する場所はありませんが、`<Head>` に props を渡すことでタグに付与される属性を変更可能です。
+
+```tsx
+import { Head } from "minista"
+
+export default function () {
+  return (
+    <>
+      <Head
+        htmlAttributes={{ lang: "en" }}
+        bodyAttributes={{ class: "custom-body" }}
+      >
+        <title>ENGLISH PAGE</title>
+      </Head>
+    </>
+  )
+}
+```
+
+## Shift-JIS
+
+`<Head>` 内に `<meta charSet="shift_jis" />` を持たせることでタグを修正しつつ内部的にも文字列を Shift-JIS に変換します。
+
+```tsx
+import { Head } from "minista"
+
+export default function () {
+  return (
+    <>
+      <Head bodyAttributes={{ class: "custom-body" }}>
+        <meta charSet="shift_jis" />
+        <title>Shift-JIS ページ</title>
+      </Head>
+      <p>日本語の文字</p>
+    </>
+  )
+}
+```

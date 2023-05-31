@@ -1,0 +1,70 @@
+---
+title: SVG Sprite Icon
+layout: docs
+---
+
+複数の SVG アイコンファイルを 1 つの SVG スプライトファイルにまとめ上げ、ID で呼び出して簡単に使うためのビルトインコンポーネントです。デフォルトでは `/assets/icons` 配下のアイコンファイルを収集。呼び出す場合はアイコンのファイル名が ID となります。
+
+```tsx
+import { Icon } from "minista"
+
+export default function () {
+  return (
+    <>
+      <Icon iconId="plus" />
+      <Icon iconId="heart" />
+    </>
+  )
+}
+```
+
+```html
+<svg>
+  <use href="/assets/images/icons.svg#plus"></use>
+</svg>
+<svg>
+  <use href="/assets/images/icons.svg#heart"></use>
+</svg>
+```
+
+## Multiple Sprites
+
+SVG スプライトファイルを複数に分けたい案件もあります。その場合は `srcDir` で異なるディレクトリ名を指定します。追加された SVG スプライトファイルの名前は指定したディレクトリ名（最下層）となります。
+
+```tsx
+import { Icon } from "minista"
+
+export default function () {
+  return (
+    <>
+      <Icon iconId="plus" />
+      <Icon iconId="heart" />
+      <Icon iconId="star" srcDir="/src/assets/more-icons" />
+    </>
+  )
+}
+```
+
+```html
+<svg>
+  <use href="/assets/images/icons.svg#plus"></use>
+</svg>
+<svg>
+  <use href="/assets/images/icons.svg#heart"></use>
+</svg>
+<svg>
+  <use href="/assets/images/more-icons.svg#star"></use>
+</svg>
+```
+
+## IconProps
+
+```ts
+type IconProps = {
+  iconId: string
+  srcDir?: string
+  className?: string
+  title?: string
+  attributes?: React.SVGProps<SVGSVGElement>
+} & React.SVGProps<SVGSVGElement>
+```

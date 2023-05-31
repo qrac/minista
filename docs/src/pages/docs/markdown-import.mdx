@@ -1,0 +1,19 @@
+---
+title: Markdown Import
+layout: docs
+---
+
+ページやコンポーネントなどの JSX テンプレート・MDX で `.md` `.mdx` を import すると内部の MDX で JSX に変換されて React Component として使えます。シンタックスハイライトの部分だけ Markdown ファイルで書いて差し込むなどの使い方ができます。
+
+```tsx
+import Code from "../../assets/markdown/code.md"
+
+export default function () {
+  return (
+    <>
+      <h1>Code Example</h1>
+      <Code />
+    </>
+  )
+}
+```

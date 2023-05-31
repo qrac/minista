@@ -1,3 +1,7 @@
+.docs-main {
+  padding-bottom: calc(var(--theme-space-vw) * 1.5);
+}
+
 .docs-main > * + *,
 .docs-main > .docs-main-contents > * + * {
   margin-top: 20px;
@@ -134,6 +138,14 @@
 .block-custom-box-title.is-font-en {
   font-size: 18px;
   font-family: var(--theme-font-sans-en);
+}
+
+.block-custom-box.is-info {
+  background-color: var(--theme-ac-2-alpha);
+}
+
+.block-custom-box.is-info .block-custom-box-title {
+  color: var(--theme-ac-2);
 }
 
 .block-custom-box.is-warning {

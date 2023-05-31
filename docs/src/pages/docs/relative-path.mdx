@@ -3,7 +3,7 @@ title: Relative Path
 layout: docs
 ---
 
-サブディレクトリ設置の LP など、全体を相対パスに変換する必要がある場合はコンフィグの `base` を空文字もしくは `./` に設定します。
+サブディレクトリ設置の LP など、全体を相対パスに変換する場合はコンフィグの `base` を空文字もしくは `./` に設定します。これによってビルドした CSS・JS・画像などへのパスが相対パスに変換されます。
 
 ```ts
 import { defineConfig } from "minista"
@@ -12,5 +12,3 @@ export default defineConfig({
   base: "./",
 })
 ```
-
-これによってビルドした CSS・JS・画像などへのパスがすべて相対パスに変換されます。

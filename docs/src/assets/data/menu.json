@@ -35,8 +35,8 @@
           "url": "/docs/directories"
         },
         {
-          "title": "Config",
-          "url": "/docs/config"
+          "title": "Config File",
+          "url": "/docs/config-file"
         },
         {
           "title": "Relative Path",
@@ -61,6 +61,10 @@
         {
           "title": "PostCSS",
           "url": "/docs/postcss"
+        },
+        {
+          "title": "Beautiful Code",
+          "url": "/docs/beautiful-code"
         }
       ]
     },
@@ -84,6 +88,10 @@
           "url": "/docs/pages"
         },
         {
+          "title": "Markdown Pages",
+          "url": "/docs/markdown-pages"
+        },
+        {
           "title": "Components",
           "url": "/docs/components"
         }
@@ -101,8 +109,8 @@
           "url": "/docs/head"
         },
         {
-          "title": "Entry Assets",
-          "url": "/docs/entry-assets"
+          "title": "Dynamic Entry",
+          "url": "/docs/dynamic-entry"
         },
         {
           "title": "Image",
@@ -113,8 +121,28 @@
           "url": "/docs/picture"
         },
         {
-          "title": "Markdown",
-          "url": "/docs/markdown"
+          "title": "SVGR",
+          "url": "/docs/svgr"
+        },
+        {
+          "title": "SVG Sprite Icon",
+          "url": "/docs/svg-sprite-icon"
+        },
+        {
+          "title": "Markdown Import",
+          "url": "/docs/markdown-import"
+        },
+        {
+          "title": "Markdown Component",
+          "url": "/docs/markdown-component"
+        },
+        {
+          "title": "Comment",
+          "url": "/docs/comment"
+        },
+        {
+          "title": "Async Function",
+          "url": "/docs/async-function"
         },
         {
           "title": "Fetch",
@@ -129,12 +157,8 @@
           "url": "/docs/search"
         },
         {
-          "title": "Delivery List",
-          "url": "/docs/delivery-list"
-        },
-        {
-          "title": "Archive",
-          "url": "/docs/archive"
+          "title": "Delivery Support",
+          "url": "/docs/delivery-support"
         }
       ]
     }

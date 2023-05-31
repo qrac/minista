@@ -60,3 +60,23 @@
   font-size: clamp(14px, 3.75vw, 16px);
   line-height: 1.6;
 }
+
+.section-feature-card-link {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  padding: clamp(2px, 0.3125vw, 4px) clamp(8px, 1.25vw, 12px);
+  border-top: 2px solid var(--theme-tx-4);
+  border-left: 2px solid var(--theme-tx-4);
+  border-top-left-radius: 5px;
+  color: var(--theme-ac-2);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .section-feature-card-link:hover {
+    background-color: var(--theme-ac-2-alpha);
+  }
+}

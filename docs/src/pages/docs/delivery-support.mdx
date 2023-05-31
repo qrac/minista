@@ -1,0 +1,150 @@
+---
+title: Delivery Support
+layout: docs
+---
+
+ビルトインコンポーネントで納品用のページリストを自動的に生成できます。スタイルも付与しますが、すべてインラインで書き込まれるため納品物を汚しません。
+
+多くの場合は納品リストページ自体はリストから省き、納品物をさらに Zip 化してダウンロードボタンを設置するかと思います。それを実現させるには、以下のように設定します。
+
+```sh
+├── src
+│   └── pages
+│       ├── test
+│       │   ├── p1.tsx
+│       │   ├── p2.tsx
+│       │   ├── p3.tsx
+│       │   └── p4.tsx
+│       └── index.tsx
+└── minista.config.tsx
+```
+
+```tsx
+// minista.config.tsx
+import { defineConfig } from "minista"
+
+export default defineConfig({
+  delivery: {
+    include: ["/test/", "/test/*", "/test/**/*"],
+    archives: [
+      {
+        srcDir: "dist",
+        outDir: "",
+        outName: "archive",
+        format: "zip",
+        options: {
+          zlib: { level: 9 },
+        },
+        button: {
+          title: "Download",
+          //color: "blue",
+        },
+      },
+    ],
+  },
+})
+```
+
+```tsx
+// src/pages/index.tsx
+import { Delivery } from "minista"
+
+export default function () {
+  return <Delivery title="納品リスト" />
+}
+```
+
+```html
+<!-- dist/index.html -->
+<div class="minista-delivery-container">
+  <header class="minista-delivery-header">
+    <div class="minista-delivery-header-inner">
+      <div class="minista-delivery-header-grid">
+        <div class="minista-delivery-header-column">
+          <h1 class="minista-delivery-header-heading">納品リスト</h1>
+          <p class="minista-delivery-header-date">
+            Last Update: 2023.03.09 - 07:21
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="minista-delivery-main">
+    <div class="minista-delivery-main-inner">
+      <nav class="minista-delivery-nav">
+        <ul class="minista-delivery-list">
+          <li class="minista-delivery-item">
+            <div class="minista-delivery-item-content">
+              <a class="minista-delivery-item-content-link" href="/test/p1"></a>
+              <div class="minista-delivery-item-content-inner">
+                <p class="minista-delivery-item-content-name">
+                  施策1のタイトル
+                </p>
+                <p class="minista-delivery-item-content-slug">/test/p1</p>
+              </div>
+              <div class="minista-delivery-item-content-background"></div>
+            </div>
+          </li>
+          <li class="minista-delivery-item">
+            <div class="minista-delivery-item-content">
+              <a class="minista-delivery-item-content-link" href="/test/p2"></a>
+              <div class="minista-delivery-item-content-inner">
+                <p class="minista-delivery-item-content-name">
+                  施策2のタイトル
+                </p>
+                <p class="minista-delivery-item-content-slug">/test/p2</p>
+              </div>
+              <div class="minista-delivery-item-content-background"></div>
+            </div>
+          </li>
+          <li class="minista-delivery-item">
+            <div class="minista-delivery-item-content">
+              <a class="minista-delivery-item-content-link" href="/test/p4"></a>
+              <div class="minista-delivery-item-content-inner">
+                <p class="minista-delivery-item-content-name">
+                  施策4のタイトル
+                </p>
+                <p class="minista-delivery-item-content-slug">/test/p4</p>
+              </div>
+              <div class="minista-delivery-item-content-background"></div>
+            </div>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </main>
+</div>
+```
+
+## DeliveryProps
+
+```ts
+type DeliveryProps = {
+  title?: string
+  bodyClass?: string
+  dateFormat?: string
+  timezone?: string
+  styles?: StylesProps
+  header?: HeaderProps
+  items?: Item[]
+}
+
+type StylesProps = {
+  defaultDark?: boolean
+  darkMode?: boolean
+  innerMaxWidth?: string
+  defaultLightStyle?: string
+  defaultDarkStyle?: string
+  schemeDarkStyle?: string
+  variableStyle?: string
+  resetStyle?: string
+  componentStyle?: string
+}
+
+type HeaderProps = {
+  title?: string
+  dateName?: string
+  date?: string
+  buttons?: Button[]
+}
+```

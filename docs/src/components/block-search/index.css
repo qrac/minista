@@ -61,7 +61,10 @@
   width: 20px;
   height: 20px;
   margin: 0;
-  background-color: var(--theme-ac-1);
+  background-image: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><polygon fill-rule="evenodd" fill="%23ff7fc7" points="8 9.414 3.707 13.707 2.293 12.293 6.586 8 2.293 3.707 3.707 2.293 8 6.586 12.293 2.293 13.707 3.707 9.414 8 13.707 12.293 12.293 13.707 8 9.414"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 72% 72%;
   transform: translateY(-50%);
   z-index: 1;
 }

@@ -1,0 +1,61 @@
+---
+title: Dynamic Entry
+layout: docs
+---
+
+[Head](/docs/head) やページ内に必要な CSS・JS へのプロジェクトルートパスを貼ると、本番ではそれぞれをビルドしつつ個別のファイルとして出力できます。
+
+```tsx
+import { Head } from "minista"
+
+export default function () {
+  return (
+    <>
+      <Head>
+        <link rel="stylesheet" href="/src/assets/entry.css" />
+        <link rel="stylesheet" href="/src/assets/entry2.css" />
+        <script type="module" src="/src/assets/entry.ts" />
+      </Head>
+      <script type="module" src="/src/assets/entry2.ts" />
+    </>
+  )
+}
+```
+
+```sh
+└── dist
+    └── assets
+        ├── entry.css
+        ├── entry2.css
+        ├── entry.js
+        └── entry2.js
+```
+
+## Entry Name
+
+出力するファイル名は自動的に元のファイル名を元にしますが `data-minista-entry-name` 属性を付与することで任意の名称に変更できます。`data-minista-entry-name` 属性は削除されるためコードは汚れません。
+
+```tsx
+import { Head } from "minista"
+
+export default function () {
+  return (
+    <>
+      <Head>
+        <link
+          rel="stylesheet"
+          href="/src/assets/entry.css"
+          data-minista-entry-name="test/custom"
+        />
+      </Head>
+    </>
+  )
+}
+```
+
+```sh
+└── dist
+    └── assets
+        └── test
+            └── custom.css
+```

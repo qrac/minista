@@ -12,49 +12,62 @@
   "lib": [
     {
       "title": "💎 Vite 4",
-      "text": "Vite v4をビルドツールとして採用。webpackよりも高速な開発サーバーの立ち上げ・本番ビルドが可能です。"
+      "text": "Vite v4をビルドツールとして採用。webpackよりも高速な開発サーバーの立ち上げ・本番ビルドが可能です。",
+      "url": "https://ja.vitejs.dev/",
+      "linkText": "Vite公式サイト"
     },
     {
       "title": "💎 MDX 2",
-      "text": "MDX v2を統合しているので、すぐにMDXやMarkdownでページを書けます。プラグインの追加も簡単。"
+      "text": "MDX v2を統合しているので、すぐにMDXやMarkdownでページを書けます。プラグインの追加も簡単。",
+      "url": "https://mdxjs.com/",
+      "linkText": "MDX公式サイト"
     }
   ],
   "sub": [
     {
-      "title": "⚙️ TypeScript First",
-      "text": "TypeScript(.tsx)による開発を前提に動作検証を行っています。"
-    },
-    {
       "title": "⚙️ Relative Path",
-      "text": "サブディレクトリ設置のLPなどを想定し相対パスに対応。"
+      "text": "サブディレクトリ設置のLPなどを想定し相対パスに対応。",
+      "url": "/docs/relative-path"
     },
     {
-      "title": "⚙️ Multiple Assets",
-      "text": "Headでページに必要なCSSとJSをエントリーし、それぞれ個別出力。"
+      "title": "⚙️ TypeScript",
+      "text": "TypeScript(.tsx)による開発を前提に動作検証を行っています。",
+      "url": "/docs/typeScript"
     },
     {
-      "title": "⚙️ Image optimisation",
-      "text": "専用コンポーネントで画像を最適化、リモート画像をダウンロード。"
+      "title": "⚙️ Beautiful Code",
+      "text": "ビルド後のHTMLは読みやすく整形。コンポーネントでコメントを付与。",
+      "url": "/docs/beautiful-code"
+    },
+    {
+      "title": "⚙️ Dynamic Entry",
+      "text": "Headでページに必要なCSSとJSをエントリーし、それぞれ個別出力。",
+      "url": "/docs/dynamic-entry"
+    },
+    {
+      "title": "⚙️ Image Optimisation",
+      "text": "専用コンポーネントで画像を最適化、リモート画像をダウンロード。",
+      "url": "/docs/image"
     },
     {
       "title": "⚙️ SVG Sprite Icon",
-      "text": "複数のSVGアイコンファイルをまとめ、スプライト化できます。"
+      "text": "複数のSVGアイコンファイルをまとめ、スプライト化できます。",
+      "url": "/docs/svg-sprite-icon"
     },
     {
-      "title": "⚙️ Dynamic Routing",
-      "text": "非同期関数でAPIを叩いてページを生成できます。CMSと連携可能。"
+      "title": "⚙️ Fetch",
+      "text": "非同期関数でAPIを叩いてページを生成できます。CMSと連携可能。",
+      "url": "/docs/fetch"
     },
     {
       "title": "⚙️ Partial Hydration",
-      "text": "部分的なReact Component化で動的なエリアを作れます。"
-    },
-    {
-      "title": "⚙️ Beautiful code",
-      "text": "ビルド後のHTMLは読みやすく整形。コンポーネントでコメントを付与。"
+      "text": "部分的なReact Component化で動的なエリアを作れます。",
+      "url": "/docs/partial-hydration"
     },
     {
       "title": "⚙️ Delivery Support",
-      "text": "納品用のページリストやZipファイルの生成を自動化します。"
+      "text": "納品用のページリストやZipファイルの生成を自動化します。",
+      "url": "/docs/delivery-support"
     }
   ]
 }

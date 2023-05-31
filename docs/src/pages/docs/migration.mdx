@@ -11,13 +11,13 @@ minista v2 と v3 の最も大きな違いは開発中の動作です。v2 は V
 
 ## Root to Global
 
-v3 では任意のディレクトリの minista プロジェクトを動かせます。この機能を他のフレームワークの慣習に習って root オプションと命名しました。その関係でページ全体をラップする要素 `root.tsx (or .jsx)` が紛らわしい状態になってしまったため `global.tsx (or .jsx)` に変更しました。
+v3 では任意のディレクトリの minista プロジェクトを動かせます。この機能を他のフレームワークの慣習に習って root オプションと命名しました。その関係でページ全体をラップする要素 `root.tsx (or .jsx)` が紛らわしい状態になってしまったため `global.tsx (or .jsx)` に変更しました。ただ、引き続き `root.tsx (or .jsx)` でも動作はしますので修正は必須ではありません。
 
-ただ、引き続き `root.tsx (or .jsx)` でも動作はしますので修正は必須ではありません。
+現在の仕様の詳細は [Global](/docs/global) のページをご確認ください。
 
 ## Options
 
-### Root and Pages
+### Root, Pages
 
 v3 では任意のディレクトリの minista プロジェクトを動かせるようになったため、root や pages の位置を変更するオプションを削除しました。v2 のコンフィグで変更していた場合は修正が必要です。
 
@@ -25,7 +25,7 @@ v3 では任意のディレクトリの minista プロジェクトを動かせ�
 
 v3 で実装した画像最適化コンポーネントがリモート画像をダウンロードしつつの width・height も取得できる上位互換となり、解決しづらいバグもあったため、既存のリモート画像ダウンロード機能は削除しました。
 
-v2 の機能を使っていた場合はそのままではダウンロードされなくなります。画像のタグを新しい画像最適化コンポーネントに変更する必要があります。
+v2 の機能を使っていた場合はそのままではダウンロードされなくなります。画像のタグを新しい[画像最適化コンポーネント](/docs/image-optimisation)に変更する必要があります。
 
 ```tsx
 // Before (v2)
@@ -45,7 +45,7 @@ export default function () {
 
 ### Markdown
 
-Markdown コンポーネント実装に伴いオプションを揃えました。例えば `remarkGfmOptions` を変更するには `remarkPlugins` でプラグインのオーバーライドを行う必要がありましたが、Markdown コンポーネントと同じオプションで簡単に変更できるようになっています。
+[Markdown コンポーネント](/docs/markdown-component)実装に伴いオプションを揃えました。例えば `remarkGfmOptions` を変更するには `remarkPlugins` でプラグインのオーバーライドを行う必要がありましたが、Markdown コンポーネントと同じオプションで簡単に変更できるようになっています。
 
 ```ts
 // Before (v2)
@@ -91,7 +91,7 @@ esbuild でページ内の組み合わせ毎にビルドしていたものを、
 
 ## Entry Assets
 
-v2 では個別ファイルに出力する CSS・JS はコンフィグで指定する必要がありましたが、v3 では必要なページに `<link>` `<script>` タグを書くだけでよくなりました。コンフィグでの指定も引き続き可能ですが、新機能の方が簡単で推奨できるためドキュメントには記載していません。
+v2 では個別ファイルに出力する CSS・JS はコンフィグで指定する必要がありましたが、v3 では必要なページに `<link>` `<script>` タグを書くだけでよくなりました。コンフィグでの指定も引き続き可能ですが、[新機能](/docs/dynamic-entry)の方が簡単で推奨できるためドキュメントには記載していません。
 
 ```tsx
 import { Head } from "minista"
@@ -113,7 +113,7 @@ export default function () {
 
 SVGR の型定義を Vite の拡張としたことで default export を ReactComponent として扱えなくなったため、named export を ReactComponent に変換する仕様へと変更しました。これによりインラインの SVG と img タグの SVG を選択して使えるようになっています。
 
-今まで通り SVG ファイルをインライン展開するためには、default export で読み込んでいた箇所を named export の読み込みに変更する必要があります。
+今まで通り SVG ファイルをインライン展開するためには、default export で読み込んでいた箇所を named export の読み込みに変更する必要があります。現在の仕様は [SVGR](/docs/global) ページ確認できます。
 
 ```tsx
 // Before (v2)
@@ -133,9 +133,9 @@ export default function () {
 }
 ```
 
-## Sprite Icon
+## SVG Sprite Icon
 
-スプライトアイコンの生成は専用コンポーネントによる処理に変更したため修正が必要です。v2 では出力先のパスを指定する必要があり、この仕様は違和感がありました。v3 の専用コンポーネントでは ID のみを渡せばよくなっています。
+スプライトアイコンの生成は専用コンポーネントによる処理に変更したため修正が必要です。v2 では出力先のパスを指定する必要があり、この仕様は違和感がありました。v3 の専用コンポーネントでは ID のみを渡せばよくなっています。現在の仕様は [SVG Sprite Icon](/docs/svg-sprite-icon) ページ確認できます。
 
 ```tsx
 // Before (v2)
@@ -171,4 +171,6 @@ export default function () {
 
 ### Location
 
-他の命名と異なり `MinistaLocation` のみスコープ名だったので `Location` に変更しました。v2 で`MinistaLocation` を参照していた部分はエラーが出ますので `Location` に変更してください。
+`MinistaLocation` のみスコープ名だったので `Location` に変更しました。v2 で`MinistaLocation` を当てていた部分はエラーが出ますので `Location` に変更してください。
+
+また、props で利用していた `location.pathname` と同様の値が `url` で参照できるようになりました。詳細は [GlobalProps](/docs/global#globalprops)・[PageProps](/docs/page#pageprops) をご確認ください。

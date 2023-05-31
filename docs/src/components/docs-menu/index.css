@@ -31,7 +31,7 @@
   position: sticky;
   top: var(--theme-space-vw);
   max-height: calc(100vh - var(--theme-space-vw));
-  padding-bottom: var(--theme-space-vw);
+  padding-bottom: calc(var(--theme-space-vw) * 3);
   overflow-y: scroll;
 }
 

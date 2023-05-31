@@ -2,7 +2,7 @@
   position: relative;
   max-width: var(--theme-site-width);
   margin: 0 auto;
-  padding: 0 var(--theme-space-vw) calc(var(--theme-space-vw) * 1.5);
+  padding: 0 var(--theme-space-vw) 0;
 }
 
 @media (max-width: 999px) {

@@ -3,15 +3,18 @@ title: Global
 layout: docs
 ---
 
-import WarningStatic from "../../assets/markdown/warning-static.md"
+import InfoStaticPage from "../../assets/markdown/info-static-page.md"
 
 `src/global.tsx (or jsx)` または `/src/pages/_global.tsx (or jsx)` を作成すると、サイト全体を囲うラッパーコンポーネントとなります。`export default` が必須です。
 
-<WarningStatic />
+<InfoStaticPage />
 
 ```tsx
+// src/global.tsx
 import type { GlobalProps } from "minista"
 import { Head } from "minista"
+
+import "./global.css"
 
 export default function ({ url, title, children }: GlobalProps) {
   return (
@@ -32,7 +35,7 @@ export default function ({ url, title, children }: GlobalProps) {
 
 ## GlobalProps
 
-global ではページデータである `children` の他に、Pages で export した [Metadata](/docs/metadata) を props として利用できます。これによりページ毎のレイアウト変更などの条件分岐が可能です。
+Global ではページデータである `children` の他に、[Pages](/docs/pages) で export した [Metadata](/docs/metadata) を props として利用できます。また、ページの `url` を参照できます。これらの props をもとにページ毎のレイアウト変更などの条件分岐が可能です。
 
 ```ts
 type GlobalProps = {

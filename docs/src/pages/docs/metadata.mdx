@@ -1,0 +1,25 @@
+---
+title: Metadata
+layout: docs
+---
+
+[Global](/docs/global)・[Pages](/docs/pages) では Metadata を export してテンプレートの props にマージできます。主にページ毎のタイトルやレイアウトを Global に渡して条件分岐する用途で使います。
+
+`group` は [Delivery](/docs/delivery) に使われます。`draft` は `true` にすると本番ビルドや全文検索から除外されます。そのほか、任意の key で値やオブジェクトを渡せますが [GlobalProps](/docs/global#globalprops)・[PageProps](/docs/page#pageprops) には反映されません。
+
+```tsx
+export const metadata: Metadata = {
+  title: "Home",
+  group: "Desktop",
+  draft: false,
+}
+```
+
+```ts
+type Metadata = {
+  title?: string
+  group?: string
+  draft?: boolean
+  [key: string]: any
+}
+```

@@ -1,0 +1,70 @@
+---
+title: Markdown Component
+layout: docs
+---
+
+インラインの Markdown 文字列を React Component に変換するビルトインコンポーネントです。主に CMS の API から取得した Markdown 本文を流し込む用途で使います。コンフィグの Markdown (MDX) とは仕様が異なるため全体設定は反映されません。コンポーネントを使用する時に設定する必要があります。
+
+```tsx
+import { Markdown, Image } from "minista"
+
+const mdContent = `# Heading 1
+## Heading 2`
+const textVar = "variable"
+
+const components = {
+  img: (props: React.HTMLProps<HTMLElement>) => (
+    <Image src={props.src} alt={props.alt} />
+  ),
+}
+
+export default function () {
+  return (
+    <>
+      <Markdown content={mdContent} />
+      <Markdown>
+        {`### Heading 3
+        text ${textVar}`}
+      </Markdown>
+      <Markdown components={components}>
+        {`## Change Image Component
+
+### Local
+
+![Local](/src/assets/image.png)
+
+### Remote
+
+![Remote](https://picsum.photos/id/1/800/600)`}
+      </Markdown>
+    </>
+  )
+}
+```
+
+## MarkdownProps
+
+```ts
+import type { Options as RemarkParseOptions } from "remark-parse"
+import type { Options as RemarkGfmOptions } from "remark-gfm"
+import type { Options as RemarkRehypeOptions } from "remark-rehype"
+import type { Options as RehypeHighlightOptions } from "rehype-highlight"
+import type { Options as RehypeRawOptions } from "rehype-raw"
+import type { Options as RehypeReactOptions } from "rehype-react"
+
+type MarkdownProps = {
+  content?: string
+  children?: string
+  components?: RehypeReactOptions["components"]
+  useRemarkGfm?: boolean
+  useRehypeHighlight?: boolean
+  remarkPlugins?: Plugin[]
+  rehypePlugins?: Plugin[]
+  remarkParseOptions?: RemarkParseOptions
+  remarkGfmOptions?: RemarkGfmOptions
+  remarkRehypeOptions?: RemarkRehypeOptions
+  rehypeHighlightOptions?: RehypeHighlightOptions
+  rehypeRawOptions?: RehypeRawOptions
+  rehypeReactOptions?: RehypeReactOptions
+}
+```
