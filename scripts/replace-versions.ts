@@ -7,7 +7,7 @@ import pc from "picocolors"
 
 const packages = [
   "package.json",
-  "packages/docs/package.json",
+  "docs/package.json",
   "packages/minista/package.json",
   "packages/create-minista/package.json",
 ]
