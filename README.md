@@ -33,6 +33,7 @@ $ npm create minista@latest
 
 ## Media
 
+- [React の JSX で書ける SSG を 1 から作り直した - minista v3](https://zenn.dev/qrac/articles/980efced76634f)
 - [SSG に client サイド完結型の全文検索を実装した - minista v2.7](https://zenn.dev/qrac/articles/653f7512b707ff)
 - [SSG + Partial Hydration (部分的な React App) - minista v2.4](https://zenn.dev/qrac/articles/b9c65c1c0be901)
 - [Vite と esbuild を組み込み React 製 SSG を再構築 - minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
