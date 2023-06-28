@@ -1,0 +1,131 @@
+---
+title: Panda CSS
+layout: docs
+---
+
+Panda CSS は npm install し設定ファイルを追加すれば使えます。開発中はテンプレートでオートコンプリートが効きます。本番ビルドではテンプレートに使用した CSS のみが出力されます。
+
+- [Panda CSS - Build modern websites using build time and type-safe CSS-in-JS](https://panda-css.com/)
+
+## Setup
+
+### 1. Install
+
+```sh
+$ npm install --save-dev @pandacss/dev
+```
+
+### 2. Init
+
+`postcss.config.cjs` を作成するコマンドを入力します。
+
+```sh
+$ npx panda init --postcss
+```
+
+または `postcss.config.js` 等が既にある場合はプラグイン設定を追加します。
+
+```js
+module.exports = {
+  plugins: {
+    "@pandacss/dev/postcss": {},
+  },
+}
+```
+
+### 3. Add config file
+
+プロジェクトルートに `panda.config.ts` を作成します。
+
+```ts
+import { defineConfig } from "@pandacss/dev"
+
+export default defineConfig({
+  // Whether to use css reset
+  preflight: true,
+
+  // Where to look for your css declarations
+  include: ["./src/**/*.{js,jsx,ts,tsx}"],
+
+  // Files to exclude
+  exclude: [],
+
+  // The output directory for your css system
+  outdir: "styled-system",
+})
+```
+
+### 4. Add gitignore
+
+`.gitignore` に outdir で設定したディレクトリ（ここでは `styled-system`）を追加します。
+
+### 5. Add command
+
+`package.json` を開き、以下のスクリプトを追加します。
+
+```json
+"scripts": {
+  "prepare": "panda codegen",
+},
+```
+
+### 6. Run prepare
+
+`prepare` を実行して `styled-system` を書き出します。これを元にオートコンプリートと CSS 出力が可能となります。
+
+```sh
+$ npm run prepare
+```
+
+### 7. Add CSS file
+
+PostCSS で処理するエントリー用の CSS ファイルを作成します。※例えば `src/assets/index.css`
+
+```css
+@layer reset, base, tokens, recipes, utilities;
+```
+
+### 8. Entry CSS
+
+CSS をテンプレートのどこかで読み込みます。おすすめは[グローバル](/docs/global) `src/pages/_global.tsx` での[ダイナミックエントリー](/docs/dynamic-entry)です。
+
+```tsx
+import type { GlobalProps } from "minista"
+import { Head } from "minista"
+
+export default function ({ children }: GlobalProps) {
+  return (
+    <>
+      <Head>
+        <link rel="stylesheet" href="/src/assets/index.css" />
+      </Head>
+      {children}
+    </>
+  )
+}
+```
+
+## Develop
+
+テンプレートでエディタ補完を効かせながら開発できます。
+
+```tsx
+// src/components/heading/index.tsx
+import { css } from "../../../styled-system/css"
+
+export default function ({ text }: { text: string }) {
+  return <h2 className={css({ color: "red" })}>{text}</h2>
+}
+```
+
+## Build
+
+本番ビルドはローカルではそのまま実行できますが CI 環境では `styled-system` が無いため `prepare` で出力してビルドする必要があります。事前処理を加えたコマンドを追加するのがおすすめです。
+
+```json
+"scripts": {
+  "build": "minista build",
+  "prepare": "panda codegen",
+  "prod": "npm run prepare && npm run build"
+},
+```

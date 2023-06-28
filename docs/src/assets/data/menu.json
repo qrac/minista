@@ -63,6 +63,10 @@
           "url": "/docs/postcss"
         },
         {
+          "title": "Panda CSS",
+          "url": "/docs/panda-css"
+        },
+        {
           "title": "Beautiful Code",
           "url": "/docs/beautiful-code"
         }
