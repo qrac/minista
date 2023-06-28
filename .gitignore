@@ -4,3 +4,5 @@ db.json
 *.log
 node_modules
 dist
+styled-system
+styled-system-static

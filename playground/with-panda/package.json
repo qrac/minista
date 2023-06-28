@@ -1,0 +1,14 @@
+{
+  "name": "play-with-panda",
+  "private": true,
+  "scripts": {
+    "dev": "minista",
+    "build": "minista build",
+    "preview": "minista preview",
+    "prepare": "panda codegen",
+    "prod": "npm run prepare && npm run build"
+  },
+  "devDependencies": {
+    "@pandacss/dev": "^0.5.0"
+  }
+}
