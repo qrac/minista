@@ -99,6 +99,10 @@ export type UserConfig = {
       kanji?: boolean
     }
   }
+  storyapp?: {
+    useImport?: boolean
+    outDir?: string
+  }
   delivery?: {
     include?: string[]
     exclude?: string[]

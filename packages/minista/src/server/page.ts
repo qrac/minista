@@ -6,9 +6,14 @@ import type {
   Frontmatter,
 } from "../shared/index.js"
 
+type PageComponent = () => React.CElement<
+  { [key: string]: any },
+  React.Component<PageProps, {}, any>
+>
+
 type ImportedPages = {
   [key: string]: {
-    default: new () => React.Component<PageProps>
+    default: PageComponent
     getStaticData?: GetStaticData
     metadata?: Metadata
     frontmatter?: Frontmatter
@@ -17,7 +22,7 @@ type ImportedPages = {
 
 type Page = {
   path: string
-  component: new () => React.Component<PageProps>
+  component: PageComponent
   getStaticData?: GetStaticData
   metadata: Metadata
   frontmatter: Frontmatter
@@ -25,7 +30,7 @@ type Page = {
 
 export type ResolvedPages = {
   path: string
-  component: new () => React.Component<PageProps>
+  component: PageComponent
   staticData: StaticData
   metadata: Metadata
   frontmatter: Frontmatter
@@ -33,7 +38,11 @@ export type ResolvedPages = {
 
 export function getPages(): Page[] {
   const PAGES: ImportedPages = import.meta.glob(
-    ["/src/pages/**/*.{tsx,jsx,mdx,md}", "!/src/pages/_global.{tsx,jsx}"],
+    [
+      "/src/pages/**/*.{tsx,jsx,mdx,md}",
+      "!/src/pages/_global.{tsx,jsx}",
+      "!/src/pages/**/*.stories.{js,jsx,ts,tsx,md,mdx}",
+    ],
     {
       eager: true,
     }

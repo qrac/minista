@@ -10,7 +10,11 @@ import.meta.glob(
   }
 )
 import.meta.glob(
-  ["/src/pages/**/*.{tsx,jsx,mdx,md}", "!/src/pages/_global.{tsx,jsx}"],
+  [
+    "/src/pages/**/*.{tsx,jsx,mdx,md}",
+    "!/src/pages/_global.{tsx,jsx}",
+    "!/src/pages/**/*.stories.{js,jsx,ts,tsx,md,mdx}",
+  ],
   {
     eager: true,
   }

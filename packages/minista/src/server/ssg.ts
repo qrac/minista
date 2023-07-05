@@ -8,7 +8,7 @@ export type RunSsg = {
 }
 
 export async function runSsg(config: ResolvedConfig): Promise<SsgPages> {
-  const { resolvedGlobal, resolvedPages } = await getSources()
+  const { resolvedGlobal, resolvedPages } = await getSources(config)
 
   if (!resolvedPages.length) {
     return []

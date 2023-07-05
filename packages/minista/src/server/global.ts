@@ -5,22 +5,27 @@ import type {
   Metadata,
 } from "../shared/index.js"
 
+type GlobalComponent = () => React.CElement<
+  { [key: string]: any },
+  React.Component<PageProps, {}, any>
+>
+
 type ImportedGlobals = {
   [key: string]: {
-    default?: new () => React.Component<PageProps>
+    default?: GlobalComponent
     getStaticData?: GetStaticData
     metadata?: Metadata
   }
 }
 
 type Global = {
-  component?: new () => React.Component<PageProps>
+  component?: GlobalComponent
   getStaticData?: GetStaticData
   metadata?: Metadata
 }
 
 export type ResolvedGlobal = {
-  component?: new () => React.Component<PageProps>
+  component?: GlobalComponent
   staticData: StaticData
   metadata: Metadata
 }

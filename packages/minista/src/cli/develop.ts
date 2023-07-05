@@ -90,7 +90,7 @@ function pluginDevelop(config: ResolvedConfig): Plugin {
             const { getSources } = (await server.ssrLoadModule(
               __dirname + "/../server/source.js"
             )) as { getSources: GetSources }
-            const { resolvedGlobal, resolvedPages } = await getSources()
+            const { resolvedGlobal, resolvedPages } = await getSources(config)
 
             const { headTags, startTags, endTags } = transformTags({
               command: "serve",

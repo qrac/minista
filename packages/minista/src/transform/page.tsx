@@ -8,16 +8,21 @@ import type { PageProps } from "../shared/index.js"
 import type { ResolvedGlobal } from "../server/global.js"
 import type { ResolvedPages } from "../server/page.js"
 
+type Component = () => React.CElement<
+  { [key: string]: any },
+  React.Component<PageProps, {}, any>
+>
+
 function Wrap({
   component,
   props,
   children,
 }: {
-  component?: new () => React.Component<PageProps>
+  component?: Component
   props: PageProps
   children: React.ReactNode
 }) {
-  const WrapComponent = component
+  const WrapComponent = component as React.ComponentType<PageProps>
   return (
     <>
       {WrapComponent ? (
@@ -43,7 +48,7 @@ function Page({
       <Routes>
         {routes.map((page) => {
           const WrapComponent = Wrap
-          const PageComponent = page.component
+          const PageComponent = page.component as React.ComponentType<PageProps>
           const props: PageProps = {
             title: "",
             group: "",

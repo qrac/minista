@@ -94,6 +94,10 @@ export type MainConfig = {
       kanji: boolean
     }
   }
+  storyapp: {
+    useImport: boolean
+    outDir: string
+  }
   delivery: {
     include: string[]
     exclude: string[]
@@ -228,6 +232,10 @@ export const defaultMainConfig: MainConfig = {
       katakana: true,
       kanji: true,
     },
+  },
+  storyapp: {
+    useImport: false,
+    outDir: "story",
   },
   delivery: {
     include: ["**/*"],
