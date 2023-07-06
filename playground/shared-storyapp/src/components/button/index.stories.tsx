@@ -55,3 +55,10 @@ export const Secondary: Story = {
     },
   ],
 }
+
+export const metadata = {
+  layout: "story",
+}
+export const frontmatter = {
+  layout: "story-fm",
+}

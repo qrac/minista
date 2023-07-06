@@ -41,6 +41,8 @@ type Story = {
   args: { [key: string]: any }
   parameters: StoryParameters
   decorators: StoryDecoratorFunction[]
+  metadata: Metadata
+  frontmatter: Frontmatter
 }
 type StoryPage = {
   path: string
@@ -86,7 +88,7 @@ export function getStories(config: ResolvedConfig): {
       return []
     }
     const storyList = Object.keys(storyFile)
-      .filter((key) => key !== "default")
+      .filter((key) => !["default", "metadata", "frontmatter"].includes(key))
       .map((key) => ({ storyKey: key, storyObj: storyFile[key] }))
 
     return storyList.map((item) => {
@@ -119,6 +121,8 @@ export function getStories(config: ResolvedConfig): {
         args,
         parameters,
         decorators,
+        metadata: { ...{}, ...(storyFile.metadata || {}) },
+        frontmatter: { ...{}, ...(storyFile.frontmatter || {}) },
       }
     })
   })
@@ -163,6 +167,8 @@ export function getStories(config: ResolvedConfig): {
         args,
         parameters,
         decorators,
+        metadata: { ...{}, ...(storyFile.metadata || {}) },
+        frontmatter: { ...{}, ...(storyFile.frontmatter || {}) },
       },
     ]
   })
@@ -187,13 +193,15 @@ export function getStories(config: ResolvedConfig): {
     const metadata = {
       title: item.title,
       draft: item.draft,
+      ...item.metadata,
+      ...item.frontmatter,
     } as Metadata
     return {
       path: item.path,
       component: decoratedComponent,
       getStaticData: undefined,
       metadata,
-      frontmatter: metadata,
+      frontmatter: item.frontmatter,
     }
   })
   return { storyPages, storyItems: [] }
