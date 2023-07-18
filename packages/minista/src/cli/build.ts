@@ -70,9 +70,15 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   const resolvedOut = path.join(resolvedRoot, config.main.out)
 
-  const bundleCssName = path.join(assets.outDir, assets.bundle.outName + ".css")
+  const bundleCssName = path.join(
+    assets.outDir,
+    assets.outName.replace(/\[name\]/, assets.bundle.outName) + ".css"
+  )
   const bugBundleCssName = path.join(assets.outDir, "bundle.css")
-  const hydrateJsName = path.join(assets.outDir, assets.partial.outName + ".js")
+  const hydrateJsName = path.join(
+    assets.outDir,
+    assets.outName.replace(/\[name\]/, assets.partial.outName) + ".js"
+  )
 
   let ssgResult: BuildResult
   let assetsResult: BuildResult
@@ -119,7 +125,7 @@ export async function build(inlineConfig: InlineConfig = {}) {
   )
   ssgResult = (await viteBuild(ssgConfig)) as unknown as BuildResult
   ssgItems = ssgResult.output.filter((item) => {
-    return item.fileName.match(/__minista_plugin_ssg\.js$/)
+    return item.fileName.match(/__minista_plugin_ssg.*\.js$/)
   })
 
   if (ssgItems.length > 0) {
@@ -238,10 +244,10 @@ export async function build(inlineConfig: InlineConfig = {}) {
   }
 
   assetItems = assetsResult.output.filter((item) => {
-    return !item.fileName.match(/__minista_plugin_bundle\.js$/)
+    return !item.fileName.match(/__minista_plugin_bundle.*\.js$/)
   })
   hydrateItems = hydrateResult.output.filter((item) => {
-    return item.fileName.match(/__minista_plugin_hydrate\.js$/)
+    return item.fileName.match(/__minista_plugin_hydrate.*\.js$/)
   })
   hasBundleCss = assetsResult.output.some((item) => {
     return item.fileName === bundleCssName || item.fileName === bugBundleCssName
@@ -258,8 +264,8 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   createAssets = [...assetItems, ...hydrateItems].map((item) => {
     const isCss = item.fileName.match(/.*\.css$/)
-    const isBundleCss = item.fileName.match(/__minista_plugin_bundle\.css$/)
-    const isHydrateJs = item.fileName.match(/__minista_plugin_hydrate\.js$/)
+    const isBundleCss = item.fileName.match(/__minista_plugin_bundle.*\.css$/)
+    const isHydrateJs = item.fileName.match(/__minista_plugin_hydrate.*\.js$/)
 
     let fileName = item.fileName
     isBundleCss && (fileName = bundleCssName)
