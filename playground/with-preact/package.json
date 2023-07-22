@@ -2,6 +2,6 @@
   "name": "play-with-preact",
   "private": true,
   "dependencies": {
-    "preact": "^10.15.1"
+    "preact": "^10.16.0"
   }
 }
