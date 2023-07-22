@@ -1,5 +1,4 @@
 import path from "node:path"
-import { parse as parseUrl } from "node:url"
 import fs from "fs-extra"
 
 export function getHtmlPath(pathname: string) {
@@ -29,11 +28,15 @@ export function getUniquePaths(paths: string[], excludes?: string[]) {
 }
 
 export function isLocalPath(root: string, url: string) {
-  const isAbsolute = parseUrl(url).protocol
+  if (!url) return false
 
-  if (!url || isAbsolute) {
-    return false
-  }
+  try {
+    const { protocol } = new URL(url)
+    if (protocol) {
+      return false
+    }
+  } catch (_) {}
+
   const filePath = path.join(root, url)
   return fs.existsSync(filePath)
 }

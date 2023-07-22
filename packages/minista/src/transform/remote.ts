@@ -1,6 +1,5 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
-import { parse as parseUrl } from "node:url"
 import fetch from "node-fetch"
 import fs from "fs-extra"
 import fg from "fast-glob"
@@ -13,7 +12,7 @@ import { getElements } from "../utility/element.js"
 import { getUniquePaths } from "../utility/path.js"
 
 export function getRemoteExt(url: string) {
-  const pathname = parseUrl(url).pathname || ""
+  const pathname = new URL(url).pathname || ""
   const parsedName = path.parse(pathname)
   return parsedName.ext.replace(/^\./, "") || ""
 }
