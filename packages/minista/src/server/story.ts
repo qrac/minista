@@ -74,19 +74,19 @@ export function getStories(config: ResolvedConfig): {
   const jsStories: Story[][] = Object.keys(JS_STORIES).map((storyFileKey) => {
     const storyFile = JS_STORIES[storyFileKey]
     const storyMeta = storyFile.default
+
+    if (!storyMeta?.id || !storyMeta?.title) {
+      return []
+    }
     const storyBase = "/" + config.main.storyapp.outDir
-    const storyId = ((storyMeta.id || storyMeta.title || "") as string)
+    const storyId = ((storyMeta.id || storyMeta.title) as string)
       .split("/")
       .map((id) => id.trim().toLowerCase())
       .join("/")
-    const storyTitle = ((storyMeta.title || "") as string)
+    const storyTitle = (storyMeta.title as string)
       .split("/")
       .map((title) => title.trim())
       .join(" / ")
-
-    if (!storyId || !storyTitle) {
-      return []
-    }
     const storyList = Object.keys(storyFile)
       .filter((key) => !["default", "metadata", "frontmatter"].includes(key))
       .map((key) => ({ storyKey: key, storyObj: storyFile[key] }))
