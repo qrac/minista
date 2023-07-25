@@ -46,7 +46,7 @@
     "build:src": "tsx ../../scripts/build-sources.ts",
     "build:type": "tsc",
     "clean": "rimraf ./dist",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "cac": "^6.7.14",
