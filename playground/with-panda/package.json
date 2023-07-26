@@ -9,6 +9,6 @@
     "prod": "npm run prepare && npm run build"
   },
   "devDependencies": {
-    "@pandacss/dev": "^0.7.0"
+    "@pandacss/dev": "^0.8.0"
   }
 }

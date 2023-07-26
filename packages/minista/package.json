@@ -82,15 +82,15 @@
     "cac": "^6.7.14",
     "dayjs": "^1.11.9",
     "deepmerge-ts": "^5.1.0",
-    "esbuild": "^0.18.15",
-    "fast-glob": "^3.3.0",
+    "esbuild": "^0.18.17",
+    "fast-glob": "^3.3.1",
     "fs-extra": "^11.1.1",
     "iconv-lite": "^0.6.3",
     "image-size": "^1.0.2",
     "js-beautify": "^1.14.9",
     "mime-types": "^2.1.35",
     "mojigiri": "^0.3.0",
-    "node-fetch": "^3.3.1",
+    "node-fetch": "^3.3.2",
     "node-html-parser": "^6.1.5",
     "picocolors": "^1.0.0",
     "picomatch": "^2.3.1",
@@ -106,6 +106,6 @@
     "remark-rehype": "^10.1.0",
     "sharp": "^0.32.4",
     "unified": "^10.1.2",
-    "vite": "^4.4.6"
+    "vite": "^4.4.7"
   }
 }

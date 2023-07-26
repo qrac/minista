@@ -11,7 +11,7 @@
     "semi": false
   },
   "devDependencies": {
-    "@types/react": "^18.2.15",
+    "@types/react": "^18.2.16",
     "@types/react-dom": "^18.2.7",
     "minista": "^3.1.3",
     "react": "^18.2.0",
