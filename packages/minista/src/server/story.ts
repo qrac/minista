@@ -75,7 +75,7 @@ export function getStories(config: ResolvedConfig): {
     const storyFile = JS_STORIES[storyFileKey]
     const storyMeta = storyFile.default
 
-    if (!storyMeta?.id || !storyMeta?.title) {
+    if (!storyMeta?.id && !storyMeta?.title) {
       return []
     }
     const storyBase = "/" + config.main.storyapp.outDir
