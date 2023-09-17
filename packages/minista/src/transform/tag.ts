@@ -30,7 +30,7 @@ export function getLinkTag({
     assetPath = path.join("/", "@minista-project-root", input)
     return `<link rel="stylesheet"${attrs} href="${assetPath}">`
   }
-  assetPath = path.join(resolvedBase, assets.outDir, name + ".css")
+  assetPath = `${resolvedBase}${assets.outDir}/${name}.css`
   assetPath = assetPath.replace(/-ministaDuplicateName\d*/, "")
 
   return `<link rel="stylesheet"${attrs} href="${assetPath}" ${flags.entried}>`
@@ -59,10 +59,10 @@ export function getScriptTag({
   attrs = attributes === false ? "" : attrs
 
   if (command === "serve") {
-    assetPath = path.join("/", "@minista-project-root", input)
+    assetPath = `/@minista-project-root/${input}`
     return `<script${attrs} src="${assetPath}"></script>`
   }
-  assetPath = path.join(resolvedBase, assets.outDir, name + ".js")
+  assetPath = `${resolvedBase}${assets.outDir}/${name}.js`
   assetPath = assetPath.replace(/-ministaDuplicateName\d*/, "")
 
   return `<script${attrs} src="${assetPath}" ${flags.entried}></script>`
@@ -143,16 +143,8 @@ export function transformTags({
     hydrateHeadScriptTag = `<script type="module" src="${hydratePath}"></script>`
   }
   if (command === "build") {
-    const bundlePath = path.join(
-      resolvedBase,
-      assets.outDir,
-      assets.bundle.outName + ".css"
-    )
-    const hydratePath = path.join(
-      resolvedBase,
-      assets.outDir,
-      assets.partial.outName + ".js"
-    )
+    const bundlePath = `${resolvedBase}${assets.outDir}/${assets.bundle.outName}.css`
+    const hydratePath = `${resolvedBase}${assets.outDir}/${assets.partial.outName}.js`
     bundleHeadLinkTag = `<link rel="stylesheet" href="${bundlePath}" ${flags.entried} ${flags.bundle}>`
     hydrateHeadScriptTag = `<script type="module" src="${hydratePath}" ${flags.entried} ${flags.hydrate}></script>`
   }
