@@ -195,7 +195,7 @@ export async function resolveUserConfig(
       console.error(err)
     })
     const { default: compiledUserConfig }: { default: UserConfig } =
-      await import(compiledConfigPath)
+      await import(pathToFileURL(compiledConfigPath).href)
     const customDeepmerge = deepmergeCustom({
       mergeArrays: false,
     })
