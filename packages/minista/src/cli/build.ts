@@ -138,8 +138,6 @@ export async function build(inlineConfig: InlineConfig = {}) {
     ssgPages = await runSsg(config)
   }
 
-  console.log("test")
-
   if (ssgPages.length > 0) {
     parsedPages = ssgPages.map((page) => {
       const parsedHtml = parseHtml(page.html, { comment: true }) as NHTMLElement
