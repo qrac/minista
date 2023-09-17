@@ -80,7 +80,7 @@ async function main(root: string, options: CliOptions) {
     ...(template ? { template } : await prompts(questions.template)),
   } as { template: string }
 
-  const target = `${path.join(repo, configs.template)}${tag}`
+  const target = `${repo}/${configs.template}${tag}`
   const emitter = degit(target, { cache: false, force: true, verbose: false })
 
   try {
