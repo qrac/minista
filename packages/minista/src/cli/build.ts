@@ -1,6 +1,7 @@
 import type { RollupOutput } from "rollup"
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
+import { pathToFileURL } from "node:url"
 import fs from "fs-extra"
 import {
   defineConfig as defineViteConfig,
@@ -132,9 +133,12 @@ export async function build(inlineConfig: InlineConfig = {}) {
     const ssgPath = path.join(tempDir, "ssg.mjs")
     const ssgData = ssgItems[0].source || ssgItems[0].code || ""
     await fs.outputFile(ssgPath, ssgData)
-    const { runSsg }: { runSsg: RunSsg } = await import(ssgPath)
+    const ssgUrl = pathToFileURL(ssgPath).href
+    const { runSsg }: { runSsg: RunSsg } = await import(ssgUrl)
     ssgPages = await runSsg(config)
   }
+
+  console.log("test")
 
   if (ssgPages.length > 0) {
     parsedPages = ssgPages.map((page) => {
