@@ -14,6 +14,7 @@ import type {
   JSBeautifyOptions,
 } from "js-beautify"
 import path from "node:path"
+import { fileURLToPath, pathToFileURL } from "node:url"
 import fs from "fs-extra"
 import { normalizePath } from "vite"
 import { build as esBuild } from "esbuild"
@@ -172,8 +173,10 @@ export async function resolveUserConfig(
       ".minista",
       "minista.config.mjs"
     )
+    const entryPointUrl = pathToFileURL(path.resolve(configPath))
+    const entryPointPath = fileURLToPath(entryPointUrl)
     await esBuild({
-      entryPoints: [configPath],
+      entryPoints: [entryPointPath],
       outfile: compiledConfigPath,
       bundle: true,
       format: "esm",
@@ -184,10 +187,12 @@ export async function resolveUserConfig(
           name: "minista-esbuild-plugin:external",
           setup(build) {
             let filter = /^[^.\/]|^\.[^.\/]|^\.\.[^\/]/
-            build.onResolve({ filter }, (args) => ({
-              path: args.path,
-              external: true,
-            }))
+            build.onResolve({ filter }, (args) => {
+              if (args.path === entryPointPath) {
+                return { path: args.path, external: false }
+              }
+              return { path: args.path, external: true }
+            })
           },
         },
       ],
