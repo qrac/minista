@@ -61,6 +61,10 @@ export async function generatePages({
 
       data = parsedHtml.toString()
 
+      data = data.replace(/src="([^"]+)"/g, (match, p1) => {
+        return `src="${p1.replace(/\\/g, "/")}"`
+      })
+
       if (useHtml) {
         data = beautify.html(data, htmlOptions)
       }
