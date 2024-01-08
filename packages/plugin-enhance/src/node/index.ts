@@ -6,6 +6,6 @@ import { pluginEnhanceServe } from "./serve.js"
 import { pluginEnhanceBuild } from "./build.js"
 
 export function pluginEnhance(opts: UserPluginOptions = {}): Plugin[] {
-  const _opts: PluginOptions = { ...opts, ...defaultOptions }
+  const _opts: PluginOptions = { ...defaultOptions, ...opts }
   return [pluginEnhanceServe(_opts), pluginEnhanceBuild(_opts)]
 }

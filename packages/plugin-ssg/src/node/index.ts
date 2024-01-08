@@ -6,6 +6,6 @@ import { pluginSsgServe } from "./serve.js"
 import { pluginSsgBuild } from "./build.js"
 
 export function pluginSsg(opts: UserPluginOptions = {}): Plugin[] {
-  const _opts: PluginOptions = { ...opts, ...defaultOptions }
+  const _opts: PluginOptions = { ...defaultOptions, ...opts }
   return [pluginSsgServe(_opts), pluginSsgBuild(_opts)]
 }

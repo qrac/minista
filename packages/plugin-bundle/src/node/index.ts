@@ -5,6 +5,6 @@ import { defaultOptions } from "./option.js"
 import { pluginBundleBuild } from "./build.js"
 
 export function pluginBundle(opts: UserPluginOptions = {}): Plugin[] {
-  const _opts: PluginOptions = { ...opts, ...defaultOptions }
+  const _opts: PluginOptions = { ...defaultOptions, ...opts }
   return [pluginBundleBuild(_opts)]
 }
