@@ -22,9 +22,9 @@
     }
   },
   "scripts": {
-    "build": "npm run clean && npm run build:src && npm run build:type",
-    "build:src": "esbuild ./src/client/*.ts ./src/node/*.{ts,tsx} ./src/shared/*.ts --outbase=src --outdir=dist",
-    "build:type": "tsc",
+    "build": "npm run clean && npm run build-src && npm run build-type",
+    "build-src": "esbuild ./src/client/*.ts ./src/node/*.{ts,tsx} ./src/shared/*.ts --outbase=src --outdir=dist",
+    "build-type": "tsc",
     "clean": "rimraf ./dist",
     "prepublishOnly": "npm run build"
   },
