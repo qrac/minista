@@ -5,7 +5,7 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "minista-shared-head": "./packages/shared-head/dist/node/index.js",
+    "minista-shared-head-client": "./packages/shared-head/dist/client/index.js",
+    "minista-shared-head-shared": "./packages/shared-head/dist/shared/index.js",
+    "minista-shared-utils": "./packages/shared-utils/dist/node/index.js"
+  }
+}

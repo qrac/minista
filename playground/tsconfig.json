@@ -3,7 +3,7 @@
     "target": "esnext",
     "module": "esnext",
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "noErrorTruncation": true,

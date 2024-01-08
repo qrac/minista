@@ -1,0 +1,32 @@
+{
+  "name": "minista-plugin-beautify",
+  "version": "4.0.0-alpha.0",
+  "type": "module",
+  "engines": {
+    "node": "^18.0.0 || >=20.0.0"
+  },
+  "types": "dist/types/@types/node.d.ts",
+  "main": "dist/node/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/types/@types/node.d.ts",
+      "default": "./dist/node/index.js"
+    }
+  },
+  "scripts": {
+    "build": "npm run clean && npm run build:src && npm run build:type",
+    "build:src": "esbuild ./src/node/*.ts --outbase=src --outdir=dist",
+    "build:type": "tsc",
+    "clean": "rimraf ./dist",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "vite": ">=5.0.0"
+  },
+  "dependencies": {
+    "js-beautify": "^1.14.11",
+    "picomatch": "^3.0.1"
+  }
+}

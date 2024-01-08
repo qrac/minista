@@ -1,7 +1,7 @@
 {
   "name": "create-minista",
   "description": "Scaffolding for minista projects",
-  "version": "3.1.5",
+  "version": "4.0.0-alpha.0",
   "type": "module",
   "bin": {
     "create-minista": "./bin/create-minista.js"
@@ -43,7 +43,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build:src && npm run build:type",
-    "build:src": "tsx ../../scripts/build-sources.ts",
+    "build:src": "esbuild ./src/*.ts --outbase=src --outdir=dist",
     "build:type": "tsc",
     "clean": "rimraf ./dist",
     "prepublishOnly": "npm run build"

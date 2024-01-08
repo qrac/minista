@@ -2,9 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "declarationDir": "dist/types",
-    "jsx": "react-jsx",
-    "types": ["minista/client"]
+    "declarationDir": "dist/types"
   },
   "include": ["src", "templates"]
 }
