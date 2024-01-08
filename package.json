@@ -21,6 +21,8 @@
     "build-src:entry": "cd ./packages/plugin-entry && npm run build-src",
     "build:beautify": "cd ./packages/plugin-beautify && npm run build",
     "build-src:beautify": "cd ./packages/plugin-beautify && npm run build-src",
+    "build:archive": "cd ./packages/plugin-archive && npm run build",
+    "build-src:archive": "cd ./packages/plugin-archive && npm run build-src",
     "build:head": "cd ./packages/shared-head && npm run build",
     "build-src:head": "cd ./packages/shared-head && npm run build-src",
     "build:utils": "cd ./packages/shared-utils && npm run build",
@@ -39,6 +41,9 @@
     "play:beautify": "npx minista ./playground/beautify",
     "play-build:beautify": "npx minista build ./playground/beautify",
     "play-preview:beautify": "npx minista preview ./playground/beautify",
+    "play:archive": "npx minista ./playground/archive",
+    "play-build:archive": "npx minista build ./playground/archive",
+    "play-preview:archive": "npx minista preview ./playground/archive",
     "deno": "deno run --allow-read --allow-net --allow-env --allow-run --import-map=import_map.json ./packages/minista/bin/minista.js ./playground/_default",
     "deno:build": "deno run --allow-read --allow-net --allow-env --allow-run --import-map=import_map.json ./packages/minista/bin/minista.js build ./playground/_default",
     "bun": "bun minista ./playground/_default",
@@ -52,6 +57,7 @@
     "playground/*"
   ],
   "devDependencies": {
+    "@types/archiver": "^6.0.2",
     "@types/js-beautify": "^1.14.3",
     "@types/node": "^20.10.6",
     "@types/picomatch": "^2.3.3",
