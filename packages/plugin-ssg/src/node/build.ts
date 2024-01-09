@@ -67,6 +67,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
                 [id]: globFile,
               },
               output: {
+                chunkFileNames: "[name].mjs",
                 entryFileNames: "[name].mjs",
               },
             },
