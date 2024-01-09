@@ -1,7 +1,14 @@
 import { renderToString } from "react-dom/server"
 
 import type { HeadData } from "minista-shared-head/shared"
-import { HeadProvider } from "minista-shared-head"
+import {
+  HeadProvider,
+  transformAttrs,
+  checkTagsCharset,
+  checkTagsViewport,
+  filterKeyTags,
+  transformTags,
+} from "minista-shared-head"
 
 import type { PageProps } from "../@types/shared.js"
 import type { ResolvedLayout, ResolvedPage } from "../@types/node.js"
@@ -48,38 +55,52 @@ export function transformHtml({
   //console.log("headData:", headData)
   //console.log("headData:", JSON.stringify(headData, null, 2))
 
-  /*const { helmet } = helmetContext as { helmet: HelmetServerState }
+  const htmlAttrs = headData.htmlAttributes || {}
+  const bodyAttrs = headData.bodyAttributes || {}
+  const tags = headData.tags || []
 
-  let htmlAttributes = ` lang="ja" ${helmet.htmlAttributes.toString()}`
-  let bodyAttributes = ""
+  const htmlAttrStr = transformAttrs({ ...{ lang: "ja" }, ...htmlAttrs })
+  const bodyAttrStr = transformAttrs(bodyAttrs)
 
-  if (Object.hasOwn(helmet.htmlAttributes.toComponent(), "lang")) {
-    htmlAttributes = " " + helmet.htmlAttributes.toString()
-  }
-  if (helmet.bodyAttributes) {
-    bodyAttributes = " " + helmet.bodyAttributes.toString()
-  }
+  const hasCharset = checkTagsCharset(tags)
+  const hasViewport = checkTagsViewport(tags)
 
-  const metaAll = helmet.meta.toString()
+  const addedTags = [
+    !hasCharset && {
+      type: "meta",
+      key: null,
+      props: {
+        charset: "UTF-8",
+      },
+    },
+    !hasViewport && {
+      type: "meta",
+      key: null,
+      props: {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1.0",
+      },
+    },
+    headData.title && {
+      type: "title",
+      key: null,
+      props: {
+        children: headData.title,
+      },
+    },
+    ...tags,
+  ].filter((item) => item) as React.ReactElement[]
+  const filterdTags = filterKeyTags(addedTags)
+  const tagsStr = transformTags(filterdTags)
 
-  const metaCharsetDefault = `<meta charset="UTF-8" />`
-  const metaCharsetReg = /<meta[^<>]*?charset=.*?\/>/gi
-  const metaCharsetArray = metaAll.match(metaCharsetReg) || [""]
-
-  const metaViewportDefault = `<meta name="viewport" content="width=device-width, initial-scale=1.0" />`
-  const metaViewportReg = /<meta[^<>]*?name="viewport".*?\/>/gi
-  const metaViewportArray = metaAll.match(metaViewportReg) || [""]
-
-  let metaCharset: string
-  metaCharset = metaCharsetArray.at(-1) || ""
-  metaCharset = metaCharset || metaCharsetDefault
-
-  let metaViewport: string
-  metaViewport = metaViewportArray.at(-1) || ""
-  metaViewport = metaViewport || metaViewportDefault
-
-  let metaOther: string
-  metaOther = metaAll || ""
-  metaOther = metaOther.replace(metaCharsetReg, "").replace(metaViewportReg, "")*/
-  return `<!doctype html><html><head></head><body>${markup}</body></html>`
+  return (
+    `<!doctype html>` +
+    `<html${htmlAttrStr ? " " + htmlAttrStr : ""}>` +
+    `<head>` +
+    tagsStr +
+    `</head>` +
+    `<body${bodyAttrStr ? " " + bodyAttrStr : ""}>` +
+    markup +
+    `</body></html>`
+  )
 }
