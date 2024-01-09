@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build-src && npm run build-type",
-    "build-src": "esbuild ./src/node/*.{ts,tsx} --outbase=src --outdir=dist",
+    "build-src": "esbuild ./src/node/*.ts --outbase=src --outdir=dist",
     "build-type": "tsc",
     "clean": "rimraf ./dist",
     "prepublishOnly": "npm run build"
