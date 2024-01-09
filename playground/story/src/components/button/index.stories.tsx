@@ -2,6 +2,10 @@ import type { StoryMeta as Meta, StoryObj } from "minista-plugin-story/client"
 
 import Component from "."
 
+export const metadata = {
+  layout: "story",
+}
+
 const meta = {
   title: "Components/Button",
   component: Component,
@@ -54,8 +58,4 @@ export const Secondary: Story = {
       )
     },
   ],
-}
-
-export const metadata = {
-  layout: "story",
 }

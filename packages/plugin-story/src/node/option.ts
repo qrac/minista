@@ -11,7 +11,7 @@ export type PluginOptions = {
 }
 
 export const defaultOptions: PluginOptions = {
-  layoutRoot: "/src/layouts/index.{tsx,jsx}",
+  layoutRoot: "/src/layouts/story.{tsx,jsx}",
   src: ["/src/**/*.stories.{tsx,ts,jsx,js,mdx,md}"],
   outDir: "story",
 }
