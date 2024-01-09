@@ -71,9 +71,11 @@ export function pluginSsgServe(opts: PluginOptions): Plugin {
             if (resolvedPage) {
               html = transformHtml({ resolvedLayout, resolvedPage })
               html = await server.transformIndexHtml(originalUrl, html)
+              res.statusCode = 200
+              res.end(html)
+            } else {
+              next()
             }
-            res.statusCode = 200
-            res.end(html)
           } catch (e: any) {
             server.ssrFixStacktrace(e)
             next(e)
