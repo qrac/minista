@@ -7,7 +7,7 @@
     "node": "^18.0.0 || >=20.0.0"
   },
   "scripts": {
-    "build": "run-s build:utils build:head && run-p build:main build:ssg build:enhance build:bundle build:entry build:beautify",
+    "build": "run-s build:utils build:head && run-p build:main build:ssg build:enhance build:bundle build:entry build:mdx build:story build:beautify build:archive",
     "build-src": "run-p build-src:*",
     "build:main": "cd ./packages/minista && npm run build",
     "build-src:main": "cd ./packages/minista && npm run build-src",
