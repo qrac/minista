@@ -9,7 +9,7 @@ describe("getPagePath", () => {
   })
 
   it("root, has srcBase", () => {
-    const result = getPagePath("/src/pages/index.tsx", "/src/pages")
+    const result = getPagePath("/src/pages/index.tsx", ["/src/pages"])
     expect(result).toEqual("/")
   })
 
