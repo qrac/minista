@@ -1,6 +1,6 @@
 {
   "name": "minista-plugin-entry",
-  "version": "4.0.0-alpha.0",
+  "version": "4.0.0-alpha.1",
   "type": "module",
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
@@ -61,6 +61,6 @@
   },
   "dependencies": {
     "fast-glob": "^3.3.2",
-    "minista-shared-utils": "^4.0.0-alpha.0"
+    "minista-shared-utils": "^4.0.0-alpha.1"
   }
 }

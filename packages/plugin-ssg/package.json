@@ -1,6 +1,6 @@
 {
   "name": "minista-plugin-ssg",
-  "version": "4.0.0-alpha.0",
+  "version": "4.0.0-alpha.1",
   "type": "module",
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
@@ -64,7 +64,7 @@
     "vite": ">=5.0.0"
   },
   "dependencies": {
-    "minista-shared-head": "^4.0.0-alpha.0",
-    "minista-shared-utils": "^4.0.0-alpha.0"
+    "minista-shared-head": "^4.0.0-alpha.1",
+    "minista-shared-utils": "^4.0.0-alpha.1"
   }
 }
