@@ -13,17 +13,17 @@ export function StoryAppBrand({
     <div className="storyapp-brand">
       <Link brandUrl={brandUrl} brandTarget={brandTarget}>
         {brandImage ? (
-          <span className="storyapp-brand-logo-wrap">
+          <div className="storyapp-brand-logo-wrap">
             <img
               className="storyapp-brand-logo"
               src={brandImage}
               alt={brandTitle}
             />
-          </span>
+          </div>
         ) : (
-          <span className="storyapp-brand-title-wrap">
+          <div className="storyapp-brand-title-wrap">
             <span className="storyapp-brand-title">{brandTitle}</span>
-          </span>
+          </div>
         )}
       </Link>
     </div>
