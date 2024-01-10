@@ -11,3 +11,4 @@ export type {
 } from "./shared.js"
 
 export * from "../client/index.js"
+export type { NavItem } from "../client/option.js"
