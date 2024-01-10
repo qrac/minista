@@ -13,6 +13,40 @@
       "default": "./dist/node/index.js"
     }
   },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT",
+  "homepage": "https://minista.qranoko.jp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qrac/minista",
+    "directory": "packages/plugin-archive"
+  },
+  "bugs": {
+    "url": "https://github.com/qrac/minista/issues"
+  },
+  "keywords": [
+    "static-site-generator",
+    "ssg",
+    "coding",
+    "react",
+    "jsx",
+    "tsx",
+    "typescript",
+    "esbuild",
+    "vite",
+    "japanese",
+    "minista"
+  ],
+  "author": {
+    "name": "Qrac",
+    "url": "https://qrac.jp"
+  },
+  "organization": {
+    "name": "QRANOKO",
+    "url": "https://qranoko.jp"
+  },
   "scripts": {
     "build": "npm run clean && npm run build-src && npm run build-type",
     "build-src": "esbuild ./src/node/*.ts --outbase=src --outdir=dist",

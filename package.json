@@ -6,6 +6,28 @@
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
   },
+  "homepage": "https://minista.qranoko.jp",
+  "keywords": [
+    "static-site-generator",
+    "ssg",
+    "coding",
+    "react",
+    "jsx",
+    "tsx",
+    "typescript",
+    "esbuild",
+    "vite",
+    "japanese",
+    "minista"
+  ],
+  "author": {
+    "name": "Qrac",
+    "url": "https://qrac.jp"
+  },
+  "organization": {
+    "name": "QRANOKO",
+    "url": "https://qranoko.jp"
+  },
   "scripts": {
     "build": "run-s build:utils build:head && run-p build:main build:ssg build:enhance build:bundle build:entry build:mdx build:story build:beautify build:archive",
     "build-src": "run-p build-src:*",
