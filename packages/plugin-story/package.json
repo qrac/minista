@@ -15,7 +15,8 @@
     "./client": {
       "types": "./dist/types/@types/client.d.ts",
       "default": "./dist/client/index.js"
-    }
+    },
+    "./css/": "./dist/css/"
   },
   "files": [
     "dist"
@@ -53,7 +54,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build-src && npm run build-type",
-    "build-src": "esbuild ./src/client/*.ts ./src/node/*.{ts,tsx} --outbase=src --outdir=dist",
+    "build-src": "esbuild ./src/client/*.{ts,tsx} ./src/client/**/*.{tsx,css} ./src/node/*.{ts,tsx} ./src/css/*.css ./src/css/**/*.css --outbase=src --outdir=dist",
     "build-type": "tsc",
     "clean": "rimraf ./dist",
     "prepublishOnly": "npm run build"
@@ -64,7 +65,11 @@
     "vite": ">=5.0.0"
   },
   "dependencies": {
+    "clsx": "^2.1.0",
+    "highlight.js": "^11.9.0",
     "minista-shared-head": "^4.0.0-alpha.0",
-    "minista-shared-utils": "^4.0.0-alpha.0"
+    "minista-shared-utils": "^4.0.0-alpha.0",
+    "query-string": "^8.1.0",
+    "react-icons": "^5.0.0"
   }
 }

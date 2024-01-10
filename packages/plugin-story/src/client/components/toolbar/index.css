@@ -1,0 +1,77 @@
+.storyapp-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  min-height: 41px;
+  background-color: var(--theme-bg-1);
+  border-bottom: 1px solid var(--theme-bd-1);
+}
+
+.storyapp-toolbar-column {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.storyapp-toolbar-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.storyapp-toolbar-count {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--theme-font-sans-en);
+}
+
+.storyapp-toolbar-input {
+  padding: 4px;
+  background-color: var(--theme-bg-1);
+  border: 1px solid var(--theme-bd-1);
+  border-radius: 3px;
+  color: inherit;
+  font-size: 12px;
+  height: 24px;
+}
+
+.storyapp-toolbar-input.is-size {
+  width: 100px;
+  text-align: center;
+}
+
+.storyapp-toolbar-select {
+  padding: 4px;
+  background-color: var(--theme-bg-1);
+  border: 1px solid var(--theme-bd-1);
+  border-radius: 3px;
+  color: inherit;
+  font-size: 12px;
+  height: 24px;
+}
+
+.storyapp-toolbar-icon-button {
+  cursor: pointer;
+  display: flex;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--theme-tx-2);
+}
+
+.storyapp-toolbar-icon-button:hover {
+  background-color: var(--theme-ac-1-alpha);
+  color: var(--theme-ac-1);
+}
+
+.storyapp-toolbar-icon-wrap {
+  display: flex;
+  padding: 4px;
+}
+
+.storyapp-toolbar-icon {
+  width: 20px;
+  height: 20px;
+  color: inherit;
+}

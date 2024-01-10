@@ -1,0 +1,114 @@
+.docs {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 60px 20px 40vh;
+}
+
+.docs-header {
+  margin-bottom: 32px;
+}
+
+.docs-title {
+  font-size: 32px;
+}
+
+.docs-contents > * + * {
+  margin-top: 20px;
+}
+
+.docs-contents :is(h1, h2, h3, h4, h5, h6):not(:first-child) {
+  padding-top: 1.5em;
+}
+
+.docs-contents h2 {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--theme-bd-1);
+  font-size: 24px;
+}
+
+.docs-contents a {
+  color: var(--theme-ac-1);
+}
+
+.docs-contents ol:not([class]),
+.docs-contents ul:not([class]) {
+  padding-left: 32px;
+}
+
+.docs-contents ol:not([class]) {
+  list-style: decimal;
+}
+
+.docs-contents ul:not([class]) {
+  list-style: disc;
+}
+
+.docs-contents ol:not([class]) > li,
+.docs-contents ul:not([class]) > li {
+  margin-top: 8px;
+}
+
+.docs-contents table {
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+@media (max-width: 999px) {
+  .docs-contents table {
+    display: block;
+    max-width: 100%;
+    width: max-content;
+    overflow: auto;
+    white-space: nowrap;
+  }
+}
+
+.docs-contents table tr {
+  border-top: 1px solid var(--theme-bd-1);
+}
+
+.docs-contents table th,
+.docs-contents table td {
+  padding: 12px 16px;
+  border: 1px solid var(--theme-bd-1);
+}
+
+.docs-contents table th {
+  font-weight: 600;
+}
+
+.docs-contents :not(pre) > code {
+  padding: 0.2em 0.5em;
+  background-color: var(--code-bg-2);
+  border-radius: 2px;
+  color: var(--code-ac-1);
+  font-size: 87.5%;
+  font-family: var(--theme-font-mono);
+  word-break: break-all;
+}
+
+.docs-contents pre {
+  padding: 0;
+  background-color: var(--code-bg-2);
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: var(--theme-font-mono);
+  line-height: 1.5;
+  letter-spacing: 0.00125em;
+  word-wrap: normal;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.docs-contents pre code,
+.docs-contents pre .hljs {
+  padding: 24px;
+  background-color: transparent;
+  color: var(--code-tx-1);
+  overflow: auto;
+}
+
+.docs-contents pre code {
+  display: block;
+}

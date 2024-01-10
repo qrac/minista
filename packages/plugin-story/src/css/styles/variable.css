@@ -1,0 +1,32 @@
+:root {
+  --theme-font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Noto Sans Japanese", Meiryo, "Yu Gothic Medium", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --theme-font-sans-en: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --theme-font-mono: "JetBrains Mono", Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", Meiryo, monospace, serif;
+  --theme-sidebar-width: 230px;
+}
+
+:root {
+  --theme-tx-1: #000000;
+  --theme-tx-2: #3f404c;
+  --theme-tx-3: #829099;
+  --theme-bg-1: #ffffff;
+  --theme-bg-2: #f7f9fc;
+  --theme-bg-3: #c7c7ca;
+  --theme-bd-1: #dfe6eb;
+  --theme-ac-1: #019cfd;
+  --theme-ac-1-tx: #ffffff;
+  --theme-ac-1-alpha: rgba(2, 156, 253, 0.12);
+  --theme-ac-2: #ff8300;
+  --theme-ac-3: #37d5d3;
+}
+
+:root {
+  --code-tx-1: #3f404c;
+  --code-bg-1: #ffffff;
+  --code-bg-2: #f7f9fc;
+  --code-ac-1: #005cc5;
+}

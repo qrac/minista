@@ -1,0 +1,24 @@
+.storyapp-docs-button {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  padding: 8px 16px;
+  background-color: var(--theme-ac-1);
+  border-radius: 6px;
+  color: var(--theme-ac-1-tx) !important;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--theme-font-sans-en);
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .storyapp-docs-button:hover {
+    filter: brightness(0.9);
+  }
+}

@@ -1,0 +1,7 @@
+@import "highlight.js/styles/github.css";
+
+@import "./styles/variable.css";
+@import "./styles/reset.css";
+@import "./styles/docs.css";
+@import "../client/components/docs/demo/index.css";
+@import "../client/components/docs/button/index.css";

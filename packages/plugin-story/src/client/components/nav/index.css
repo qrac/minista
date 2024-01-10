@@ -1,0 +1,53 @@
+.storyapp-nav {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  align-self: flex-start;
+  gap: 20px;
+  padding-bottom: 120px;
+  overflow-y: auto;
+}
+
+.storyapp-nav-category-title {
+  display: flex;
+  padding: 4px 24px;
+  color: var(--theme-tx-3);
+  font-size: 12px;
+  font-family: var(--theme-font-sans-en);
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+}
+
+.storyapp-nav-item-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 24px;
+  font-size: 14px;
+  color: var(--theme-tx-2);
+  text-decoration: none;
+}
+
+.storyapp-nav-item-link:hover {
+  background-color: var(--theme-ac-1-alpha);
+  color: var(--theme-ac-1);
+}
+
+.storyapp-nav-item-link.is-current {
+  background-color: var(--theme-ac-1);
+  color: var(--theme-ac-1-tx);
+}
+
+.storyapp-nav-item-icon {
+  width: 14px;
+  height: 14px;
+  color: inherit;
+}
+
+.storyapp-nav-item-icon.is-color-doc {
+  color: var(--theme-ac-2);
+}
+
+.storyapp-nav-item-icon.is-color-story {
+  color: var(--theme-ac-3);
+}

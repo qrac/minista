@@ -1,0 +1,12 @@
+@import "./styles/variable.css";
+@import "./styles/reset.css";
+
+@import "../client/components/layout/index.css";
+@import "../client/components/header/index.css";
+@import "../client/components/brand/index.css";
+@import "../client/components/nav/index.css";
+@import "../client/components/main/index.css";
+@import "../client/components/stage/index.css";
+@import "../client/components/toolbar/index.css";
+@import "../client/components/canvas/index.css";
+@import "../client/components/iframe/index.css";

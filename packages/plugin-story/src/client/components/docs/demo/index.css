@@ -1,0 +1,40 @@
+.storyapp-docs-demo > * + * {
+  margin-top: 4px;
+}
+
+.storyapp-docs-demo-main.is-wide {
+  margin-right: calc(50% - 50vw);
+  margin-left: calc(50% - 50vw);
+  padding: 0 20px;
+}
+
+.storyapp-docs-demo-main.is-wide .storyapp-docs-demo-card {
+  max-width: 1250px;
+}
+
+.storyapp-docs-demo-card {
+  margin-right: auto;
+  margin-left: auto;
+  padding: 24px;
+  border: 1px solid var(--theme-bd-1);
+  border-radius: 8px;
+}
+
+.storyapp-docs-demo-inner {
+  position: relative;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.storyapp-docs-demo-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.storyapp-docs-demo-link-text {
+  font-size: 14px;
+}
