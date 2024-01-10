@@ -82,7 +82,7 @@
     "bun:build": "bun minista build ./playground/_default",
     "up": "npx npm-check-updates --deep --reject minista-shared-head,minista-shared-utils",
     "up:u": "npx npm-check-updates --deep -u --reject minista-shared-head,minista-shared-utils",
-    "rev": "npx npm-replace-versions --deps minista-shared-head,minista-shared-utils",
+    "rev": "npx npm-replace-versions --deps minista-shared-head,minista-shared-utils --ignore **/node_modules",
     "release": "run-s release:*",
     "release:main": "cd ./packages/minista && npm publish",
     "release-next": "run-s release-next:*",
