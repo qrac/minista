@@ -1,6 +1,6 @@
 {
   "name": "minista-plugin-bundle",
-  "version": "4.0.0-alpha.2",
+  "version": "4.0.0-alpha.3",
   "type": "module",
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
@@ -60,6 +60,6 @@
     "vite": ">=5.0.0"
   },
   "dependencies": {
-    "minista-shared-utils": "^4.0.0-alpha.2"
+    "minista-shared-utils": "^4.0.0-alpha.3"
   }
 }
