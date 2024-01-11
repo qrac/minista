@@ -141,12 +141,13 @@ export function pluginEntryBuild(): Plugin {
       })
 
       entryChanges.map((item) => {
-        item.htmlFiles.map((htmlFile) => {
+        return item.htmlFiles.map((htmlFile) => {
           const html = bundle[htmlFile] as OutputAsset
           const hasHtml = html && html.type === "asset" && html.source
           const reg = getReplaceTagRegex(
             item.type === "css" ? "link" : "script",
-            item.type === "css" ? "href" : "src"
+            item.type === "css" ? "href" : "src",
+            item.beforeName
           )
           if (hasHtml) {
             const newSource = html.source

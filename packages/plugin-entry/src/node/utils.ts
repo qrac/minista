@@ -53,6 +53,7 @@ export function getChunkCssName(
   return targetAssetCss ? targetAssetCss[1].fileName : ""
 }
 
-export function getReplaceTagRegex(tag: string, attr: string) {
-  return new RegExp(`(<${tag}[^>]*?${attr}=")[^"]*(")`, "g")
+export function getReplaceTagRegex(tag: string, attr: string, value: string) {
+  const escapedValue = value.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")
+  return new RegExp(`(<${tag}[^>]*?${attr}=")${escapedValue}(")`, "g")
 }
