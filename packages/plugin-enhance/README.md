@@ -9,7 +9,7 @@
 ## How To Use
 
 ```sh
-$ npm install minista-plugin-enhance@next
+$ npm i -D minista-plugin-enhance@next
 ```
 
 ```js
