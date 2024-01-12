@@ -76,7 +76,7 @@ export function transformTag(tag: React.ReactElement): string {
   const children = innerHTML ? innerHTML : tag.props.children
   const endTag = `</${tag.type}>`
 
-  return `${startTag}${children}${endTag}`
+  return `${startTag}${children ? children : ""}${endTag}`
 }
 
 export function transformTags(tags: React.ReactElement[]): string {
