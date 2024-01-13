@@ -3,8 +3,9 @@
 }
 
 .storyapp-brand-title {
-  font-size: 24px;
-  font-weight: 700;
+  color: var(--theme-tx-1);
+  font-size: 20px;
+  font-weight: 600;
 }
 
 .storyapp-brand-logo-wrap {

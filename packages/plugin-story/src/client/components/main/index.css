@@ -3,5 +3,6 @@
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr auto;
+  padding: 8px;
   overflow: hidden;
 }

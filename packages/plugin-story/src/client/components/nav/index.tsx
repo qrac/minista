@@ -27,15 +27,14 @@ export function StoryAppNav({
     onLinkClick(event.currentTarget.dataset.ministaStoryappUrl || "")
   }
   function customIconColorClass(type: string) {
-    return "is-color-story"
-    /*switch (type) {
+    switch (type) {
       case "doc":
         return "is-color-doc"
       case "story":
         return "is-color-story"
       default:
         return "is-color-story"
-    }*/
+    }
   }
   return (
     <nav className="storyapp-nav">
@@ -60,7 +59,8 @@ export function StoryAppNav({
                       <TbNotes
                         className={clsx(
                           "storyapp-nav-item-icon",
-                          !isCurrent && customIconColorClass(navItem.type)
+                          "is-color-story"
+                          //!isCurrent && customIconColorClass(navItem.type)
                         )}
                       />
                       {navItem.label}

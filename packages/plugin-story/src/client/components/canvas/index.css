@@ -1,6 +1,7 @@
 .storyapp-canvas {
   position: relative;
   display: grid;
-  background-color: var(--theme-bg-3);
+  background-color: var(--theme-bg-4);
+  border-radius: 0 0 8px 8px;
   overflow: auto;
 }

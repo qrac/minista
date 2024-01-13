@@ -1,6 +1,6 @@
 import {
   TbReload,
-  TbDevices,
+  //TbDevices,
   TbArrowsExchange2,
   TbExternalLink,
   TbHtml,
@@ -53,9 +53,9 @@ export function StoryAppToolbar({
         </div>
         {storyType !== "doc" && (
           <div className="storyapp-toolbar-inputs">
-            <div className="storyapp-toolbar-icon-wrap">
+            {/*<div className="storyapp-toolbar-icon-wrap">
               <TbDevices className="storyapp-toolbar-icon" />
-            </div>
+            </div>*/}
             <select
               className="storyapp-toolbar-select"
               onChange={handleChangeViewport}

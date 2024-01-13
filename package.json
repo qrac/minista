@@ -68,6 +68,7 @@
     "play-build:mdx": "npx minista build ./playground/mdx",
     "play-preview:mdx": "npx minista preview ./playground/mdx",
     "play:story": "npx minista ./playground/story",
+    "play:storyapp": "npx minista ./playground/storyapp",
     "play-build:story": "npx minista build ./playground/story",
     "play-preview:story": "npx minista preview ./playground/story",
     "play:beautify": "npx minista ./playground/beautify",

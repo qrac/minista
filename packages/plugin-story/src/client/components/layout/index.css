@@ -2,4 +2,5 @@
   display: grid;
   grid-template-columns: var(--theme-sidebar-width) 1fr;
   grid-template-rows: 100vh;
+  background-color: var(--theme-bg-2);
 }

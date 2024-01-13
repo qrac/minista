@@ -6,6 +6,7 @@
   min-height: 41px;
   background-color: var(--theme-bg-1);
   border-bottom: 1px solid var(--theme-bd-1);
+  border-radius: 8px 8px 0 0;
 }
 
 .storyapp-toolbar-column {
@@ -60,9 +61,11 @@
   color: var(--theme-tx-2);
 }
 
-.storyapp-toolbar-icon-button:hover {
-  background-color: var(--theme-ac-1-alpha);
-  color: var(--theme-ac-1);
+@media (hover: hover) and (pointer: fine) {
+  .storyapp-toolbar-icon-button:hover {
+    background-color: var(--theme-bg-2);
+    color: var(--theme-ac-1);
+  }
 }
 
 .storyapp-toolbar-icon-wrap {

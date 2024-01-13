@@ -1,8 +1,8 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 
-import { StoryApp } from "minista-plugin-story/client"
-import "minista-plugin-story/css/app.css"
+import { StoryApp } from "../../../../packages/plugin-story/src/client"
+import "../../../../packages/plugin-story/src/css/app.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

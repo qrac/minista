@@ -6,22 +6,22 @@
     "Helvetica Neue", Arial, sans-serif;
   --theme-font-mono: "JetBrains Mono", Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", Meiryo, monospace, serif;
-  --theme-sidebar-width: 230px;
+  --theme-sidebar-width: 214px;
 }
 
 :root {
-  --theme-tx-1: #000000;
-  --theme-tx-2: #3f404c;
-  --theme-tx-3: #829099;
+  --theme-tx-1: #0f172a;
+  --theme-tx-2: #334155;
+  --theme-tx-3: #94a3b8;
   --theme-bg-1: #ffffff;
-  --theme-bg-2: #f7f9fc;
-  --theme-bg-3: #c7c7ca;
-  --theme-bd-1: #dfe6eb;
-  --theme-ac-1: #019cfd;
+  --theme-bg-2: #f1f5f9;
+  --theme-bg-3: #e2e8f0;
+  --theme-bg-4: #9ca3af;
+  --theme-bd-1: #e2e8f0;
+  --theme-bs-1: 0 2px 4px 1px rgb(0 0 0 / 0.075);
+  --theme-bs-2: 0 1px 2px rgb(0 0 0 / 0.1875);
+  --theme-ac-1: #0ea5e9;
   --theme-ac-1-tx: #ffffff;
-  --theme-ac-1-alpha: rgba(2, 156, 253, 0.12);
-  --theme-ac-2: #ff8300;
-  --theme-ac-3: #37d5d3;
 }
 
 :root {
