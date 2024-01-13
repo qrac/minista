@@ -1,6 +1,6 @@
 {
   "name": "minista",
-  "version": "4.0.0-alpha.3",
+  "version": "4.0.0-alpha.4",
   "type": "module",
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
@@ -66,6 +66,6 @@
     "vite": ">=5.0.0"
   },
   "dependencies": {
-    "minista-shared-utils": "^4.0.0-alpha.3"
+    "minista-shared-utils": "^4.0.0-alpha.4"
   }
 }

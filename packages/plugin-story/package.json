@@ -1,6 +1,6 @@
 {
   "name": "minista-plugin-story",
-  "version": "4.0.0-alpha.3",
+  "version": "4.0.0-alpha.4",
   "type": "module",
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
@@ -67,8 +67,8 @@
   "dependencies": {
     "clsx": "^2.1.0",
     "highlight.js": "^11.9.0",
-    "minista-shared-head": "^4.0.0-alpha.3",
-    "minista-shared-utils": "^4.0.0-alpha.3",
+    "minista-shared-head": "^4.0.0-alpha.4",
+    "minista-shared-utils": "^4.0.0-alpha.4",
     "query-string": "^8.1.0",
     "react-icons": "^5.0.0"
   }
