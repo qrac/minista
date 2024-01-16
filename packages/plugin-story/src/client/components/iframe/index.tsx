@@ -54,7 +54,20 @@ export function StoryAppIframe({
           opacity: loading ? 1 : 0,
           visibility: loading ? "visible" : "hidden",
         }}
-      ></div>
+      >
+        {loading && (
+          <div className="storyapp-iframe-loading-content is-active-after-seconds">
+            <div className="storyapp-iframe-loading-texts">
+              <span className="storyapp-iframe-loading-text-main">Loading</span>
+              <span className="storyapp-iframe-loading-text-dots">
+                <span>.</span>
+                <span>..</span>
+                <span>...</span>
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
       <iframe
         className="storyapp-iframe"
         style={{
