@@ -43,13 +43,33 @@
 }
 
 .storyapp-toolbar-select {
-  padding: 4px;
-  background-color: var(--theme-bg-1);
+  position: relative;
+  display: flex;
   border: 1px solid var(--theme-bd-1);
-  border-radius: 3px;
+  border-radius: 4px;
+}
+
+.storyapp-toolbar-select > select {
+  cursor: pointer;
+  padding: 4px 24px 4px 8px;
+  background-color: var(--theme-bg-1);
+  border: none;
+  border-radius: 4px;
   color: inherit;
   font-size: 12px;
   height: 24px;
+  appearance: none;
+}
+
+.storyapp-toolbar-select > svg {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  color: inherit;
+  transform: translateY(-50%);
 }
 
 .storyapp-toolbar-icon-button {

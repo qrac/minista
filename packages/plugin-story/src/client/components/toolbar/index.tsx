@@ -1,9 +1,10 @@
 import {
   TbReload,
   //TbDevices,
+  TbChevronDown,
   TbArrowsExchange2,
   TbExternalLink,
-  TbHtml,
+  //TbHtml,
   //TbLayoutBottombarCollapse,
   //TbLayoutBottombarExpand,
 } from "react-icons/tb"
@@ -53,23 +54,19 @@ export function StoryAppToolbar({
         </div>
         {storyType !== "doc" && (
           <div className="storyapp-toolbar-inputs">
-            {/*<div className="storyapp-toolbar-icon-wrap">
-              <TbDevices className="storyapp-toolbar-icon" />
-            </div>*/}
-            <select
-              className="storyapp-toolbar-select"
-              onChange={handleChangeViewport}
-              value={viewport}
-            >
-              <option value="">Viewport無し</option>
-              {Object.entries(viewports).map(
-                (item: [key: string, viewport: Viewport]) => (
-                  <option key={item[0]} value={item[0]}>
-                    {item[1].name}
-                  </option>
-                )
-              )}
-            </select>
+            <div className="storyapp-toolbar-select">
+              <TbChevronDown />
+              <select onChange={handleChangeViewport} value={viewport}>
+                <option value="">Viewport無し</option>
+                {Object.entries(viewports).map(
+                  (item: [key: string, viewport: Viewport]) => (
+                    <option key={item[0]} value={item[0]}>
+                      {item[1].name}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
           </div>
         )}
         {storyType !== "doc" && viewport && (
