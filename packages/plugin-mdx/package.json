@@ -60,7 +60,7 @@
     "vite": ">=5.0.0"
   },
   "dependencies": {
-    "@mdx-js/rollup": "^3.0.0",
+    "@mdx-js/rollup": "^3.0.1",
     "rehype-highlight": "^7.0.0",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.0",

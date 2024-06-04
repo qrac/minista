@@ -65,11 +65,11 @@
     "vite": ">=5.0.0"
   },
   "dependencies": {
-    "clsx": "^2.1.0",
+    "clsx": "^2.1.1",
     "highlight.js": "^11.9.0",
     "minista-shared-head": "^4.0.0-alpha.6",
     "minista-shared-utils": "^4.0.0-alpha.6",
-    "query-string": "^8.1.0",
-    "react-icons": "^5.0.0"
+    "query-string": "^9.0.0",
+    "react-icons": "^5.2.1"
   }
 }

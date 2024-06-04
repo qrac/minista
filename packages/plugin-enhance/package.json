@@ -65,6 +65,6 @@
   },
   "dependencies": {
     "minista-shared-utils": "^4.0.0-alpha.6",
-    "node-html-parser": "^6.1.12"
+    "node-html-parser": "^6.1.13"
   }
 }

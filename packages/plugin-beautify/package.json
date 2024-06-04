@@ -60,7 +60,7 @@
     "vite": ">=5.0.0"
   },
   "dependencies": {
-    "js-beautify": "^1.14.11",
-    "picomatch": "^3.0.1"
+    "js-beautify": "^1.15.1",
+    "picomatch": "^4.0.2"
   }
 }
