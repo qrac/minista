@@ -2,13 +2,13 @@
 
 ## Site & Documentation
 
-https://minista.qranoko.jp
+- https://minista.qranoko.jp
 
 ## About
 
 minista（ミニスタ）は React の JSX から綺麗な HTML を作る日本製のスタティックサイトジェネレーターです。
 
-`minista` 本体パッケージは Vite に指示を出すラッパーです。Vite と異なる主な特徴は、ビルド時に自動で Vite に「SSR ビルド＋通常ビルド」の指示を出し、HTML の書き出しを簡略化している点です。
+本体パッケージ `minista` は Vite に指示を出すラッパーです。Vite との違いは、ビルド時に自動で「SSR ビルド + 通常ビルド」の指示を出し、HTML の書き出しを簡略化している点です。
 
 ## How To Use
 

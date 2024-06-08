@@ -2,7 +2,7 @@
 
 ## Site & Documentation
 
-https://minista.qranoko.jp
+- https://minista.qranoko.jp
 
 ## About
 
@@ -10,11 +10,11 @@ minista（ミニスタ）は React の JSX から綺麗な HTML を作る日本�
 
 ## Packages
 
-- [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista)
-- [minista](https://github.com/qrac/minista/tree/main/packages/minista)
-- [minista-plugin-ssg](https://github.com/qrac/minista/tree/main/packages/plugin-ssg)
-- [minista-plugin-enhance](https://github.com/qrac/minista/tree/main/packages/plugin-enhance)
-- [minista-plugin-bundle](https://github.com/qrac/minista/tree/main/packages/plugin-bundle)
+- [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista) — minista プロジェクトをローカルに作成
+- [minista](https://github.com/qrac/minista/tree/main/packages/minista) — minista 本体
+- [minista-plugin-ssg](https://github.com/qrac/minista/tree/main/packages/plugin-ssg) — JSX を静的な HTML に変換
+- [minista-plugin-enhance](https://github.com/qrac/minista/tree/main/packages/plugin-enhance) — HTML を JSX で修正
+- [minista-plugin-bundle](https://github.com/qrac/minista/tree/main/packages/plugin-bundle) — JSX でインポートした CSS と画像を出力
 - [minista-plugin-entry](https://github.com/qrac/minista/tree/main/packages/plugin-entry)
 - [minista-plugin-mdx](https://github.com/qrac/minista/tree/main/packages/plugin-mdx)
 - [minista-plugin-story](https://github.com/qrac/minista/tree/main/packages/plugin-story)

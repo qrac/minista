@@ -4,7 +4,7 @@
 
 [minista](https://minista.qranoko.jp) および [Vite](https://ja.vitejs.dev/) で動作するプラグイン。
 
-任意の `*.tsx` `*.jsx` ファイルを静的な HTML に変換します。
+- `*.tsx` `*.jsx` ファイルを静的な HTML に変換
 
 ## How To Use
 
