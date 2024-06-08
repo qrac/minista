@@ -2,7 +2,13 @@ import type { Plugin, UserConfig } from "vite"
 import fs from "node:fs"
 import path from "node:path"
 
-import { checkDeno, getCwd, getRootDir, getTempDir } from "minista-shared-utils"
+import {
+  checkDeno,
+  getCwd,
+  getRootDir,
+  getTempDir,
+  getBasedAssetPath,
+} from "minista-shared-utils"
 
 import type { PluginOptions } from "./option.js"
 import { getGlobImportCode } from "./code.js"
@@ -19,11 +25,15 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
   let globDir = ""
   let globFile = ""
 
+  let base = "/"
+
   return {
     name: "vite-plugin:minista-bundle-build",
     config: async (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
+
+      base = config.base || base
 
       if (viteCommand === "build" && !isSsr) {
         rootDir = getRootDir(cwd, config.root || "")
@@ -48,23 +58,40 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
     },
     generateBundle(options, bundle) {
       if (viteCommand === "build" && !isSsr) {
-        const jsItem = Object.entries(bundle).find(([_, obj]) => {
-          return obj.name === id && obj.type === "chunk"
-        })
-        const jskey = jsItem ? jsItem[0] : ""
+        let jsKey = ""
+        let cssKey = ""
 
-        const cssItem = Object.entries(bundle).find(([_, obj]) => {
+        for (const key in bundle) {
+          const obj = bundle[key]
           const reg = new RegExp(`${id}.*\\.css$`)
-          return obj.name?.match(reg) && obj.type === "asset"
-        })
-        const csskey = cssItem ? cssItem[0] : ""
 
-        if (jskey) {
-          delete bundle[jskey]
+          if (obj.name === id && obj.type === "chunk") {
+            jsKey = key
+          }
+          if (obj.name?.match(reg) && obj.type === "asset") {
+            cssKey = key
+          }
         }
-        if (csskey) {
-          const name = bundle[csskey].fileName
-          bundle[csskey].fileName = name.replace(id, opts.outName)
+
+        if (jsKey) {
+          delete bundle[jsKey]
+        }
+        if (cssKey) {
+          const name = bundle[cssKey].fileName
+          const newName = name.replace(id, opts.outName)
+          bundle[cssKey].fileName = newName
+
+          for (const key in bundle) {
+            const fileData = bundle[key]
+
+            if (key.endsWith(".html") && fileData.type === "asset") {
+              const html = fileData.source as string
+              const assetPath = getBasedAssetPath(base, key, newName)
+              const linkTag = `<link rel="stylesheet" href="${assetPath}">`
+              const newHtml = html.replace("</head>", `${linkTag}</head>`)
+              fileData.source = newHtml
+            }
+          }
         }
       }
     },
