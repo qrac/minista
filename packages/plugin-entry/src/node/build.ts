@@ -3,7 +3,13 @@ import type { OutputChunk, OutputAsset } from "rollup"
 import path from "node:path"
 import fg from "fast-glob"
 
-import { checkDeno, getCwd, getRootDir, getTempDir } from "minista-shared-utils"
+import {
+  checkDeno,
+  getCwd,
+  getRootDir,
+  getTempDir,
+  getBasedAssetPath,
+} from "minista-shared-utils"
 
 import {
   getAttrRootPaths,
@@ -26,6 +32,7 @@ export function pluginEntryBuild(): Plugin {
 
   let viteCommand: "build" | "serve"
   let isSsr = false
+  let base = "/"
   let rootDir = ""
   let tempDir = ""
   let ssgDir = ""
@@ -48,6 +55,7 @@ export function pluginEntryBuild(): Plugin {
     config: async (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
+      base = config.base || base
 
       if (viteCommand === "build" && !isSsr) {
         rootDir = getRootDir(cwd, config.root || "")
@@ -149,10 +157,11 @@ export function pluginEntryBuild(): Plugin {
             item.type === "css" ? "href" : "src",
             item.beforeName
           )
+          const assetPath = getBasedAssetPath(base, htmlFile, item.afterName)
           if (hasHtml) {
             const newSource = html.source
               .toString()
-              .replace(reg, `$1/${item.afterName}$2`)
+              .replace(reg, `$1${assetPath}$2`)
             html.source = newSource
           }
         })
