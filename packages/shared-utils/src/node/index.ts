@@ -41,3 +41,14 @@ export function getHtmlPath(pagePath: string) {
       : pagePath + ".html"
   ).replace(/^\//, "")
 }
+
+export function getBasedAssetPath(
+  base: string,
+  htmlPath: string,
+  assetPath: string
+) {
+  if (base === "./") {
+    return path.relative(path.dirname(htmlPath), assetPath)
+  }
+  return base.replace(/\/$/, "") + "/" + assetPath
+}
