@@ -20,19 +20,17 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
 
   let viteCommand: "build" | "serve"
   let isSsr = false
+  let base = "/"
   let rootDir = ""
   let tempDir = ""
   let globDir = ""
   let globFile = ""
-
-  let base = "/"
 
   return {
     name: "vite-plugin:minista-bundle-build",
     config: async (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
-
       base = config.base || base
 
       if (viteCommand === "build" && !isSsr) {
