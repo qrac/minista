@@ -8,6 +8,7 @@ import {
   getRootDir,
   getTempDir,
   getHtmlPath,
+  getBasedAssetPath,
 } from "minista-shared-utils"
 
 import type { ImportedLayouts, ImportedPages, SsgPage } from "../@types/node.js"
@@ -24,6 +25,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
 
   let viteCommand: "build" | "serve"
   let isSsr = false
+  let base = "/"
   let rootDir = ""
   let tempDir = ""
   let globDir = ""
@@ -41,6 +43,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
     config: async (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
+      base = config.base || base
 
       if (viteCommand === "build") {
         rootDir = getRootDir(cwd, config.root || "")
@@ -134,13 +137,49 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
     },
     generateBundle(options, bundle) {
       if (viteCommand === "build" && !isSsr) {
-        const jsItem = Object.entries(bundle).find(([_, obj]) => {
-          return obj.name === id && obj.type === "chunk"
-        })
-        const jskey = jsItem ? jsItem[0] : ""
+        let jsKey = ""
 
-        if (jskey) {
-          delete bundle[jskey]
+        for (const key in bundle) {
+          const obj = bundle[key]
+
+          if (obj.name === id && obj.type === "chunk") {
+            jsKey = key
+          }
+        }
+
+        if (jsKey) {
+          delete bundle[jsKey]
+        }
+      }
+
+      if (viteCommand === "build" && !isSsr && base === "./") {
+        let imageKeys: string[] = []
+
+        for (const key in bundle) {
+          const obj = bundle[key]
+          const regImg = /\.(png|jpg|jpeg|gif|bmp)$/i
+
+          if (obj.name?.match(regImg) && obj.type === "asset") {
+            imageKeys.push(key)
+          }
+        }
+        for (const key in bundle) {
+          const obj = bundle[key]
+
+          if (key.endsWith(".html") && obj.type === "asset") {
+            let html = obj.source as string
+
+            imageKeys.forEach((imageKey) => {
+              const assetPath = getBasedAssetPath(base, key, imageKey)
+              const regExp = new RegExp(
+                `(<(?:meta|link|img|source)\\b[^>]*?["'])/${imageKey}(["'][^>]*?>)`,
+                "g"
+              )
+              html = html.replace(regExp, `$1${assetPath}$2`)
+            })
+
+            obj.source = html
+          }
         }
       }
     },
