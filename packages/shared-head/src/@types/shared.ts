@@ -1,6 +1,13 @@
+type CustomHtmlAttributes = React.HTMLAttributes<HTMLHtmlElement> & {
+  class?: string
+}
+type CustomBodyAttributes = React.HTMLAttributes<HTMLBodyElement> & {
+  class?: string
+}
+
 export type HeadData = {
-  htmlAttributes?: React.HTMLAttributes<HTMLHtmlElement>
-  bodyAttributes?: React.HTMLAttributes<HTMLBodyElement>
+  htmlAttributes?: CustomHtmlAttributes
+  bodyAttributes?: CustomBodyAttributes
   title?: string
   tags?: React.ReactElement[]
 }

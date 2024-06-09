@@ -3,7 +3,7 @@ import { Head } from "minista-plugin-ssg/client"
 export default function () {
   return (
     <>
-      <Head title="Index" htmlAttributes={{ lang: "en" }}>
+      <Head title="Index" htmlAttributes={{ lang: "en", class: "html" }}>
         <meta name="description" content="Index" key="description" />
         <link rel="icon" href="/favicon.ico" />
         <script
