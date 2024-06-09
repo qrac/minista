@@ -95,8 +95,8 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
         ssgPages = await Promise.all(
           resolvedPages.map((resolvedPage) => {
             const url = resolvedPage.path
-            const html = transformHtml({ resolvedLayout, resolvedPage })
             const fileName = getHtmlPath(url)
+            const html = transformHtml({ resolvedLayout, resolvedPage })
             return {
               url,
               fileName,
@@ -157,7 +157,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
 
         for (const key in bundle) {
           const obj = bundle[key]
-          const regImg = /\.(png|jpg|jpeg|gif|bmp)$/i
+          const regImg = /\.(png|jpg|jpeg|gif|bmp|svg|webp)$/i
 
           if (obj.name?.match(regImg) && obj.type === "asset") {
             imageKeys.push(key)
