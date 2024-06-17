@@ -59,9 +59,3 @@ export type ResolvedPage = {
   staticData: StaticData
   metadata: Metadata
 }
-
-export type SsgPage = {
-  url: string
-  fileName: string
-  html: string
-}

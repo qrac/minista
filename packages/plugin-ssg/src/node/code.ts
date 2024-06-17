@@ -1,4 +1,4 @@
-import type { SsgPage } from "../@types/node.js"
+import type { SsgPage } from "minista-shared-utils"
 import type { PluginOptions } from "./option.js"
 
 export function getGlobExportCode(opts: PluginOptions): string {

@@ -2,6 +2,7 @@ import type { Plugin, UserConfig } from "vite"
 import fs from "node:fs"
 import path from "node:path"
 
+import type { SsgPage } from "minista-shared-utils"
 import {
   checkDeno,
   getCwd,
@@ -10,7 +11,7 @@ import {
   getHtmlPath,
 } from "minista-shared-utils"
 
-import type { ImportedPages, SsgPage } from "../@types/node.js"
+import type { ImportedPages } from "../@types/node.js"
 import type { PluginOptions } from "./option.js"
 import { getGlobExportCode, getSsgExportCode } from "./code.js"
 import { formatPages, resolvePages } from "./page.js"

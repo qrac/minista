@@ -2,6 +2,7 @@ import type { Plugin, UserConfig } from "vite"
 import fs from "node:fs"
 import path from "node:path"
 
+import type { SsgPage } from "minista-shared-utils"
 import {
   checkDeno,
   getCwd,
@@ -11,7 +12,7 @@ import {
   getBasedAssetPath,
 } from "minista-shared-utils"
 
-import type { ImportedLayouts, ImportedPages, SsgPage } from "../@types/node.js"
+import type { ImportedLayouts, ImportedPages } from "../@types/node.js"
 import type { PluginOptions } from "./option.js"
 import { getGlobExportCode, getSsgExportCode } from "./code.js"
 import { formatLayout, resolveLayout } from "./layout.js"

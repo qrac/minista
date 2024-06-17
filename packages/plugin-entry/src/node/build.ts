@@ -3,6 +3,7 @@ import type { OutputChunk, OutputAsset } from "rollup"
 import path from "node:path"
 import fg from "fast-glob"
 
+import type { SsgPage } from "minista-shared-utils"
 import {
   checkDeno,
   getCwd,
@@ -18,12 +19,6 @@ import {
   getChunkCssName,
   getReplaceTagRegex,
 } from "./utils.js"
-
-type SsgPage = {
-  url: string
-  fileName: string
-  html: string
-}
 
 export function pluginEntryBuild(): Plugin {
   const id = "__minista_entry_build"

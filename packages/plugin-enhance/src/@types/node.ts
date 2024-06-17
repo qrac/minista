@@ -18,9 +18,3 @@ export type ResolvedPage = {
   path: string
   parsedHtml: NHTMLElement
 } & Omit<EnhancePage, "html">
-
-export type SsgPage = {
-  url: string
-  fileName: string
-  html: string
-}
