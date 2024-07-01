@@ -3,16 +3,19 @@ import type { OutputChunk, OutputAsset } from "rollup"
 import picomatch from "picomatch"
 import beautify from "js-beautify"
 
+import { getPluginName } from "minista-shared-utils"
+
 import type { PluginOptions } from "./option.js"
 
 export function pluginBeautifyBuild(opts: PluginOptions): Plugin {
-  const id = "__minista_beautify_build"
+  const names = ["beautify", "build"]
+  const pluginName = getPluginName(names)
 
   let viteCommand: "build" | "serve"
   let isSsr = false
 
   return {
-    name: "vite-plugin:minista-beautify-build",
+    name: pluginName,
     config: (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
@@ -20,31 +23,30 @@ export function pluginBeautifyBuild(opts: PluginOptions): Plugin {
     generateBundle(options, bundle) {
       if (viteCommand === "build" && !isSsr) {
         const isMatch = picomatch(opts.src)
-        const entryFiles = Object.keys(bundle).filter((file) => isMatch(file))
+        const reg = /\.(html|css|js)$/
 
-        entryFiles.map((file) => {
-          const reg = new RegExp(/\.(html|css|js)$/)
+        for (const file of Object.keys(bundle)) {
+          if (!isMatch(file) || !reg.test(file)) continue
+
           const ext = file.split(".").pop()
-
-          if (!reg.test(file)) return
 
           if (ext === "html") {
             const output = bundle[file] as OutputAsset
             const source = output.source as string
             const newSource = beautify.html(source, opts.htmlOptions)
-            return (output.source = newSource)
+            output.source = newSource
           } else if (ext === "css") {
             const output = bundle[file] as OutputAsset
             const source = output.source as string
             const newSource = beautify.css(source, opts.htmlOptions)
-            return (output.source = newSource)
+            output.source = newSource
           } else if (ext === "js") {
             const output = bundle[file] as OutputChunk
             const source = output.code as string
             const newSource = beautify.js(source, opts.htmlOptions)
-            return (output.code = newSource)
+            output.code = newSource
           }
-        })
+        }
       }
     },
   }
