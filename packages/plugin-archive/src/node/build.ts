@@ -3,14 +3,21 @@ import fs from "node:fs"
 import path from "node:path"
 import archiver from "archiver"
 
-import { checkDeno, getCwd, getRootDir, getTempDir } from "minista-shared-utils"
+import {
+  checkDeno,
+  getCwd,
+  getPluginName,
+  getRootDir,
+  getTempDir,
+} from "minista-shared-utils"
 
 import type { PluginOptions } from "./option.js"
 
 export function pluginArchiveBuild(opts: PluginOptions): Plugin {
-  const id = "__minista_archive_build"
   const isDeno = checkDeno()
   const cwd = getCwd(isDeno)
+  const names = ["archive", "build"]
+  const pluginName = getPluginName(names)
 
   let viteCommand: "build" | "serve"
   let isSsr = false
@@ -20,7 +27,7 @@ export function pluginArchiveBuild(opts: PluginOptions): Plugin {
   let archiveFile = ""
 
   return {
-    name: "vite-plugin:minista-archive-build",
+    name: pluginName,
     config: (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
