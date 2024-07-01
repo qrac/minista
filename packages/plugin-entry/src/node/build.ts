@@ -7,6 +7,7 @@ import type { SsgPage } from "minista-shared-utils"
 import {
   checkDeno,
   getCwd,
+  getPluginName,
   getRootDir,
   getTempDir,
   getBasedAssetPath,
@@ -21,9 +22,10 @@ import {
 } from "./utils.js"
 
 export function pluginEntryBuild(): Plugin {
-  const id = "__minista_entry_build"
   const isDeno = checkDeno()
   const cwd = getCwd(isDeno)
+  const names = ["entry", "build"]
+  const pluginName = getPluginName(names)
 
   let viteCommand: "build" | "serve"
   let isSsr = false
@@ -46,7 +48,7 @@ export function pluginEntryBuild(): Plugin {
   }[] = []
 
   return {
-    name: "vite-plugin:minista-entry-build",
+    name: pluginName,
     config: async (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
@@ -79,28 +81,31 @@ export function pluginEntryBuild(): Plugin {
             scriptPaths,
           }
         })
-        gotPathPages.map((page) => {
+
+        for (const page of gotPathPages) {
           const { fileName, cssPaths, scriptPaths } = page
 
-          cssPaths.map((cssPath) => {
+          for (const cssPath of cssPaths) {
             const list = entryCss[cssPath]
             entryCss[cssPath] = [...(list || []), fileName]
-          })
-          scriptPaths.map((scriptPath) => {
+          }
+          for (const scriptPath of scriptPaths) {
             const list = entryJs[scriptPath]
             entryJs[scriptPath] = [...(list || []), fileName]
-          })
-        })
+          }
+        }
+
         entryCss = filterExistEntries(entryCss, rootDir)
         entryJs = filterExistEntries(entryJs, rootDir)
 
-        Object.keys({ ...entryCss, ...entryJs }).map((file) => {
+        for (const file of Object.keys({ ...entryCss, ...entryJs })) {
           const parsedPath = path.parse(file)
           const entryName = parsedPath.name
           const index = getObjectKeySuffix(entries, entryName, 2)
           const entryId = entryName + index
-          return (entries[entryId] = path.join(rootDir, file))
-        })
+          entries[entryId] = path.join(rootDir, file)
+        }
+
         return {
           build: {
             rollupOptions: {
@@ -120,13 +125,13 @@ export function pluginEntryBuild(): Plugin {
         return item.type === "asset" && reg.test(item.fileName)
       }) as [string, OutputAsset][]
 
-      chunkJs.map(([, item]) => {
+      for (const [, item] of chunkJs) {
         const facadeModuleId = item.facadeModuleId || ""
         const reg = /\.(css|scss|sass|less)$/
         const type = reg.test(facadeModuleId) ? "css" : "js"
         const entryObj = type === "css" ? entryCss : entryJs
 
-        Object.entries(entryObj).map(([key, value]) => {
+        for (const [key, value] of Object.entries(entryObj)) {
           if (facadeModuleId === path.join(rootDir, key)) {
             const afterName =
               type === "css"
@@ -140,11 +145,11 @@ export function pluginEntryBuild(): Plugin {
               htmlFiles: value,
             })
           }
-        })
-      })
+        }
+      }
 
-      entryChanges.map((item) => {
-        return item.htmlFiles.map((htmlFile) => {
+      for (const item of entryChanges) {
+        for (const htmlFile of item.htmlFiles) {
           const html = bundle[htmlFile] as OutputAsset
           const hasHtml = html && html.type === "asset" && html.source
           const reg = getReplaceTagRegex(
@@ -159,8 +164,8 @@ export function pluginEntryBuild(): Plugin {
               .replace(reg, `$1${assetPath}$2`)
             html.source = newSource
           }
-        })
-      })
+        }
+      }
     },
   }
 }
