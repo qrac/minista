@@ -5,6 +5,8 @@ import path from "node:path"
 import {
   checkDeno,
   getCwd,
+  getPluginName,
+  getTempName,
   getRootDir,
   getTempDir,
   getBasedAssetPath,
@@ -14,9 +16,11 @@ import type { PluginOptions } from "./option.js"
 import { getGlobImportCode } from "./code.js"
 
 export function pluginBundleBuild(opts: PluginOptions): Plugin {
-  const id = "__minista_bundle_build"
   const isDeno = checkDeno()
   const cwd = getCwd(isDeno)
+  const names = ["bundle", "build"]
+  const pluginName = getPluginName(names)
+  const tempName = getTempName(names)
 
   let viteCommand: "build" | "serve"
   let isSsr = false
@@ -27,7 +31,7 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
   let globFile = ""
 
   return {
-    name: "vite-plugin:minista-bundle-build",
+    name: pluginName,
     config: async (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
@@ -37,7 +41,7 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
         rootDir = getRootDir(cwd, config.root || "")
         tempDir = getTempDir(cwd, rootDir)
         globDir = path.join(tempDir, "glob")
-        globFile = path.join(globDir, `${id}.js`)
+        globFile = path.join(globDir, `${tempName}.js`)
 
         const code = getGlobImportCode(opts)
         await fs.promises.mkdir(globDir, { recursive: true })
@@ -47,7 +51,7 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
           build: {
             rollupOptions: {
               input: {
-                [id]: globFile,
+                [tempName]: globFile,
               },
             },
           },
@@ -59,11 +63,10 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
         let jsKey = ""
         let cssKey = ""
 
-        for (const key in bundle) {
-          const obj = bundle[key]
-          const reg = new RegExp(`${id}.*\\.css$`)
+        const reg = new RegExp(`${tempName}.*\\.css$`)
 
-          if (obj.name === id && obj.type === "chunk") {
+        for (const [key, obj] of Object.entries(bundle)) {
+          if (obj.name === tempName && obj.type === "chunk") {
             jsKey = key
           }
           if (obj.name?.match(reg) && obj.type === "asset") {
@@ -76,12 +79,10 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
         }
         if (cssKey) {
           const name = bundle[cssKey].fileName
-          const newName = name.replace(id, opts.outName)
+          const newName = name.replace(tempName, opts.outName)
           bundle[cssKey].fileName = newName
 
-          for (const key in bundle) {
-            const fileData = bundle[key]
-
+          for (const [key, fileData] of Object.entries(bundle)) {
             if (key.endsWith(".html") && fileData.type === "asset") {
               const html = fileData.source as string
               const assetPath = getBasedAssetPath(base, key, newName)
