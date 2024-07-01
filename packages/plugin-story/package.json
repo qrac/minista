@@ -16,7 +16,7 @@
       "types": "./dist/types/@types/client.d.ts",
       "default": "./dist/client/index.js"
     },
-    "./css/": "./dist/css/"
+    "./assets/": "./dist/assets/"
   },
   "files": [
     "dist"
@@ -54,7 +54,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build-src && npm run build-type",
-    "build-src": "esbuild ./src/client/*.{ts,tsx} ./src/client/**/*.{tsx,css} ./src/node/*.{ts,tsx} ./src/css/*.css ./src/css/**/*.css --outbase=src --outdir=dist",
+    "build-src": "esbuild ./src/client/*.{ts,tsx} ./src/client/**/*.{tsx,css} ./src/node/*.{ts,tsx} ./src/assets/*.css ./src/assets/**/*.css --outbase=src --outdir=dist",
     "build-type": "tsc",
     "clean": "rimraf ./dist",
     "prepublishOnly": "npm run build"

@@ -2,7 +2,7 @@ import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 
 import { StoryApp } from "../../../../packages/plugin-story/src/client"
-import "../../../../packages/plugin-story/src/css/app.css"
+import "../../../../packages/plugin-story/src/assets/app.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
