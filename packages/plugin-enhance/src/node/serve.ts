@@ -2,7 +2,14 @@ import type { Plugin, UserConfig } from "vite"
 import fs from "node:fs"
 import path from "node:path"
 
-import { checkDeno, getCwd, getRootDir, getTempDir } from "minista-shared-utils"
+import {
+  checkDeno,
+  getCwd,
+  getPluginName,
+  getTempName,
+  getRootDir,
+  getTempDir,
+} from "minista-shared-utils"
 
 import type { ImportedPages } from "../@types/node.js"
 import type { PluginOptions } from "./option.js"
@@ -11,9 +18,11 @@ import { formatPages, resolvePages } from "./page.js"
 import { transformHtml } from "./html.js"
 
 export function pluginEnhanceServe(opts: PluginOptions): Plugin {
-  const id = "__minista_enhance_serve"
   const isDeno = checkDeno()
   const cwd = getCwd(isDeno)
+  const names = ["enhance", "serve"]
+  const pluginName = getPluginName(names)
+  const tempName = getTempName(names)
 
   let viteCommand: "build" | "serve"
   let rootDir = ""
@@ -22,7 +31,7 @@ export function pluginEnhanceServe(opts: PluginOptions): Plugin {
   let globFile = ""
 
   return {
-    name: "vite-plugin:minista-enhance-serve",
+    name: pluginName,
     config: async (config, { command }) => {
       viteCommand = command
 
@@ -30,7 +39,7 @@ export function pluginEnhanceServe(opts: PluginOptions): Plugin {
         rootDir = getRootDir(cwd, config.root || "")
         tempDir = getTempDir(cwd, rootDir)
         globDir = path.join(tempDir, "glob")
-        globFile = path.join(globDir, `${id}.js`)
+        globFile = path.join(globDir, `${tempName}.js`)
 
         const code = getGlobExportCode(opts)
         await fs.promises.mkdir(globDir, { recursive: true })

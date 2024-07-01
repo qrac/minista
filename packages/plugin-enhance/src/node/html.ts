@@ -11,12 +11,11 @@ export function transformHtml({
 
   const { commands } = resolvedPage
 
-  //console.log("resolvedPage:", resolvedPage)
-
   if (!commands.length) {
     return html.toString()
   }
-  commands.map((command) => {
+
+  for (const command of commands) {
     const { selector, selectorAll, attr, pattern, value } = command
     const method = command.method ?? "replace"
     const newHtml = command.parsedHtml
@@ -31,14 +30,20 @@ export function transformHtml({
       targets = html.querySelectorAll(selectorAll)
     }
     if (!targets.length) {
-      return
+      continue
     }
 
     if (method === "remove") {
-      return targets.map((target) => target.remove())
+      for (const target of targets) {
+        target.remove()
+      }
+      continue
     }
     if (method === "replace" && newHtml) {
-      return targets.map((target) => target.replaceWith(newHtml))
+      for (const target of targets) {
+        target.replaceWith(newHtml)
+      }
+      continue
     }
     if (method === "insert" && newHtml) {
       const position = (() => {
@@ -55,30 +60,40 @@ export function transformHtml({
             return "beforeend"
         }
       })()
-      return targets.map((target) =>
+      for (const target of targets) {
         target.insertAdjacentHTML(position, newHtml.toString())
-      )
+      }
+      continue
     }
     if (attr && pattern && value) {
-      return targets.map((target) => {
+      for (const target of targets) {
         const oldValue = target.getAttribute(attr)
-
         if (oldValue) {
           const newValue = oldValue.replace(pattern, value)
           target.setAttribute(attr, newValue)
         }
-        return
-      })
+      }
+      continue
     }
     if (attr && value) {
-      return targets.map((target) => target.setAttribute(attr, value))
+      for (const target of targets) {
+        target.setAttribute(attr, value)
+      }
+      continue
     }
     if (attr && value === undefined) {
-      return targets.map((target) => target.removeAttribute(attr))
+      for (const target of targets) {
+        target.removeAttribute(attr)
+      }
+      continue
     }
     if (value) {
-      return targets.map((target) => target.set_content(value))
+      for (const target of targets) {
+        target.set_content(value)
+      }
+      continue
     }
-  })
+  }
+
   return html.toString()
 }

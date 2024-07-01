@@ -6,6 +6,8 @@ import type { SsgPage } from "minista-shared-utils"
 import {
   checkDeno,
   getCwd,
+  getPluginName,
+  getTempName,
   getRootDir,
   getTempDir,
   getHtmlPath,
@@ -18,9 +20,11 @@ import { formatPages, resolvePages } from "./page.js"
 import { transformHtml } from "./html.js"
 
 export function pluginEnhanceBuild(opts: PluginOptions): Plugin {
-  const id = "__minista_enhance_build"
   const isDeno = checkDeno()
   const cwd = getCwd(isDeno)
+  const names = ["enhance", "build"]
+  const pluginName = getPluginName(names)
+  const tempName = getTempName(names)
 
   let viteCommand: "build" | "serve"
   let isSsr = false
@@ -37,7 +41,7 @@ export function pluginEnhanceBuild(opts: PluginOptions): Plugin {
   let throughFile = ""
 
   return {
-    name: "vite-plugin:minista-enhance-build",
+    name: pluginName,
     config: async (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
@@ -46,13 +50,13 @@ export function pluginEnhanceBuild(opts: PluginOptions): Plugin {
         rootDir = getRootDir(cwd, config.root || "")
         tempDir = getTempDir(cwd, rootDir)
         globDir = path.join(tempDir, "glob")
-        globFile = path.join(globDir, `${id}.js`)
+        globFile = path.join(globDir, `${tempName}.js`)
         ssrDir = path.join(tempDir, "ssr")
-        ssrFile = path.join(ssrDir, `${id}.mjs`)
+        ssrFile = path.join(ssrDir, `${tempName}.mjs`)
         ssgDir = path.join(tempDir, "ssg")
-        ssgFile = path.join(ssgDir, `${id}.mjs`)
+        ssgFile = path.join(ssgDir, `${tempName}.mjs`)
         throughDir = path.join(tempDir, "through")
-        throughFile = path.join(throughDir, `${id}.js`)
+        throughFile = path.join(throughDir, `${tempName}.js`)
       }
 
       if (viteCommand === "build" && isSsr) {
@@ -64,7 +68,7 @@ export function pluginEnhanceBuild(opts: PluginOptions): Plugin {
           build: {
             rollupOptions: {
               input: {
-                [id]: globFile,
+                [tempName]: globFile,
               },
               output: {
                 entryFileNames: "[name].mjs",
@@ -105,7 +109,7 @@ export function pluginEnhanceBuild(opts: PluginOptions): Plugin {
           build: {
             rollupOptions: {
               input: {
-                [id]: throughFile,
+                [tempName]: throughFile,
               },
             },
           },
@@ -127,13 +131,16 @@ export function pluginEnhanceBuild(opts: PluginOptions): Plugin {
     },
     generateBundle(options, bundle) {
       if (viteCommand === "build" && !isSsr) {
-        const jsItem = Object.entries(bundle).find(([_, obj]) => {
-          return obj.name === id && obj.type === "chunk"
-        })
-        const jskey = jsItem ? jsItem[0] : ""
+        let jsKey = ""
 
-        if (jskey) {
-          delete bundle[jskey]
+        for (const [key, obj] of Object.entries(bundle)) {
+          if (obj.name === tempName && obj.type === "chunk") {
+            jsKey = key
+          }
+        }
+
+        if (jsKey) {
+          delete bundle[jsKey]
         }
       }
     },
