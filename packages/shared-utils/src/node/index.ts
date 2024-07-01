@@ -13,6 +13,14 @@ export function getRootDir(cwd: string, root: string) {
   return root === cwd ? cwd : path.join(cwd, root || "")
 }
 
+export function getPluginName(names: string[]) {
+  return "vite-plugin:minista-" + names.join("-")
+}
+
+export function getTempName(names: string[]) {
+  return "__minista_" + names.join("_")
+}
+
 export function getTempDir(cwd: string, rootDir: string) {
   const hasRootPkg = fs.existsSync(path.join(rootDir, "package.json"))
   const pkgDir = hasRootPkg ? rootDir : cwd
