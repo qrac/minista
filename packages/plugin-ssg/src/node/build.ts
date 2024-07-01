@@ -6,6 +6,8 @@ import type { SsgPage } from "minista-shared-utils"
 import {
   checkDeno,
   getCwd,
+  getPluginName,
+  getTempName,
   getRootDir,
   getTempDir,
   getHtmlPath,
@@ -20,9 +22,11 @@ import { formatPages, resolvePages } from "./page.js"
 import { transformHtml } from "./html.js"
 
 export function pluginSsgBuild(opts: PluginOptions): Plugin {
-  const id = "__minista_ssg_build"
   const isDeno = checkDeno()
   const cwd = getCwd(isDeno)
+  const names = ["ssg", "build"]
+  const pluginName = getPluginName(names)
+  const tempName = getTempName(names)
 
   let viteCommand: "build" | "serve"
   let isSsr = false
@@ -40,7 +44,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
   let throughFile = ""
 
   return {
-    name: "vite-plugin:minista-ssg-build",
+    name: pluginName,
     config: async (config, { command }) => {
       viteCommand = command
       isSsr = config.build?.ssr ? true : false
@@ -50,13 +54,13 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
         rootDir = getRootDir(cwd, config.root || "")
         tempDir = getTempDir(cwd, rootDir)
         globDir = path.join(tempDir, "glob")
-        globFile = path.join(globDir, `${id}.js`)
+        globFile = path.join(globDir, `${tempName}.js`)
         ssrDir = path.join(tempDir, "ssr")
-        ssrFile = path.join(ssrDir, `${id}.mjs`)
+        ssrFile = path.join(ssrDir, `${tempName}.mjs`)
         ssgDir = path.join(tempDir, "ssg")
-        ssgFile = path.join(ssgDir, `${id}.mjs`)
+        ssgFile = path.join(ssgDir, `${tempName}.mjs`)
         throughDir = path.join(tempDir, "through")
-        throughFile = path.join(throughDir, `${id}.js`)
+        throughFile = path.join(throughDir, `${tempName}.js`)
       }
 
       if (viteCommand === "build" && isSsr) {
@@ -68,7 +72,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
           build: {
             rollupOptions: {
               input: {
-                [id]: globFile,
+                [tempName]: globFile,
               },
               output: {
                 chunkFileNames: "[name].mjs",
@@ -94,7 +98,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
         const resolvedPages = await resolvePages(formatedPages)
 
         ssgPages = await Promise.all(
-          resolvedPages.map((resolvedPage) => {
+          resolvedPages.map(async (resolvedPage) => {
             const url = resolvedPage.path
             const fileName = getHtmlPath(url)
             const html = transformHtml({ resolvedLayout, resolvedPage })
@@ -116,7 +120,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
           build: {
             rollupOptions: {
               input: {
-                [id]: throughFile,
+                [tempName]: throughFile,
               },
             },
           },
@@ -140,44 +144,40 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
       if (viteCommand === "build" && !isSsr) {
         let jsKey = ""
 
-        for (const key in bundle) {
-          const obj = bundle[key]
-
-          if (obj.name === id && obj.type === "chunk") {
+        for (const [key, obj] of Object.entries(bundle)) {
+          if (obj.name === tempName && obj.type === "chunk") {
             jsKey = key
+            break
           }
         }
-
         if (jsKey) {
           delete bundle[jsKey]
         }
       }
 
       if (viteCommand === "build" && !isSsr && base === "./") {
-        let imageKeys: string[] = []
+        const imageKeys: string[] = []
 
-        for (const key in bundle) {
-          const obj = bundle[key]
+        for (const [key, obj] of Object.entries(bundle)) {
           const regImg = /\.(png|jpg|jpeg|gif|bmp|svg|webp)$/i
 
           if (obj.name?.match(regImg) && obj.type === "asset") {
             imageKeys.push(key)
           }
         }
-        for (const key in bundle) {
-          const obj = bundle[key]
 
+        for (const [key, obj] of Object.entries(bundle)) {
           if (key.endsWith(".html") && obj.type === "asset") {
             let html = obj.source as string
 
-            imageKeys.forEach((imageKey) => {
+            for (const imageKey of imageKeys) {
               const assetPath = getBasedAssetPath(base, key, imageKey)
               const regExp = new RegExp(
                 `(<(?:meta|link|img|source)\\b[^>]*?["'])/${imageKey}(["'][^>]*?>)`,
                 "g"
               )
               html = html.replace(regExp, `$1${assetPath}$2`)
-            })
+            }
 
             obj.source = html
           }
