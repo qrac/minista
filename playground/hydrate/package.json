@@ -1,0 +1,8 @@
+{
+  "name": "play-hydrate",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "preact": "^10.22.1"
+  }
+}
