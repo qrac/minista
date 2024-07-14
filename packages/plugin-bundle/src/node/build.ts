@@ -22,7 +22,6 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
   const pluginName = getPluginName(names)
   const tempName = getTempName(names)
 
-  let viteCommand: "build" | "serve"
   let isSsr = false
   let base = "/"
   let rootDir = ""
@@ -32,17 +31,17 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
 
   return {
     name: pluginName,
-    config: async (config, { command }) => {
-      viteCommand = command
+    enforce: "pre",
+    apply: "build",
+    config: async (config) => {
       isSsr = config.build?.ssr ? true : false
       base = config.base || base
+      rootDir = getRootDir(cwd, config.root || "")
+      tempDir = getTempDir(cwd, rootDir)
+      globDir = path.join(tempDir, "glob")
+      globFile = path.join(globDir, `${tempName}.js`)
 
-      if (viteCommand === "build" && !isSsr) {
-        rootDir = getRootDir(cwd, config.root || "")
-        tempDir = getTempDir(cwd, rootDir)
-        globDir = path.join(tempDir, "glob")
-        globFile = path.join(globDir, `${tempName}.js`)
-
+      if (!isSsr) {
         const code = getGlobImportCode(opts)
         await fs.promises.mkdir(globDir, { recursive: true })
         await fs.promises.writeFile(globFile, code, "utf8")
@@ -59,7 +58,7 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
       }
     },
     generateBundle(options, bundle) {
-      if (viteCommand === "build" && !isSsr) {
+      if (!isSsr) {
         let jsKey = ""
         let cssKey = ""
 
@@ -73,7 +72,6 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
             cssKey = key
           }
         }
-
         if (jsKey) {
           delete bundle[jsKey]
         }

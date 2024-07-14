@@ -20,9 +20,8 @@ export function pluginBundleServe(opts: PluginOptions): Plugin {
   const names = ["bundle", "serve"]
   const pluginName = getPluginName(names)
   const tempName = getTempName(names)
+  const aliasGlob = `/@${tempName}-glob`
 
-  let viteCommand: "build" | "serve"
-  let isSsr = false
   let rootDir = ""
   let tempDir = ""
   let globDir = ""
@@ -30,35 +29,31 @@ export function pluginBundleServe(opts: PluginOptions): Plugin {
 
   return {
     name: pluginName,
-    config: async (config, { command }) => {
-      viteCommand = command
-      isSsr = config.build?.ssr ? true : false
+    enforce: "pre",
+    apply: "serve",
+    config: async (config) => {
+      rootDir = getRootDir(cwd, config.root || "")
+      tempDir = getTempDir(cwd, rootDir)
+      globDir = path.join(tempDir, "glob")
+      globFile = path.join(globDir, `${tempName}.js`)
 
-      if (viteCommand === "serve") {
-        rootDir = getRootDir(cwd, config.root || "")
-        tempDir = getTempDir(cwd, rootDir)
-        globDir = path.join(tempDir, "glob")
-        globFile = path.join(globDir, `${tempName}.js`)
+      const code = getGlobImportCode(opts)
+      await fs.promises.mkdir(globDir, { recursive: true })
+      await fs.promises.writeFile(globFile, code, "utf8")
 
-        const code = getGlobImportCode(opts)
-        await fs.promises.mkdir(globDir, { recursive: true })
-        await fs.promises.writeFile(globFile, code, "utf8")
-
-        return {
-          resolve: {
-            alias: [
-              {
-                find: "/@minista-bundle-serve",
-                replacement: globFile,
-              },
-            ],
-          },
-        } as UserConfig
-      }
+      return {
+        resolve: {
+          alias: [
+            {
+              find: aliasGlob,
+              replacement: globFile,
+            },
+          ],
+        },
+      } as UserConfig
     },
     transformIndexHtml(html) {
-      const scriptPath = `/@minista-bundle-serve`
-      const scriptTag = `<script type="module" src="${scriptPath}"></script>`
+      const scriptTag = `<script type="module" src="${aliasGlob}"></script>`
       return html.replace("</head>", `${scriptTag}</head>`)
     },
   }
