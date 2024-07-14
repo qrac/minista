@@ -28,7 +28,6 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
   const pluginName = getPluginName(names)
   const tempName = getTempName(names)
 
-  let viteCommand: "build" | "serve"
   let isSsr = false
   let base = "/"
   let rootDir = ""
@@ -45,25 +44,23 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
 
   return {
     name: pluginName,
-    config: async (config, { command }) => {
-      viteCommand = command
+    enforce: "pre",
+    apply: "build",
+    config: async (config) => {
       isSsr = config.build?.ssr ? true : false
       base = config.base || base
+      rootDir = getRootDir(cwd, config.root || "")
+      tempDir = getTempDir(cwd, rootDir)
+      globDir = path.join(tempDir, "glob")
+      globFile = path.join(globDir, `${tempName}.js`)
+      ssrDir = path.join(tempDir, "ssr")
+      ssrFile = path.join(ssrDir, `${tempName}.mjs`)
+      ssgDir = path.join(tempDir, "ssg")
+      ssgFile = path.join(ssgDir, `${tempName}.mjs`)
+      throughDir = path.join(tempDir, "through")
+      throughFile = path.join(throughDir, `${tempName}.js`)
 
-      if (viteCommand === "build") {
-        rootDir = getRootDir(cwd, config.root || "")
-        tempDir = getTempDir(cwd, rootDir)
-        globDir = path.join(tempDir, "glob")
-        globFile = path.join(globDir, `${tempName}.js`)
-        ssrDir = path.join(tempDir, "ssr")
-        ssrFile = path.join(ssrDir, `${tempName}.mjs`)
-        ssgDir = path.join(tempDir, "ssg")
-        ssgFile = path.join(ssgDir, `${tempName}.mjs`)
-        throughDir = path.join(tempDir, "through")
-        throughFile = path.join(throughDir, `${tempName}.js`)
-      }
-
-      if (viteCommand === "build" && isSsr) {
+      if (isSsr) {
         const code = getGlobExportCode(opts)
         await fs.promises.mkdir(globDir, { recursive: true })
         await fs.promises.writeFile(globFile, code, "utf8")
@@ -87,7 +84,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
         } as UserConfig
       }
 
-      if (viteCommand === "build" && !isSsr) {
+      if (!isSsr) {
         const { LAYOUTS, PAGES } = (await import(ssrFile)) as {
           LAYOUTS: ImportedLayouts
           PAGES: ImportedPages
@@ -112,7 +109,6 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
         const code = getSsgExportCode(ssgPages)
         await fs.promises.mkdir(ssgDir, { recursive: true })
         await fs.promises.writeFile(ssgFile, code, "utf8")
-
         await fs.promises.mkdir(throughDir, { recursive: true })
         await fs.promises.writeFile(throughFile, `console.log("")`, "utf8")
 
@@ -128,7 +124,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
       }
     },
     async buildStart() {
-      if (viteCommand === "build" && !isSsr && ssgPages.length > 0) {
+      if (!isSsr && ssgPages.length > 0) {
         await Promise.all(
           ssgPages.map((ssgPage) => {
             this.emitFile({
@@ -141,7 +137,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
       }
     },
     generateBundle(options, bundle) {
-      if (viteCommand === "build" && !isSsr) {
+      if (!isSsr) {
         let jsKey = ""
 
         for (const [key, obj] of Object.entries(bundle)) {
@@ -155,7 +151,7 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
         }
       }
 
-      if (viteCommand === "build" && !isSsr && base === "./") {
+      if (!isSsr && base === "./") {
         const imageKeys: string[] = []
 
         for (const [key, obj] of Object.entries(bundle)) {

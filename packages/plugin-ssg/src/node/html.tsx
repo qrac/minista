@@ -52,9 +52,6 @@ export function transformHtml({
 
   markup = markup.replace(/(?<=\<[img|source].+?)(srcSet=)/g, "srcset=")
 
-  //console.log("headData:", headData)
-  //console.log("headData:", JSON.stringify(headData, null, 2))
-
   const htmlAttrs = headData.htmlAttributes || {}
   const bodyAttrs = headData.bodyAttributes || {}
   const tags = headData.tags || []
