@@ -1,6 +1,6 @@
 {
   "name": "minista-plugin-beautify",
-  "version": "4.0.0-alpha.6",
+  "version": "4.0.0-alpha.7",
   "type": "module",
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
@@ -61,7 +61,7 @@
   },
   "dependencies": {
     "js-beautify": "^1.15.1",
-    "minista-shared-utils": "^4.0.0-alpha.6",
+    "minista-shared-utils": "^4.0.0-alpha.7",
     "picomatch": "^4.0.2"
   }
 }
