@@ -1,7 +1,10 @@
 import type { Plugin, UserConfig } from "vite"
+import type { OutputChunk, OutputAsset } from "rollup"
 import fs from "node:fs"
 import path from "node:path"
+import fg from "fast-glob"
 
+import type { SsgPage } from "minista-shared-utils"
 import {
   checkDeno,
   getCwd,
@@ -10,6 +13,7 @@ import {
   getRootDir,
   getTempDir,
   getBasedAssetPath,
+  getAttrRootPaths,
 } from "minista-shared-utils"
 
 import type { PluginOptions } from "./option.js"
@@ -21,6 +25,8 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
   const names = ["bundle", "build"]
   const pluginName = getPluginName(names)
   const tempName = getTempName(names)
+  const slashStr = "__slash__"
+  const dotStr = "__dot__"
 
   let isSsr = false
   let base = "/"
@@ -28,6 +34,10 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
   let tempDir = ""
   let globDir = ""
   let globFile = ""
+  let ssgDir = ""
+  let ssgPages: SsgPage[] = []
+  let entries: { [key: string]: string } = {}
+  let entryChanges: { before: string; after: string }[] = []
 
   return {
     name: pluginName,
@@ -40,8 +50,52 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.join(tempDir, "glob")
       globFile = path.join(globDir, `${tempName}.js`)
+      ssgDir = path.join(tempDir, "ssg")
 
       if (!isSsr) {
+        const ssgFiles = await fg(path.join(ssgDir, `*.mjs`))
+
+        if (!ssgFiles.length) return
+
+        ssgPages = (
+          await Promise.all(
+            ssgFiles.map(async (file) => {
+              const { ssgPages }: { ssgPages: SsgPage[] } = await import(file)
+              return ssgPages
+            })
+          )
+        ).flat()
+
+        let preEntries: { [key: string]: string } = {}
+
+        for (const ssgPage of ssgPages) {
+          const { html } = ssgPage
+          const items = [
+            ...getAttrRootPaths(html, "link", "href"),
+            ...getAttrRootPaths(html, "script", "src"),
+            ...getAttrRootPaths(html, "img", "src"),
+            ...getAttrRootPaths(html, "img", "srcset"),
+            ...getAttrRootPaths(html, "source", "srcset"),
+            ...getAttrRootPaths(html, "use", "href"),
+          ]
+          for (const item of items) {
+            if (item) {
+              const itemId = item
+                .replace(/\//g, slashStr)
+                .replace(/\./g, dotStr)
+              const itemDirs = item.split("/")
+              const fullPath = path.join(rootDir, ...itemDirs)
+              preEntries[itemId] = fullPath
+            }
+          }
+        }
+
+        for (const [key, value] of Object.entries(preEntries)) {
+          if (fs.existsSync(value)) {
+            entries[key] = value
+          }
+        }
+
         const code = getGlobImportCode(opts)
         await fs.promises.mkdir(globDir, { recursive: true })
         await fs.promises.writeFile(globFile, code, "utf8")
@@ -50,6 +104,7 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
           build: {
             rollupOptions: {
               input: {
+                ...entries,
                 [tempName]: globFile,
               },
             },
@@ -59,36 +114,83 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
     },
     generateBundle(options, bundle) {
       if (!isSsr) {
-        let jsKey = ""
-        let cssKey = ""
+        let hasBundle = false
+        let bundleName = ""
 
-        const reg = new RegExp(`${tempName}.*\\.css$`)
+        const regBundle = new RegExp(`${tempName}.*\\.css$`)
 
-        for (const [key, obj] of Object.entries(bundle)) {
-          if (obj.name === tempName && obj.type === "chunk") {
-            jsKey = key
+        for (const [key, item] of Object.entries(bundle)) {
+          if (item.name === tempName && item.type === "chunk") {
+            delete bundle[key]
           }
-          if (obj.name?.match(reg) && obj.type === "asset") {
-            cssKey = key
+          if (item.name?.match(regBundle) && item.type === "asset") {
+            hasBundle = true
+            bundleName = item.fileName.replace(tempName, opts.outName)
+            bundle[key].fileName = bundleName
           }
         }
-        if (jsKey) {
-          delete bundle[jsKey]
-        }
-        if (cssKey) {
-          const name = bundle[cssKey].fileName
-          const newName = name.replace(tempName, opts.outName)
-          bundle[cssKey].fileName = newName
 
-          for (const [key, fileData] of Object.entries(bundle)) {
-            if (key.endsWith(".html") && fileData.type === "asset") {
-              const html = fileData.source as string
-              const assetPath = getBasedAssetPath(base, key, newName)
-              const linkTag = `<link rel="stylesheet" href="${assetPath}">`
-              const newHtml = html.replace("</head>", `${linkTag}</head>`)
-              fileData.source = newHtml
+        for (const [key, value] of Object.entries(entries)) {
+          const newName = path.parse(value).name
+          const items = Object.values(bundle).filter((item) => {
+            if (item.name?.startsWith(key)) {
+              if (item.type === "chunk") {
+                return item.code.trim() ? true : false
+              } else {
+                return true
+              }
+            }
+          })
+          for (const item of items) {
+            item.fileName = item.fileName?.replace(key, newName)
+
+            const regSlashStr = new RegExp(slashStr, "g")
+            const regDotStr = new RegExp(dotStr, "g")
+
+            entryChanges.push({
+              before: key.replace(regSlashStr, "/").replace(regDotStr, "."),
+              after: item.fileName,
+            })
+          }
+        }
+
+        const htmlItems = Object.values(bundle).filter((item) => {
+          return item.fileName.endsWith(".html") && item.type === "asset"
+        }) as OutputAsset[]
+        const regImg = /\.(png|jpg|jpeg|gif|bmp|svg|webp)$/i
+        const afterItems = entryChanges.map((item) => item.after)
+        const otherImgItems = Object.values(bundle).filter((item) => {
+          if (item.fileName.match(regImg) && item.type === "asset") {
+            return !afterItems.includes(item.fileName) ? true : false
+          }
+        }) as OutputAsset[]
+
+        for (const item of htmlItems) {
+          const htmlPath = item.fileName
+          let newHtml = item.source as string
+
+          for (const change of entryChanges) {
+            const { before, after } = change
+            const assetPath = getBasedAssetPath(base, htmlPath, after)
+            const regExp = new RegExp(`(<[^>]*?)${before}([^>]*?>)`, "gs")
+            newHtml = newHtml.replace(regExp, `$1${assetPath}$2`)
+          }
+
+          if (hasBundle) {
+            const assetPath = getBasedAssetPath(base, htmlPath, bundleName)
+            const linkTag = `<link rel="stylesheet" href="${assetPath}">`
+            newHtml = newHtml.replace("</head>", `${linkTag}</head>`)
+          }
+
+          if (base === "./") {
+            for (const item of otherImgItems) {
+              const imgPath = item.fileName
+              const assetPath = getBasedAssetPath(base, htmlPath, imgPath)
+              const regExp = new RegExp(`(<[^>]*?)/${imgPath}([^>]*?>)`, "gs")
+              newHtml = newHtml.replace(regExp, `$1${assetPath}$2`)
             }
           }
+          item.source = newHtml
         }
       }
     },

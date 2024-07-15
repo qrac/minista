@@ -138,44 +138,10 @@ export function pluginSsgBuild(opts: PluginOptions): Plugin {
     },
     generateBundle(options, bundle) {
       if (!isSsr) {
-        let jsKey = ""
-
-        for (const [key, obj] of Object.entries(bundle)) {
-          if (obj.name === tempName && obj.type === "chunk") {
-            jsKey = key
+        for (const [key, item] of Object.entries(bundle)) {
+          if (item.name === tempName && item.type === "chunk") {
+            delete bundle[key]
             break
-          }
-        }
-        if (jsKey) {
-          delete bundle[jsKey]
-        }
-      }
-
-      if (!isSsr && base === "./") {
-        const imageKeys: string[] = []
-
-        for (const [key, obj] of Object.entries(bundle)) {
-          const regImg = /\.(png|jpg|jpeg|gif|bmp|svg|webp)$/i
-
-          if (obj.name?.match(regImg) && obj.type === "asset") {
-            imageKeys.push(key)
-          }
-        }
-
-        for (const [key, obj] of Object.entries(bundle)) {
-          if (key.endsWith(".html") && obj.type === "asset") {
-            let html = obj.source as string
-
-            for (const imageKey of imageKeys) {
-              const assetPath = getBasedAssetPath(base, key, imageKey)
-              const regExp = new RegExp(
-                `(<(?:meta|link|img|source)\\b[^>]*?["'])/${imageKey}(["'][^>]*?>)`,
-                "g"
-              )
-              html = html.replace(regExp, `$1${assetPath}$2`)
-            }
-
-            obj.source = html
           }
         }
       }

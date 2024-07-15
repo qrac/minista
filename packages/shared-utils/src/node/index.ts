@@ -60,3 +60,31 @@ export function getBasedAssetPath(
   }
   return base.replace(/\/$/, "") + "/" + assetPath
 }
+
+export function getAttrRootPaths(html: string, tag: string, attr: string) {
+  const regex = new RegExp(`<${tag}[^>]*?${attr}="([^"]*?)"`, "gs")
+
+  let match: RegExpExecArray | null
+  let rootPaths: string[] = []
+
+  while ((match = regex.exec(html)) !== null) {
+    const matchPath = match[1]
+    const pathList = matchPath.split(",")
+
+    for (const pathItem of pathList) {
+      let item: string | undefined
+      item = pathItem.trim()
+      item = item.split("#")[0]
+      item = item.split("\\?")[0]
+      item = item.match(/^(.*\.\w+)/)?.[1]
+
+      if (!item) continue
+      if (item.startsWith("/")) {
+        rootPaths.push(item)
+      }
+    }
+  }
+  rootPaths = [...new Set(rootPaths)]
+  rootPaths.sort()
+  return rootPaths
+}

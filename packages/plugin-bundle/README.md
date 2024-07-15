@@ -4,7 +4,8 @@
 
 [minista](https://minista.qranoko.jp) および [Vite](https://ja.vitejs.dev/) で動作するプラグイン。
 
-- テンプレートでインポートした CSS を出力
+- テンプレートのルートパスから CSS・JS・画像をエントリー
+- テンプレートでインポートした CSS を結合して出力
 - テンプレートでインポートした画像を出力
 
 ## How To Use
@@ -24,18 +25,18 @@ export default {
 
 ## Options
 
-| Option    | Type       | Detail                                                      |
-| --------- | ---------- | ----------------------------------------------------------- |
-| `src`     | `string[]` | バンドル対象のテンプレートを Vite の `fast-glob` 形式で指定 |
-| `outName` | `string`   | バンドル出力する CSS のファイル名                           |
+| Option    | Type       | Detail                                                            |
+| --------- | ---------- | ----------------------------------------------------------------- |
+| `src`     | `string[]` | インポートを検出するテンプレートを Vite の `fast-glob` 形式で指定 |
+| `outName` | `string`   | インポートした CSS を結合出力する場合のファイル名                 |
 
 ```js
 // ./minista.config.js (with default options)
-import { pluginSsg } from "minista-plugin-ssg"
+import { pluginBundle } from "minista-plugin-bundle"
 
 export default {
   plugins: [
-    pluginSsg({
+    pluginBundle({
       src: [
         "/src/layouts/index.{tsx,jsx}",
         "/src/pages/**/*.{tsx,jsx}",
