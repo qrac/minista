@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "archiver": "^7.0.1",
-    "minista-shared-utils": "^4.0.0-alpha.7"
+    "minista-shared-utils": "^4.0.0-alpha.7",
+    "picocolors": "^1.0.1"
   }
 }

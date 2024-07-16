@@ -2,6 +2,7 @@ import type { Plugin } from "vite"
 import fs from "node:fs"
 import path from "node:path"
 import archiver from "archiver"
+import pc from "picocolors"
 
 import {
   checkDeno,
@@ -19,49 +20,59 @@ export function pluginArchiveBuild(opts: PluginOptions): Plugin {
   const names = ["archive", "build"]
   const pluginName = getPluginName(names)
 
-  let viteCommand: "build" | "serve"
   let isSsr = false
   let rootDir = ""
   let tempDir = ""
   let archiveDir = ""
-  let archiveFile = ""
 
   return {
     name: pluginName,
-    config: (config, { command }) => {
-      viteCommand = command
+    enforce: "pre",
+    apply: "build",
+    config: (config) => {
       isSsr = config.build?.ssr ? true : false
 
-      if (viteCommand === "build" && !isSsr) {
+      if (!isSsr) {
         rootDir = getRootDir(cwd, config.root || "")
         tempDir = getTempDir(cwd, rootDir)
         archiveDir = path.join(tempDir, "archive")
-        archiveFile = path.join(archiveDir, `${opts.outName}.${opts.format}`)
       }
     },
     async writeBundle(options, bundle) {
-      if (viteCommand === "build" && !isSsr) {
+      if (!isSsr) {
         const dist = options.dir || ""
+        const { archives } = opts
 
         if (!dist) return
 
         await fs.promises.mkdir(archiveDir, { recursive: true })
 
-        const archive = archiver(opts.format, opts.options)
-        const output = fs.createWriteStream(archiveFile)
+        await Promise.all(
+          archives.map(async (item) => {
+            const outFile = `${item.outName}.${item.format}`
+            const archiveFile = path.join(archiveDir, outFile)
+            const archive = archiver(item.format, item.options)
+            const output = fs.createWriteStream(archiveFile)
 
-        output.on("close", async () => {
-          try {
-            const finalPath = path.join(dist, `${opts.outName}.${opts.format}`)
-            await fs.promises.copyFile(archiveFile, finalPath)
-            console.log(`Archive created`)
-          } catch (err: any) {
-            console.error(`Error creating archive: ${err.message}`)
-          }
-        })
-        archive.pipe(output)
-        archive.glob("**/*", { cwd: dist, ignore: opts.ignore })
-        await archive.finalize()
+            output.on("close", async () => {
+              try {
+                const finalPath = path.join(dist, outFile)
+                await fs.promises.copyFile(archiveFile, finalPath)
+
+                const absoluteDist = dist.replace(rootDir + "/", "")
+                console.log(pc.gray(absoluteDist + "/") + pc.green(outFile))
+              } catch (err: any) {
+                console.error(`Error creating archive: ${err.message}`)
+              }
+            })
+            archive.pipe(output)
+            archive.glob(item.src + "/**/*", {
+              cwd: rootDir,
+              ignore: item.ignore,
+            })
+            await archive.finalize()
+          })
+        )
       }
     },
   }
