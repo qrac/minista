@@ -11,17 +11,17 @@ export function pluginBeautifyBuild(opts: PluginOptions): Plugin {
   const names = ["beautify", "build"]
   const pluginName = getPluginName(names)
 
-  let viteCommand: "build" | "serve"
   let isSsr = false
 
   return {
     name: pluginName,
-    config: (config, { command }) => {
-      viteCommand = command
+    enforce: "pre",
+    apply: "build",
+    config: (config) => {
       isSsr = config.build?.ssr ? true : false
     },
     generateBundle(options, bundle) {
-      if (viteCommand === "build" && !isSsr) {
+      if (!isSsr) {
         const isMatch = picomatch(opts.src)
         const reg = /\.(html|css|js)$/
 
