@@ -26,7 +26,6 @@ export function pluginStoryServe(opts: PluginOptions): Plugin {
   const pluginName = getPluginName(names)
   const tempName = getTempName(names)
 
-  let viteCommand: "build" | "serve"
   let rootDir = ""
   let tempDir = ""
   let globDir = ""
@@ -34,25 +33,23 @@ export function pluginStoryServe(opts: PluginOptions): Plugin {
 
   return {
     name: pluginName,
-    config: async (config, { command }) => {
-      viteCommand = command
+    enforce: "pre",
+    apply: "serve",
+    config: async (config) => {
+      rootDir = getRootDir(cwd, config.root || "")
+      tempDir = getTempDir(cwd, rootDir)
+      globDir = path.join(tempDir, "glob")
+      globFile = path.join(globDir, `${tempName}.js`)
 
-      if (viteCommand === "serve") {
-        rootDir = getRootDir(cwd, config.root || "")
-        tempDir = getTempDir(cwd, rootDir)
-        globDir = path.join(tempDir, "glob")
-        globFile = path.join(globDir, `${tempName}.js`)
+      const code = getGlobExportCode(opts)
+      await fs.promises.mkdir(globDir, { recursive: true })
+      await fs.promises.writeFile(globFile, code, "utf8")
 
-        const code = getGlobExportCode(opts)
-        await fs.promises.mkdir(globDir, { recursive: true })
-        await fs.promises.writeFile(globFile, code, "utf8")
-
-        return {
-          ssr: {
-            external: ["minista-shared-head"],
-          },
-        } as UserConfig
-      }
+      return {
+        ssr: {
+          external: ["minista-shared-head"],
+        },
+      } as UserConfig
     },
     configureServer(server) {
       return () => {
