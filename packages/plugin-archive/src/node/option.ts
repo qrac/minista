@@ -1,11 +1,5 @@
 import type { Format as ArchiverFormat, ArchiverOptions } from "archiver"
 
-type UserArchiveItem = {
-  src: string
-  outName: string
-  ignore?: string | string[]
-}
-
 type ArchiveItem = {
   src: string
   outName: string
@@ -13,7 +7,7 @@ type ArchiveItem = {
 }
 
 export type UserPluginOptions = {
-  items?: UserArchiveItem[]
+  items?: ArchiveItem[]
   format?: ArchiverFormat
   options?: ArchiverOptions
 }
