@@ -41,17 +41,16 @@ export function pluginArchiveBuild(opts: PluginOptions): Plugin {
     async writeBundle(options, bundle) {
       if (!isSsr) {
         const dist = options.dir || ""
-        const { archives } = opts
 
         if (!dist) return
 
         await fs.promises.mkdir(archiveDir, { recursive: true })
 
         await Promise.all(
-          archives.map(async (item) => {
-            const outFile = `${item.outName}.${item.format}`
+          opts.items.map(async (item) => {
+            const outFile = `${item.outName}.${opts.format}`
             const archiveFile = path.join(archiveDir, outFile)
-            const archive = archiver(item.format, item.options)
+            const archive = archiver(opts.format, opts.options)
             const output = fs.createWriteStream(archiveFile)
 
             output.on("close", async () => {

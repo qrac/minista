@@ -1,45 +1,37 @@
 import type { Format as ArchiverFormat, ArchiverOptions } from "archiver"
 
 type UserArchiveItem = {
-  src?: string
-  outName?: string
-  format?: ArchiverFormat
-  options?: ArchiverOptions
-  ignore?: string[]
+  src: string
+  outName: string
+  ignore?: string | string[]
 }
 
 type ArchiveItem = {
   src: string
   outName: string
-  format: ArchiverFormat
-  options: ArchiverOptions
-  ignore: string[]
+  ignore?: string | string[]
 }
 
 export type UserPluginOptions = {
-  archives?: ArchiveItem[]
+  items?: UserArchiveItem[]
+  format?: ArchiverFormat
+  options?: ArchiverOptions
 }
 
 export type PluginOptions = {
-  archives: ArchiveItem[]
+  items: ArchiveItem[]
+  format: ArchiverFormat
+  options: ArchiverOptions
 }
 
 export const defaultArchiveItem: ArchiveItem = {
   src: "dist",
   outName: "archive",
-  format: "zip",
-  options: { zlib: { level: 9 } },
   ignore: [],
 }
 
 export const defaultOptions: PluginOptions = {
-  archives: [defaultArchiveItem],
-}
-
-export function mergeArchiveItem(userItem: UserArchiveItem): ArchiveItem {
-  return {
-    ...defaultArchiveItem,
-    ...userItem,
-    options: { ...defaultArchiveItem.options, ...userItem.options },
-  }
+  items: [defaultArchiveItem],
+  format: "zip",
+  options: { zlib: { level: 9 } },
 }
