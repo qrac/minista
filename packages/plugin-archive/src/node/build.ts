@@ -13,11 +13,13 @@ import {
 } from "minista-shared-utils"
 
 import type { PluginOptions } from "./option.js"
+import { resolveMultipleOptions } from "./option.js"
 
 export function pluginArchiveBuild(opts: PluginOptions): Plugin {
   const isDeno = checkDeno()
   const cwd = getCwd(isDeno)
   const names = ["archive", "build"]
+  const mOpts = resolveMultipleOptions(opts)
   const pluginName = getPluginName(names)
 
   let isSsr = false
@@ -45,12 +47,11 @@ export function pluginArchiveBuild(opts: PluginOptions): Plugin {
         if (!dist) return
 
         await fs.promises.mkdir(archiveDir, { recursive: true })
-
         await Promise.all(
-          opts.items.map(async (item) => {
-            const outFile = `${item.outName}.${opts.format}`
+          mOpts.map(async (item) => {
+            const outFile = `${item.outName}.${item.format}`
             const archiveFile = path.join(archiveDir, outFile)
-            const archive = archiver(opts.format, opts.options)
+            const archive = archiver(item.format, item.options)
             const output = fs.createWriteStream(archiveFile)
 
             output.on("close", async () => {
