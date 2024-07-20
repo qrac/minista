@@ -19,8 +19,8 @@ export function pluginArchiveBuild(opts: PluginOptions): Plugin {
   const isDeno = checkDeno()
   const cwd = getCwd(isDeno)
   const names = ["archive", "build"]
-  const mOpts = resolveMultipleOptions(opts)
   const pluginName = getPluginName(names)
+  const mOpts = resolveMultipleOptions(opts)
 
   let isSsr = false
   let rootDir = ""
