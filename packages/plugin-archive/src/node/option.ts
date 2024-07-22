@@ -1,7 +1,7 @@
 import type { Format as ArchiverFormat, ArchiverOptions } from "archiver"
 
 type SingleOptions = {
-  src: string
+  srcDir: string
   outName: string
   ignore?: string | string[]
   format: ArchiverFormat
@@ -17,7 +17,7 @@ export type PluginOptions = {
 } & SingleOptions
 
 export const defaultOptions: PluginOptions = {
-  src: "dist",
+  srcDir: "dist",
   outName: "archive",
   ignore: [],
   format: "zip",
@@ -28,14 +28,14 @@ export const defaultOptions: PluginOptions = {
 export function resolveMultipleOptions(opts: PluginOptions): SingleOptions[] {
   return [
     {
-      src: opts.src,
+      srcDir: opts.srcDir,
       outName: opts.outName,
       ignore: opts.ignore,
       format: opts.format,
       options: opts.options,
     },
     ...opts.multiple.map((item) => ({
-      src: item.src,
+      srcDir: item.srcDir,
       outName: item.outName,
       ignore: item.ignore,
       format: item.format || opts.format,

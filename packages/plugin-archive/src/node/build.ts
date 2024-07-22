@@ -48,10 +48,10 @@ export function pluginArchiveBuild(opts: PluginOptions): Plugin {
 
         await fs.promises.mkdir(archiveDir, { recursive: true })
         await Promise.all(
-          mOpts.map(async (item) => {
-            const outFile = `${item.outName}.${item.format}`
+          mOpts.map(async (mOpt) => {
+            const outFile = `${mOpt.outName}.${mOpt.format}`
             const archiveFile = path.join(archiveDir, outFile)
-            const archive = archiver(item.format, item.options)
+            const archive = archiver(mOpt.format, mOpt.options)
             const output = fs.createWriteStream(archiveFile)
 
             output.on("close", async () => {
@@ -66,9 +66,9 @@ export function pluginArchiveBuild(opts: PluginOptions): Plugin {
               }
             })
             archive.pipe(output)
-            archive.glob(item.src + "/**/*", {
+            archive.glob(mOpt.srcDir + "/**/*", {
               cwd: rootDir,
-              ignore: item.ignore,
+              ignore: mOpt.ignore,
             })
             await archive.finalize()
           })
