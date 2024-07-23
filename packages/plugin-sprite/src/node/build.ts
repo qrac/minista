@@ -1,10 +1,9 @@
 import type { Plugin, UserConfig } from "vite"
-import type { OutputChunk, OutputAsset } from "rollup"
+import type { OutputAsset } from "rollup"
 import fs from "node:fs"
 import path from "node:path"
 import { parse as parseHtml } from "node-html-parser"
 
-import type { SsgPage } from "minista-shared-utils"
 import {
   checkDeno,
   getCwd,
@@ -13,7 +12,6 @@ import {
   getRootDir,
   getTempDir,
   getBasedAssetPath,
-  getAttrRootPaths,
 } from "minista-shared-utils"
 
 import type { SvgSpriteConfig } from "../@types/node.js"
