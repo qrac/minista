@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<symbol viewBox="0 0 512 512" id="common-square" xmlns="http://www.w3.org/2000/svg"><path style="fill:#000;stroke-width:0" d="M76 76h360v360H76z"/></symbol>
+<symbol viewBox="0 0 512 512" id="common-square-red" xmlns="http://www.w3.org/2000/svg"><path style="fill:red;stroke-width:0" d="M76 76h360v360H76z"/></symbol>
+<symbol viewBox="0 0 512 512" id="common-square-trim" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="ba"><path transform="rotate(45 257.999 256.007)" style="stroke-width:0;fill:none" d="M208 0h100v512H208z"/></clipPath></defs><g style="clip-path:url(#ba)"><path style="fill:#000;stroke-width:0" d="M76 76h360v360H76z"/></g></symbol>
+</svg>
