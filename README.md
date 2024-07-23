@@ -16,6 +16,8 @@ minista（ミニスタ）は React の JSX から綺麗な HTML を作る日本�
 - [minista-plugin-enhance](https://github.com/qrac/minista/tree/main/packages/plugin-enhance) — HTML を JSX で修正
 - [minista-plugin-mdx](https://github.com/qrac/minista/tree/main/packages/plugin-mdx)
 - [minista-plugin-bundle](https://github.com/qrac/minista/tree/main/packages/plugin-bundle)
+- [minista-plugin-sprite](https://github.com/qrac/minista/tree/main/packages/plugin-sprite)
+- [minista-plugin-hydrate](https://github.com/qrac/minista/tree/main/packages/plugin-hydrate)
 - [minista-plugin-story](https://github.com/qrac/minista/tree/main/packages/plugin-story)
 - [minista-plugin-beautify](https://github.com/qrac/minista/tree/main/packages/plugin-beautify)
 - [minista-plugin-archive](https://github.com/qrac/minista/tree/main/packages/plugin-archive)
