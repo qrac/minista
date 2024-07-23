@@ -14,7 +14,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "client.d.ts"
   ],
   "license": "MIT",
   "homepage": "https://minista.qranoko.jp",
