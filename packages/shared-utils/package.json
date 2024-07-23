@@ -1,6 +1,6 @@
 {
   "name": "minista-shared-utils",
-  "version": "4.0.0-alpha.7",
+  "version": "4.0.0-alpha.8",
   "type": "module",
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
