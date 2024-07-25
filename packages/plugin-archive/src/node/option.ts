@@ -18,7 +18,7 @@ export type PluginOptions = {
 
 export const defaultOptions: PluginOptions = {
   srcDir: "dist",
-  outName: "archive",
+  outName: "dist",
   ignore: [],
   format: "zip",
   options: { zlib: { level: 9 } },
