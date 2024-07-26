@@ -28,7 +28,6 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
   const regCwd = new RegExp("^" + cwd)
   const aliasCwd = `/@${tempName}-cwd`
 
-  let viteCommand: "build" | "serve"
   let isSsr = false
   let base = "/"
   let rootDir = ""
@@ -43,19 +42,17 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
 
   return {
     name: pluginName,
-    config: async (config, { command }) => {
-      viteCommand = command
+    enforce: "pre",
+    apply: "build",
+    config: async (config) => {
       isSsr = config.build?.ssr ? true : false
       base = config.base || base
+      rootDir = getRootDir(cwd, config.root || "")
+      tempDir = getTempDir(cwd, rootDir)
+      ssgDir = path.join(tempDir, "ssg")
+      hydrateDir = path.join(tempDir, "hydrate")
 
-      if (viteCommand === "build") {
-        rootDir = getRootDir(cwd, config.root || "")
-        tempDir = getTempDir(cwd, rootDir)
-        ssgDir = path.join(tempDir, "ssg")
-        hydrateDir = path.join(tempDir, "hydrate")
-      }
-
-      if (viteCommand === "build" && isSsr) {
+      if (isSsr) {
         return {
           resolve: {
             alias: [
@@ -68,7 +65,7 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
         } as UserConfig
       }
 
-      if (viteCommand === "build" && !isSsr) {
+      if (!isSsr) {
         ssgFiles = await fg(path.join(ssgDir, `*.mjs`))
         if (!ssgFiles.length) return
 
@@ -121,7 +118,7 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
       }
     },
     async load(id) {
-      if (viteCommand === "build" && isSsr) {
+      if (isSsr) {
         if (/\.[jt]sx?\?ph$/.test(id)) {
           const aliasPath = id.replace(regCwd, aliasCwd).replace(/\?ph.*$/, "")
 
@@ -143,7 +140,7 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
       }
     },
     generateBundle(options, bundle) {
-      if (viteCommand === "build" && !isSsr) {
+      if (!isSsr) {
         for (const page of hydratePages) {
           const hydrateId = page.serials.join("-")
           const assetName = `${opts.outName}-${hydrateId}`
