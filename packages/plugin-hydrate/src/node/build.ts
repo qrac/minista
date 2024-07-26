@@ -38,7 +38,7 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
   let hydrateDir = ""
   let hydrateItems: { serial: number; aliasPath: string }[] = []
   let hydratePages: { fileName: string; serials: number[] }[] = []
-  let hydrateEntries: { [key: string]: string } = {}
+  let entries: { [key: string]: string } = {}
 
   return {
     name: pluginName,
@@ -97,13 +97,13 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
             const serials = item.split("-").map((serial) => Number(serial))
             const code = getConcatCode(serials, "build")
             await fs.promises.writeFile(fileName, code, "utf8")
-            hydrateEntries[entryKey] = fileName
+            entries[entryKey] = fileName
           })
         )
         return {
           build: {
             rollupOptions: {
-              input: hydrateEntries,
+              input: entries,
             },
           },
           resolve: {
@@ -164,7 +164,7 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
           `import\\s+["']\\./${bundleName}[^"']*["'];\\n?`,
           "g"
         )
-        const hydrateFileNames = Object.keys(hydrateEntries)
+        const hydrateFileNames = Object.keys(entries)
         const hydrateFiles = Object.values(bundle).filter((item) => {
           const reg = /\.js$/
           return (
