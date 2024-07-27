@@ -13,7 +13,7 @@ import {
   getRootDir,
   getTempDir,
   getBasedAssetPath,
-  getAttrRootPaths,
+  getAttrPaths,
 } from "minista-shared-utils"
 
 import type { PluginOptions } from "./option.js"
@@ -71,12 +71,12 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
         for (const ssgPage of ssgPages) {
           const { html } = ssgPage
           const items = [
-            ...getAttrRootPaths(html, "link", "href"),
-            ...getAttrRootPaths(html, "script", "src"),
-            ...getAttrRootPaths(html, "img", "src"),
-            ...getAttrRootPaths(html, "img", "srcset"),
-            ...getAttrRootPaths(html, "source", "srcset"),
-            ...getAttrRootPaths(html, "use", "href"),
+            ...getAttrPaths(html, "link", "href", "/"),
+            ...getAttrPaths(html, "script", "src", "/"),
+            ...getAttrPaths(html, "img", "src", "/"),
+            ...getAttrPaths(html, "img", "srcset", "/"),
+            ...getAttrPaths(html, "source", "srcset", "/"),
+            ...getAttrPaths(html, "use", "href", "/"),
           ]
           for (const item of items) {
             if (item) {

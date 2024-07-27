@@ -6,7 +6,7 @@ import {
   getPagePath,
   getHtmlPath,
   getBasedAssetPath,
-  getAttrRootPaths,
+  getAttrPaths,
 } from "../../src/node/index.js"
 
 describe("getPluginName", () => {
@@ -117,7 +117,7 @@ describe("getBasedAssetPath", () => {
   })
 })
 
-describe("getAttrRootPaths", () => {
+describe("getAttrPaths", () => {
   const html = `<head>
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="icon" href="/favicon.ico" />
@@ -154,11 +154,11 @@ describe("getAttrRootPaths", () => {
   </svg>
 </body>`
   it("none", () => {
-    const result = getAttrRootPaths(html, "meta", "content")
+    const result = getAttrPaths(html, "meta", "content", "/")
     expect(result).toEqual([])
   })
   it("link href", () => {
-    const result = getAttrRootPaths(html, "link", "href")
+    const result = getAttrPaths(html, "link", "href", "/")
     expect(result).toEqual([
       "/apple-touch-icon.png",
       "/favicon.ico",
@@ -167,15 +167,15 @@ describe("getAttrRootPaths", () => {
     ])
   })
   it("script src", () => {
-    const result = getAttrRootPaths(html, "script", "src")
+    const result = getAttrPaths(html, "script", "src", "/")
     expect(result).toEqual(["/src/script.js", "/src/script2.js"])
   })
   it("img src", () => {
-    const result = getAttrRootPaths(html, "img", "src")
+    const result = getAttrPaths(html, "img", "src", "/")
     expect(result).toEqual(["/image.png", "/image2.svg"])
   })
   it("source srcset", () => {
-    const result = getAttrRootPaths(html, "source", "srcset")
+    const result = getAttrPaths(html, "source", "srcset", "/")
     expect(result).toEqual([
       "/image-320x157.webp",
       "/image-400x196.webp",
@@ -183,7 +183,7 @@ describe("getAttrRootPaths", () => {
     ])
   })
   it("use href", () => {
-    const result = getAttrRootPaths(html, "use", "href")
+    const result = getAttrPaths(html, "use", "href", "/")
     expect(result).toEqual(["/sprite.svg"])
   })
 })
