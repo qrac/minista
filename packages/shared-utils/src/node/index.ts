@@ -80,8 +80,8 @@ export function getAttrPaths(
       let item: string | undefined
       item = pathItem.trim()
       item = item.split("#")[0]
-      item = item.split("\\?")[0]
-      item = item.match(/^(.*\.\w+)/)?.[1]
+      item = item.split("?")[0]
+      item = item.split(" ")[0]
 
       if (!item) continue
 

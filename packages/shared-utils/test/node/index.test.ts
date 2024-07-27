@@ -132,6 +132,7 @@ describe("getAttrPaths", () => {
   <img src="/image2.svg" />
   <img src="/image.png" />
   <img src="/image2.svg" />
+  <img src="https://picsum.photos/id/1/800/600" />
   <picture>
     <source
       srcset="
@@ -173,6 +174,10 @@ describe("getAttrPaths", () => {
   it("img src", () => {
     const result = getAttrPaths(html, "img", "src", "/")
     expect(result).toEqual(["/image.png", "/image2.svg"])
+  })
+  it("img src http", () => {
+    const result = getAttrPaths(html, "img", "src", "http")
+    expect(result).toEqual(["https://picsum.photos/id/1/800/600"])
   })
   it("source srcset", () => {
     const result = getAttrPaths(html, "source", "srcset", "/")

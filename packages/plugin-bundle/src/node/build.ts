@@ -70,7 +70,7 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
 
         for (const ssgPage of ssgPages) {
           const { html } = ssgPage
-          const items = [
+          const assetPaths = [
             ...getAttrPaths(html, "link", "href", "/"),
             ...getAttrPaths(html, "script", "src", "/"),
             ...getAttrPaths(html, "img", "src", "/"),
@@ -78,14 +78,14 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
             ...getAttrPaths(html, "source", "srcset", "/"),
             ...getAttrPaths(html, "use", "href", "/"),
           ]
-          for (const item of items) {
-            if (item) {
-              const itemId = item
+          for (const assetPath of assetPaths) {
+            if (assetPath) {
+              const assetPathId = assetPath
                 .replace(/\//g, slashStr)
                 .replace(/\./g, dotStr)
-              const itemDirs = item.split("/")
-              const fullPath = path.join(rootDir, ...itemDirs)
-              preEntries[itemId] = fullPath
+              const assetDirs = assetPath.split("/")
+              const fullPath = path.join(rootDir, ...assetDirs)
+              preEntries[assetPathId] = fullPath
             }
           }
         }
