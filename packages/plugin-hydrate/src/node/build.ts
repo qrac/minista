@@ -33,7 +33,6 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
   let rootDir = ""
   let tempDir = ""
   let ssgDir = ""
-  let ssgFiles: string[] = []
   let ssgPages: SsgPage[] = []
   let hydrateDir = ""
   let hydrateItems: { serial: number; aliasPath: string }[] = []
@@ -66,7 +65,8 @@ export function pluginHydrateBuild(opts: PluginOptions): Plugin {
       }
 
       if (!isSsr) {
-        ssgFiles = await fg(path.join(ssgDir, `*.mjs`))
+        const ssgFiles = await fg(path.join(ssgDir, `*.mjs`))
+
         if (!ssgFiles.length) return
 
         ssgPages = (
