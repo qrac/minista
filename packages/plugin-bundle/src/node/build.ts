@@ -79,14 +79,12 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
             ...getAttrPaths(html, "use", "href", "/"),
           ]
           for (const assetPath of assetPaths) {
-            if (assetPath) {
-              const assetPathId = assetPath
-                .replace(/\//g, slashStr)
-                .replace(/\./g, dotStr)
-              const assetDirs = assetPath.split("/")
-              const fullPath = path.join(rootDir, ...assetDirs)
-              preEntries[assetPathId] = fullPath
-            }
+            const assetPathId = assetPath
+              .replace(/\//g, slashStr)
+              .replace(/\./g, dotStr)
+            const assetDirs = assetPath.split("/")
+            const fullPath = path.join(rootDir, ...assetDirs)
+            preEntries[assetPathId] = fullPath
           }
         }
 

@@ -94,7 +94,5 @@ export function getAttrPaths(
       }
     }
   }
-  rootPaths = [...new Set(rootPaths)]
-  rootPaths.sort()
-  return rootPaths
+  return [...new Set(rootPaths)].sort()
 }
