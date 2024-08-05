@@ -96,3 +96,23 @@ export function getAttrPaths(
   }
   return [...new Set(rootPaths)].sort()
 }
+
+export function convertPathToEntryId(input: string) {
+  const slashStr = "__slash__"
+  const backSlashStr = "__backSlash__"
+  const dotStr = "__dot__"
+  return input
+    .replace(/\//g, slashStr)
+    .replace(/\\/g, backSlashStr)
+    .replace(/\./g, dotStr)
+}
+
+export function convertEntryIdToPath(input: string) {
+  const slashStr = "__slash__"
+  const backSlashStr = "__backSlash__"
+  const dotStr = "__dot__"
+  return input
+    .replace(new RegExp(slashStr, "g"), "/")
+    .replace(new RegExp(backSlashStr, "g"), "\\")
+    .replace(new RegExp(dotStr, "g"), ".")
+}

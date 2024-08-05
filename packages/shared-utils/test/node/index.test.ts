@@ -7,6 +7,8 @@ import {
   getHtmlPath,
   getBasedAssetPath,
   getAttrPaths,
+  convertPathToEntryId,
+  convertEntryIdToPath,
 } from "../../src/node/index.js"
 
 describe("getPluginName", () => {
@@ -190,5 +192,23 @@ describe("getAttrPaths", () => {
   it("use href", () => {
     const result = getAttrPaths(html, "use", "href", "/")
     expect(result).toEqual(["/sprite.svg"])
+  })
+})
+
+describe("convertPathToEntryId", () => {
+  it("basic", () => {
+    const result = convertPathToEntryId("path/to/nest\\nest\\index.html")
+    expect(result).toEqual(
+      "path__slash__to__slash__nest__backSlash__nest__backSlash__index__dot__html"
+    )
+  })
+})
+
+describe("convertEntryIdToPath", () => {
+  it("basic", () => {
+    const result = convertEntryIdToPath(
+      "path__slash__to__slash__nest__backSlash__nest__backSlash__index__dot__html"
+    )
+    expect(result).toEqual("path/to/nest\\nest\\index.html")
   })
 })

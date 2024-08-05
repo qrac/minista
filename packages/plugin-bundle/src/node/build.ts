@@ -14,6 +14,8 @@ import {
   getTempDir,
   getBasedAssetPath,
   getAttrPaths,
+  convertPathToEntryId,
+  convertEntryIdToPath,
 } from "minista-shared-utils"
 
 import type { PluginOptions } from "./option.js"
@@ -25,8 +27,6 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
   const names = ["bundle", "build"]
   const pluginName = getPluginName(names)
   const tempName = getTempName(names)
-  const slashStr = "__slash__"
-  const dotStr = "__dot__"
 
   let isSsr = false
   let base = "/"
@@ -79,12 +79,10 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
             ...getAttrPaths(html, "use", "href", "/"),
           ]
           for (const assetPath of assetPaths) {
-            const assetPathId = assetPath
-              .replace(/\//g, slashStr)
-              .replace(/\./g, dotStr)
+            const entryId = convertPathToEntryId(assetPath)
             const assetDirs = assetPath.split("/")
             const fullPath = path.join(rootDir, ...assetDirs)
-            preEntries[assetPathId] = fullPath
+            preEntries[entryId] = fullPath
           }
         }
 
@@ -141,12 +139,8 @@ export function pluginBundleBuild(opts: PluginOptions): Plugin {
           })
           for (const item of items) {
             item.fileName = item.fileName?.replace(key, newName)
-
-            const regSlashStr = new RegExp(slashStr, "g")
-            const regDotStr = new RegExp(dotStr, "g")
-
             entryChanges.push({
-              before: key.replace(regSlashStr, "/").replace(regDotStr, "."),
+              before: convertEntryIdToPath(key),
               after: item.fileName,
             })
           }
