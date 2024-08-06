@@ -3,7 +3,7 @@
   "version": "4.0.0-alpha.8",
   "private": true,
   "dependencies": {
-    "preact": "^10.22.1"
+    "preact": "^10.23.1"
   },
   "devDependencies": {
     "budoux": "^0.6.2",
