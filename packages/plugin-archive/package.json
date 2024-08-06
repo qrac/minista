@@ -1,6 +1,6 @@
 {
   "name": "minista-plugin-archive",
-  "version": "4.0.0-alpha.8",
+  "version": "4.0.0-alpha.9",
   "type": "module",
   "engines": {
     "node": "^18.0.0 || >=20.0.0"
@@ -61,7 +61,7 @@
   },
   "dependencies": {
     "archiver": "^7.0.1",
-    "minista-shared-utils": "^4.0.0-alpha.8",
+    "minista-shared-utils": "^4.0.0-alpha.9",
     "picocolors": "^1.0.1"
   }
 }
