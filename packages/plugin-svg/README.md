@@ -1,29 +1,27 @@
-# minista-plugin-sprite
+# minista-plugin-svg
 
 ## About
 
 [minista](https://minista.qranoko.jp) および [Vite](https://ja.vitejs.dev/) で動作するプラグイン。
 
-- SVG ファイルを SVG スプライトに結合して出力
+- SVG ファイルを HTML にインラインで展開
 - SVGO を使った最適化処理
-- 既存の SVG スプライトをマージする機能
 
 ## How To Use
 
 ```sh
-$ npm install minista-plugin-sprite
+$ npm install minista-plugin-svg
 ```
 
 ```js
 // ./minista.config.js
-import { pluginSprite } from "minista-plugin-sprite"
+import { pluginSvg } from "minista-plugin-svg"
 
 export default {
-  plugins: [pluginSprite()],
+  plugins: [pluginSvg()],
 }
 ```
 
-- https://github.com/svg-sprite/svg-sprite/blob/HEAD/docs/configuration.md
 - https://svgo.dev/docs/preset-default/
 
 ## License
