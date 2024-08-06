@@ -25,6 +25,9 @@ export function pluginSpriteServe(opts: PluginOptions): Plugin {
   const tempName = getTempName(names)
   const mOpts = resolveMultipleOptions(opts)
   const aliasSprite = `/@${tempName}-sprite`
+  const targetAttr = "data-minista-sprite"
+  const spriteKeyAttr = "data-minista-sprite-key"
+  const symbolIdAttr = "data-minista-sprite-symbol-id"
 
   let rootDir = ""
   let tempDir = ""
@@ -103,16 +106,11 @@ export function pluginSpriteServe(opts: PluginOptions): Plugin {
     },
     transformIndexHtml(html) {
       let parsedHtml = parseHtml(html)
-
-      const targetAttr = "data-minista-sprite"
       const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
 
       if (!targetEls.length) return html
 
       for (const el of targetEls) {
-        const spriteKeyAttr = "data-minista-sprite-key"
-        const symbolIdAttr = "data-minista-sprite-symbol-id"
-
         const spriteKey = el.getAttribute(spriteKeyAttr) || ""
         const tempKeySuffix = spriteKey ? "-" + spriteKey : ""
         const tempKey = tempName + tempKeySuffix

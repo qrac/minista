@@ -12,6 +12,7 @@ import {
   getRootDir,
   getTempDir,
   getBasedAssetPath,
+  convertPathToEntryId,
 } from "minista-shared-utils"
 
 import type { SvgSpriteConfig } from "../@types/node.js"
@@ -26,9 +27,9 @@ export function pluginSpriteBuild(opts: PluginOptions): Plugin {
   const pluginName = getPluginName(names)
   const tempName = getTempName(names)
   const mOpts = resolveMultipleOptions(opts)
-  const slashStr = "__slash__"
-  const backSlashStr = "__backSlash__"
-  const dotStr = "__dot__"
+  const targetAttr = "data-minista-sprite"
+  const spriteKeyAttr = "data-minista-sprite-key"
+  const symbolIdAttr = "data-minista-sprite-symbol-id"
 
   let isSsr = false
   let base = "/"
@@ -78,11 +79,8 @@ export function pluginSpriteBuild(opts: PluginOptions): Plugin {
           })
         )
         for (const item of Object.values(spriteObj)) {
-          const itemId = item.filePath
-            .replace(/\//g, slashStr)
-            .replace(/\\/g, backSlashStr)
-            .replace(/\./g, dotStr)
-          entries[itemId] = item.filePath
+          const entryId = convertPathToEntryId(item.filePath)
+          entries[entryId] = item.filePath
         }
         return {
           build: {
@@ -121,16 +119,11 @@ export function pluginSpriteBuild(opts: PluginOptions): Plugin {
           const htmlPath = item.fileName
 
           let parsedHtml = parseHtml(item.source as string)
-
-          const targetAttr = "data-minista-sprite"
           const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
 
           if (!targetEls.length) continue
 
           for (const el of targetEls) {
-            const spriteKeyAttr = "data-minista-sprite-key"
-            const symbolIdAttr = "data-minista-sprite-symbol-id"
-
             const spriteKey = el.getAttribute(spriteKeyAttr) || ""
             const tempKeySuffix = spriteKey ? "-" + spriteKey : ""
             const tempKey = tempName + tempKeySuffix
