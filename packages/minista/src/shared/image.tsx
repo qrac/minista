@@ -187,8 +187,8 @@ export function Picture({
                 sizes={sourceSizes}
                 width={sourceWidth}
                 height={sourceHeight}
-                data-minista-transform-target={resolveTarget(src)}
-                data-minista-image-src={src}
+                data-minista-transform-target={resolveTarget(item.src)}
+                data-minista-image-src={item.src}
                 data-minista-image-outname={outName}
                 data-minista-image-optimize={sourceOptimizeStr}
               />
@@ -217,8 +217,8 @@ export function Picture({
               sizes={sourceSizes}
               width={sourceWidth}
               height={sourceHeight}
-              data-minista-transform-target={resolveTarget(src)}
-              data-minista-image-src={src}
+              data-minista-transform-target={resolveTarget(item.src)}
+              data-minista-image-src={item.src}
               data-minista-image-outname={outName}
               data-minista-image-optimize={sourceOptimizeStr}
             />
