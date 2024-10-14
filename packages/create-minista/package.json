@@ -51,7 +51,7 @@
   "dependencies": {
     "cac": "^6.7.14",
     "degit": "^2.8.4",
-    "picocolors": "^1.0.1",
+    "picocolors": "^1.1.0",
     "prompts": "^2.4.2"
   }
 }
