@@ -186,7 +186,7 @@ export function Picture({
                 width={sourceWidth}
                 height={sourceHeight}
                 data-minista-image=""
-                data-minista-image-src={src}
+                data-minista-image-src={item.src}
                 data-minista-image-optimize={sourceOptimizeStr}
               />
             )
@@ -217,7 +217,7 @@ export function Picture({
               width={sourceWidth}
               height={sourceHeight}
               data-minista-image=""
-              data-minista-image-src={src}
+              data-minista-image-src={item.src}
               data-minista-image-optimize={sourceOptimizeStr}
             />
           )

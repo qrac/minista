@@ -32,6 +32,24 @@ export default function () {
         />
       </div>
       <div>
+        <Picture
+          src="/src/assets/image.png"
+          width={600}
+          artDirectives={[
+            {
+              media: `(max-width: 600px)`,
+              src: "/src/assets/image2.png",
+              width: 200,
+            },
+            {
+              media: `(min-width: 601px)`,
+              src: "/src/assets/image.png",
+              width: 600,
+            },
+          ]}
+        />
+      </div>
+      <div>
         <Image src="https://picsum.photos/id/1/800/600" width={800} />
       </div>
       <div>
