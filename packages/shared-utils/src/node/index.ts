@@ -37,8 +37,8 @@ export function getPagePath(srcPath: string, srcBases?: string[]) {
   }
   return pagePath
     .replace(/index\.[^\/]+?$|(\.[^\/.]+)$/g, "")
-    .replace(/\[\.{3}.+\]/, "*")
-    .replace(/\[(.+)\]/, ":$1")
+    .replace(/\[(\.{3}.+?)\]/g, "*")
+    .replace(/\[(.+?)\]/g, ":$1")
     .replace(/^.\/+/, "/")
 }
 
