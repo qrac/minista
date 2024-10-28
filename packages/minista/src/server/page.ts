@@ -50,12 +50,10 @@ export function getPages(): Page[] {
   const pages: Page[] = Object.keys(PAGES).map((page) => {
     const pagePath = page
       .replace(/^\/src\/pages\//g, "/")
-      .replace(/\index|\.tsx$/g, "")
-      .replace(/\index|\.jsx$/g, "")
-      .replace(/\index|\.mdx$/g, "")
-      .replace(/\index|\.md$/g, "")
-      .replace(/\[\.{3}.+\]/, "*")
-      .replace(/\[(.+)\]/, ":$1")
+      .replace(/\index(\.tsx|\.jsx|\.mdx|\.md)$/g, "")
+      .replace(/\.tsx$|\.jsx$|\.mdx$|\.md$/g, "")
+      .replace(/\[(\.{3}.+?)\]/g, "*")
+      .replace(/\[(.+?)\]/g, ":$1")
       .replace(/^.\//, "/")
     const frontmatter = PAGES[page].frontmatter || {}
     const metadata = {

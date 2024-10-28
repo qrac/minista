@@ -3,7 +3,7 @@
 // - Function Result Type: Promise<StaticData>
 import type { StaticData, PageProps } from "minista"
 
-export async function getStaticData(): Promise<StaticData> {
+export async function getStaticData(): Promise<StaticData[]> {
   //const apiUrl = "https://api.github.com/repos/qrac/minista/issues"
   //const apiParamsQuery = "?state=all&creator=qrac&per_page=5"
   //const response = await fetch(apiUrl + apiParamsQuery)
@@ -12,10 +12,15 @@ export async function getStaticData(): Promise<StaticData> {
   const response = await fetch(apiUrl)
 
   const data = await response.json()
-  return data.map((item: PageIssuesTemplateProps) => ({
-    props: item,
-    paths: { number: item.number },
-  }))
+  const langList = ["en", "ja"]
+  return langList
+    .map((lang) =>
+      data.map((item: PageIssuesTemplateProps) => ({
+        props: item,
+        paths: { lang, number: item.number },
+      }))
+    )
+    .flat()
 }
 
 type PageIssuesTemplateProps = PageProps & {

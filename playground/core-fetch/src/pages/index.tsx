@@ -24,16 +24,22 @@ type PageIssuesProps = PageProps & {
 }
 
 export default function (props: PageIssuesProps) {
+  const langList = ["en", "ja"]
   return (
     <>
       <h1>Issues</h1>
-      <ul>
-        {props.issues?.map((item, index) => (
-          <li key={index}>
-            <a href={`/issues/${item.number}`}>{item.title}</a>
-          </li>
-        ))}
-      </ul>
+      {langList.map((lang) => (
+        <div key={lang}>
+          <h2>lang: {lang}</h2>
+          <ul>
+            {props.issues?.map((item, index) => (
+              <li key={index}>
+                <a href={`/issues/${lang}/${item.number}`}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </>
   )
 }
