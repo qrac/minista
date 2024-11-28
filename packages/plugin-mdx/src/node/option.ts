@@ -34,18 +34,33 @@ export const defaultOptions: PluginOptions = {
 }
 
 export function resolveMdxOptions(opts: PluginOptions): MdxOptions {
-  const { useRemarkGfm, useRehypeHighlight } = opts
-  const { remarkGfmOptions, rehypeHighlightOptions } = opts
-  const { mdxOptions } = opts
+  const {
+    useRemarkGfm,
+    useRehypeHighlight,
+    remarkGfmOptions,
+    rehypeHighlightOptions,
+    mdxOptions,
+  } = opts
 
-  mdxOptions.remarkPlugins?.push(remarkFrontmatter)
-  mdxOptions.remarkPlugins?.push([remarkMdxFrontmatter, { name: "metadata" }])
+  const resolvedOptions: MdxOptions = {
+    ...mdxOptions,
+    remarkPlugins: [...(mdxOptions.remarkPlugins || [])],
+    rehypePlugins: [...(mdxOptions.rehypePlugins || [])],
+  }
+  resolvedOptions.remarkPlugins?.push(remarkFrontmatter)
+  resolvedOptions.remarkPlugins?.push([
+    remarkMdxFrontmatter,
+    { name: "metadata" },
+  ])
 
   if (useRemarkGfm) {
-    mdxOptions.remarkPlugins?.push([remarkGfm, remarkGfmOptions])
+    resolvedOptions.remarkPlugins?.push([remarkGfm, remarkGfmOptions])
   }
   if (useRehypeHighlight) {
-    mdxOptions.rehypePlugins?.push([rehypeHighlight, rehypeHighlightOptions])
+    resolvedOptions.rehypePlugins?.push([
+      rehypeHighlight,
+      rehypeHighlightOptions,
+    ])
   }
-  return mdxOptions
+  return resolvedOptions
 }
