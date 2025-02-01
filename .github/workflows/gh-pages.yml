@@ -25,7 +25,10 @@ jobs:
       - name: 依存関係をインストール
         run: npm ci
 
-      - name: ビルド
+      - name: ビルド 1
+        run: npm run build:main-src
+
+      - name: ビルド 2
         run: npm run docs:build
 
       - name: アーティファクトをアップロード
