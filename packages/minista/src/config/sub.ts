@@ -1,5 +1,4 @@
 import path from "node:path"
-import { normalizePath } from "vite"
 
 import type { ResolvedMainConfig } from "./main.js"
 import type { ResolvedEntry } from "./entry.js"
@@ -20,9 +19,9 @@ export type ResolvedSubConfig = {
 export async function resolveSubConfig(
   mainConfig: ResolvedMainConfig
 ): Promise<ResolvedSubConfig> {
-  const resolvedRoot = normalizePath(
-    mainConfig.root ? path.resolve(mainConfig.root) : process.cwd()
-  )
+  const resolvedRoot = mainConfig.root
+    ? path.resolve(mainConfig.root)
+    : process.cwd()
   const resolvedBase = resolveBase(mainConfig.base)
 
   const configEntry = mainConfig.assets.entry

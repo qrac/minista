@@ -3,6 +3,7 @@ import path from "node:path"
 import fs from "fs-extra"
 import { lookup } from "mime-types"
 import imageSize from "image-size"
+import { normalizePath } from "vite"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type {
@@ -267,7 +268,7 @@ export async function transformImages({
 
       if (command === "serve") {
         let fileName = entry.fileName
-        let filePath = fileName.replace(resolvedRoot, "")
+        let filePath = normalizePath(fileName.replace(resolvedRoot, ""))
 
         if (view.aspectHeight !== entry.aspectHeight) {
           let width = 1
@@ -281,7 +282,7 @@ export async function transformImages({
           const tempFileName = `${name}-${width}x${height}.${ext}`
 
           fileName = path.join(cacheDir, tempFileName)
-          filePath = fileName.replace(resolvedRoot, "")
+          filePath = normalizePath(fileName.replace(resolvedRoot, ""))
 
           if (!(await fs.pathExists(fileName))) {
             const createImage = {
@@ -333,7 +334,7 @@ export async function transformImages({
 
             createImages && (createImages[fileName] = createImage)
 
-            const filePath = path.join(resolvedBase, fileName)
+            const filePath = normalizePath(path.join(resolvedBase, fileName))
 
             src = filePath
             return `${filePath} ${width}w`
@@ -360,7 +361,7 @@ export async function transformImages({
 
             createImages && (createImages[fileName] = createImage)
 
-            const filePath = path.join(resolvedBase, fileName)
+            const filePath = normalizePath(path.join(resolvedBase, fileName))
 
             index === 0 && (src = filePath)
             return `${filePath} ${scale}x`
