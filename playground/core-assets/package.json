@@ -1,4 +1,7 @@
 {
   "name": "play-core-assets",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@fontsource/manrope": "^5.1.1"
+  }
 }

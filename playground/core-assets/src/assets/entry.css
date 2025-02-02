@@ -1,3 +1,7 @@
+@import "@fontsource/manrope/700.css";
+
 h2 {
   color: blue;
+  font-family: "Manrope";
+  font-weight: 700;
 }
