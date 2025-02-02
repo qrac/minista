@@ -8,6 +8,7 @@ import {
   mergeConfig as mergeViteConfig,
   build as viteBuild,
   createLogger,
+  normalizePath,
 } from "vite"
 import { parse as parseHtml } from "node-html-parser"
 
@@ -257,8 +258,10 @@ export async function build(inlineConfig: InlineConfig = {}) {
   cssNameBugFix = Object.fromEntries(
     Object.entries(assetEntries).map((item) => {
       return [
-        path.join(assets.outDir, path.parse(item[1]).name + ".css"),
-        path.join(assets.outDir, item[0] + ".css"),
+        normalizePath(
+          path.join(assets.outDir, path.parse(item[1]).name + ".css")
+        ),
+        normalizePath(path.join(assets.outDir, item[0] + ".css")),
       ]
     })
   )

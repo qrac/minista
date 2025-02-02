@@ -1,6 +1,7 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 import fs from "fs-extra"
+import { normalizePath } from "vite"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { ResolvedViteEntry } from "../config/entry.js"
@@ -82,7 +83,9 @@ export async function transformEntries({
     const name = item.name ? item.name : path.parse(src).name
     const outDir = assets.outDir
     const outName = assets.outName.replace(/\[name\]/, name)
-    const assetPath = path.join(resolvedBase, outDir, `${outName}.${outExt}`)
+    const assetPath = normalizePath(
+      path.join(resolvedBase, outDir, `${outName}.${outExt}`)
+    )
 
     isScript ? (scriptEntries[name] = src) : (linkEntries[name] = src)
 
