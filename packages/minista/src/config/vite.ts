@@ -7,6 +7,7 @@ import {
   mergeConfig as mergeViteConfig,
   searchForWorkspaceRoot,
   createLogger,
+  normalizePath,
 } from "vite"
 
 import type { ResolvedMainConfig } from "./main.js"
@@ -25,20 +26,23 @@ export function resolveViteAssetFileNames(
   const fileExt = path.extname(filePath)
 
   if (fileExt.match(/\.(jpg|jpeg|gif|png|webp|svg)/)) {
-    return path.join(
-      mainConfig.assets.images.outDir,
-      mainConfig.assets.images.outName + ".[ext]"
+    return normalizePath(
+      path.join(
+        mainConfig.assets.images.outDir,
+        mainConfig.assets.images.outName + ".[ext]"
+      )
     )
   }
   if (fileExt.match(/\.(woff|woff2|eot|ttf|otf)/)) {
-    return path.join(
-      mainConfig.assets.fonts.outDir,
-      mainConfig.assets.fonts.outName + ".[ext]"
+    return normalizePath(
+      path.join(
+        mainConfig.assets.fonts.outDir,
+        mainConfig.assets.fonts.outName + ".[ext]"
+      )
     )
   }
-  return path.join(
-    mainConfig.assets.outDir,
-    mainConfig.assets.outName + ".[ext]"
+  return normalizePath(
+    path.join(mainConfig.assets.outDir, mainConfig.assets.outName + ".[ext]")
   )
 }
 
