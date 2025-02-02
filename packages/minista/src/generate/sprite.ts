@@ -1,6 +1,7 @@
 import path from "node:path"
 import fs from "fs-extra"
 import fg from "fast-glob"
+import { normalizePath } from "vite"
 
 import type { ResolvedConfig } from "../config/index.js"
 import { logger } from "../cli/logger.js"
@@ -23,7 +24,7 @@ export async function generateTempSprite({
   const { resolvedRoot } = config.sub
   const options = config.main.assets.icons.svgstoreOptions
   const filePath = fileName.replace(resolvedRoot, "")
-  const svgFiles = await fg(path.join(srcDir, "**/*.svg"))
+  const svgFiles = await fg(normalizePath(path.join(srcDir, "**/*.svg")))
 
   if (!svgFiles.length) {
     return
@@ -62,7 +63,7 @@ export async function generateSprites({
     createArray.map(async (item) => {
       const srcDir = item[0]
       const fileName = item[1]
-      const svgFiles = await fg(path.join(srcDir, "**/*.svg"))
+      const svgFiles = await fg(normalizePath(path.join(srcDir, "**/*.svg")))
 
       if (!svgFiles.length) {
         return

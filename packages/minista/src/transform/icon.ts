@@ -2,6 +2,7 @@ import type { ViteDevServer } from "vite"
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
 import fs from "fs-extra"
+import { normalizePath } from "vite"
 
 import type { ResolvedConfig } from "../config/index.js"
 import type { CreateSprites } from "../generate/sprite.js"
@@ -93,7 +94,7 @@ export async function transformIcons({
     const fileName = cacheData[srcDir]
     const hrefOptions =
       command === "serve" ? { remove: resolvedRoot } : { add: resolvedBase }
-    const href = getIconHref(fileName, iconId, hrefOptions)
+    const href = normalizePath(getIconHref(fileName, iconId, hrefOptions))
 
     el.setAttribute("href", href)
     cleanElement(el, cleanAttributes)
