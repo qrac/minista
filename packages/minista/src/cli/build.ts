@@ -72,11 +72,13 @@ export async function build(inlineConfig: InlineConfig = {}) {
 
   const resolvedOut = path.join(resolvedRoot, config.main.out)
 
-  const bundleCssName = path.join(
-    assets.outDir,
-    assets.outName.replace(/\[name\]/, assets.bundle.outName) + ".css"
+  const bundleCssName = normalizePath(
+    path.join(
+      assets.outDir,
+      assets.outName.replace(/\[name\]/, assets.bundle.outName) + ".css"
+    )
   )
-  const bugBundleCssName = path.join(assets.outDir, "bundle.css")
+  const bugBundleCssName = normalizePath(path.join(assets.outDir, "bundle.css"))
   const hydrateJsName = path.join(
     assets.outDir,
     assets.outName.replace(/\[name\]/, assets.partial.outName) + ".js"
