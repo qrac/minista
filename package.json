@@ -1,6 +1,6 @@
 {
   "name": "minista-monorepo",
-  "version": "3.1.10",
+  "version": "3.1.11",
   "private": true,
   "engines": {
     "node": ">=14.15.0"
