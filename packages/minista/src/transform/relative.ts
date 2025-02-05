@@ -1,5 +1,6 @@
 import type { HTMLElement as NHTMLElement } from "node-html-parser"
 import path from "node:path"
+import { normalizePath } from "vite"
 
 import type { ResolvedConfig } from "../config/index.js"
 import { flags } from "../config/system.js"
@@ -17,12 +18,14 @@ export function getRelativePath({
   replaceTarget: string
   assetPath: string
 }) {
-  const pagePath = path.dirname(getHtmlPath(pathname))
+  const pagePath = path.dirname(getHtmlPath(pathname)).replace(/^[\\]+/, ".")
 
   let resolvedPath = assetPath.replace(/\n/, "").trim()
 
   if (!resolvedPath.includes(",") && resolvedPath.startsWith(replaceTarget)) {
-    return path.relative(pagePath, path.join("./", resolvedPath))
+    return normalizePath(
+      path.relative(pagePath, resolvedPath.replace(/^[\/\\]+/, ""))
+    )
   }
   if (!resolvedPath.includes(",")) {
     return resolvedPath
@@ -34,7 +37,9 @@ export function getRelativePath({
       let [url, density] = s.split(/\s+/)
 
       if (url.startsWith(replaceTarget)) {
-        url = path.relative(pagePath, path.join("./", url))
+        url = normalizePath(
+          path.relative(pagePath, path.join("./", url).replace(/^[\/\\]+/, ""))
+        )
       }
       return `${url} ${density}`
     })
@@ -79,7 +84,7 @@ export function transformRelative({
       if (assetPath) {
         const relativePaths = getRelativePath({
           pathname,
-          replaceTarget: path.join("/", outDir),
+          replaceTarget: normalizePath(path.join("/", outDir)),
           assetPath,
         })
         el.setAttribute(attr, relativePaths)
