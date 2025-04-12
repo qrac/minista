@@ -1,29 +1,15 @@
 # minista
 
-<p>
-  <a aria-label="Made by QRANOKO" href="https://qranoko.jp">
-    <img src="https://img.shields.io/badge/MADE%20BY%20QRANOKO-212121.svg?style=for-the-badge&labelColor=212121">
-  </a>
-  <a aria-label="License" href="https://github.com/qrac/minista/blob/master/LICENSE">
-    <img alt="" src="https://img.shields.io/npm/l/minista.svg?style=for-the-badge&labelColor=212121">
-  </a>
-</p>
-
 ## Site & Documentation
 
-https://minista.qranoko.jp
+- https://minista.qranoko.jp
 
 ## About
 
-minista（ミニスタ）は React の JSX から綺麗な HTML を作る日本製のスタティックサイトジェネレーターです。
+minista（ミニスタ）は React の JSX から綺麗な HTML を作るスタティックサイトジェネレーターです。
 
-## Packages
-
-<!-- prettier-ignore -->
-| Package Directory | Latest Version |
-| --- | --- |
-| [minista](https://github.com/qrac/minista/tree/main/packages/minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/minista"><img alt="" src="https://img.shields.io/npm/v/minista.svg?style=for-the-badge&labelColor=212121"></a> |
-| [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista) | <a aria-label="NPM version" href="https://www.npmjs.com/package/create-minista"><img alt="" src="https://img.shields.io/npm/v/create-minista.svg?style=for-the-badge&labelColor=212121"></a> |
+- すべての機能を Vite プラグインとして提供
+- ビルド時に自動で「SSR ビルド + 通常ビルド」を実行
 
 ## Quick Start
 
@@ -42,10 +28,10 @@ $ npm create minista@latest
 
 ## Respect
 
-- [Next.js by Vercel - The React Framework](https://nextjs.org/)
 - [Tropical — static site generator](https://tropical.js.org/)
 - [Astro | Build faster websites](https://astro.build/)
 - [natemoo-re/microsite](https://github.com/natemoo-re/microsite)
+- [Next.js by Vercel - The React Framework](https://nextjs.org/)
 - [Charge — an opinionated, zero-config static site generator](https://charge.js.org/)
 - [Eleventy, a simpler static site generator.](https://www.11ty.dev/)
 - [Node Interface | webpack](https://webpack.js.org/api/node/)

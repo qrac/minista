@@ -1,0 +1,83 @@
+import { getPagePath, resolveParamPath } from "../utils/index.js"
+
+/** @typedef {import('./types').PluginOptions} PluginOptions */
+/** @typedef {import('./types').StaticData} StaticData */
+/** @typedef {import('./types').ImportedPages} ImportedPages */
+/** @typedef {import('./types').FormatedPage} FormatedPage */
+/** @typedef {import('./types').ResolvedPage} ResolvedPage */
+
+/**
+ * @param {ImportedPages} PAGES
+ * @param {PluginOptions} opts
+ * @returns {FormatedPage[]}
+ */
+export function formatPages(PAGES, opts) {
+  return Object.keys(PAGES).map((page) => {
+    const pagePath = getPagePath(page, opts.srcBases)
+    const metadata = PAGES[page].metadata || {}
+    return {
+      path: pagePath,
+      component: PAGES[page].default,
+      getStaticData: PAGES[page].getStaticData,
+      metadata,
+    }
+  })
+}
+
+/**
+ * @param {FormatedPage} page
+ * @param {StaticData} staticData
+ * @param {string} [resolvedPagePath]
+ * @returns {ResolvedPage}
+ */
+function createResolvedPage(page, staticData, resolvedPagePath = page.path) {
+  return {
+    path: resolvedPagePath,
+    component: page.component,
+    staticData,
+    metadata: page.metadata,
+  }
+}
+
+/**
+ * @param {FormatedPage} page
+ * @param {StaticData} staticData
+ * @returns {ResolvedPage}
+ */
+function createResolvedPageWithPaths(page, staticData) {
+  const mergedStaticData = {
+    props: staticData.props ?? {},
+    paths: staticData.paths ?? {},
+  }
+  const resolvedPagePath = resolveParamPath(page.path, mergedStaticData.paths)
+  return createResolvedPage(page, mergedStaticData, resolvedPagePath)
+}
+
+/**
+ * @param {FormatedPage} page
+ * @returns {Promise<ResolvedPage>}
+ */
+async function resolvePage(page) {
+  const staticData = page.getStaticData ? await page.getStaticData() : null
+
+  if (!staticData) return createResolvedPage(page, {})
+
+  if (Array.isArray(staticData)) {
+    return Promise.all(
+      staticData.map((entry) => createResolvedPageWithPaths(page, entry))
+    )
+  }
+  if ("paths" in staticData) {
+    return createResolvedPageWithPaths(page, staticData)
+  }
+  return createResolvedPage(page, staticData)
+}
+
+/**
+ * @param {FormatedPage[]} pages
+ * @returns {Promise<ResolvedPage[]>}
+ */
+export async function resolvePages(pages) {
+  const results = await Promise.all(pages.map(resolvePage))
+  return results.flat()
+}
