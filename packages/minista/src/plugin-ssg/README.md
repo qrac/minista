@@ -2,10 +2,10 @@
 
 ## About
 
-- `*.tsx` `*.jsx` ファイルを静的な HTML に変換
+- JSX を静的な HTML に変換
 - `Head` コンポーネントで head 内を編集
 
-## Setup
+## How To Use
 
 ```js
 // ./minista.config.js
@@ -16,7 +16,14 @@ export default {
 }
 ```
 
-### Options
+```jsx
+// ./src/pages/index.jsx
+export default function () {
+  return <h1>Hello!</h1>
+}
+```
+
+## Options
 
 | Option       | Type       | Detail                                               |
 | ------------ | ---------- | ---------------------------------------------------- |
@@ -44,17 +51,15 @@ export default {
 }
 ```
 
-## Components
+## Head
 
-### Head
-
-- head 内に title や meta を設置
+- head 内に title・meta・link・script・style を設置
 - `htmlAttributes` で html の属性を変更
 - `bodyAttributes` で body の属性を変更
 - `key` でタグを後のものに差し替え
 
 ```tsx
-// ./src/pages/index.tsx
+// ./src/pages/index.jsx
 import { Head } from "minista/client"
 
 export default function () {

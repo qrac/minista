@@ -9,11 +9,7 @@
 minista（ミニスタ）は React の JSX から綺麗な HTML を作るスタティックサイトジェネレーターです。
 
 - すべての機能を Vite プラグインとして提供
-- ビルド時に自動で「SSR ビルド + 通常ビルド」を実行
-
-### Plugins
-
-- [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-ssg): JSX を静的な HTML に変換
+- ビルド時に自動で Vite の「SSR ビルド + 通常ビルド」を実行
 
 ## How To Use
 
@@ -40,7 +36,7 @@ export default {
 }
 ```
 
-```js
+```jsx
 // ./src/pages/index.jsx
 export default function () {
   return <h1>Hello!</h1>
@@ -71,9 +67,25 @@ export default function () {
 | ------------------------ | --------------------------------- |
 | `--oneBuild`             | minista のビルドを 1 回に制限する |
 
-## Settings
+## Config
 
-[Vite の 設定](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `minista.config.{ts|js}` または `vite.config.{ts|js}` のどちらでも動作します。
+[Vite の設定](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `minista.config.{ts|js}`・`vite.config.{ts|js}` のどちらでも動作し、`defineConfig` も使用できます。
+
+```ts
+// ./minista.config.ts
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+## Plugins
+
+minista の各機能は同封されているプラグインをコンフィグで登録することで動作します。使い方は各ディレクトリの README.md を参照ください。
+
+- [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-ssg): JSX を静的な HTML に変換
+- [pluginBundle](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-bundle): CSS・JS・画像をビルドプロセスに乗せる
 
 ## License
 
