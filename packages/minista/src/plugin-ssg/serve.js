@@ -43,6 +43,8 @@ export function pluginSsgServe(opts) {
       const code = getGlobExportCode(opts)
       await fs.promises.mkdir(globDir, { recursive: true })
       await fs.promises.writeFile(globFile, code, "utf8")
+
+      return { ssr: { external: ["minista"] } }
     },
     configureServer(server) {
       return () => {

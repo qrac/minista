@@ -78,6 +78,9 @@ export function pluginSsgBuild(opts) {
             },
             outDir: ssrDir,
           },
+          ssr: {
+            external: ["minista"],
+          },
         }
       }
 

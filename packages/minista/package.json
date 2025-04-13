@@ -10,11 +10,11 @@
   "exports": {
     ".": {
       "import": "./src/node.js",
-      "types": "./types/index.d.ts"
+      "types": "./types/node.d.ts"
     },
     "./client": {
       "import": "./src/client.js",
-      "types": "./types/index.d.ts"
+      "types": "./types/client.d.ts"
     }
   },
   "files": [
