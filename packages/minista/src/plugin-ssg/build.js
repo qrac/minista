@@ -5,13 +5,9 @@ import { getGlobExportCode, getSsgExportCode } from "./code.js"
 import { formatLayout, resolveLayout } from "./layout.js"
 import { formatPages, resolvePages } from "./page.js"
 import { transformHtml } from "./html.js"
-import {
-  getPluginName,
-  getTempName,
-  getRootDir,
-  getTempDir,
-  getHtmlPath,
-} from "../utils/index.js"
+import { getPluginName, getTempName } from "../utils/name.js"
+import { getRootDir, getTempDir, getHtmlPath } from "../utils/path.js"
+import { mergeSsrExternal } from "../utils/vite.js"
 
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
@@ -79,7 +75,7 @@ export function pluginSsgBuild(opts) {
             outDir: ssrDir,
           },
           ssr: {
-            external: ["minista"],
+            external: mergeSsrExternal(config, ["minista"]),
           },
         }
       }

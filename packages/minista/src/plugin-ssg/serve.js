@@ -5,12 +5,9 @@ import { getGlobExportCode } from "./code.js"
 import { formatLayout, resolveLayout } from "./layout.js"
 import { formatPages, resolvePages } from "./page.js"
 import { transformHtml } from "./html.js"
-import {
-  getPluginName,
-  getTempName,
-  getRootDir,
-  getTempDir,
-} from "../utils/index.js"
+import { getPluginName, getTempName } from "../utils/name.js"
+import { getRootDir, getTempDir } from "../utils/path.js"
+import { mergeSsrExternal } from "../utils/vite.js"
 
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
@@ -44,7 +41,7 @@ export function pluginSsgServe(opts) {
       await fs.promises.mkdir(globDir, { recursive: true })
       await fs.promises.writeFile(globFile, code, "utf8")
 
-      return { ssr: { external: ["minista"] } }
+      return { ssr: { external: mergeSsrExternal(config, ["minista"]) } }
     },
     configureServer(server) {
       return () => {

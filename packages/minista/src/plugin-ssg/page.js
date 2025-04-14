@@ -1,4 +1,4 @@
-import { getPagePath, resolveParamPath } from "../utils/index.js"
+import { getPagePath, resolveParamPath } from "../utils/path.js"
 
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').StaticData} StaticData */

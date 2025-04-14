@@ -4,7 +4,7 @@ import {
   getPagePath,
   getHtmlPath,
   resolveParamPath,
-} from "../../src/utils/index.js"
+} from "../../src/utils/path.js"
 
 describe("getPagePath", () => {
   it("should transform src path to clean route", () => {

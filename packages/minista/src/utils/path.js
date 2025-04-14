@@ -2,22 +2,6 @@ import fs from "node:fs"
 import path from "node:path"
 
 /**
- * @param {string[]} names
- * @returns {string}
- */
-export function getPluginName(names) {
-  return "vite-plugin:minista-" + names.join("-")
-}
-
-/**
- * @param {string[]} names
- * @returns {string}
- */
-export function getTempName(names) {
-  return "__minista_" + names.join("_")
-}
-
-/**
  * @param {string} cwd
  * @param {string} root
  * @returns {string}
