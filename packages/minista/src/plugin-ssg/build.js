@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 
-import { getGlobExportCode, getSsgExportCode } from "./code.js"
+import { getGlobImportCode, getSsgExportCode } from "./code.js"
 import { formatLayout, resolveLayout } from "./layout.js"
 import { formatPages, resolvePages } from "./page.js"
 import { transformHtml } from "./html.js"
@@ -57,7 +57,7 @@ export function pluginSsgBuild(opts) {
       throughFile = path.join(throughDir, `${tempName}.js`)
 
       if (isSsr) {
-        const code = getGlobExportCode(opts)
+        const code = getGlobImportCode(opts)
         await fs.promises.mkdir(globDir, { recursive: true })
         await fs.promises.writeFile(globFile, code, "utf8")
 

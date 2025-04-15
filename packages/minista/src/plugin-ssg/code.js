@@ -5,7 +5,7 @@
  * @param {PluginOptions} opts
  * @returns {string}
  */
-export function getGlobExportCode(opts) {
+export function getGlobImportCode(opts) {
   const layoutRoot = opts.layoutRoot
   const pages = JSON.stringify(opts.src)
   return `const LAYOUTS = import.meta.glob(["${layoutRoot}"], { eager: true })

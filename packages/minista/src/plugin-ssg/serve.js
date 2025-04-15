@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 
-import { getGlobExportCode } from "./code.js"
+import { getGlobImportCode } from "./code.js"
 import { formatLayout, resolveLayout } from "./layout.js"
 import { formatPages, resolvePages } from "./page.js"
 import { transformHtml } from "./html.js"
@@ -37,7 +37,7 @@ export function pluginSsgServe(opts) {
       globDir = path.join(tempDir, "glob")
       globFile = path.join(globDir, `${tempName}.js`)
 
-      const code = getGlobExportCode(opts)
+      const code = getGlobImportCode(opts)
       await fs.promises.mkdir(globDir, { recursive: true })
       await fs.promises.writeFile(globFile, code, "utf8")
 
