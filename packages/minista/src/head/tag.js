@@ -70,7 +70,7 @@ export function filterHeadTags(tags) {
  * @param {React.ReactElement} tag
  * @returns {string}
  */
-export function transformHeadTag(tag) {
+export function headTagToStr(tag) {
   const selfClosingTags = new Set(["link", "meta"])
   const attrNameMap = { charSet: "charset" }
 
@@ -103,6 +103,6 @@ export function transformHeadTag(tag) {
  * @param {React.ReactElement[]} tags
  * @returns {string}
  */
-export function transformHeadTags(tags) {
-  return tags.map(transformHeadTag).join("")
+export function headTagsToStr(tags) {
+  return tags.map(headTagToStr).join("")
 }

@@ -6,7 +6,7 @@ import {
   checkViewportTag,
   getDefaultHeadTags,
   filterHeadTags,
-  transformHeadTag,
+  headTagToStr,
 } from "../../src/head/tag.js"
 
 describe("checkCharsetTag", () => {
@@ -145,22 +145,22 @@ describe("filterHeadTags", () => {
   })
 })
 
-describe("transformHeadTag", () => {
+describe("headTagToStr", () => {
   it("renders self-closing tag like meta", () => {
     const el = <meta charSet="utf-8" />
-    const result = transformHeadTag(el)
+    const result = headTagToStr(el)
     expect(result).toBe('<meta charset="utf-8" />')
   })
 
   it("renders self-closing tag like link with multiple attributes", () => {
     const el = <link rel="stylesheet" href="/style.css" />
-    const result = transformHeadTag(el)
+    const result = headTagToStr(el)
     expect(result).toBe('<link rel="stylesheet" href="/style.css" />')
   })
 
   it("renders normal tag with children", () => {
     const el = <title>My Page</title>
-    const result = transformHeadTag(el)
+    const result = headTagToStr(el)
     expect(result).toBe("<title>My Page</title>")
   })
 
@@ -168,7 +168,7 @@ describe("transformHeadTag", () => {
     const el = (
       <script dangerouslySetInnerHTML={{ __html: 'console.log("Hello")' }} />
     )
-    const result = transformHeadTag(el)
+    const result = headTagToStr(el)
     expect(result).toBe('<script>console.log("Hello")</script>')
   })
 
@@ -179,32 +179,32 @@ describe("transformHeadTag", () => {
         children="not used"
       />
     )
-    const result = transformHeadTag(el)
+    const result = headTagToStr(el)
     expect(result).toBe("<script>alert(1)</script>")
   })
 
   it("ignores children if not string or number", () => {
     const el = <title>{["a", "b"]}</title>
-    const result = transformHeadTag(el)
+    const result = headTagToStr(el)
     expect(result).toBe("<title></title>")
   })
 
   it("returns empty string if tag.type is not a string", () => {
     const Custom = () => <div />
     const el = <Custom />
-    const result = transformHeadTag(el)
+    const result = headTagToStr(el)
     expect(result).toBe("")
   })
 
   it("renders tag with numeric children", () => {
     const el = <title>{2025}</title>
-    const result = transformHeadTag(el)
+    const result = headTagToStr(el)
     expect(result).toBe("<title>2025</title>")
   })
 
   it("renders tag with no props safely", () => {
     const el = React.createElement("title", null, "Untitled")
-    const result = transformHeadTag(el)
+    const result = headTagToStr(el)
     expect(result).toBe("<title>Untitled</title>")
   })
 })

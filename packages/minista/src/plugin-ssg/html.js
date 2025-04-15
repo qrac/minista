@@ -2,13 +2,13 @@ import { createElement } from "react"
 import { renderToString } from "react-dom/server"
 
 import { HeadProvider } from "../head/provider.js"
-import { convertHeadAttrs } from "../head/attr.js"
+import { headAttrsToStr } from "../head/attr.js"
 import {
   checkCharsetTag,
   checkViewportTag,
   getDefaultHeadTags,
   filterHeadTags,
-  transformHeadTags,
+  headTagsToStr,
 } from "../head/tag.js"
 
 /** @typedef {import('./types').ResolvedLayout} ResolvedLayout */
@@ -53,8 +53,8 @@ export function transformHtml({ resolvedLayout, resolvedPage }) {
   const bodyAttrs = headData.bodyAttributes || {}
   const tags = headData.tags || []
 
-  const htmlAttrsStr = convertHeadAttrs({ ...{ lang: "ja" }, ...htmlAttrs })
-  const bodyAttrsStr = convertHeadAttrs(bodyAttrs)
+  const htmlAttrsStr = headAttrsToStr({ ...{ lang: "ja" }, ...htmlAttrs })
+  const bodyAttrsStr = headAttrsToStr(bodyAttrs)
 
   const hasCharset = checkCharsetTag(tags)
   const hasViewport = checkViewportTag(tags)
@@ -66,7 +66,7 @@ export function transformHtml({ resolvedLayout, resolvedPage }) {
   )
   const mergedHeadTags = [...defaultHeadTags, ...tags]
   const filterdHeadTags = filterHeadTags(mergedHeadTags)
-  const tagsStr = transformHeadTags(filterdHeadTags)
+  const tagsStr = headTagsToStr(filterdHeadTags)
 
   return (
     `<!doctype html>` +
