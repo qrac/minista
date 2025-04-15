@@ -1,8 +1,11 @@
+/** @typedef {import('./types').CustomHtmlAttributes} CustomHtmlAttributes */
+/** @typedef {import('./types').CustomBodyAttributes} CustomBodyAttributes */
+
 /**
- * @param {Record<string, string | number | boolean | null | undefined>} attrs
+ * @param {CustomHtmlAttributes | CustomBodyAttributes} attrs
  * @returns {string}
  */
-export function getAttrsStr(attrs) {
+export function convertHeadAttrs(attrs) {
   return Object.entries(attrs)
     .filter(([_, value]) => value !== undefined)
     .map(([key, value]) => `${key}="${String(value)}"`)

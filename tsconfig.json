@@ -7,6 +7,10 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "noErrorTruncation": true,
-    "jsx": "react-jsx"
-  }
+    "jsx": "react-jsx",
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true
+  },
+  "exclude": ["node_modules", "dist"]
 }

@@ -3,12 +3,14 @@ import { createElement } from "react"
 import { HeadContext } from "./context.js"
 
 /** @typedef {import('./types').HeadData} HeadData */
+/** @typedef {import('./types').SetHeadData} SetHeadData */
 
 /**
- * @param {{ headData: HeadData, children: React.ReactNode }} props
+ * @param {{ headData: HeadData, children?: React.ReactNode }} props
  * @returns {React.ReactElement}
  */
 export function HeadProvider({ headData, children }) {
+  /** @type {SetHeadData} */
   const setHeadData = (key, value) => {
     switch (key) {
       case "htmlAttributes":

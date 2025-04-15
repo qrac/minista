@@ -55,12 +55,12 @@ function createResolvedPageWithPaths(page, staticData) {
 
 /**
  * @param {FormatedPage} page
- * @returns {Promise<ResolvedPage>}
+ * @returns {Promise<ResolvedPage|ResolvedPage[]>}
  */
 async function resolvePage(page) {
   const staticData = page.getStaticData ? await page.getStaticData() : null
 
-  if (!staticData) return createResolvedPage(page, {})
+  if (!staticData) return createResolvedPage(page, { props: {} })
 
   if (Array.isArray(staticData)) {
     return Promise.all(

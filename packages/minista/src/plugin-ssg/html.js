@@ -2,7 +2,7 @@ import { createElement } from "react"
 import { renderToString } from "react-dom/server"
 
 import { HeadProvider } from "../head/provider.js"
-import { getAttrsStr } from "../head/attr.js"
+import { convertHeadAttrs } from "../head/attr.js"
 import {
   checkCharsetTag,
   checkViewportTag,
@@ -53,8 +53,8 @@ export function transformHtml({ resolvedLayout, resolvedPage }) {
   const bodyAttrs = headData.bodyAttributes || {}
   const tags = headData.tags || []
 
-  const htmlAttrsStr = getAttrsStr({ ...{ lang: "ja" }, ...htmlAttrs })
-  const bodyAttrsStr = getAttrsStr(bodyAttrs)
+  const htmlAttrsStr = convertHeadAttrs({ ...{ lang: "ja" }, ...htmlAttrs })
+  const bodyAttrsStr = convertHeadAttrs(bodyAttrs)
 
   const hasCharset = checkCharsetTag(tags)
   const hasViewport = checkViewportTag(tags)

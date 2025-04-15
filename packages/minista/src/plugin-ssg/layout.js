@@ -7,7 +7,7 @@
  * @returns {FormatedLayout}
  */
 export function formatLayout(LAYOUTS) {
-  if (Object.keys(LAYOUTS).length === 0) return [{}]
+  if (Object.keys(LAYOUTS).length === 0) return {}
 
   return Object.keys(LAYOUTS).map((key) => ({
     component: LAYOUTS[key].default,

@@ -3,7 +3,7 @@
 /**
  * @param {UserConfig} config
  * @param {string[]} modules
- * @returns {string[] | undefined}
+ * @returns {UserConfig['ssr']['external']}
  */
 export function mergeSsrExternal(config, modules = []) {
   const ssrExternal = config.ssr?.external

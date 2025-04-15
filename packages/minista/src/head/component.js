@@ -2,6 +2,7 @@ import { useContext } from "react"
 import { HeadContext } from "./context.js"
 
 /** @typedef {import('./types').HeadData} HeadData */
+/** @typedef {import('./types').SetHeadData} SetHeadData */
 
 /**
  * @param {HeadData & {
@@ -16,6 +17,7 @@ export function Head({
   tags,
   children,
 }) {
+  /** @type {{ setHeadData?: SetHeadData }} */
   const { setHeadData } = useContext(HeadContext)
 
   if (htmlAttributes) setHeadData("htmlAttributes", htmlAttributes)

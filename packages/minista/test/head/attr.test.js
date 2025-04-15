@@ -1,37 +1,39 @@
 import { describe, it, expect } from "vitest"
 
-import { getAttrsStr } from "../../src/head/attr.js"
+import { convertHeadAttrs } from "../../src/head/attr.js"
 
-describe("getAttrsStr (excluding undefined)", () => {
+describe("convertHeadAttrs (excluding undefined)", () => {
   it("returns empty string for empty object", () => {
-    expect(getAttrsStr({})).toBe("")
+    expect(convertHeadAttrs({})).toBe("")
   })
 
   it("converts a single attribute", () => {
-    expect(getAttrsStr({ lang: "ja" })).toBe('lang="ja"')
+    expect(convertHeadAttrs({ lang: "ja" })).toBe('lang="ja"')
   })
 
   it("converts multiple attributes", () => {
-    const result = getAttrsStr({ lang: "en", dir: "ltr" })
+    const result = convertHeadAttrs({ lang: "en", dir: "ltr" })
     expect(['lang="en" dir="ltr"', 'dir="ltr" lang="en"']).toContain(result)
   })
 
   it("handles numeric values", () => {
-    expect(getAttrsStr({ tabIndex: 0 })).toBe('tabIndex="0"')
+    expect(convertHeadAttrs({ tabIndex: 0 })).toBe('tabIndex="0"')
   })
 
   it("handles boolean true and false", () => {
-    expect(getAttrsStr({ hidden: true, inert: false })).toBe(
+    expect(convertHeadAttrs({ hidden: true, inert: false })).toBe(
       'hidden="true" inert="false"'
     )
   })
 
   it("handles null", () => {
-    expect(getAttrsStr({ test: null })).toBe('test="null"')
+    // @ts-ignore
+    expect(convertHeadAttrs({ test: null })).toBe('test="null"')
   })
 
   it("omits undefined attributes", () => {
-    const result = getAttrsStr({ lang: undefined, theme: "dark" })
+    // @ts-ignore
+    const result = convertHeadAttrs({ lang: undefined, theme: "dark" })
     expect(result).toBe('theme="dark"')
   })
 
@@ -43,7 +45,7 @@ describe("getAttrsStr (excluding undefined)", () => {
       hidden: false,
       title: null,
     }
-    const result = getAttrsStr(attrs)
+    const result = convertHeadAttrs(attrs)
     expect(result).toBe('lang="en" count="5" hidden="false" title="null"')
   })
 })

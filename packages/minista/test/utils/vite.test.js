@@ -11,6 +11,7 @@ describe("mergeSsrExternal", () => {
 
   it("returns existing external when not an array", () => {
     const config = { ssr: { external: "some-lib" } }
+    // @ts-ignore
     const result = mergeSsrExternal(config, ["minista"])
     expect(result).toBe("some-lib")
   })
