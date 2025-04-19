@@ -82,7 +82,7 @@ export default defineConfig({
 
 ## Plugins
 
-minista の各機能は同封されているプラグインをコンフィグで登録することで動作します。使い方は各ディレクトリの README.md を参照ください。
+minista の各機能は同封されているプラグインをコンフィグに登録することで動作します。使い方は各ディレクトリの README.md を参照ください。
 
 - [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-ssg): JSX を静的な HTML に変換
 - [pluginBundle](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-bundle): CSS・JS・画像をビルドプロセスに乗せる

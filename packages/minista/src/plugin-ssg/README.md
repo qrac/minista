@@ -2,8 +2,11 @@
 
 ## About
 
-- JSX を静的な HTML に変換
+- JSX ファイルを静的な HTML に変換
+- 共通レイアウトコンポーネントを設置可能
 - `Head` コンポーネントで head 内を編集
+- `metadata` のエクスポートが可能
+- `getStaticData()` で API からデータ出力・ページ生成
 
 ## How To Use
 
