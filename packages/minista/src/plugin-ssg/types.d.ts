@@ -1,5 +1,5 @@
 export type PluginOptions = {
-  layoutRoot: string
+  layout: string
   src: string[]
   srcBases: string[]
 }

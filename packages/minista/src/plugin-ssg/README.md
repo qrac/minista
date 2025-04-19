@@ -25,11 +25,11 @@ export default function () {
 
 ## Options
 
-| Option       | Type       | Detail                                               |
-| ------------ | ---------- | ---------------------------------------------------- |
-| `layoutRoot` | `string`   | すべてのページテンプレートをラップするコンポーネント |
-| `src`        | `string[]` | ページテンプレートを Vite の `fast-glob` 形式で指定  |
-| `srcBases`   | `string[]` | ページテンプレートを URL に変換する際に省くパス      |
+| Option     | Type       | Detail                                               |
+| ---------- | ---------- | ---------------------------------------------------- |
+| `layout`   | `string`   | すべてのページテンプレートをラップするコンポーネント |
+| `src`      | `string[]` | ページテンプレートを Vite の `fast-glob` 形式で指定  |
+| `srcBases` | `string[]` | ページテンプレートを URL に変換する際に省くパス      |
 
 ```js
 // ./minista.config.js (with default options)
@@ -38,7 +38,7 @@ import { pluginSsg } from "minista"
 export default {
   plugins: [
     pluginSsg({
-      layoutRoot: "/src/layouts/index.{tsx,jsx}",
+      layout: "/src/layouts/index.{tsx,jsx}",
       src: [
         "/src/pages/**/*.{tsx,jsx,mdx,md}",
         "!/src/pages/**/*.mpa.{tsx,jsx}",

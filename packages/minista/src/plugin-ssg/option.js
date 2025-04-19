@@ -2,7 +2,7 @@
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
-  layoutRoot: "/src/layouts/index.{tsx,jsx}",
+  layout: "/src/layouts/index.{tsx,jsx}",
   src: [
     "/src/pages/**/*.{tsx,jsx,mdx,md}",
     "!/src/pages/**/*.mpa.{tsx,jsx}",
