@@ -7,7 +7,7 @@ import { formatPages, resolvePages } from "./page.js"
 import { transformHtml } from "./html.js"
 
 import { getPluginName, getTempName } from "../utils/name.js"
-import { getRootDir, getTempDir, getHtmlPath } from "../utils/path.js"
+import { getRootDir, getTempDir, getOutputHtmlPath } from "../utils/path.js"
 import { mergeSsrExternal } from "../utils/vite.js"
 
 /** @typedef {import('vite').Plugin} Plugin */
@@ -90,12 +90,12 @@ export function pluginSsgBuild(opts) {
 
         ssgPages = await Promise.all(
           resolvedPages.map(async (resolvedPage) => {
-            const url = resolvedPage.path
-            const fileName = getHtmlPath(url)
+            const url = resolvedPage.url
+            const outputHtmlPath = getOutputHtmlPath(url)
             const html = transformHtml({ resolvedLayout, resolvedPage })
             return {
               url,
-              fileName,
+              outputHtmlPath,
               html,
             }
           })
@@ -124,7 +124,7 @@ export function pluginSsgBuild(opts) {
             this.emitFile({
               type: "asset",
               source: ssgPage.html,
-              fileName: ssgPage.fileName,
+              fileName: ssgPage.outputHtmlPath,
             })
           })
         )

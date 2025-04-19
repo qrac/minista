@@ -62,7 +62,7 @@ export function pluginSsgServe(opts) {
             const resolvedLayout = await resolveLayout(formatedLayout)
             const formatedPages = formatPages(PAGES, opts)
             const resolvedPages = await resolvePages(formatedPages)
-            const resolvedPage = resolvedPages.find((page) => page.path === url)
+            const resolvedPage = resolvedPages.find((page) => page.url === url)
 
             let html = ""
 

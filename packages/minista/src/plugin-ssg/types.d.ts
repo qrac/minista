@@ -70,14 +70,14 @@ export type ImportedPages = {
 }
 
 export type FormatedPage = {
-  path: string
+  url: string
   component: PageComponent
   getStaticData?: GetStaticData
   metadata: Metadata
 }
 
 export type ResolvedPage = {
-  path: string
+  url: string
   component: PageComponent
   staticData: StaticData
   metadata: Metadata
@@ -85,6 +85,6 @@ export type ResolvedPage = {
 
 export type SsgPage = {
   url: string
-  fileName: string
+  outputHtmlPath: string
   html: string
 }

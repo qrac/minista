@@ -1,2 +1,3 @@
-export * from "./config/index.js"
-export * from "./plugin-ssg/index.js"
+export { defineConfig } from "./config/index.js"
+export { pluginSsg } from "./plugin-ssg/index.js"
+export { pluginBundle } from "./plugin-bundle/index.js"

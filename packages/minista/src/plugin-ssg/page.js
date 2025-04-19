@@ -1,4 +1,4 @@
-import { getPagePath, resolveParamPath } from "../utils/path.js"
+import { getPageUrl, resolveParamUrl } from "../utils/url.js"
 
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').StaticData} StaticData */
@@ -12,13 +12,13 @@ import { getPagePath, resolveParamPath } from "../utils/path.js"
  * @returns {FormatedPage[]}
  */
 export function formatPages(PAGES, opts) {
-  return Object.keys(PAGES).map((page) => {
-    const pagePath = getPagePath(page, opts.srcBases)
-    const metadata = PAGES[page].metadata || {}
+  return Object.keys(PAGES).map((key) => {
+    const pageUrl = getPageUrl(key, opts.srcBases)
+    const metadata = PAGES[key].metadata || {}
     return {
-      path: pagePath,
-      component: PAGES[page].default,
-      getStaticData: PAGES[page].getStaticData,
+      url: pageUrl,
+      component: PAGES[key].default,
+      getStaticData: PAGES[key].getStaticData,
       metadata,
     }
   })
@@ -27,12 +27,12 @@ export function formatPages(PAGES, opts) {
 /**
  * @param {FormatedPage} page
  * @param {StaticData} staticData
- * @param {string} [resolvedPagePath]
+ * @param {string} [resolvedPageUrl]
  * @returns {ResolvedPage}
  */
-function createResolvedPage(page, staticData, resolvedPagePath = page.path) {
+function createResolvedPage(page, staticData, resolvedPageUrl = page.url) {
   return {
-    path: resolvedPagePath,
+    url: resolvedPageUrl,
     component: page.component,
     staticData,
     metadata: page.metadata,
@@ -49,8 +49,8 @@ function createResolvedPageWithPaths(page, staticData) {
     props: staticData.props ?? {},
     paths: staticData.paths ?? {},
   }
-  const resolvedPagePath = resolveParamPath(page.path, mergedStaticData.paths)
-  return createResolvedPage(page, mergedStaticData, resolvedPagePath)
+  const resolvedPageUrl = resolveParamUrl(page.url, mergedStaticData.paths)
+  return createResolvedPage(page, mergedStaticData, resolvedPageUrl)
 }
 
 /**

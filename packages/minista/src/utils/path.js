@@ -22,52 +22,34 @@ export function getTempDir(cwd, rootDir) {
 }
 
 /**
- * @param {string} srcPath
- * @param {string[]} [srcBases]
+ * @param {string} url
  * @returns {string}
  */
-export function getPagePath(srcPath, srcBases = []) {
-  const normalizedSrcPath = path.posix.normalize(srcPath)
-
-  let relativePath = normalizedSrcPath
-
-  for (const base of srcBases) {
-    const normalizedBase = path.posix.normalize(base)
-    if (normalizedSrcPath.startsWith(normalizedBase)) {
-      relativePath = normalizedSrcPath.slice(normalizedBase.length)
-      break
-    }
-  }
-  let pagePath = "/" + relativePath.replace(/^\/+/, "")
-
-  pagePath = pagePath
-    .replace(/index\.[^\/]+?$|(\.[^\/.]+)$/g, "")
-    .replace(/\[(\.{3}.+?)\]/g, "*")
-    .replace(/\[(.+?)\]/g, ":$1")
-
-  return path.posix.normalize(pagePath)
-}
-
-/**
- * @param {string} pagePath
- * @returns {string}
- */
-export function getHtmlPath(pagePath) {
-  const normalized = pagePath.endsWith("/")
-    ? `${pagePath}index.html`
-    : `${pagePath}.html`
+export function getOutputHtmlPath(url) {
+  const normalized = url.endsWith("/") ? `${url}index.html` : `${url}.html`
   return normalized.replace(/^\//, "")
 }
 
 /**
- * @param {string} pagePath
- * @param {Record<string, string|number>} paths
+ * @param {string} input
  * @returns {string}
  */
-export function resolveParamPath(pagePath, paths) {
-  let paramPath = pagePath
-  for (const [key, value] of Object.entries(paths)) {
-    paramPath = paramPath.replace(new RegExp(`:${key}`, "g"), String(value))
-  }
-  return paramPath
+export function pathToId(input) {
+  return Buffer.from(input)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "")
+}
+
+/**
+ * @param {string} input
+ * @returns {string}
+ */
+export function idToPath(input) {
+  const base64 = input
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd(Math.ceil(input.length / 4) * 4, "=")
+  return Buffer.from(base64, "base64").toString("utf8")
 }

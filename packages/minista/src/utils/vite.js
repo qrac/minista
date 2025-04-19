@@ -1,4 +1,7 @@
 /** @typedef {import('vite').UserConfig} UserConfig */
+/** @typedef {import('rollup').OutputBundle} OutputBundle */
+/** @typedef {import('rollup').OutputChunk} OutputChunk */
+/** @typedef {import('rollup').OutputAsset} OutputAsset */
 
 /**
  * @param {UserConfig} config
@@ -15,4 +18,30 @@ export function mergeSsrExternal(config, modules = []) {
     return Array.from(new Set([...ssrExternal, ...modules]))
   }
   return ssrExternal
+}
+
+/**
+ * @param {OutputBundle} bundle
+ * @returns {{[key:string]:OutputChunk}}
+ */
+export function filterOutputChunks(bundle) {
+  return Object.entries(bundle).reduce((acc, [key, item]) => {
+    if (item.type === "chunk") {
+      acc[key] = item
+    }
+    return acc
+  }, /** @type {{[key:string]:OutputChunk}} */ ({}))
+}
+
+/**
+ * @param {OutputBundle} bundle
+ * @returns {{[key:string]:OutputAsset}}
+ */
+export function filterOutputAssets(bundle) {
+  return Object.entries(bundle).reduce((acc, [key, item]) => {
+    if (item.type === "asset") {
+      acc[key] = item
+    }
+    return acc
+  }, /** @type {{[key:string]:OutputAsset}} */ ({}))
 }

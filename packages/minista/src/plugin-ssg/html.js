@@ -32,7 +32,7 @@ export function transformHtml({ resolvedLayout, resolvedPage }) {
     ...page.metadata,
     ...layout.staticData.props,
     ...page.staticData.props,
-    url: page.path,
+    url: page.url,
   }
 
   /** @type {HeadData} */
