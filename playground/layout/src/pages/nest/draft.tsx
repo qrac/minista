@@ -1,22 +1,13 @@
 import type { Metadata, PageProps } from "minista/client"
 
 export const metadata: Metadata = {
-  title: "Index",
-  foo: "bar",
+  draft: true,
 }
 
 export default function (props: PageProps) {
   return (
     <>
       <h1>{props.title}</h1>
-      <ul>
-        <li>
-          <a href="/nest/">Nest</a>
-        </li>
-        <li>
-          <a href="/nest/draft">Draft</a>
-        </li>
-      </ul>
     </>
   )
 }

@@ -90,6 +90,9 @@ export function pluginSsgBuild(opts) {
 
         ssgPages = await Promise.all(
           resolvedPages.map(async (resolvedPage) => {
+            if (resolvedPage.metadata?.draft === true) {
+              return null
+            }
             const url = resolvedPage.url
             const outputHtmlPath = getOutputHtmlPath(url)
             const html = transformHtml({ resolvedLayout, resolvedPage })
@@ -100,6 +103,8 @@ export function pluginSsgBuild(opts) {
             }
           })
         )
+        ssgPages = ssgPages.filter(Boolean)
+
         const code = getSsgExportCode(ssgPages)
         await fs.promises.mkdir(ssgDir, { recursive: true })
         await fs.promises.writeFile(ssgFile, code, "utf8")

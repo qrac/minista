@@ -1,5 +1,9 @@
-import type { LayoutProps } from "minista/client"
+import type { Metadata, LayoutProps } from "minista/client"
 import { Head } from "minista/client"
+
+export const metadata: Metadata = {
+  title: "default title",
+}
 
 export default function (props: LayoutProps) {
   return (
@@ -7,7 +11,15 @@ export default function (props: LayoutProps) {
       <Head>
         <title>{props.title}</title>
       </Head>
-      <div className="layout">{props.children}</div>
+      <div>{props.children}</div>
+      <hr />
+      <div>URL: {props.url}</div>
+      {props.foo && (
+        <>
+          <hr />
+          <div>foo: {props.foo}</div>
+        </>
+      )}
     </>
   )
 }
