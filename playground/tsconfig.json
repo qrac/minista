@@ -8,10 +8,7 @@
     "skipLibCheck": true,
     "noErrorTruncation": true,
     "jsx": "react-jsx",
-    "checkJs": true,
-    "allowJs": true,
-    "noEmit": true
+    "types": ["minista/client"]
   },
-  "include": ["./docs", "./packages", "./vitest.config.ts"],
-  "exclude": ["node_modules", "dist", "./playground"]
+  "exclude": ["node_modules", "dist"]
 }
