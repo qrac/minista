@@ -69,7 +69,7 @@ export default function () {
 
 ## Config
 
-[Vite の設定](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `minista.config.{ts|js}`・`vite.config.{ts|js}` のどちらでも動作し、`defineConfig` も使用できます。
+[Vite の設定](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `minista.config.{ts,js}`・`vite.config.{ts,js}` のどちらでも動作し、`defineConfig` も使用できます。
 
 ```ts
 // ./minista.config.ts
