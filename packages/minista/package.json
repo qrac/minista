@@ -6,7 +6,7 @@
     "minista": "./bin/minista.js"
   },
   "main": "./src/node.js",
-  "types": "./types/index.d.ts",
+  "types": "./types/node.d.ts",
   "exports": {
     ".": {
       "import": "./src/node.js",
