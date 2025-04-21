@@ -15,14 +15,14 @@ export default {
 
 ## Options
 
-| Option     | Type              | Detail                                       |
-| ---------- | ----------------- | -------------------------------------------- |
-| `srcDir`   | `string`          | 圧縮対象のディレクトリをルートから指定       |
-| `outName`  | `string`          | 出力ディレクトリ及び出力名をルートから指定   |
-| `ignore`   | `string[]`        | 除外ファイルを glob 形式で指定               |
-| `format`   | `Format`          | 圧縮形式（zip or tar）                       |
-| `options`  | `ArchiverOptions` | 圧縮方法                                     |
-| `multiple` | `{...}[]`         | 上記オプションを配列で渡して複数の圧縮を実行 |
+| Option     | Type               | Detail                                       |
+| ---------- | ------------------ | -------------------------------------------- |
+| `srcDir`   | `string`           | 圧縮対象のディレクトリをルートから指定       |
+| `outName`  | `string`           | 出力ディレクトリ及び出力名をルートから指定   |
+| `ignore`   | `string\|string[]` | 除外ファイルを glob 形式で指定               |
+| `format`   | `Format`           | 圧縮形式（zip or tar）                       |
+| `options`  | `ArchiverOptions`  | 圧縮方法                                     |
+| `multiple` | `{...}[]`          | 上記オプションを配列で渡して複数の圧縮を実行 |
 
 - Dependencies: [archiver](https://github.com/archiverjs/node-archiver)
 
