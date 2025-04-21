@@ -26,6 +26,9 @@
     "play:beautify": "minista ./playground/beautify",
     "play-build:beautify": "minista build ./playground/beautify",
     "play-preview:beautify": "minista preview ./playground/beautify",
+    "play:archive": "minista ./playground/archive",
+    "play-build:archive": "minista build ./playground/archive",
+    "play-preview:archive": "minista preview ./playground/archive",
     "test": "vitest run",
     "test:w": "vitest watch",
     "up": "npx npm-check-updates --deep",
@@ -38,6 +41,7 @@
     "playground/*"
   ],
   "devDependencies": {
+    "@types/archiver": "^6.0.3",
     "@types/js-beautify": "^1.14.3",
     "@types/node": "^22.14.1",
     "@types/picomatch": "^4.0.0",

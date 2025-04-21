@@ -48,6 +48,7 @@
     "vite": ">=6.0.0"
   },
   "dependencies": {
+    "archiver": "^7.0.1",
     "deepmerge-ts": "^7.1.5",
     "js-beautify": "^1.15.4",
     "node-html-parser": "^7.0.1",
