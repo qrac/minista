@@ -7,7 +7,7 @@ import { getPluginName, getTempName } from "../utils/name.js"
 import { getRootDir, getTempDir, pathToId, idToPath } from "../utils/path.js"
 import { extractUrls, getBasedAssetUrl } from "../utils/url.js"
 import { searchFiles } from "../utils/file.js"
-import { filterOutputChunks, filterOutputAssets } from "../utils/vite.js"
+import { filterOutputAssets, filterOutputChunks } from "../utils/vite.js"
 
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
@@ -119,27 +119,11 @@ export function pluginBundleBuild(opts) {
         let hasBundle = false
         let bundleName = ""
 
-        const outputChunks = filterOutputChunks(bundle)
         const outputAssets = filterOutputAssets(bundle)
+        const outputChunks = filterOutputChunks(bundle)
         const entryIds = Object.keys(entries)
         const entryPaths = Object.keys(entries).map((key) => idToPath(key))
         const regImg = /\.(png|jpg|jpeg|gif|bmp|svg|webp)$/i
-
-        for (const [key, item] of Object.entries(outputChunks)) {
-          if (item.name === tempName) {
-            delete bundle[key]
-            continue
-          }
-          if (entryIds.includes(item.name) && item.code.trim()) {
-            const newName = path.parse(entries[item.name]).name
-            const newFileName = item.fileName.replace(item.name, newName)
-            bundle[key].fileName = newFileName
-            entryChanges.push({
-              before: idToPath(item.name),
-              after: newFileName,
-            })
-          }
-        }
 
         for (const [key, item] of Object.entries(outputAssets)) {
           if (item.names.some((name) => name === `${tempName}.css`)) {
@@ -161,6 +145,22 @@ export function pluginBundleBuild(opts) {
               after: newFileName,
             })
             continue
+          }
+        }
+
+        for (const [key, item] of Object.entries(outputChunks)) {
+          if (item.name === tempName) {
+            delete bundle[key]
+            continue
+          }
+          if (entryIds.includes(item.name) && item.code.trim()) {
+            const newName = path.parse(entries[item.name]).name
+            const newFileName = item.fileName.replace(item.name, newName)
+            bundle[key].fileName = newFileName
+            entryChanges.push({
+              before: idToPath(item.name),
+              after: newFileName,
+            })
           }
         }
 
