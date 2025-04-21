@@ -23,6 +23,9 @@
     "play:bundle": "minista ./playground/bundle",
     "play-build:bundle": "minista build ./playground/bundle",
     "play-preview:bundle": "minista preview ./playground/bundle",
+    "play:beautify": "minista ./playground/beautify",
+    "play-build:beautify": "minista build ./playground/beautify",
+    "play-preview:beautify": "minista preview ./playground/beautify",
     "test": "vitest run",
     "test:w": "vitest watch",
     "up": "npx npm-check-updates --deep",
@@ -35,7 +38,9 @@
     "playground/*"
   ],
   "devDependencies": {
+    "@types/js-beautify": "^1.14.3",
     "@types/node": "^22.14.1",
+    "@types/picomatch": "^4.0.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "react": "^19.1.0",
