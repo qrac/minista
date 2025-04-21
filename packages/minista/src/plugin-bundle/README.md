@@ -38,10 +38,10 @@ export default function () {
 
 ## Options
 
-| Option    | Type       | Detail                                                          |
-| --------- | ---------- | --------------------------------------------------------------- |
-| `src`     | `string[]` | アセットを検出するテンプレートを Vite の `fast-glob` 形式で指定 |
-| `outName` | `string`   | import した CSS を結合出力する場合のファイル名                  |
+| Option    | Type       | Detail                                           |
+| --------- | ---------- | ------------------------------------------------ |
+| `src`     | `string[]` | アセットを検出するテンプレートを glob 形式で指定 |
+| `outName` | `string`   | import した CSS を結合出力する場合のファイル名   |
 
 ```js
 // ./minista.config.js (with default options)

@@ -27,7 +27,7 @@ export default function () {
 | Option     | Type       | Detail                                               |
 | ---------- | ---------- | ---------------------------------------------------- |
 | `layout`   | `string`   | すべてのページテンプレートをラップするコンポーネント |
-| `src`      | `string[]` | ページテンプレートを `fast-glob` 形式で指定          |
+| `src`      | `string[]` | ページテンプレートを glob 形式で指定                 |
 | `srcBases` | `string[]` | ページテンプレートを URL に変換する際に省くパス      |
 
 ```js
