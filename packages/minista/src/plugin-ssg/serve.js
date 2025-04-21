@@ -1,5 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
+import pc from "picocolors"
 
 import { getGlobImportCode } from "./code.js"
 import { formatLayout, resolveLayout } from "./layout.js"
@@ -70,6 +71,7 @@ export function pluginSsgServe(opts) {
               html = transformHtml({ resolvedLayout, resolvedPage })
               html = await server.transformIndexHtml(originalUrl, html)
               res.statusCode = 200
+              res.setHeader("Content-Type", "text/html")
               res.end(html)
             } else {
               next()
@@ -80,6 +82,53 @@ export function pluginSsgServe(opts) {
           }
         })
       }
+    },
+    hotUpdate: {
+      order: "post",
+      handler({ modules, server, timestamp }) {
+        if (this.environment.name !== "ssr") return
+
+        let hasSsrOnly = false
+        const invalidated = new Set()
+
+        for (const mod of modules) {
+          if (!mod.id) continue
+          if (server.environments.client.moduleGraph.getModuleById(mod.id))
+            continue
+
+          this.environment.moduleGraph.invalidateModule(
+            mod,
+            invalidated,
+            timestamp,
+            true
+          )
+          hasSsrOnly = true
+        }
+
+        if (hasSsrOnly) {
+          const rel = path
+            .relative(server.config.root, modules[0].id)
+            .split("?")[0]
+          const count = modules.length
+
+          server.config.logger.info(
+            [
+              pc.dim("(ssr)"),
+              pc.green("page reload"),
+              pc.dim(rel),
+              count > 1 ? pc.yellow(`(x${count})`) : "",
+            ]
+              .filter(Boolean)
+              .join(" "),
+            {
+              timestamp: true,
+              clear: false,
+            }
+          )
+          server.ws.send({ type: "full-reload" })
+          return []
+        }
+      },
     },
   }
 }
