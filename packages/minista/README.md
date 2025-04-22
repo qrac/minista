@@ -86,6 +86,7 @@ minista の各機能は同封されているプラグインをコンフィグに
 
 - [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-ssg): JSX を静的な HTML に変換
 - [pluginBundle](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-bundle): CSS・JS・画像をビルドプロセスに乗せる
+- [pluginMdx](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-mdx): MDX・Markdown の変換に対応
 - [pluginBeautify](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-beautify): ビルド時に HTML・CSS・JS を整形
 - [pluginArchive](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-archive): ビルド時に圧縮ファイルを生成
 
