@@ -1,4 +1,4 @@
-import { deepmerge } from "deepmerge-ts"
+import { deepmergeCustom } from "deepmerge-ts"
 
 import { defaultOptions } from "./option.js"
 import { pluginBeautifyBuild } from "./build.js"
@@ -11,6 +11,8 @@ import { pluginBeautifyBuild } from "./build.js"
  * @returns {Plugin[]}
  */
 export function pluginBeautify(opts = {}) {
-  const _opts = deepmerge(defaultOptions, opts)
+  const _opts = deepmergeCustom({
+    mergeArrays: false,
+  })(defaultOptions, opts)
   return [pluginBeautifyBuild(_opts)]
 }
