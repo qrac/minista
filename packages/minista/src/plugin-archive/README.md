@@ -24,7 +24,7 @@ export default {
 | `options`  | `ArchiverOptions`  | 圧縮方法                                     |
 | `multiple` | `{...}[]`          | 上記オプションを配列で渡して複数の圧縮を実行 |
 
-- Dependencies: [archiver](https://github.com/archiverjs/node-archiver)
+- Dependencies: [archiver](https://www.npmjs.com/package/archiver)
 
 ```js
 // ./minista.config.js (with default options)

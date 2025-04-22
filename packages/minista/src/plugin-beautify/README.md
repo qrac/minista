@@ -23,7 +23,7 @@ export default {
 | `jsOptions`          | `JSBeautifyOptions`   | JS のフォーマットに関する設定                      |
 | `removeImagePreload` | `boolean`             | Vite が HTML に出力する画像用の Preload タグを削除 |
 
-- Dependencies: [js-beautify](https://github.com/beautifier/js-beautify)
+- Dependencies: [js-beautify](https://www.npmjs.com/package/js-beautify)
 
 ```js
 // ./minista.config.js (with default options)

@@ -28,7 +28,7 @@ paragraph
 | `remarkPlugins` | `PluggableList` | remark プラグインを設定 |
 | `rehypePlugins` | `PluggableList` | rehype プラグインを設定 |
 
-- Dependencies: [@mdx-js/rollup](https://mdxjs.com/packages/rollup/)
+- Dependencies: [@mdx-js/rollup](https://www.npmjs.com/package/@mdx-js/rollup)
 
 ```js
 // ./minista.config.js (with default options)

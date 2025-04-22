@@ -52,7 +52,7 @@ export default {
 - `bodyAttributes`: body の属性を変更
 - `key`: タグを後のものに差し替え
 
-```tsx
+```jsx
 // ./src/pages/index.jsx
 import { Head } from "minista/client"
 
