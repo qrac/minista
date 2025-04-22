@@ -44,7 +44,7 @@ export function pluginSsgBuild(opts) {
     enforce: "pre",
     apply: "build",
     config: async (config) => {
-      isSsr = config.build?.ssr ? true : false
+      isSsr = !!config.build?.ssr
       base = config.base || base
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
@@ -123,25 +123,26 @@ export function pluginSsgBuild(opts) {
       }
     },
     async buildStart() {
-      if (!isSsr && ssgPages.length > 0) {
-        await Promise.all(
-          ssgPages.map((ssgPage) => {
-            this.emitFile({
-              type: "asset",
-              source: ssgPage.html,
-              fileName: ssgPage.outputHtmlPath,
-            })
+      if (isSsr) return
+      if (!ssgPages.length) return
+
+      await Promise.all(
+        ssgPages.map((ssgPage) => {
+          this.emitFile({
+            type: "asset",
+            source: ssgPage.html,
+            fileName: ssgPage.outputHtmlPath,
           })
-        )
-      }
+        })
+      )
     },
     generateBundle(options, bundle) {
-      if (!isSsr) {
-        for (const [key, item] of Object.entries(bundle)) {
-          if (item.name === tempName && item.type === "chunk") {
-            delete bundle[key]
-            break
-          }
+      if (isSsr) return
+
+      for (const [key, item] of Object.entries(bundle)) {
+        if (item.name === tempName && item.type === "chunk") {
+          delete bundle[key]
+          break
         }
       }
     },

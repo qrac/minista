@@ -23,57 +23,57 @@ export function pluginBeautifyBuild(opts) {
     enforce: "post",
     apply: "build",
     config: (config) => {
-      isSsr = config.build?.ssr ? true : false
+      isSsr = !!config.build?.ssr
     },
     generateBundle(options, bundle) {
-      if (!isSsr) {
-        const isMatch = picomatch(opts.src)
-        const parseOpts = [opts.removeImagePreload]
-        const needParse = parseOpts.some((item) => item)
-        const regAssets = /\.(html|css)$/
-        const regChunks = /\.js$/
+      if (isSsr) return
 
-        const outputAssets = filterOutputAssets(bundle)
-        const outputChunks = filterOutputChunks(bundle)
+      const isMatch = picomatch(opts.src)
+      const parseOpts = [opts.removeImagePreload]
+      const needParse = parseOpts.some((item) => item)
+      const regAssets = /\.(html|css)$/
+      const regChunks = /\.js$/
 
-        for (const item of Object.values(outputAssets)) {
-          if (!isMatch(item.fileName)) continue
-          if (!regAssets.test(item.fileName)) continue
+      const outputAssets = filterOutputAssets(bundle)
+      const outputChunks = filterOutputChunks(bundle)
 
-          const ext = item.fileName.split(".").pop()
+      for (const item of Object.values(outputAssets)) {
+        if (!isMatch(item.fileName)) continue
+        if (!regAssets.test(item.fileName)) continue
 
-          let newSource = String(item.source)
+        const ext = item.fileName.split(".").pop()
 
-          if (ext === "html") {
-            if (needParse) {
-              const root = parse(newSource)
+        let newSource = String(item.source)
 
-              if (opts.removeImagePreload) {
-                root
-                  .querySelectorAll("body > link[rel=preload][as=image]")
-                  .forEach((el) => {
-                    el.remove()
-                  })
-              }
-              newSource = root.toString()
+        if (ext === "html") {
+          if (needParse) {
+            const root = parse(newSource)
+
+            if (opts.removeImagePreload) {
+              root
+                .querySelectorAll("body > link[rel=preload][as=image]")
+                .forEach((el) => {
+                  el.remove()
+                })
             }
-            newSource = beautify.html(newSource, opts.htmlOptions)
-            item.source = newSource
-          } else if (ext === "css") {
-            newSource = beautify.css(newSource, opts.cssOptions)
-            item.source = newSource
+            newSource = root.toString()
           }
+          newSource = beautify.html(newSource, opts.htmlOptions)
+          item.source = newSource
+        } else if (ext === "css") {
+          newSource = beautify.css(newSource, opts.cssOptions)
+          item.source = newSource
         }
+      }
 
-        for (const item of Object.values(outputChunks)) {
-          if (!isMatch(item.fileName)) continue
-          if (!regChunks.test(item.fileName)) continue
+      for (const item of Object.values(outputChunks)) {
+        if (!isMatch(item.fileName)) continue
+        if (!regChunks.test(item.fileName)) continue
 
-          let newSource = item.code
+        let newSource = item.code
 
-          newSource = beautify.js(newSource, opts.jsOptions)
-          item.code = newSource
-        }
+        newSource = beautify.js(newSource, opts.jsOptions)
+        item.code = newSource
       }
     },
   }

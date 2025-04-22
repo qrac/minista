@@ -34,11 +34,11 @@ export function pluginArchiveBuild(opts) {
     apply: "build",
     config: (config) => {
       isSsr = !!config.build?.ssr
-      if (!isSsr) {
-        rootDir = getRootDir(cwd, config.root || "")
-        tempDir = getTempDir(cwd, rootDir)
-        archiveDir = path.resolve(tempDir, "archive")
-      }
+      if (isSsr) return
+
+      rootDir = getRootDir(cwd, config.root || "")
+      tempDir = getTempDir(cwd, rootDir)
+      archiveDir = path.resolve(tempDir, "archive")
     },
     async writeBundle(options) {
       if (isSsr) return
