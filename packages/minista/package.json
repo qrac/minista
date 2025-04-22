@@ -6,15 +6,15 @@
     "minista": "./bin/minista.js"
   },
   "main": "./src/node.js",
-  "types": "./types/node.d.ts",
+  "types": "./src/node.d.ts",
   "exports": {
     ".": {
       "import": "./src/node.js",
-      "types": "./types/node.d.ts"
+      "types": "./src/node.d.ts"
     },
     "./client": {
       "import": "./src/client.js",
-      "types": "./types/client.d.ts"
+      "types": "./src/client.d.ts"
     }
   },
   "files": [
