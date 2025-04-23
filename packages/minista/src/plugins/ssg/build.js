@@ -48,14 +48,14 @@ export function pluginSsgBuild(opts) {
       base = config.base || base
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
-      globDir = path.join(tempDir, "glob")
-      globFile = path.join(globDir, `${tempName}.js`)
-      ssrDir = path.join(tempDir, "ssr")
-      ssrFile = path.join(ssrDir, `${tempName}.mjs`)
-      ssgDir = path.join(tempDir, "ssg")
-      ssgFile = path.join(ssgDir, `${tempName}.mjs`)
-      throughDir = path.join(tempDir, "through")
-      throughFile = path.join(throughDir, `${tempName}.js`)
+      globDir = path.resolve(tempDir, "glob")
+      globFile = path.resolve(globDir, `${tempName}.js`)
+      ssrDir = path.resolve(tempDir, "ssr")
+      ssrFile = path.resolve(ssrDir, `${tempName}.mjs`)
+      ssgDir = path.resolve(tempDir, "ssg")
+      ssgFile = path.resolve(ssgDir, `${tempName}.mjs`)
+      throughDir = path.resolve(tempDir, "through")
+      throughFile = path.resolve(throughDir, `${tempName}.js`)
 
       if (isSsr) {
         const code = getGlobImportCode(opts)

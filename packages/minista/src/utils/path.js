@@ -18,7 +18,7 @@ export function getRootDir(cwd, root) {
 export function getTempDir(cwd, rootDir) {
   const hasRootPkg = fs.existsSync(path.resolve(rootDir, "package.json"))
   const pkgDir = hasRootPkg ? rootDir : cwd
-  return path.join(pkgDir, "node_modules", ".minista")
+  return path.resolve(pkgDir, "node_modules", ".minista")
 }
 
 /**
