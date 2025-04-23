@@ -31,8 +31,8 @@ export function pluginBundleServe(opts) {
     config: async (config) => {
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
-      globDir = path.join(tempDir, "glob")
-      globFile = path.join(globDir, `${tempName}.js`)
+      globDir = path.resolve(tempDir, "glob")
+      globFile = path.resolve(globDir, `${tempName}.js`)
 
       const code = getGlobImportCode(opts)
       await fs.promises.mkdir(globDir, { recursive: true })

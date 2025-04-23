@@ -48,11 +48,11 @@ export function pluginBundleBuild(opts) {
       base = config.base || base
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
-      globDir = path.join(tempDir, "glob")
-      globFile = path.join(globDir, `${tempName}.js`)
-      ssgDir = path.join(tempDir, "ssg")
+      globDir = path.resolve(tempDir, "glob")
+      globFile = path.resolve(globDir, `${tempName}.js`)
+      ssgDir = path.resolve(tempDir, "ssg")
 
-      const ssgFiles = await searchFiles(path.join(ssgDir, `*.mjs`))
+      const ssgFiles = await searchFiles(path.resolve(ssgDir, `*.mjs`))
 
       if (!ssgFiles.length) return
 
@@ -80,7 +80,7 @@ export function pluginBundleBuild(opts) {
         ]
         for (const assetUrl of assetUrls) {
           const entryId = pathToId(assetUrl.replace(/^\/+/, ""))
-          const fullPath = path.join(rootDir, assetUrl.replace(/^\/+/, ""))
+          const fullPath = path.resolve(rootDir, assetUrl.replace(/^\/+/, ""))
           preEntries[entryId] = fullPath
         }
       }
