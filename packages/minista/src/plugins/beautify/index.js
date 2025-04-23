@@ -1,7 +1,6 @@
-import { deepmergeCustom } from "deepmerge-ts"
-
 import { defaultOptions } from "./option.js"
 import { pluginBeautifyBuild } from "./build.js"
+import { mergeObj } from "../../utils/obj.js"
 
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
@@ -11,8 +10,6 @@ import { pluginBeautifyBuild } from "./build.js"
  * @returns {Plugin[]}
  */
 export function pluginBeautify(opts = {}) {
-  const _opts = deepmergeCustom({
-    mergeArrays: false,
-  })(defaultOptions, opts)
+  const _opts = mergeObj(defaultOptions, opts)
   return [pluginBeautifyBuild(_opts)]
 }
