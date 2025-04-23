@@ -1,5 +1,5 @@
 import picomatch from "picomatch"
-import { parse } from "node-html-parser"
+import { parse as parseHtml } from "node-html-parser"
 import beautify from "js-beautify"
 
 import { getPluginName } from "../../utils/name.js"
@@ -47,16 +47,16 @@ export function pluginBeautifyBuild(opts) {
 
         if (ext === "html") {
           if (needParse) {
-            const root = parse(newSource)
+            let parsedHtml = parseHtml(newSource)
 
             if (opts.removeImagePreload) {
-              root
+              parsedHtml
                 .querySelectorAll("body > link[rel=preload][as=image]")
                 .forEach((el) => {
                   el.remove()
                 })
             }
-            newSource = root.toString()
+            newSource = parsedHtml.toString()
           }
           newSource = beautify.html(newSource, opts.htmlOptions)
           item.source = newSource
