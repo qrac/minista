@@ -8,39 +8,39 @@ import {
 } from "../../src/utils/url.js"
 
 describe("getPageUrl", () => {
-  it("should transform src path to clean route", () => {
+  it("srcパスをクリーンなルートに変換する", () => {
     const result = getPageUrl("/src/pages/blog/[slug].tsx", ["/src/pages"])
     expect(result).toBe("/blog/:slug")
   })
 
-  it("should replace index file with root path", () => {
+  it("indexファイルをルートパスに置き換える", () => {
     const result = getPageUrl("/src/pages/index.tsx", ["/src/pages"])
     expect(result).toBe("/")
   })
 
-  it("should replace index file with root path 2", () => {
+  it("相対パス（./src/pages）の indexファイルをルートパスに置き換える", () => {
     const result = getPageUrl("./src/pages/index.tsx", ["./src/pages"])
     expect(result).toBe("/")
   })
 
-  it("should replace index file with root path 3", () => {
+  it("親ディレクトリ相対パス（../src/pages）の indexファイルをルートパスに置き換える", () => {
     const result = getPageUrl("../src/pages/index.tsx", ["../src/pages"])
     expect(result).toBe("/")
   })
 
-  it("should support rest parameter", () => {
+  it("restパラメータをサポートする", () => {
     const result = getPageUrl("/src/pages/docs/[...all].tsx", ["/src/pages"])
     expect(result).toBe("/docs/*")
   })
 })
 
 describe("resolveParamUrl", () => {
-  it("replaces a single parameter", () => {
+  it("単一のパラメータを置換する", () => {
     const result = resolveParamUrl("/blog/:slug", { slug: "hello-world" })
     expect(result).toBe("/blog/hello-world")
   })
 
-  it("replaces multiple parameters", () => {
+  it("複数のパラメータを置換する", () => {
     const result = resolveParamUrl("/users/:userId/posts/:postId", {
       userId: "42",
       postId: "100",
@@ -48,29 +48,29 @@ describe("resolveParamUrl", () => {
     expect(result).toBe("/users/42/posts/100")
   })
 
-  it("replaces the same parameter multiple times", () => {
+  it("同じパラメータを複数回置換する", () => {
     const result = resolveParamUrl("/:lang/about/:lang/contact", {
       lang: "en",
     })
     expect(result).toBe("/en/about/en/contact")
   })
 
-  it("works with numeric values", () => {
+  it("数値の値にも対応する", () => {
     const result = resolveParamUrl("/product/:id", { id: 123 })
     expect(result).toBe("/product/123")
   })
 
-  it("returns the same path if no placeholders are present", () => {
+  it("プレースホルダーがない場合は同じパスを返す", () => {
     const result = resolveParamUrl("/about", { unused: "value" })
     expect(result).toBe("/about")
   })
 
-  it("does not throw if a parameter is missing in paths", () => {
+  it("パスにパラメータが存在しない場合でも例外を投げない", () => {
     const result = resolveParamUrl("/blog/:slug", {})
     expect(result).toBe("/blog/:slug")
   })
 
-  it("partially replaces parameters if only some are provided", () => {
+  it("一部のパラメータのみ指定された場合は部分的に置換する", () => {
     const result = resolveParamUrl("/blog/:year/:slug", { year: "2024" })
     expect(result).toBe("/blog/2024/:slug")
   })
@@ -84,34 +84,34 @@ describe("extractUrls", () => {
     <source srcset="/img/c.jpg 1x, /img/d.jpg 2x" />
   `
 
-  it("extracts src from img", () => {
+  it("imgのsrcを抽出する", () => {
     const result = extractUrls(html, "img", "src")
     expect(result).toEqual(["/images/a.jpg", "/images/b.jpg"])
   })
 
-  it("extracts srcset from source", () => {
+  it("sourceのsrcsetを抽出する", () => {
     const result = extractUrls(html, "source", "srcset", "/img/")
     expect(result).toEqual(["/img/c.jpg", "/img/d.jpg"])
   })
 
-  it("ignores non-matching start", () => {
+  it("開始文字列が一致しない場合は無視する", () => {
     const result = extractUrls(html, "source", "srcset", "/no-match/")
     expect(result).toEqual([])
   })
 })
 
 describe("getBasedAssetUrl", () => {
-  it("returns relative path when base is './'", () => {
+  it("baseが './' のとき相対パスを返す", () => {
     const result = getBasedAssetUrl("./", "blog/index.html", "assets/logo.png")
     expect(result).toBe("../assets/logo.png")
   })
 
-  it("returns absolute URL when base is '/'", () => {
+  it("baseが '/' のとき絶対URLを返す", () => {
     const result = getBasedAssetUrl("/", "blog/index.html", "assets/logo.png")
     expect(result).toBe("/assets/logo.png")
   })
 
-  it("returns URL with custom base", () => {
+  it("カスタムbaseを使ったURLを返す", () => {
     const result = getBasedAssetUrl(
       "/subdir/",
       "blog/index.html",
