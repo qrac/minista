@@ -1,6 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
-import fg from "fast-glob"
+import { glob } from "tinyglobby"
 
 import { getGlobImportCode } from "./code.js"
 
@@ -52,14 +52,14 @@ export function pluginBundleBuild(opts) {
       globFile = path.resolve(globDir, `${tempName}.js`)
       ssgDir = path.resolve(tempDir, "ssg")
 
-      const ssgFiles = await fg(path.resolve(ssgDir, `*.mjs`))
+      const ssgFiles = await glob(path.resolve(ssgDir, `*.mjs`))
 
       if (!ssgFiles.length) return
 
       ssgPages = (
         await Promise.all(
           ssgFiles.map(async (file) => {
-            const { ssgPages } = await import(file)
+            const { ssgPages } = await import(path.resolve(cwd, file))
             return ssgPages
           })
         )
