@@ -34,7 +34,7 @@ export function checkOneBuildArg(args) {
  */
 export function findConfigFile(rootArg) {
   const cwd = process.cwd()
-  const DEFAULT_CONFIG_FILES = [
+  const configFileList = [
     "minista.config.js",
     "minista.config.cjs",
     "minista.config.mjs",
@@ -43,15 +43,15 @@ export function findConfigFile(rootArg) {
     "minista.config.mts",
   ]
   if (rootArg) {
-    for (const fileName of DEFAULT_CONFIG_FILES) {
-      const filePath = path.join(cwd, rootArg, fileName)
+    for (const fileName of configFileList) {
+      const filePath = path.resolve(cwd, rootArg, fileName)
       if (fs.existsSync(filePath)) {
-        return path.join(rootArg, fileName)
+        return path.resolve(rootArg, fileName)
       }
     }
   }
-  for (const fileName of DEFAULT_CONFIG_FILES) {
-    const filePath = path.join(cwd, fileName)
+  for (const fileName of configFileList) {
+    const filePath = path.resolve(cwd, fileName)
     if (fs.existsSync(filePath)) {
       return fileName
     }
