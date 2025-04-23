@@ -1,1 +1,1 @@
-export { Head } from "./head/component.js"
+export { Head } from "./plugins/ssg/head.js"

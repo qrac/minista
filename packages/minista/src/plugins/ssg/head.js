@@ -1,13 +1,11 @@
 import { useContext } from "react"
 import { HeadContext } from "./context.js"
 
-/** @typedef {import('./types').HeadData} HeadData */
+/** @typedef {import('./types').HeadProps} HeadProps */
 /** @typedef {import('./types').SetHeadData} SetHeadData */
 
 /**
- * @param {HeadData & {
- *   children?: React.ReactNode
- * }} props
+ * @param {HeadProps} props
  * @returns {null}
  */
 export function Head({

@@ -5,8 +5,8 @@ import pc from "picocolors"
 import { normalizePath } from "vite"
 
 import { resolveMultipleOptions } from "./option.js"
-import { getPluginName } from "../utils/name.js"
-import { getRootDir, getTempDir } from "../utils/path.js"
+import { getPluginName } from "../../utils/name.js"
+import { getRootDir, getTempDir } from "../../utils/path.js"
 
 /**
  * @typedef {import('vite').Plugin} Plugin

@@ -88,3 +88,23 @@ export type SsgPage = {
   outputHtmlPath: string
   html: string
 }
+
+export type CustomHtmlAttributes = React.HTMLAttributes<HTMLHtmlElement> & {
+  class?: string
+}
+export type CustomBodyAttributes = React.HTMLAttributes<HTMLBodyElement> & {
+  class?: string
+}
+
+export type HeadData = {
+  htmlAttributes?: CustomHtmlAttributes
+  bodyAttributes?: CustomBodyAttributes
+  title?: string
+  tags?: React.ReactElement[]
+}
+
+export type HeadProps = HeadData & {
+  children?: React.ReactNode
+}
+
+export type SetHeadData = (key: string, value: any) => void

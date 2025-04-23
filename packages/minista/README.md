@@ -84,11 +84,12 @@ export default defineConfig({
 
 minista の各機能は同封されているプラグインをコンフィグに登録することで動作します。使い方は各ディレクトリの README.md を参照ください。
 
-- [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-ssg): JSX を静的な HTML に変換
-- [pluginBundle](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-bundle): CSS・JS・画像をビルドプロセスに乗せる
-- [pluginMdx](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-mdx): MDX・Markdown の変換に対応
-- [pluginBeautify](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-beautify): ビルド時に HTML・CSS・JS を整形
-- [pluginArchive](https://github.com/qrac/minista/tree/main/packages/minista/src/plugin-archive): ビルド時に圧縮ファイルを生成
+- [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/ssg): JSX を静的な HTML に変換
+- [pluginBundle](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/bundle): CSS・JS・画像をビルドプロセスに乗せる
+- [pluginMdx](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/mdx): MDX・Markdown の変換に対応
+- [pluginImage](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/image): 画像を最適化・リモート画像をダウンロード
+- [pluginBeautify](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/beautify): ビルド時に HTML・CSS・JS を整形
+- [pluginArchive](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/archive): ビルド時に圧縮ファイルを生成
 
 ## License
 

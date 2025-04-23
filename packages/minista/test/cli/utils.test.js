@@ -5,7 +5,7 @@ import {
   resolveConfigArg,
   resolveOneBuildArg,
   resolveSsrArg,
-} from "../../src/cli/arg.js"
+} from "../../src/cli/utils.js"
 
 describe("findRootArg", () => {
   it("returns first arg if it's not a flag or known command", () => {

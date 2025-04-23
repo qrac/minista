@@ -2,8 +2,8 @@ import picomatch from "picomatch"
 import { parse } from "node-html-parser"
 import beautify from "js-beautify"
 
-import { getPluginName } from "../utils/name.js"
-import { filterOutputAssets, filterOutputChunks } from "../utils/vite.js"
+import { getPluginName } from "../../utils/name.js"
+import { filterOutputAssets, filterOutputChunks } from "../../utils/vite.js"
 
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */

@@ -1,19 +1,19 @@
 import { createElement } from "react"
 import { renderToString } from "react-dom/server"
 
-import { HeadProvider } from "../head/provider.js"
-import { headAttrsToStr } from "../head/attr.js"
+import { HeadProvider } from "./provider.js"
 import {
+  headAttrsToStr,
   checkCharsetTag,
   checkViewportTag,
   getDefaultHeadTags,
   filterHeadTags,
   headTagsToStr,
-} from "../head/tag.js"
+} from "./utils.js"
 
 /** @typedef {import('./types').ResolvedLayout} ResolvedLayout */
 /** @typedef {import('./types').ResolvedPage} ResolvedPage */
-/** @typedef {import('../head/types').HeadData} HeadData */
+/** @typedef {import('./types').HeadData} HeadData */
 
 /**
  * @param {{ resolvedLayout: ResolvedLayout, resolvedPage: ResolvedPage }} params

@@ -6,9 +6,9 @@ export type {
   LayoutProps,
   GetStaticData,
   StaticData,
-} from "./plugin-ssg/types"
+} from "./plugins/ssg/types"
 
-import type { HeadData } from "./head/types"
+import type { HeadData } from "./plugins/ssg/types"
 
 export declare function Head(
   props: HeadData & {

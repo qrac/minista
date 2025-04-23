@@ -3,15 +3,15 @@ import path from "node:path"
 
 import { getGlobImportCode } from "./code.js"
 
-import { getPluginName, getTempName } from "../utils/name.js"
-import { getRootDir, getTempDir, pathToId, idToPath } from "../utils/path.js"
-import { extractUrls, getBasedAssetUrl } from "../utils/url.js"
-import { searchFiles } from "../utils/file.js"
-import { filterOutputAssets, filterOutputChunks } from "../utils/vite.js"
+import { getPluginName, getTempName } from "../../utils/name.js"
+import { getRootDir, getTempDir, pathToId, idToPath } from "../../utils/path.js"
+import { extractUrls, getBasedAssetUrl } from "../../utils/url.js"
+import { searchFiles } from "../../utils/file.js"
+import { filterOutputAssets, filterOutputChunks } from "../../utils/vite.js"
 
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
-/** @typedef {import('../plugin-ssg/types').SsgPage} SsgPage */
+/** @typedef {import('../../plugins/ssg/types').SsgPage} SsgPage */
 
 /**
  * @param {PluginOptions} opts

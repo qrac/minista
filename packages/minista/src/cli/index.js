@@ -1,11 +1,11 @@
 import {
   findRootArg,
   checkOneBuildArg,
+  findConfigFile,
   resolveConfigArg,
   resolveOneBuildArg,
   resolveSsrArg,
-} from "./arg.js"
-import { existsConfigFile } from "./file.js"
+} from "./utils.js"
 import { runMinista } from "./command.js"
 
 async function main() {
@@ -13,7 +13,7 @@ async function main() {
 
   const rootArg = findRootArg(args)
   const isOneBuild = checkOneBuildArg(args)
-  const configFile = existsConfigFile(rootArg)
+  const configFile = findConfigFile(rootArg)
 
   args = resolveConfigArg(args, configFile)
   args = resolveOneBuildArg(args, isOneBuild)
