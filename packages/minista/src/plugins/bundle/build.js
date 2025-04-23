@@ -1,12 +1,12 @@
 import fs from "node:fs"
 import path from "node:path"
+import fg from "fast-glob"
 
 import { getGlobImportCode } from "./code.js"
 
 import { getPluginName, getTempName } from "../../utils/name.js"
 import { getRootDir, getTempDir, pathToId, idToPath } from "../../utils/path.js"
 import { extractUrls, getBasedAssetUrl } from "../../utils/url.js"
-import { searchFiles } from "../../utils/file.js"
 import { filterOutputAssets, filterOutputChunks } from "../../utils/vite.js"
 
 /** @typedef {import('vite').Plugin} Plugin */
@@ -52,7 +52,7 @@ export function pluginBundleBuild(opts) {
       globFile = path.resolve(globDir, `${tempName}.js`)
       ssgDir = path.resolve(tempDir, "ssg")
 
-      const ssgFiles = await searchFiles(path.resolve(ssgDir, `*.mjs`))
+      const ssgFiles = await fg(path.resolve(ssgDir, `*.mjs`))
 
       if (!ssgFiles.length) return
 
