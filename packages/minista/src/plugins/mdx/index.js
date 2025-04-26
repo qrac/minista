@@ -1,9 +1,16 @@
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('./types').PluginOptions} PluginOptions */
+/** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
+
 import mdxjsRollup from "@mdx-js/rollup"
 
-import { defaultOptions, resolveMdxOptions } from "./option.js"
+import { resolveMdxOptions } from "./utils/option.js"
 
-/** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
+/** @type {PluginOptions} */
+export const defaultOptions = {
+  remarkPlugins: [],
+  rehypePlugins: [],
+}
 
 /**
  * @param {UserPluginOptions} opts

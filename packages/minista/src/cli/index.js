@@ -1,12 +1,12 @@
 import {
   findRootArg,
   checkOneBuildArg,
-  findConfigFile,
   resolveConfigArg,
   resolveOneBuildArg,
   resolveSsrArg,
-} from "./utils.js"
-import { runMinista } from "./command.js"
+} from "./utils/arg.js"
+import { findConfigFile } from "./utils/file.js"
+import { runMinista } from "./utils/command.js"
 
 async function main() {
   let args = process.argv.slice(2)

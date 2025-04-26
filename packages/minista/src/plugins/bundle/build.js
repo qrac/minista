@@ -1,17 +1,21 @@
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('./types').PluginOptions} PluginOptions */
+/** @typedef {import('../../plugins/ssg/types').SsgPage} SsgPage */
+
 import fs from "node:fs"
 import path from "node:path"
 import { glob } from "tinyglobby"
 
-import { getGlobImportCode } from "./code.js"
-
-import { getPluginName, getTempName } from "../../utils/name.js"
-import { getRootDir, getTempDir, pathToId, idToPath } from "../../utils/path.js"
-import { extractUrls, getBasedAssetUrl } from "../../utils/url.js"
-import { filterOutputAssets, filterOutputChunks } from "../../utils/vite.js"
-
-/** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('./types').PluginOptions} PluginOptions */
-/** @typedef {import('../../plugins/ssg/types').SsgPage} SsgPage */
+import { getGlobImportCode } from "./utils/code.js"
+import { getPluginName, getTempName } from "../../shared/name.js"
+import {
+  getRootDir,
+  getTempDir,
+  pathToId,
+  idToPath,
+} from "../../shared/path.js"
+import { extractUrls, getBasedAssetUrl } from "../../shared/url.js"
+import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
 
 /**
  * @param {PluginOptions} opts
@@ -43,14 +47,14 @@ export function pluginBundleBuild(opts) {
     apply: "build",
     config: async (config) => {
       isSsr = !!config.build?.ssr
-      if (isSsr) return
-
       base = config.base || base
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")
       globFile = path.resolve(globDir, `${tempName}.js`)
       ssgDir = path.resolve(tempDir, "ssg")
+
+      if (isSsr) return
 
       const ssgFiles = await glob(path.resolve(ssgDir, `*.mjs`))
 

@@ -1,18 +1,17 @@
-import fs from "node:fs"
-import path from "node:path"
-
-import { getGlobImportCode, getSsgExportCode } from "./code.js"
-import { formatLayout, resolveLayout } from "./layout.js"
-import { formatPages, resolvePages } from "./page.js"
-import { transformHtml } from "./html.js"
-
-import { getPluginName, getTempName } from "../../utils/name.js"
-import { getRootDir, getTempDir, getOutputHtmlPath } from "../../utils/path.js"
-import { mergeSsrExternal } from "../../utils/vite.js"
-
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').SsgPage} SsgPage */
+
+import fs from "node:fs"
+import path from "node:path"
+
+import { getGlobImportCode, getSsgExportCode } from "./utils/code.js"
+import { formatLayout, resolveLayout } from "./utils/layout.js"
+import { formatPages, resolvePages } from "./utils/page.js"
+import { transformHtml } from "./utils/html.js"
+import { getPluginName, getTempName } from "../../shared/name.js"
+import { getRootDir, getTempDir, getOutputHtmlPath } from "../../shared/path.js"
+import { mergeSsrExternal } from "../../shared/vite.js"
 
 /**
  * @param {PluginOptions} opts

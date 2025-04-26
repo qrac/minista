@@ -6,4 +6,7 @@ export default defineConfig({
     exclude: ["**/node_modules/**"],
     testTimeout: 20000,
   },
+  esbuild: {
+    jsx: "automatic",
+  },
 })

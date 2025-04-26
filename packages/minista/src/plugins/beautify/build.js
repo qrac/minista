@@ -1,12 +1,12 @@
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('./types').PluginOptions} PluginOptions */
+
 import picomatch from "picomatch"
 import { parse as parseHtml } from "node-html-parser"
 import beautify from "js-beautify"
 
-import { getPluginName } from "../../utils/name.js"
-import { filterOutputAssets, filterOutputChunks } from "../../utils/vite.js"
-
-/** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('./types').PluginOptions} PluginOptions */
+import { getPluginName } from "../../shared/name.js"
+import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
 
 /**
  * @param {PluginOptions} opts

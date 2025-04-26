@@ -26,6 +26,9 @@
     "play:mdx": "minista ./playground/mdx",
     "play-build:mdx": "minista build ./playground/mdx",
     "play-preview:mdx": "minista preview ./playground/mdx",
+    "play:image": "minista ./playground/image",
+    "play-build:image": "minista build ./playground/image",
+    "play-preview:image": "minista preview ./playground/image",
     "play:beautify": "minista ./playground/beautify",
     "play-build:beautify": "minista build ./playground/beautify",
     "play-preview:beautify": "minista preview ./playground/beautify",
@@ -48,6 +51,7 @@
   "devDependencies": {
     "@types/archiver": "^6.0.3",
     "@types/js-beautify": "^1.14.3",
+    "@types/mime-types": "^2.1.4",
     "@types/node": "^22.14.1",
     "@types/picomatch": "^4.0.0",
     "@types/react": "^19.1.2",

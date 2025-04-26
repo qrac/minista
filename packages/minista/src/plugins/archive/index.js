@@ -1,8 +1,18 @@
-import { defaultOptions } from "./option.js"
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('./types').PluginOptions} PluginOptions */
+/** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
+
 import { pluginArchiveBuild } from "./build.js"
 
-/** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
+/** @type {PluginOptions} */
+export const defaultOptions = {
+  srcDir: "dist",
+  outName: "dist",
+  ignore: [],
+  format: "zip",
+  options: { zlib: { level: 9 } },
+  multiple: [],
+}
 
 /**
  * @param {UserPluginOptions} opts

@@ -1,12 +1,12 @@
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('./types').PluginOptions} PluginOptions */
+
 import fs from "node:fs"
 import path from "node:path"
 
-import { getGlobImportCode } from "./code.js"
-import { getPluginName, getTempName } from "../../utils/name.js"
-import { getRootDir, getTempDir } from "../../utils/path.js"
-
-/** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('./types').PluginOptions} PluginOptions */
+import { getGlobImportCode } from "./utils/code.js"
+import { getPluginName, getTempName } from "../../shared/name.js"
+import { getRootDir, getTempDir } from "../../shared/path.js"
 
 /**
  * @param {PluginOptions} opts

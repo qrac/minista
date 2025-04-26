@@ -1,17 +1,15 @@
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('./types').PluginOptions} PluginOptions */
+
 import fs from "node:fs"
 import path from "node:path"
 import archiver from "archiver"
 import pc from "picocolors"
 import { normalizePath } from "vite"
 
-import { resolveMultipleOptions } from "./option.js"
-import { getPluginName } from "../../utils/name.js"
-import { getRootDir, getTempDir } from "../../utils/path.js"
-
-/**
- * @typedef {import('vite').Plugin} Plugin
- * @typedef {import('./types').PluginOptions} PluginOptions
- */
+import { mergeMultipleOptions } from "./utils/option.js"
+import { getPluginName } from "../../shared/name.js"
+import { getRootDir, getTempDir } from "../../shared/path.js"
 
 /**
  * @param {PluginOptions} opts
@@ -21,7 +19,7 @@ export function pluginArchiveBuild(opts) {
   const cwd = process.cwd()
   const names = ["archive", "build"]
   const pluginName = getPluginName(names)
-  const mOpts = resolveMultipleOptions(opts)
+  const mOpts = mergeMultipleOptions(opts)
 
   let isSsr = false
   let rootDir = ""
@@ -34,8 +32,6 @@ export function pluginArchiveBuild(opts) {
     apply: "build",
     config: (config) => {
       isSsr = !!config.build?.ssr
-      if (isSsr) return
-
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       archiveDir = path.resolve(tempDir, "archive")
