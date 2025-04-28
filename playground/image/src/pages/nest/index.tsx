@@ -32,6 +32,40 @@ export default function () {
       <div>
         <Image src="https://picsum.photos/id/10/800/600" width={800} />
       </div>
+      <div>
+        <Image
+          src="https://picsum.photos/id/11/800/600"
+          remoteName="forest"
+          width={800}
+        />
+      </div>
+      <div>
+        <Picture
+          src="/src/assets/check-desktop.png"
+          outName="[name]"
+          breakpoints={[1920]}
+          artDirectives={[
+            {
+              media: `(min-width: 1920px)`,
+              src: "/src/assets/check-desktop.png",
+              formats: ["webp"],
+              breakpoints: [1920],
+            },
+            {
+              media: `(min-width: 1440px)`,
+              src: "/src/assets/check-laptop.png",
+              formats: ["webp"],
+              breakpoints: [1440],
+            },
+            {
+              media: `(min-width: 375px)`,
+              src: "/src/assets/check-mobile.png",
+              formats: ["webp"],
+              breakpoints: [375],
+            },
+          ]}
+        />
+      </div>
     </>
   )
 }
