@@ -34,7 +34,7 @@ export async function getRemote(url, remoteName, remoteIndex) {
     if (extName.toLowerCase() === "jpeg") {
       extName = "jpg"
     }
-    fileName = `${remoteName}-${remoteIndex}.${extName}`
+    fileName = `${remoteName}${remoteIndex}.${extName}`
 
     const arrayBuffer = await res.arrayBuffer()
     const data = Buffer.from(arrayBuffer)

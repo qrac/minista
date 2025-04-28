@@ -23,6 +23,8 @@ export function Picture({
   alt = "",
   decoding = defaultDecoding,
   loading = defaultLoading,
+  outName,
+  remoteName,
   layout,
   breakpoints,
   resolutions,
@@ -44,6 +46,8 @@ export function Picture({
   const resolvedAspect = aspect ? resolveAspect(aspect) : undefined
 
   const optimizeObj = {
+    outName,
+    remoteName,
     layout,
     breakpoints,
     resolutions,
@@ -71,6 +75,8 @@ export function Picture({
       if (item.formats && item.formats.length > 0) {
         return item.formats.map((itemFormat, formatIndex) => {
           const sourceOptimizeObj = {
+            outName: item.outName || outName,
+            remoteName: item.remoteName || remoteName,
             layout: item.layout || layout,
             breakpoints: item.breakpoints || breakpoints,
             resolutions: item.resolutions || resolutions,
@@ -100,6 +106,8 @@ export function Picture({
         })
       } else {
         const sourceOptimizeObj = {
+          outName: item.outName || outName,
+          remoteName: item.remoteName || remoteName,
           layout: item.layout || layout,
           breakpoints: item.breakpoints || breakpoints,
           resolutions: item.resolutions || resolutions,
@@ -130,6 +138,8 @@ export function Picture({
     }),
     otherFormats.map((item, index) => {
       const sourceOptimizeObj = {
+        outName,
+        remoteName,
         layout,
         breakpoints,
         resolutions,

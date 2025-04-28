@@ -9,11 +9,9 @@ import { mergeObj } from "../../shared/obj.js"
 /** @type {PluginOptions} */
 export const defaultOptions = {
   useCache: true,
-  useSizeName: true,
-  remoteName: "remote",
-  decoding: "async",
-  loading: "eager",
   optimize: {
+    outName: "[name]-[width]x[height]",
+    remoteName: "remote-[index]",
     layout: "constrained",
     breakpoints: [320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840],
     resolutions: [1, 2],
@@ -25,6 +23,8 @@ export const defaultOptions = {
     fit: "cover",
     position: "centre",
   },
+  decoding: "async",
+  loading: "eager",
 }
 
 /**

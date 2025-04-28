@@ -1,5 +1,5 @@
 /** @typedef {import('../types').ResolvedImageOptimize} ResolvedImageOptimize */
-/** @typedef {import('../types').ImageEntry} ImageEntry */
+/** @typedef {import('../types').ImageRecipe} ImageRecipe */
 /** @typedef {import('../types').ImageView} ImageView */
 
 import { getRatio } from "./ratio.js"
@@ -8,19 +8,19 @@ const AUTO_SIZE = "__minista_image_auto_size"
 
 /**
  * @param {ResolvedImageOptimize} resolvedOptimize
- * @param {ImageEntry} imageEntry
+ * @param {ImageRecipe} recipe
  * @param {{ sizes: string, width: string, height: string }} elAttrs
  * @returns {ImageView}
  */
-export function getImageView(resolvedOptimize, imageEntry, elAttrs) {
+export function getView(resolvedOptimize, recipe, elAttrs) {
   const floor2 = (/** @type {number} */ num) => Math.floor(num * 100) / 100
   const { layout, aspect, breakpoints } = resolvedOptimize
 
   let sizes = elAttrs.sizes
   let width = Number(elAttrs.width) || 0
   let height = Number(elAttrs.height) || 0
-  let ratioWidth = imageEntry.ratioWidth
-  let ratioHeight = imageEntry.ratioHeight
+  let ratioWidth = recipe.ratioWidth
+  let ratioHeight = recipe.ratioHeight
 
   const isAutoSizes = sizes === AUTO_SIZE
   const isAutoWidth = elAttrs.width === AUTO_SIZE
@@ -35,8 +35,8 @@ export function getImageView(resolvedOptimize, imageEntry, elAttrs) {
   }
 
   if (isAutoWidth && isAutoHeight) {
-    width = imageEntry.width
-    height = imageEntry.height
+    width = recipe.width
+    height = recipe.height
   } else if (isAutoWidth) {
     width = Math.round(height * ratioWidth)
   } else if (isAutoHeight) {
@@ -49,8 +49,8 @@ export function getImageView(resolvedOptimize, imageEntry, elAttrs) {
   }
 
   const changeAspect =
-    floor2(ratioWidth) !== floor2(imageEntry.ratioWidth) ||
-    floor2(ratioHeight) !== floor2(imageEntry.ratioHeight)
+    floor2(ratioWidth) !== floor2(recipe.ratioWidth) ||
+    floor2(ratioHeight) !== floor2(recipe.ratioHeight)
 
   if (isAutoSizes) {
     const maxBp = Math.max(...(breakpoints || [width]))

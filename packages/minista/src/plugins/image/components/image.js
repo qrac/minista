@@ -23,6 +23,8 @@ export function Image({
   alt = "",
   decoding = defaultDecoding,
   loading = defaultLoading,
+  outName,
+  remoteName,
   layout,
   breakpoints,
   resolutions,
@@ -36,6 +38,8 @@ export function Image({
   ...attributes
 }) {
   const optimizeObj = {
+    outName,
+    remoteName,
     layout,
     breakpoints,
     resolutions,

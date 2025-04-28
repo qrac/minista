@@ -1,11 +1,10 @@
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
-/** @typedef {import('./types').RemoteUrlIndexMap} RemoteUrlIndexMap */
-/** @typedef {import('./types').RemoteNameMap} RemoteNameMap */
-/** @typedef {import('./types').ImageBufferHashMap} ImageBufferHashMap */
-/** @typedef {import('./types').ImageEntryMap} ImageEntryMap */
+/** @typedef {import('./types').UrlIndexMap} UrlIndexMap */
+/** @typedef {import('./types').UrlNameMap} UrlNameMap */
+/** @typedef {import('./types').bufferHashMap} bufferHashMap */
+/** @typedef {import('./types').ImageRecipeMap} ImageRecipeMap */
 /** @typedef {import('./types').ImageCache} ImageCache */
-/** @typedef {import('./types').ImageEntry} ImageEntry */
 /** @typedef {import('../../plugins/ssg/types').SsgPage} SsgPage */
 
 import fs from "node:fs"
@@ -17,12 +16,12 @@ import { normalizePath } from "vite"
 import { parse as parseHtml } from "node-html-parser"
 
 import { getRemote } from "./utils/remote.js"
-import { resolveOptimize } from "./utils/optimize.js"
+import { resolveOptimizeOption } from "./utils/option.js"
 import { generateHash } from "./utils/hash.js"
 import { getSize } from "./utils/size.js"
 import { getRatio } from "./utils/ratio.js"
-import { getImageView } from "./utils/view.js"
-import { getImageCreateMap, getImageCreatedAttrs } from "./utils/create.js"
+import { getView } from "./utils/view.js"
+import { getPatternMap, getPatternAttrs } from "./utils/pattern.js"
 import { runSharp } from "./utils/sharp.js"
 import { getPluginName } from "../../shared/name.js"
 import { getRootDir, getTempDir, pathToId } from "../../shared/path.js"
@@ -40,7 +39,7 @@ export function pluginImageBuild(opts) {
   const cwd = process.cwd()
   const names = ["image", "build"]
   const pluginName = getPluginName(names)
-  const { useCache, useSizeName, remoteName } = opts
+  const { useCache } = opts
   const targetAttr = "data-minista-image"
   const srcAttr = "data-minista-image-src"
   const optimizeAttr = "data-minista-image-optimize"
@@ -52,23 +51,24 @@ export function pluginImageBuild(opts) {
   let ssgDir = ""
   /** @type {SsgPage[]} */
   let ssgPages = []
+  let remoteDir = ""
   let imageDir = ""
   let imageCacheFile = ""
   /** @type {ImageCache} */
   let imageCache = {
-    remoteUrlIndexMap: {},
-    remoteNameMap: {},
-    imageEntryMap: {},
+    urlIndexMap: {},
+    urlNameMap: {},
+    recipeMap: {},
   }
-  let remoteUrlIndex = 0
-  /** @type {RemoteUrlIndexMap} */
-  let remoteUrlIndexMap = {}
-  /** @type {RemoteNameMap} */
-  let remoteNameMap = {}
-  /** @type {ImageBufferHashMap} */
-  let imageBufferHashMaps = {}
-  /** @type {ImageEntryMap} */
-  let imageEntryMap = {}
+  let urlIndex = 0
+  /** @type {UrlIndexMap} */
+  let urlIndexMap = {}
+  /** @type {UrlNameMap} */
+  let urlNameMap = {}
+  /** @type {bufferHashMap} */
+  let bufferHashMaps = {}
+  /** @type {ImageRecipeMap} */
+  let recipeMap = {}
   /** @type {{[pathId: string]: string}} */
   let entries = {}
   /** @type {{[before: string]: string}} */
@@ -84,6 +84,7 @@ export function pluginImageBuild(opts) {
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       ssgDir = path.resolve(tempDir, "ssg")
+      remoteDir = path.resolve(tempDir, "remote")
       imageDir = path.resolve(tempDir, "image")
       imageCacheFile = path.resolve(imageDir, "cache.json")
 
@@ -113,6 +114,9 @@ export function pluginImageBuild(opts) {
         )
       ).flat()
 
+      if (!ssgPages.length) return
+
+      await fs.promises.mkdir(remoteDir, { recursive: true })
       await fs.promises.mkdir(imageDir, { recursive: true })
 
       if (useCache && fs.existsSync(imageCacheFile)) {
@@ -121,11 +125,11 @@ export function pluginImageBuild(opts) {
         )
       }
       if (useCache) {
-        const indexes = Object.values(imageCache.remoteUrlIndexMap) || []
-        remoteUrlIndex = indexes.length ? Math.max(...indexes) : 0
-        remoteUrlIndexMap = { ...imageCache.remoteUrlIndexMap }
-        remoteNameMap = { ...imageCache.remoteNameMap }
-        imageEntryMap = { ...imageCache.imageEntryMap }
+        const indexes = Object.values(imageCache.urlIndexMap) || []
+        urlIndex = indexes.length ? Math.max(...indexes) : 0
+        urlIndexMap = { ...imageCache.urlIndexMap }
+        urlNameMap = { ...imageCache.urlNameMap }
+        recipeMap = { ...imageCache.recipeMap }
       }
 
       /** @type {string[]} */
@@ -152,25 +156,25 @@ export function pluginImageBuild(opts) {
         .map((url) => url.replace(/^\//, ""))
 
       for (const remoteUrl of remoteUrls) {
-        if (!remoteUrlIndexMap[remoteUrl]) {
-          remoteUrlIndex = remoteUrlIndex + 1
-          remoteUrlIndexMap[remoteUrl] = remoteUrlIndex
+        if (!urlIndexMap[remoteUrl]) {
+          urlIndex = urlIndex + 1
+          urlIndexMap[remoteUrl] = urlIndex
         }
       }
       await Promise.all(
-        Object.entries(remoteUrlIndexMap).map(async ([remoteUrl, index]) => {
-          if (useCache && imageCache.remoteUrlIndexMap[remoteUrl]) return
+        Object.entries(urlIndexMap).map(async ([remoteUrl, index]) => {
+          if (useCache && imageCache.urlIndexMap[remoteUrl]) return
 
           console.log(pc.gray(`[download] ${remoteUrl}`))
-          const remoteItem = await getRemote(remoteUrl, remoteName, index)
+          const remoteItem = await getRemote(remoteUrl, "__r", index)
 
           if (!remoteItem) return
 
           const { fileName, data } = remoteItem
-          const fullPath = path.resolve(imageDir, fileName)
+          const fullPath = path.resolve(remoteDir, fileName)
           await fs.promises.writeFile(fullPath, data, "utf8")
 
-          remoteNameMap[remoteUrl] = normalizePath(
+          urlNameMap[remoteUrl] = normalizePath(
             path.relative(rootDir, fullPath)
           )
         })
@@ -179,7 +183,7 @@ export function pluginImageBuild(opts) {
       await Promise.all(
         imageNames.map(async (imageName) => {
           if (imageName.startsWith("http")) {
-            imageName = remoteNameMap[imageName]
+            imageName = urlNameMap[imageName]
           }
           if (!imageName) return
 
@@ -188,22 +192,23 @@ export function pluginImageBuild(opts) {
 
           const buffer = await fs.promises.readFile(fullPath)
           const bufferHash = generateHash(buffer)
-          imageBufferHashMaps[imageName] = bufferHash
+          bufferHashMaps[imageName] = bufferHash
 
-          if (Object.hasOwn(imageEntryMap, bufferHash)) {
-            imageEntryMap[bufferHash].fileName = imageName
+          if (Object.hasOwn(recipeMap, bufferHash)) {
+            recipeMap[bufferHash].fileName = imageName
             return
           }
           const { width, height } = await getSize(fullPath)
-          imageEntryMap[bufferHash] = {
+
+          recipeMap[bufferHash] = {
             fileName: imageName,
             width,
             height,
             ratioWidth: getRatio(width, height),
             ratioHeight: getRatio(height, width),
-            imageCreateMap: {},
-            imageCreatedMap: {
-              ...(imageEntryMap[bufferHash]?.imageCreatedMap || {}),
+            patternMap: {},
+            usedPatternMap: {
+              ...(recipeMap[bufferHash]?.usedPatternMap || {}),
             },
           }
         })
@@ -225,66 +230,57 @@ export function pluginImageBuild(opts) {
           if (!isTarget || !imageName) continue
 
           if (imageName.startsWith("http")) {
-            imageName = remoteNameMap[imageName]
+            imageName = urlNameMap[imageName]
           }
-          const bufferHash = imageBufferHashMaps[imageName]
-          const imageEntry = imageEntryMap[bufferHash]
+          const bufferHash = bufferHashMaps[imageName]
+          const recipe = recipeMap[bufferHash]
           const sizes = el.getAttribute("sizes") || ""
           const width = el.getAttribute("width") || ""
           const height = el.getAttribute("height") || ""
           const elAttrs = { sizes, width, height }
           const elOptimize = el.getAttribute(optimizeAttr) || "{}"
-          const optimize = JSON.parse(elOptimize)
-          const resolvedOptimize = resolveOptimize(optimize, imageEntry)
-          const imageView = getImageView(resolvedOptimize, imageEntry, elAttrs)
-          const imageCreateMap = getImageCreateMap(
-            resolvedOptimize,
-            imageEntry,
-            imageView,
-            { useSizeName, resizeOnly: false }
-          )
-          for (const [createHash, imageCreate] of Object.entries(
-            imageCreateMap
-          )) {
-            imageEntry.imageCreateMap[createHash] = imageCreate
+          const parsedOptimize = JSON.parse(elOptimize)
+          const optimize = resolveOptimizeOption(parsedOptimize, recipe)
+          const view = getView(optimize, recipe, elAttrs)
+          const patternMap = getPatternMap(optimize, recipe, view, false)
+
+          for (const [patternHash, pattern] of Object.entries(patternMap)) {
+            recipe.patternMap[patternHash] = pattern
           }
         }
       }
 
       await Promise.all(
-        Object.values(imageEntryMap).map(async (imageEntry) => {
+        Object.values(recipeMap).map(async (recipe) => {
           await Promise.all(
-            Object.entries(imageEntry.imageCreateMap).map(
-              async ([createHash, imageCreate]) => {
-                const inFullPath = path.resolve(rootDir, imageEntry.fileName)
-                const outFullPath = path.resolve(imageDir, imageCreate.output)
+            Object.entries(recipe.patternMap).map(
+              async ([patternHash, pattern]) => {
+                const inFullPath = path.resolve(rootDir, recipe.fileName)
+                const outFullPath = path.resolve(imageDir, pattern.fileName)
                 const logPath = path.relative(rootDir, outFullPath)
                 const pathId = pathToId(outFullPath)
 
-                if (Object.hasOwn(imageEntry.imageCreatedMap, createHash)) {
+                if (Object.hasOwn(recipe.usedPatternMap, patternHash)) {
                   entries[pathId] = outFullPath
-                  delete imageEntry.imageCreateMap[createHash]
+                  delete recipe.patternMap[patternHash]
                   return
                 }
                 console.log(pc.gray(`[generate] ${logPath}`))
 
-                const buffer = await runSharp(inFullPath, imageCreate)
+                const buffer = await runSharp(inFullPath, pattern)
                 await fs.promises.writeFile(outFullPath, buffer, "utf8")
 
                 entries[pathId] = outFullPath
-                imageEntry.imageCreatedMap[createHash] = imageCreate
-                delete imageEntry.imageCreateMap[createHash]
+                recipe.usedPatternMap[patternHash] = pattern
+                delete recipe.patternMap[patternHash]
               }
             )
           )
         })
       )
 
-      imageCache = {
-        remoteUrlIndexMap,
-        remoteNameMap,
-        imageEntryMap,
-      }
+      imageCache = { urlIndexMap, urlNameMap, recipeMap }
+
       await fs.promises.writeFile(
         imageCacheFile,
         JSON.stringify(imageCache, null, 2),
@@ -357,24 +353,19 @@ export function pluginImageBuild(opts) {
 
           if (imageName.startsWith("http")) {
             const remoteUrl = imageName
-            imageName = remoteNameMap[remoteUrl]
+            imageName = urlNameMap[remoteUrl]
           }
-          const bufferHash = imageBufferHashMaps[imageName]
-          const imageEntry = imageEntryMap[bufferHash]
+          const bufferHash = bufferHashMaps[imageName]
+          const recipe = recipeMap[bufferHash]
           const sizes = el.getAttribute("sizes") || ""
           const width = el.getAttribute("width") || ""
           const height = el.getAttribute("height") || ""
           const elAttrs = { sizes, width, height }
           const elOptimize = el.getAttribute(optimizeAttr) || "{}"
-          const optimize = JSON.parse(elOptimize)
-          const resolvedOptimize = resolveOptimize(optimize, imageEntry)
-          const imageView = getImageView(resolvedOptimize, imageEntry, elAttrs)
-          const attrs = getImageCreatedAttrs(
-            resolvedOptimize,
-            imageEntry,
-            imageView,
-            { useSizeName, resizeOnly: false }
-          )
+          const parsedOptimize = JSON.parse(elOptimize)
+          const optimize = resolveOptimizeOption(parsedOptimize, recipe)
+          const view = getView(optimize, recipe, elAttrs)
+          const attrs = getPatternAttrs(optimize, recipe, view, false)
           const srcset = Object.entries(attrs.srcset)
             .map(([key, before]) => {
               const after = entryChangeMap[before]
@@ -383,9 +374,9 @@ export function pluginImageBuild(opts) {
             })
             .join(", ")
           el.setAttribute("srcset", srcset)
-          el.setAttribute("sizes", imageView.sizes)
-          el.setAttribute("width", imageView.width.toString())
-          el.setAttribute("height", imageView.height.toString())
+          el.setAttribute("sizes", view.sizes)
+          el.setAttribute("width", view.width.toString())
+          el.setAttribute("height", view.height.toString())
           el.removeAttribute(targetAttr)
           el.removeAttribute(srcAttr)
           el.removeAttribute(optimizeAttr)

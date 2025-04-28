@@ -2,11 +2,11 @@ import sharp from "sharp"
 
 /**
  * @param {string} input
- * @param {import('../types').ImageCreate} imageCreate
+ * @param {import('../types').ImagePattern} pattern
  * @returns {Promise<Buffer>}
  */
-export async function runSharp(input, imageCreate) {
-  const { width, height, format, formatOptions, resizeOptions } = imageCreate
+export async function runSharp(input, pattern) {
+  const { width, height, format, formatOptions, resizeOptions } = pattern
 
   try {
     let pipeline = sharp(input).resize(width, height, resizeOptions).rotate()

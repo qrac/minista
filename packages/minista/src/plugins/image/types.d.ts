@@ -10,6 +10,8 @@ export type ImageFormat = "inherit" | "jpg" | "png" | "webp" | "avif"
 export type ResolvedImageFormat = Omit<ImageFormat, "inherit">
 
 export type ImageOptimize = {
+  outName?: string
+  remoteName?: string
   layout: "constrained" | "fixed"
   breakpoints:
     | number[]
@@ -42,8 +44,6 @@ export type ImagesOptimize = Omit<ImageOptimize, "format"> & {
 
 type PluginOptionBase = {
   useCache: boolean
-  useSizeName: boolean
-  remoteName: string
   decoding: HTMLImageElement["decoding"]
   loading: HTMLImageElement["loading"]
 }
@@ -63,8 +63,8 @@ export type ImageView = {
   changeAspect: boolean
 }
 
-export type ImageCreate = {
-  output: string
+export type ImagePattern = {
+  fileName: string
   width: number
   height: number
   format: ResolvedImageOptimize["format"]
@@ -76,24 +76,24 @@ export type ImageCreate = {
   }
 }
 
-export type ImageEntry = {
+export type ImageRecipe = {
   fileName: string
   width: number
   height: number
   ratioWidth: number
   ratioHeight: number
-  imageCreateMap: { [createHash: string]: ImageCreate }
-  imageCreatedMap: { [createHash: string]: ImageCreate }
+  patternMap: { [patternHash: string]: ImagePattern }
+  usedPatternMap: { [patternHash: string]: ImagePattern }
 }
 
-export type RemoteUrlIndexMap = { [remoteUrl: string]: number }
-export type RemoteNameMap = { [remoteUrl: string]: string }
-export type ImageBufferHashMap = { [imageName: string]: string }
-export type ImageEntryMap = { [bufferHash: string]: ImageEntry }
+export type UrlIndexMap = { [remoteUrl: string]: number }
+export type UrlNameMap = { [remoteUrl: string]: string }
+export type bufferHashMap = { [imageName: string]: string }
+export type ImageRecipeMap = { [bufferHash: string]: ImageRecipe }
 export type ImageCache = {
-  remoteUrlIndexMap: RemoteUrlIndexMap
-  remoteNameMap: RemoteNameMap
-  imageEntryMap: ImageEntryMap
+  urlIndexMap: UrlIndexMap
+  urlNameMap: UrlNameMap
+  recipeMap: ImageRecipeMap
 }
 
 type ArtDirective = {
