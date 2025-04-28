@@ -83,8 +83,9 @@ export function pluginBundleBuild(opts) {
           ...extractUrls(html, "use", "href", "/"),
         ]
         for (const assetUrl of assetUrls) {
-          const entryId = pathToId(assetUrl.replace(/^\/+/, ""))
-          const fullPath = path.resolve(rootDir, assetUrl.replace(/^\/+/, ""))
+          const assetName = assetUrl.replace(/^\/+/, "")
+          const entryId = pathToId(assetName)
+          const fullPath = path.resolve(rootDir, assetName)
           preEntries[entryId] = fullPath
         }
       }
