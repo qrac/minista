@@ -3,8 +3,16 @@ import { describe, it, expect } from "vitest"
 import { resolveBreakpoints } from "../../../src/plugins/image/utils/breakpoints.js"
 
 describe("resolveBreakpoints", () => {
-  it("配列の場合は imageWidth 以下の正の数値をフィルタ、重複排除、ソートして返す", () => {
-    expect(resolveBreakpoints([300, 600, 300, 900], 800)).toEqual([300, 600])
+  it("配列の場合は正の数値をフィルタし、width を上限にクランプ、重複排除、ソートして返す", () => {
+    expect(resolveBreakpoints([300, 600, 300, 900], 800)).toEqual([
+      300, 600, 800,
+    ])
+  })
+
+  it("配列の場合は複数の幅超過値もすべて width にクランプされる", () => {
+    expect(resolveBreakpoints([100, 500, 1000, 2000], 800)).toEqual([
+      100, 500, 800,
+    ])
   })
 
   it("オブジェクトで count=1 の場合は最大幅のみ返す", () => {
