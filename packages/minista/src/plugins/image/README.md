@@ -64,9 +64,7 @@ export default {
 
 開発・ビルド中にキャッシュを利用します。
 
-### optimize
-
-#### outName
+### optimize.outName
 
 - 型: `string`
 - デフォルト: `[name]-[width]x[height]`
@@ -77,7 +75,7 @@ export default {
 - `[width]`: 出力ファイルの幅
 - `[height]`: 出力ファイルの高さ
 
-#### remoteName
+### optimize.remoteName
 
 - 型: `string`
 - デフォルト: `remote-[index]`
@@ -86,7 +84,7 @@ export default {
 
 - `[index]`: ダウンロードされた順番（開始: 1）
 
-#### layout
+### optimize.layout
 
 - 型: `"constrained" | "fixed"`
 - デフォルト: `"constrained"`
@@ -96,28 +94,28 @@ export default {
 - `"constrained"`: コンテナサイズ（`breakpoint` を採用）
 - `"fixed"`: 固定サイズ（`resolutions` を採用）
 
-#### breakpoints
+### optimize.breakpoints
 
 - 型: `number[] | { count: number; minWidth: number; maxWidth: number }`
 - デフォルト: `[320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840]`
 
 出力画像のレスポンシブ幅。数値配列で明示するか、範囲 `minWidth`〜`maxWidth` と生成数 `count` で指定できます。
 
-#### resolutions
+### optimize.resolutions
 
 - 型: `number[]`
 - デフォルト: `[1, 2]`
 
 出力画像の解像度。デフォルトでは通常用 + 2 倍サイズ用。
 
-#### format
+### optimize.format
 
 - 型: `"inherit" | "jpg" | "png" | "webp" | "avif"`
 - デフォルト: `"inherit"`
 
 出力画像のフォーマット。`"inherit"` を指定すると元画像と同じフォーマットになります。
 
-#### formatOptions
+### optimize.formatOptions
 
 - 型: `{ jpg?: JpegOptions, png?: PngOptions, webp?: WebpOptions, avif?: AvifOptions }`
 - デフォルト: `{}`
@@ -129,21 +127,21 @@ export default {
 - [WebpOptions](https://sharp.pixelplumbing.com/api-output/#webp)
 - [AvifOptions](https://sharp.pixelplumbing.com/api-output/#avif)
 
-#### quality
+### optimize.quality
 
 - 型: `number`
 - デフォルト: `undefined`
 
 出力画像の品質。フォーマットごとに個別設定する場合は `formatOptions` をお使いください。
 
-#### aspect
+### optimize.aspect
 
 - 型: `string`
 - デフォルト: `undefined`
 
 出力画像のアスペクト比。`"16:9"` などを指定すると、その比率でリサイズされます。
 
-#### fit
+### optimize.fit
 
 - 型: `ResizeOptions["fit"]`
 - デフォルト: `"cover"`
@@ -152,7 +150,7 @@ export default {
 
 - 例: `"cover"`, `"contain"`, `"fill"`, `"inside"`, `"outside"`
 
-#### position
+### optimize.position
 
 - 型: `ResizeOptions["position"]`
 - デフォルト: `"centre"`
@@ -161,7 +159,7 @@ export default {
 
 - 例: `"centre"`, `"top"`, `"left"`, `"right"`, `"bottom"`
 
-#### background
+### optimize.background
 
 - 型: `ResizeOptions["background"]`
 - デフォルト: `undefined`
