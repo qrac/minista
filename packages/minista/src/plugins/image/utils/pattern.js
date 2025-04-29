@@ -54,11 +54,11 @@ export function getPatternMap(optimize, recipe, view, resizeOnly) {
     resolutions,
     format,
     formatOptions,
-    background,
     fit,
     position,
+    background,
   } = optimize
-  const resizeOptions = { background, fit, position }
+  const resizeOptions = { fit, position, background }
 
   /** @type {number[]} */
   let items

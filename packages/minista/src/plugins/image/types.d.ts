@@ -13,9 +13,7 @@ export type ImageOptimize = {
   outName?: string
   remoteName?: string
   layout: "constrained" | "fixed"
-  breakpoints:
-    | number[]
-    | { count?: number; minWidth?: number; maxWidth?: number }
+  breakpoints: number[] | { count: number; minWidth: number; maxWidth: number }
   resolutions: number[]
   format: ImageFormat
   formatOptions: {
@@ -26,9 +24,9 @@ export type ImageOptimize = {
   }
   quality?: number
   aspect?: string
-  background?: ResizeOptions["background"]
   fit: ResizeOptions["fit"]
   position: ResizeOptions["position"]
+  background?: ResizeOptions["background"]
 }
 export type ResolvedImageOptimize = Omit<
   ImageOptimize,

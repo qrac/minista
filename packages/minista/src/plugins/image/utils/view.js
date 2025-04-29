@@ -14,7 +14,7 @@ const AUTO_SIZE = "__minista_image_auto_size"
  */
 export function getView(resolvedOptimize, recipe, elAttrs) {
   const floor2 = (/** @type {number} */ num) => Math.floor(num * 100) / 100
-  const { layout, aspect, breakpoints } = resolvedOptimize
+  const { layout, breakpoints, aspect } = resolvedOptimize
 
   let sizes = elAttrs.sizes
   let width = Number(elAttrs.width) || 0
