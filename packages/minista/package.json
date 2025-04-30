@@ -1,6 +1,6 @@
 {
   "name": "minista",
-  "version": "4.0.0-alpha.11",
+  "version": "4.0.0-alpha.12",
   "type": "module",
   "bin": {
     "minista": "./bin/minista.js"
