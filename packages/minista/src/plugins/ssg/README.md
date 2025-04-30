@@ -1,8 +1,6 @@
 # pluginSsg
 
-## About
-
-- JSX ファイルを静的な HTML に変換
+JSX・TSX ファイルを静的な HTML に変換するプラグイン。
 
 ## How To Use
 
@@ -24,12 +22,6 @@ export default function () {
 
 ## Options
 
-| Option     | Type       | Detail                                               |
-| ---------- | ---------- | ---------------------------------------------------- |
-| `layout`   | `string`   | すべてのページテンプレートをラップするコンポーネント |
-| `src`      | `string[]` | ページテンプレートを glob 形式で指定                 |
-| `srcBases` | `string[]` | ページテンプレートを URL に変換する際に省くパス      |
-
 ```js
 // ./minista.config.js (with default options)
 import { pluginSsg } from "minista"
@@ -45,9 +37,31 @@ export default {
 }
 ```
 
+### layout
+
+- 型: `string`
+- デフォルト: `"/src/layouts/index.{tsx,jsx}"`
+
+すべてのページテンプレートをラップするコンポーネントの場所を指定します。対象ファイルは Vite の機能で glob import され最初に見つかったファイルが使用されます。
+
+### src
+
+- 型: `string[]`
+- デフォルト: `["/src/pages/**/*.{tsx,jsx,mdx,md}"]`
+
+ページテンプレートを glob 形式で指定します。対象ファイルは Vite の機能で glob import されます。
+
+### srcBases
+
+- 型: `string[]`
+- デフォルト: `["/src/pages"]`
+
+ページテンプレートを URL に変換する際に省くパス。前方一致で削除されます。
+
 ## Head
 
-- head 内に title・meta・link・script・style を設置
+`<head>` タグ内に `title` `meta` `link` `script` `style` を設置できるコンポーネント。
+
 - `htmlAttributes`: html の属性を変更
 - `bodyAttributes`: body の属性を変更
 - `key`: タグを後のものに差し替え
@@ -75,8 +89,9 @@ export default function () {
 
 ## Layout
 
-- すべてのページテンプレートをラップするコンポーネント
-- `/src/layouts/index.{tsx,jsx}`: 使用されるファイル
+すべてのページテンプレートをラップするコンポーネント。
+
+- `/src/layouts/index.{tsx,jsx}`: デフォルトで使用されるファイル
 - `export default`: 使用されるコンポーネント
 - `export const metadata`: ページとマージして使えるデータ
 - `LayoutProps`: ページとマージされたデータ
@@ -105,8 +120,9 @@ export default function (props: LayoutProps) {
 
 ## Page
 
-- 各 HTML ページの元となる JSX 形式のテンプレート
-- `/src/pages/**/*.{tsx,jsx}`: 使用されるファイル
+各 HTML ページの元となる JSX 形式のテンプレート。
+
+- `/src/pages/**/*.{tsx,jsx}`: デフォルトで使用されるファイル
 - `export default`: 使用されるコンポーネント
 - `export const metadata`: レイアウトとマージして使えるデータ
 - `PageProps`: レイアウトとマージされたデータ
@@ -135,7 +151,8 @@ export default function (props: PageProps) {
 
 ## Fetch
 
-- リモートのデータを取得してページを生成
+リモートのデータを取得してページを生成することが可能です。
+
 - `getStaticData()`: ページ生成前に非同期処理を実行
 - `/src/pages/[foo]/[bar].{tsx,jsx}`: 動的ルーティング
 

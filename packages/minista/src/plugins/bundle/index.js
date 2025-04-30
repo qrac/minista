@@ -7,13 +7,7 @@ import { pluginBundleBuild } from "./build.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
-  src: [
-    "/src/layouts/index.{tsx,jsx}",
-    "/src/pages/**/*.{tsx,jsx}",
-    "!/src/pages/**/*.mpa.{tsx,jsx}",
-    "!/src/pages/**/*.enhance.{tsx,jsx}",
-    "!/src/pages/**/*.stories.{tsx,jsx}",
-  ],
+  src: ["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"],
   outName: "bundle",
 }
 

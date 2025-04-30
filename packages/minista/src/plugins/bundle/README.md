@@ -1,10 +1,10 @@
 # pluginBundle
 
-## About
+ルートパスの CSS・JavaScript・画像をビルドプロセスに乗せるプラグイン。
 
-- CSS・JS・画像をビルドプロセスに乗せる
-- import した CSS を結合して出力
-- import した画像を出力
+- ファイルはプロジェクトの root から [tinyglobby](https://www.npmjs.com/package/tinyglobby) の glob で検索
+- テンプレート内で import した CSS を結合して出力
+- テンプレート内で import した画像を出力
 
 ## How To Use
 
@@ -38,11 +38,6 @@ export default function () {
 
 ## Options
 
-| Option    | Type       | Detail                                           |
-| --------- | ---------- | ------------------------------------------------ |
-| `src`     | `string[]` | アセットを検出するテンプレートを glob 形式で指定 |
-| `outName` | `string`   | import した CSS を結合出力する場合のファイル名   |
-
 ```js
 // ./minista.config.js (with default options)
 import { pluginBundle } from "minista"
@@ -50,15 +45,23 @@ import { pluginBundle } from "minista"
 export default {
   plugins: [
     pluginBundle({
-      src: [
-        "/src/layouts/index.{tsx,jsx}",
-        "/src/pages/**/*.{tsx,jsx}",
-        "!/src/pages/**/*.mpa.{tsx,jsx}",
-        "!/src/pages/**/*.enhance.{tsx,jsx}",
-        "!/src/pages/**/*.stories.{tsx,jsx}",
-      ],
+      src: ["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"],
       outName: "bundle",
     }),
   ],
 }
 ```
+
+### src
+
+- 型: `string[]`
+- デフォルト: `["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"]`
+
+アセットを検出するテンプレートを glob 形式で指定します。対象ファイルは Vite の機能で glob import されます。
+
+### outName
+
+- 型: `string`
+- デフォルト: `"bundle"`
+
+import した CSS を結合出力する場合のファイル名（拡張子なし）。

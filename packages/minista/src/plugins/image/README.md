@@ -1,7 +1,5 @@
 # pluginImage
 
-## About
-
 画像を最適化し、リモート画像をダウンロードするプラグイン。
 
 ## How To Use
@@ -120,12 +118,7 @@ export default {
 - 型: `{ jpg?: JpegOptions, png?: PngOptions, webp?: WebpOptions, avif?: AvifOptions }`
 - デフォルト: `{}`
 
-フォーマットごとの圧縮オプション。 sharp の各種オプションが利用できます。
-
-- [JpegOptions](https://sharp.pixelplumbing.com/api-output/#jpeg)
-- [PngOptions](https://sharp.pixelplumbing.com/api-output/#png)
-- [WebpOptions](https://sharp.pixelplumbing.com/api-output/#webp)
-- [AvifOptions](https://sharp.pixelplumbing.com/api-output/#avif)
+フォーマットごとの圧縮オプション。 [sharp](https://www.npmjs.com/package/sharp) の各種オプションが利用できます。
 
 ### optimize.quality
 
@@ -146,7 +139,7 @@ export default {
 - 型: `ResizeOptions["fit"]`
 - デフォルト: `"cover"`
 
-[sharp の Resize](https://sharp.pixelplumbing.com/api-resize/) にフィット方法を指定します。
+[sharp](https://www.npmjs.com/package/sharp) の Resize にフィット方法を指定します。
 
 - 例: `"cover"`, `"contain"`, `"fill"`, `"inside"`, `"outside"`
 
@@ -155,7 +148,7 @@ export default {
 - 型: `ResizeOptions["position"]`
 - デフォルト: `"centre"`
 
-[sharp の Resize](https://sharp.pixelplumbing.com/api-resize/) にトリミングやリサイズ時の重心位置を指定します。
+[sharp](https://www.npmjs.com/package/sharp) の Resize にトリミングやリサイズ時の重心位置を指定します。
 
 - 例: `"centre"`, `"top"`, `"left"`, `"right"`, `"bottom"`
 
@@ -164,7 +157,7 @@ export default {
 - 型: `ResizeOptions["background"]`
 - デフォルト: `undefined`
 
-[sharp の Resize](https://sharp.pixelplumbing.com/api-resize/) に背景色を指定します。主に `fit` が `"contain"` の場合に有効となります。
+[sharp](https://www.npmjs.com/package/sharp) の Resize に背景色を指定します。主に `fit` が `"contain"` の場合に有効となります。
 
 - 例: `"#ffffff"`, `{r: 255, g: 255, b: 255, alpha: 0.5}`
 

@@ -1,6 +1,6 @@
 # pluginMdx
 
-- MDX・Markdown の変換に対応
+pluginSsg に MDX・Markdown のファイルを対応させるプラグイン。
 
 ## How To Use
 
@@ -23,13 +23,6 @@ paragraph
 
 ## Options
 
-| Option          | Type            | Detail                  |
-| --------------- | --------------- | ----------------------- |
-| `remarkPlugins` | `PluggableList` | remark プラグインを設定 |
-| `rehypePlugins` | `PluggableList` | rehype プラグインを設定 |
-
-- Dependencies: [@mdx-js/rollup](https://www.npmjs.com/package/@mdx-js/rollup)
-
 ```js
 // ./minista.config.js (with default options)
 import { pluginMdx } from "minista"
@@ -44,9 +37,13 @@ export default {
 }
 ```
 
+オプションは [@mdx-js/rollup](https://www.npmjs.com/package/@mdx-js/rollup) の Options と同一です。
+
+remarkPlugins に remark-frontmatter または remark-mdx-frontmatter を用いると、デフォルトの設定を上書きできます。
+
 ## Frontmatter
 
-- `props`: Frontmatter は props として Layout や Page で使用可能
+フロントマターは `props` として Layout や Page で使用可能です。
 
 ```mdx
 ---

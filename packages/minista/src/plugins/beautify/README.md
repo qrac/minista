@@ -1,6 +1,6 @@
 # pluginBeautify
 
-- ビルド時に HTML・CSS・JS を整形
+ビルド時に HTML・CSS・JS を整形するプラグイン。
 
 ## How To Use
 
@@ -14,16 +14,6 @@ export default {
 ```
 
 ## Options
-
-| Option               | Type                  | Detail                                             |
-| -------------------- | --------------------- | -------------------------------------------------- |
-| `src`                | `string[]`            | 対象ファイルを dist からの glob 形式で指定         |
-| `htmlOptions`        | `HTMLBeautifyOptions` | HTML のフォーマットに関する設定                    |
-| `cssOptions`         | `CSSBeautifyOptions`  | CSS のフォーマットに関する設定                     |
-| `jsOptions`          | `JSBeautifyOptions`   | JS のフォーマットに関する設定                      |
-| `removeImagePreload` | `boolean`             | Vite が HTML に出力する画像用の Preload タグを削除 |
-
-- Dependencies: [js-beautify](https://www.npmjs.com/package/js-beautify)
 
 ```js
 // ./minista.config.js (with default options)
@@ -62,3 +52,35 @@ export default {
   ],
 }
 ```
+
+### src
+
+- 型: `string[]`
+- デフォルト: `["**/*.{html,css,js}"]`
+
+対象ファイルを dist からの glob 形式で指定します。対象ファイルはビルドパイプラインに含まれているものから [picomatch](https://www.npmjs.com/package/picomatch) で選ばれます。
+
+### htmlOptions
+
+- 型: `HTMLBeautifyOptions`
+
+[js-beautify](https://www.npmjs.com/package/js-beautify) の HTML フォーマットに関する設定。
+
+### cssOptions
+
+- 型: `HTMLBeautifyOptions`
+
+[js-beautify](https://www.npmjs.com/package/js-beautify) の CSS フォーマットに関する設定。
+
+### jsOptions
+
+- 型: `HTMLBeautifyOptions`
+
+[js-beautify](https://www.npmjs.com/package/js-beautify) の JavaScript フォーマットに関する設定。
+
+### removeImagePreload
+
+- 型: `boolean`
+- デフォルト: `true`
+
+Vite が HTML に出力する画像用の Preload タグを削除します。

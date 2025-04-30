@@ -74,16 +74,15 @@ export function pluginBundleBuild(opts) {
 
       for (const ssgPage of ssgPages) {
         const { html } = ssgPage
-        const assetUrls = [
+        const assetNames = [
           ...extractUrls(html, "link", "href", "/"),
           ...extractUrls(html, "script", "src", "/"),
           ...extractUrls(html, "img", "src", "/"),
           ...extractUrls(html, "img", "srcset", "/"),
           ...extractUrls(html, "source", "srcset", "/"),
           ...extractUrls(html, "use", "href", "/"),
-        ]
-        for (const assetUrl of assetUrls) {
-          const assetName = assetUrl.replace(/^\/+/, "")
+        ].map((url) => url.replace(/^\//, ""))
+        for (const assetName of assetNames) {
           const entryId = pathToId(assetName)
           const fullPath = path.resolve(rootDir, assetName)
           preEntries[entryId] = fullPath
