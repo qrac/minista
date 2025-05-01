@@ -78,7 +78,7 @@ export default {
 - 型: `string`
 - デフォルト: `remote-[index]`
 
-リモート画像をダウンロードした際の名前。拡張子は含みません。`outName` の `[name]` として利用されます。以下の動的出力タグを使用できます。
+リモート画像をダウンロードした際の名前。拡張子は含みません。`optimize.outName` の `[name]` として利用されます。以下の動的出力タグを使用できます。
 
 - `[index]`: ダウンロードされた順番（開始: 1）
 
@@ -125,7 +125,7 @@ export default {
 - 型: `number`
 - デフォルト: `undefined`
 
-出力画像の品質。フォーマットごとに個別設定する場合は `formatOptions` をお使いください。
+出力画像の品質。フォーマットごとに個別設定する場合は `optimize.formatOptions` をお使いください。
 
 ### optimize.aspect
 
