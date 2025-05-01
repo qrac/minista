@@ -88,6 +88,7 @@ minista の各機能は同封されているプラグインをコンフィグに
 - [pluginBundle](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/bundle): CSS・JS・画像をビルドプロセスに乗せる
 - [pluginMdx](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/mdx): MDX・Markdown の変換に対応
 - [pluginImage](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/image): 画像を最適化・リモート画像をダウンロード
+- [pluginSvg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/svg): SVG ファイルを HTML にインラインで展開
 - [pluginBeautify](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/beautify): ビルド時に HTML・CSS・JS を整形
 - [pluginArchive](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/archive): ビルド時に圧縮ファイルを生成
 
