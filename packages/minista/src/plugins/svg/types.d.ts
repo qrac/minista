@@ -1,7 +1,7 @@
 import type { Config as SvgoConfig } from "svgo"
 
 export type PluginOptions = {
-  svgo?: SvgoConfig
+  config?: SvgoConfig
 }
 export type UserPluginOptions = Partial<PluginOptions>
 

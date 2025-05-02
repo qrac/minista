@@ -47,7 +47,7 @@ export function pluginSvgServe(opts) {
           const fullPath = path.resolve(rootDir, svgName)
           try {
             const rawSvg = await fs.promises.readFile(fullPath, "utf8")
-            const result = optimize(rawSvg, opts.svgo)
+            const result = optimize(rawSvg, opts.config)
             svgData = result.data
             svgObj[svgName] = svgData
           } catch {

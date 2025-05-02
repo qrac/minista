@@ -35,7 +35,7 @@ export default {
 }
 ```
 
-### svgo
+### config
 
 - 型: `Config`
 - デフォルト: `undefined`
@@ -55,6 +55,13 @@ import { Svg } from "minista/client"
 export default function () {
   return <Svg src="/src/assets/square.svg" />
 }
+```
+
+```xml
+<!-- dist -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <path d="M76 76h360v360H76z" style="fill:#000;stroke-width:0"></path>
+</svg>
 ```
 
 ```ts

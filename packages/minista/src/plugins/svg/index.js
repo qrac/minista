@@ -4,6 +4,7 @@
 
 import { pluginSvgServe } from "./serve.js"
 import { pluginSvgBuild } from "./build.js"
+import { mergeObj } from "../../shared/obj.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
@@ -13,6 +14,6 @@ const defaultOptions = {}
  * @returns {Plugin[]}
  */
 export function pluginSvg(opts = {}) {
-  const _opts = { ...defaultOptions, ...opts }
+  const _opts = mergeObj(defaultOptions, opts)
   return [pluginSvgServe(_opts), pluginSvgBuild(_opts)]
 }
