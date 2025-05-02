@@ -10,6 +10,7 @@ export type {
 import type { HeadData } from "./plugins/ssg/types"
 import type { ImageProps, PictureProps } from "./plugins/image/types"
 import type { SvgProps } from "./plugins/svg/types"
+import type { SpriteProps } from "./plugins/sprite/types"
 
 export declare function Head(
   props: HeadData & {
@@ -19,3 +20,4 @@ export declare function Head(
 export declare function Image(props: ImageProps): React.ReactElement
 export declare function Picture(props: PictureProps): React.ReactElement
 export declare function Svg(props: SvgProps): React.ReactElement
+export declare function Sprite(props: SpriteProps): React.ReactElement
