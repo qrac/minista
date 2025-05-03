@@ -383,8 +383,8 @@ export function pluginImageBuild(opts) {
 
           if (tagName === "img") {
             const after = entryChangeMap[attrs.src]
-            const assetPath = getBasedAssetUrl(base, htmlName, after)
-            el.setAttribute("src", assetPath)
+            const assetUrl = getBasedAssetUrl(base, htmlName, after)
+            el.setAttribute("src", assetUrl)
           }
           item.source = parsedHtml.toString()
         }
