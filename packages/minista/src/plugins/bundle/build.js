@@ -36,10 +36,10 @@ export function pluginBundleBuild(opts) {
   let ssgDir = ""
   /** @type {SsgPage[]} */
   let ssgPages = []
-  /** @type {{ [key: string]: string }} */
+  /** @type {{[pathId: string]: string}} */
   let entries = {}
-  /** @type {{ before: string; after: string }[]} */
-  let entryChanges = []
+  /** @type {{[before: string]: string}} */
+  let entryChanges = {}
 
   return {
     name: pluginName,
@@ -69,24 +69,29 @@ export function pluginBundleBuild(opts) {
         )
       ).flat()
 
-      /** @type {{ [key: string]: string }} */
+      /** @type {string[]} */
+      let assetNames = []
+      /** @type {{ [pathId: string]: string }} */
       let preEntries = {}
 
       for (const ssgPage of ssgPages) {
         const { html } = ssgPage
-        const assetNames = [
+        assetNames = [
+          ...assetNames,
           ...extractUrls(html, "link", "href", "/"),
           ...extractUrls(html, "script", "src", "/"),
           ...extractUrls(html, "img", "src", "/"),
           ...extractUrls(html, "img", "srcset", "/"),
           ...extractUrls(html, "source", "srcset", "/"),
           ...extractUrls(html, "use", "href", "/"),
-        ].map((url) => url.replace(/^\//, ""))
-        for (const assetName of assetNames) {
-          const entryId = pathToId(assetName)
-          const fullPath = path.resolve(rootDir, assetName)
-          preEntries[entryId] = fullPath
-        }
+        ]
+      }
+      assetNames = [...new Set(assetNames)].map((url) => url.replace(/^\//, ""))
+
+      for (const assetName of assetNames) {
+        const pathId = pathToId(assetName)
+        const fullPath = path.resolve(rootDir, assetName)
+        preEntries[pathId] = fullPath
       }
 
       const checks = await Promise.all(
@@ -145,10 +150,7 @@ export function pluginBundleBuild(opts) {
           const entryId = pathToId(fromEntryPath)
           const newFileName = item.fileName.replace(entryId, newName)
           bundle[key].fileName = newFileName
-          entryChanges.push({
-            before: fromEntryPath,
-            after: newFileName,
-          })
+          entryChanges[fromEntryPath] = newFileName
           continue
         }
       }
@@ -162,39 +164,31 @@ export function pluginBundleBuild(opts) {
           const newName = path.parse(entries[item.name]).name
           const newFileName = item.fileName.replace(item.name, newName)
           bundle[key].fileName = newFileName
-          entryChanges.push({
-            before: idToPath(item.name),
-            after: newFileName,
-          })
+          entryChanges[idToPath(item.name)] = newFileName
         }
       }
 
       const htmlItems = Object.values(outputAssets).filter((item) => {
         return item.fileName.endsWith(".html")
       })
-      const afterMap = new Set(entryChanges.map((item) => item.after))
+      const afterMap = new Set(Object.values(entryChanges))
       const otherImgItems = Object.values(outputAssets).filter((item) => {
         return regImg.test(item.fileName) && !afterMap.has(item.fileName)
       })
 
       for (const item of htmlItems) {
-        const outputHtmlPath = item.fileName
+        const htmlName = item.fileName
         let newHtml = String(item.source)
 
         if (hasBundle) {
-          const basedAssetUrl = getBasedAssetUrl(
-            base,
-            outputHtmlPath,
-            bundleName
-          )
+          const basedAssetUrl = getBasedAssetUrl(base, htmlName, bundleName)
           const linkTag = `<link rel="stylesheet" href="${basedAssetUrl}">`
           newHtml = newHtml.replace("</head>", `${linkTag}</head>`)
         }
 
-        if (entryChanges.length > 0) {
-          for (const change of entryChanges) {
-            const { before, after } = change
-            const basedAssetUrl = getBasedAssetUrl(base, outputHtmlPath, after)
+        if (Object.keys(entryChanges).length > 0) {
+          for (const [before, after] of Object.entries(entryChanges)) {
+            const basedAssetUrl = getBasedAssetUrl(base, htmlName, after)
             const regExp = new RegExp(`(<[^>]*?)/${before}([^>]*?>)`, "gs")
             newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
           }
@@ -204,7 +198,7 @@ export function pluginBundleBuild(opts) {
           for (const item of otherImgItems) {
             const before = item.fileName
             const after = item.fileName
-            const basedAssetUrl = getBasedAssetUrl(base, outputHtmlPath, after)
+            const basedAssetUrl = getBasedAssetUrl(base, htmlName, after)
             const regExp = new RegExp(`(<[^>]*?)/${before}([^>]*?>)`, "gs")
             newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
           }
