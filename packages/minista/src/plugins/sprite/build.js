@@ -35,7 +35,7 @@ export function pluginSpriteBuild(opts) {
   let ssgPages = []
   let spriteDir = ""
   /** @type {{[assetName: string]: string}} */
-  let assetMap = {}
+  let spriteMap = {}
   /** @type {{[pathId: string]: string}} */
   let entries = {}
   /** @type {{[before: string]: string}} */
@@ -88,7 +88,7 @@ export function pluginSpriteBuild(opts) {
       for (const assetName of assetNames) {
         const name = path.basename(path.dirname(assetName))
         const fullPath = path.resolve(spriteDir, `${name}.svg`)
-        assetMap[assetName] = normalizePath(path.relative(rootDir, fullPath))
+        spriteMap[assetName] = normalizePath(path.relative(rootDir, fullPath))
       }
 
       await Promise.all(
@@ -114,7 +114,7 @@ export function pluginSpriteBuild(opts) {
       if (isSsr) return
 
       const outputAssets = filterOutputAssets(bundle)
-      const beforeSet = new Set(Object.values(assetMap))
+      const beforeSet = new Set(Object.values(spriteMap))
 
       for (const asset of Object.values(outputAssets)) {
         const matches = asset.originalFileNames.filter((tag) =>
@@ -130,7 +130,7 @@ export function pluginSpriteBuild(opts) {
       })
 
       for (const item of htmlItems) {
-        const htmlPath = item.fileName
+        const htmlName = item.fileName
         const html = String(item.source)
 
         let parsedHtml = parseHtml(html)
@@ -142,9 +142,9 @@ export function pluginSpriteBuild(opts) {
           const assetName = el.getAttribute(srcAttr).replace(/^\//, "")
           const symbolId =
             el.getAttribute(symbolIdAttr) || path.parse(assetName).name
-          const before = assetMap[assetName]
+          const before = spriteMap[assetName]
           const after = entryChanges[before]
-          const assetUrl = getBasedAssetUrl(base, htmlPath, after)
+          const assetUrl = getBasedAssetUrl(base, htmlName, after)
           const href = `${assetUrl}#${symbolId}`
           el.setAttribute("href", href)
           el.removeAttribute(targetAttr)
