@@ -1,13 +1,6 @@
 import type { Format as ArchiverFormat, ArchiverOptions } from "archiver"
 
-export type SingleOptions = {
-  srcDir: string
-  outName: string
-  ignore?: string | string[]
-  format: ArchiverFormat
-  options: ArchiverOptions
-}
-export type MultipleOptions = {
+export type ArchiveOptions = {
   srcDir: string
   outName: string
   ignore?: string | string[]
@@ -15,7 +8,7 @@ export type MultipleOptions = {
   options?: ArchiverOptions
 }
 
-export type PluginOptions = SingleOptions & {
-  multiple: MultipleOptions[]
+export type PluginOptions = {
+  archives: ArchiveOptions[]
 }
 export type UserPluginOptions = Partial<PluginOptions>

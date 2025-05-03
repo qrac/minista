@@ -7,7 +7,6 @@ import archiver from "archiver"
 import pc from "picocolors"
 import { normalizePath } from "vite"
 
-import { mergeMultipleOptions } from "./utils/option.js"
 import { getPluginName } from "../../shared/name.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 
@@ -19,7 +18,6 @@ export function pluginArchiveBuild(opts) {
   const cwd = process.cwd()
   const names = ["archive", "build"]
   const pluginName = getPluginName(names)
-  const mOpts = mergeMultipleOptions(opts)
 
   let isSsr = false
   let rootDir = ""
@@ -44,8 +42,11 @@ export function pluginArchiveBuild(opts) {
 
       await fs.promises.mkdir(archiveDir, { recursive: true })
       await Promise.all(
-        mOpts.map(async (mOpt) => {
-          const { srcDir, outName, ignore, format, options: archOpts } = mOpt
+        opts.archives.map(async (archive) => {
+          const { srcDir, outName } = archive
+          const ignore = archive.ignore || []
+          const format = archive.format || "zip"
+          const archOpts = archive.options || { zlib: { level: 9 } }
           const outFile = `${outName}.${format}`
           const archiveFile = path.resolve(archiveDir, outFile)
 

@@ -6,12 +6,12 @@ import { pluginArchiveBuild } from "./build.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
-  srcDir: "dist",
-  outName: "dist",
-  ignore: [],
-  format: "zip",
-  options: { zlib: { level: 9 } },
-  multiple: [],
+  archives: [
+    {
+      srcDir: "dist",
+      outName: "dist",
+    },
+  ],
 }
 
 /**
