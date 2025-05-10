@@ -53,6 +53,7 @@ export function pluginImageBuild(opts) {
   let ssgPages = []
   let remoteDir = ""
   let imageDir = ""
+  let imageDirStr = ""
   let imageCacheFile = ""
   /** @type {ImageCache} */
   let imageCache = {
@@ -86,6 +87,7 @@ export function pluginImageBuild(opts) {
       ssgDir = path.resolve(tempDir, "ssg")
       remoteDir = path.resolve(tempDir, "remote")
       imageDir = path.resolve(tempDir, "image")
+      imageDirStr = normalizePath(path.relative(rootDir, imageDir))
       imageCacheFile = path.resolve(imageDir, "cache.json")
 
       if (isSsr) {
@@ -257,6 +259,7 @@ export function pluginImageBuild(opts) {
               async ([patternHash, pattern]) => {
                 const inFullPath = path.resolve(rootDir, recipe.fileName)
                 const outFullPath = path.resolve(imageDir, pattern.fileName)
+                const outDir = path.dirname(outFullPath)
                 const logPath = path.relative(rootDir, outFullPath)
                 const pathId = pathToId(outFullPath)
 
@@ -268,6 +271,7 @@ export function pluginImageBuild(opts) {
                 console.log(pc.gray(`[generate] ${logPath}`))
 
                 const buffer = await runSharp(inFullPath, pattern)
+                await fs.promises.mkdir(outDir, { recursive: true })
                 await fs.promises.writeFile(outFullPath, buffer, "utf8")
 
                 entries[pathId] = outFullPath
@@ -322,11 +326,11 @@ export function pluginImageBuild(opts) {
       const outputAssets = filterOutputAssets(bundle)
 
       const beforeImages = Object.values(entries).map((item) => {
-        return path.relative(imageDir, item)
+        return normalizePath(path.relative(rootDir, item))
       })
       for (const before of beforeImages) {
         const afterImage = Object.values(outputAssets).find((item) => {
-          return item.names.some((name) => name === before)
+          return item.originalFileNames.some((name) => name === before)
         })
         if (afterImage) entryChangeMap[before] = afterImage.fileName
       }
@@ -367,10 +371,10 @@ export function pluginImageBuild(opts) {
           const view = getView(optimize, recipe, elAttrs)
           const attrs = getPatternAttrs(optimize, recipe, view, false)
           const srcset = Object.entries(attrs.srcset)
-            .map(([key, before]) => {
-              const after = entryChangeMap[before]
+            .map(([size, before]) => {
+              const after = entryChangeMap[imageDirStr + "/" + before]
               const basedAssetUrl = getBasedAssetUrl(base, htmlName, after)
-              return `${basedAssetUrl} ${key}`
+              return `${basedAssetUrl} ${size}`
             })
             .join(", ")
           el.setAttribute("srcset", srcset)

@@ -4,6 +4,7 @@
 /** @typedef {import('../types').ImagePattern} ImagePattern */
 
 import path from "node:path"
+import { normalizePath } from "vite"
 
 import { generateHash } from "./hash.js"
 
@@ -24,16 +25,20 @@ export function getPatternName(
   height,
   format
 ) {
-  const base = path.parse(fileName).name
-  const remoteMatch = /^__r(\d+)$/.exec(base)
-  const name = remoteMatch
-    ? remoteName.replace(/\[index\]/g, remoteMatch[1])
-    : base
+  const parsed = path.parse(fileName)
+
+  let name = parsed.name
+  let dir = normalizePath(parsed.dir)
+
+  const remoteMatch = /^__r(\d+)$/.exec(name)
+  name = remoteMatch ? remoteName.replace(/\[index\]/g, remoteMatch[1]) : name
+  dir = remoteMatch ? "remote/" : dir === "." ? "" : dir + "/"
+
   const replaced = outName
     .replace(/\[name\]/g, name)
     .replace(/\[width\]/g, String(width))
     .replace(/\[height\]/g, String(height))
-  return `${replaced}.${format}`
+  return `${dir}${replaced}.${format}`
 }
 
 /**

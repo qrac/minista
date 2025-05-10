@@ -48,6 +48,7 @@ export function pluginImageServe(opts) {
   let tempDir = ""
   let remoteDir = ""
   let imageDir = ""
+  let imageDirStr = ""
   let imageCacheFile = ""
   /** @type {ImageCache} */
   let imageCache = {
@@ -74,6 +75,7 @@ export function pluginImageServe(opts) {
       tempDir = getTempDir(cwd, rootDir)
       remoteDir = path.resolve(tempDir, "remote")
       imageDir = path.resolve(tempDir, "image")
+      imageDirStr = normalizePath(path.relative(rootDir, imageDir))
       imageCacheFile = path.resolve(imageDir, "cache.json")
 
       await fs.promises.mkdir(remoteDir, { recursive: true })
@@ -233,6 +235,7 @@ export function pluginImageServe(opts) {
               async ([patternHash, imageCreate]) => {
                 const inFullPath = path.resolve(rootDir, recipe.fileName)
                 const outFullPath = path.resolve(imageDir, imageCreate.fileName)
+                const outDir = path.dirname(outFullPath)
                 const logPath = path.relative(rootDir, outFullPath)
 
                 if (Object.hasOwn(recipe.usedPatternMap, patternHash)) {
@@ -242,6 +245,7 @@ export function pluginImageServe(opts) {
                 console.log(pc.gray(`[generate] ${logPath}`))
 
                 const buffer = await runSharp(inFullPath, imageCreate)
+                await fs.promises.mkdir(outDir, { recursive: true })
                 await fs.promises.writeFile(outFullPath, buffer, "utf8")
 
                 recipe.usedPatternMap[patternHash] = imageCreate
