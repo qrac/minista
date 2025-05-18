@@ -90,6 +90,7 @@ minista の各機能は同封されているプラグインをコンフィグに
 - [pluginImage](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/image): 画像を最適化・リモート画像をダウンロード
 - [pluginSvg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/svg): SVG ファイルを HTML にインラインで展開
 - [pluginSprite](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/sprite): SVG ファイルを スプライト化して出力
+- [pluginIsland](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/island): ページの一部を React App 化
 - [pluginBeautify](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/beautify): ビルド時に HTML・CSS・JS を整形
 - [pluginArchive](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/archive): ビルド時に圧縮ファイルを生成
 

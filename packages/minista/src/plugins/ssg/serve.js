@@ -1,5 +1,6 @@
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
+/** @typedef {import('./types').SsgPage} SsgPage */
 
 import fs from "node:fs"
 import path from "node:path"
@@ -10,7 +11,7 @@ import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { formatPages, resolvePages } from "./utils/page.js"
 import { transformHtml } from "./utils/html.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
-import { getRootDir, getTempDir } from "../../shared/path.js"
+import { getRootDir, getTempDir, getOutputHtmlPath } from "../../shared/path.js"
 import { mergeSsrExternal } from "../../shared/vite.js"
 
 /**
@@ -22,11 +23,15 @@ export function pluginSsgServe(opts) {
   const names = ["ssg", "serve"]
   const pluginName = getPluginName(names)
   const tempName = getTempName(names)
+  const SSG_PAGES_ID = "virtual:ssg-pages"
+  const SSG_PAGES_VIRTUAL = "\0" + SSG_PAGES_ID
 
   let rootDir = ""
   let tempDir = ""
   let globDir = ""
   let globFile = ""
+  /** @type {SsgPage[]} */
+  let ssgPages = []
 
   return {
     name: pluginName,
@@ -43,6 +48,18 @@ export function pluginSsgServe(opts) {
       await fs.promises.writeFile(globFile, code, "utf8")
 
       return { ssr: { external: mergeSsrExternal(config, ["minista"]) } }
+    },
+    resolveId(id) {
+      if (id === SSG_PAGES_ID) {
+        return SSG_PAGES_VIRTUAL
+      }
+      return null
+    },
+    load(id) {
+      if (id === SSG_PAGES_VIRTUAL) {
+        return `export default ${JSON.stringify(ssgPages)};`
+      }
+      return null
     },
     configureServer(server) {
       return () => {
@@ -63,6 +80,26 @@ export function pluginSsgServe(opts) {
             const formatedPages = formatPages(PAGES, opts)
             const resolvedPages = await resolvePages(formatedPages)
             const resolvedPage = resolvedPages.find((page) => page.url === url)
+
+            ssgPages = await Promise.all(
+              resolvedPages.map(async (resolvedPage) => {
+                if (resolvedPage.metadata?.draft === true) {
+                  return null
+                }
+                const url = resolvedPage.url
+                const outputHtmlPath = getOutputHtmlPath(url)
+                const html = transformHtml({ resolvedLayout, resolvedPage })
+                return {
+                  url,
+                  outputHtmlPath,
+                  html,
+                }
+              })
+            )
+            ssgPages = ssgPages.filter(Boolean)
+
+            const mod = server.moduleGraph.getModuleById(SSG_PAGES_VIRTUAL)
+            if (mod) server.moduleGraph.invalidateModule(mod)
 
             let html = ""
 

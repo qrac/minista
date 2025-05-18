@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@mdx-js/rollup": "^3.1.0",
+    "@swc/core": "^1.11.24",
     "archiver": "^7.0.1",
     "deepmerge-ts": "^7.1.5",
     "image-size": "^2.0.2",
