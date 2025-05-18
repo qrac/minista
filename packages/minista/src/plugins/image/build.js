@@ -5,7 +5,7 @@
 /** @typedef {import('./types').bufferHashMap} bufferHashMap */
 /** @typedef {import('./types').ImageRecipeMap} ImageRecipeMap */
 /** @typedef {import('./types').ImageCache} ImageCache */
-/** @typedef {import('../../plugins/ssg/types').SsgPage} SsgPage */
+/** @typedef {import('../ssg/types').SsgPage} SsgPage */
 
 import fs from "node:fs"
 import path from "node:path"

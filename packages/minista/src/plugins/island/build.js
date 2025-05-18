@@ -1,6 +1,6 @@
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
-/** @typedef {import('../../plugins/ssg/types').SsgPage} SsgPage */
+/** @typedef {import('../ssg/types').SsgPage} SsgPage */
 
 import fs from "node:fs"
 import path from "node:path"
