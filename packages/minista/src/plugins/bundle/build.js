@@ -139,7 +139,7 @@ export function pluginBundleBuild(opts) {
         if (item.names.some((name) => name === `${tempName}.css`)) {
           hasBundle = true
           bundleName = item.fileName.replace(tempName, opts.outName)
-          bundle[key].fileName = bundleName
+          item.fileName = bundleName
           continue
         }
         const fromEntryPath = item.originalFileNames.find((name) =>
@@ -149,7 +149,7 @@ export function pluginBundleBuild(opts) {
           const newName = path.parse(fromEntryPath).name
           const entryId = pathToId(fromEntryPath)
           const newFileName = item.fileName.replace(entryId, newName)
-          bundle[key].fileName = newFileName
+          item.fileName = newFileName
           entryChanges[fromEntryPath] = newFileName
           continue
         }
@@ -163,7 +163,7 @@ export function pluginBundleBuild(opts) {
         if (entryIds.includes(item.name) && item.code.trim()) {
           const newName = path.parse(entries[item.name]).name
           const newFileName = item.fileName.replace(item.name, newName)
-          bundle[key].fileName = newFileName
+          item.fileName = newFileName
           entryChanges[idToPath(item.name)] = newFileName
         }
       }
