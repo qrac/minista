@@ -65,7 +65,7 @@ export default {
 ### optimize.outName
 
 - 型: `string`
-- デフォルト: `[name]-[width]x[height]`
+- デフォルト: `"[name]-[width]x[height]"`
 
 出力画像のファイル名。拡張子は含みません。以下の動的出力タグを使用できます。
 
@@ -76,7 +76,7 @@ export default {
 ### optimize.remoteName
 
 - 型: `string`
-- デフォルト: `remote-[index]`
+- デフォルト: `"remote-[index]"`
 
 リモート画像をダウンロードした際の名前。拡張子は含みません。`optimize.outName` の `[name]` として利用されます。以下の動的出力タグを使用できます。
 
@@ -164,7 +164,7 @@ export default {
 ### decoding
 
 - 型: `HTMLImageElement["decoding"]`
-- デフォルト: `async`
+- デフォルト: `"async"`
 
 生成される `<img>` タグに一括で `decoding` 属性を付与します。
 
@@ -175,7 +175,7 @@ export default {
 ### loading
 
 - 型: `HTMLImageElement["loading"]`
-- デフォルト: `eager`
+- デフォルト: `"eager"`
 
 生成される `<img>` タグに一括で `loading` 属性を付与します。
 

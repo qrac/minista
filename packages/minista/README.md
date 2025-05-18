@@ -84,11 +84,11 @@ export default defineConfig({
 
 minista の各機能は同封されているプラグインをコンフィグに登録することで動作します。使い方は各ディレクトリの README.md を参照ください。
 
-- [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/ssg): JSX を静的な HTML に変換
+- [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/ssg): React の JSX を静的な HTML に変換
 - [pluginBundle](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/bundle): CSS・JS・画像をビルドプロセスに乗せる
-- [pluginMdx](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/mdx): MDX・Markdown の変換に対応
+- [pluginMdx](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/mdx): MDX・Markdown の HTML 変換に対応
 - [pluginImage](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/image): 画像を最適化・リモート画像をダウンロード
-- [pluginSvg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/svg): SVG ファイルを HTML にインラインで展開
+- [pluginSvg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/svg): SVG ファイルを HTML にインライン展開
 - [pluginSprite](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/sprite): SVG ファイルを スプライト化して出力
 - [pluginIsland](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/island): ページの一部を React App 化
 - [pluginBeautify](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/beautify): ビルド時に HTML・CSS・JS を整形

@@ -1,6 +1,6 @@
 # pluginSsg
 
-JSX・TSX ファイルを静的な HTML に変換するプラグイン。
+React の JSX・TSX ファイルを静的な HTML に変換するプラグイン。
 
 ## How To Use
 
