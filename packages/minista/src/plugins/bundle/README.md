@@ -57,7 +57,7 @@ export default {
 - 型: `string[]`
 - デフォルト: `["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"]`
 
-アセットを検出するテンプレートを glob 形式で指定します。対象ファイルは Vite の機能で glob import されます。
+import している CSS・画像を検出するテンプレートを glob 形式で指定します。対象ファイルは Vite の機能で glob import されます。
 
 ### outName
 
