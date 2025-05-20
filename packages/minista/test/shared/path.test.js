@@ -1,26 +1,6 @@
 import { describe, it, expect } from "vitest"
 
-import { getOutputHtmlPath, pathToId, idToPath } from "../../src/shared/path.js"
-
-describe("getOutputHtmlPath", () => {
-  it("シンプルなパスを変換する", () => {
-    expect(getOutputHtmlPath("/about")).toBe("about.html")
-    expect(getOutputHtmlPath("/blog")).toBe("blog.html")
-  })
-
-  it("末尾にスラッシュのあるディレクトリパスを変換する", () => {
-    expect(getOutputHtmlPath("/blog/")).toBe("blog/index.html")
-    expect(getOutputHtmlPath("/docs/guide/")).toBe("docs/guide/index.html")
-  })
-
-  it("ルートパスを正しく処理する", () => {
-    expect(getOutputHtmlPath("/")).toBe("index.html")
-  })
-
-  it("先頭のスラッシュのみを削除する", () => {
-    expect(getOutputHtmlPath("/foo/bar")).toBe("foo/bar.html")
-  })
-})
+import { pathToId, idToPath } from "../../src/shared/path.js"
 
 describe("pathToId and idToPath", () => {
   const testCases = [

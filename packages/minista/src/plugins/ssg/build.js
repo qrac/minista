@@ -10,7 +10,8 @@ import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { formatPages, resolvePages } from "./utils/page.js"
 import { transformHtml } from "./utils/html.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
-import { getRootDir, getTempDir, getOutputHtmlPath } from "../../shared/path.js"
+import { getHtmlFileName } from "../../shared/filename.js"
+import { getRootDir, getTempDir } from "../../shared/path.js"
 import { mergeSsrExternal } from "../../shared/vite.js"
 
 /**
@@ -93,11 +94,11 @@ export function pluginSsgBuild(opts) {
               return null
             }
             const url = resolvedPage.url
-            const outputHtmlPath = getOutputHtmlPath(url)
+            const fileName = getHtmlFileName(url)
             const html = transformHtml({ resolvedLayout, resolvedPage })
             return {
               url,
-              outputHtmlPath,
+              fileName,
               html,
             }
           })
@@ -130,7 +131,7 @@ export function pluginSsgBuild(opts) {
           this.emitFile({
             type: "asset",
             source: ssgPage.html,
-            fileName: ssgPage.outputHtmlPath,
+            fileName: ssgPage.fileName,
           })
         })
       )

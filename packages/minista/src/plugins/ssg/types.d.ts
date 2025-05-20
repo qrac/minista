@@ -79,7 +79,7 @@ export type ResolvedPage = {
 
 export type SsgPage = {
   url: string
-  outputHtmlPath: string
+  fileName: string
   html: string
 }
 

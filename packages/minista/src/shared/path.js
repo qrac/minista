@@ -22,15 +22,6 @@ export function getTempDir(cwd, rootDir) {
 }
 
 /**
- * @param {string} url
- * @returns {string}
- */
-export function getOutputHtmlPath(url) {
-  const normalized = url.endsWith("/") ? `${url}index.html` : `${url}.html`
-  return normalized.replace(/^\//, "")
-}
-
-/**
  * @param {string} input
  * @returns {string}
  */

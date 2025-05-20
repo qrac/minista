@@ -41,7 +41,7 @@ export function pluginIslandBuild(opts) {
   let patternIndex = 0
   /** @type {{[patternId: string]: number}} */
   let patternIndexMap = {}
-  /** @type {{[outputHtmlPath: string]: string}} */
+  /** @type {{[htmlFileName: string]: string}} */
   let pagePatternMap = {}
   /** @type {{[pathId: string]: string}} */
   let entries = {}
@@ -90,7 +90,7 @@ export function pluginIslandBuild(opts) {
       ).flat()
 
       for (const ssgPage of ssgPages) {
-        const { html, outputHtmlPath } = ssgPage
+        const { html, fileName: htmlFileName } = ssgPage
 
         /** @type {number[]} */
         let pattern = []
@@ -119,7 +119,7 @@ export function pluginIslandBuild(opts) {
           patternIndexMap[patternId] = patternIndex
         }
         if (patternId) {
-          pagePatternMap[outputHtmlPath] = patternId
+          pagePatternMap[htmlFileName] = patternId
         }
       }
 
