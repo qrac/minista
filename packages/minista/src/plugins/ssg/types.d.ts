@@ -31,10 +31,7 @@ export type StaticData = {
   props: { [key: string]: any }
 }
 
-export type LayoutComponent = () => React.CElement<
-  { [key: string]: any },
-  React.Component<LayoutProps, {}, any>
->
+export type LayoutComponent = () => React.ReactElement<LayoutProps>
 
 export type ImportedLayouts = {
   [key: string]: {
@@ -56,10 +53,7 @@ export type ResolvedLayout = {
   metadata: Metadata
 }
 
-export type PageComponent = () => React.CElement<
-  { [key: string]: any },
-  React.Component<PageProps, {}, any>
->
+export type PageComponent = () => React.ReactElement<PageProps>
 
 export type ImportedPages = {
   [key: string]: {
