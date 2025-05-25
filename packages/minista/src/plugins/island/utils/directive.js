@@ -10,6 +10,7 @@
 
 import path from "node:path"
 import { parseSync, printSync } from "@swc/core"
+import { normalizePath } from "vite"
 
 import { getSnippet, encodeSnippet } from "./snippet.js"
 
@@ -70,7 +71,7 @@ export function transformDirectives(code, id, opts) {
       const rel = node.source.value
       let source = rel
       if (rel.startsWith(".") || rel.startsWith("/")) {
-        const abs = path.resolve(path.dirname(id), rel)
+        const abs = normalizePath(path.resolve(path.dirname(id), rel))
         source = abs
         node.source.value = abs
         node.source.raw = `"${abs}"`
