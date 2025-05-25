@@ -68,18 +68,22 @@ export function transformDirectives(code, id, opts) {
   for (const node of ast.body) {
     if (node.type === "ImportDeclaration") {
       const rel = node.source.value
-      const abs = path.resolve(path.dirname(id), rel)
-      node.source.value = abs
-      node.source.raw = `"${abs}"`
+      let source = rel
+      if (rel.startsWith(".") || rel.startsWith("/")) {
+        const abs = path.resolve(path.dirname(id), rel)
+        source = abs
+        node.source.value = abs
+        node.source.raw = `"${abs}"`
+      }
       for (const spec of node.specifiers) {
         if (spec.type === "ImportDefaultSpecifier") {
-          importMap[spec.local.value] = { source: abs, importType: "default" }
+          importMap[spec.local.value] = { source, importType: "default" }
         } else if (spec.type === "ImportNamespaceSpecifier") {
-          importMap[spec.local.value] = { source: abs, importType: "namespace" }
+          importMap[spec.local.value] = { source, importType: "namespace" }
         } else if (spec.type === "ImportSpecifier") {
           const importedName = spec.imported?.value ?? spec.local.value
           importMap[spec.local.value] = {
-            source: abs,
+            source,
             importType: "named",
             importedName,
           }
