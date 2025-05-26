@@ -25,7 +25,11 @@ import { getPatternMap, getPatternAttrs } from "./utils/pattern.js"
 import { runSharp } from "./utils/sharp.js"
 import { getPluginName } from "../../shared/name.js"
 import { getRootDir, getTempDir, pathToId } from "../../shared/path.js"
-import { extractUrls, getBasedAssetUrl } from "../../shared/url.js"
+import {
+  extractUrls,
+  getBuildBase,
+  getBasedAssetUrl,
+} from "../../shared/url.js"
 import { mergeAlias, filterOutputAssets } from "../../shared/vite.js"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -81,7 +85,7 @@ export function pluginImageBuild(opts) {
     apply: "build",
     async config(config) {
       isSsr = !!config.build?.ssr
-      base = config.base || base
+      base = getBuildBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       ssgDir = path.resolve(tempDir, "ssg")
