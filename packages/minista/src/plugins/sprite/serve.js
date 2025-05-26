@@ -10,7 +10,7 @@ import { parse as parseHtml } from "node-html-parser"
 import { generateSprite } from "./utils/sprite.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
-import { extractUrls } from "../../shared/url.js"
+import { extractUrls, getServeBase } from "../../shared/url.js"
 
 /**
  * @param {PluginOptions} opts
@@ -26,6 +26,7 @@ export function pluginSpriteServe(opts) {
   const srcAttr = "data-minista-sprite-src"
   const symbolIdAttr = "data-minista-sprite-symbol-id"
 
+  let base = "/"
   let rootDir = ""
   let tempDir = ""
   let spriteDir = ""
@@ -42,6 +43,7 @@ export function pluginSpriteServe(opts) {
     enforce: "pre",
     apply: "serve",
     config: async (config) => {
+      base = getServeBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       spriteDir = path.resolve(tempDir, "sprite")
@@ -122,7 +124,8 @@ export function pluginSpriteServe(opts) {
           el.getAttribute(symbolIdAttr) || path.parse(assetName).name
         const assetUrl = assetMap[assetName]
         const timestamp = Date.now()
-        const href = `${assetUrl}?t=${timestamp}#${symbolId}`
+        const prefixBase = base.replace(/\/$/, "")
+        const href = `${prefixBase}${assetUrl}?t=${timestamp}#${symbolId}`
         el.setAttribute("href", href)
         el.removeAttribute(targetAttr)
         el.removeAttribute(srcAttr)

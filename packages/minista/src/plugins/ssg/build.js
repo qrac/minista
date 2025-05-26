@@ -25,7 +25,6 @@ export function pluginSsgBuild(opts) {
   const tempName = getTempName(names)
 
   let isSsr = false
-  let base = "/"
   let rootDir = ""
   let tempDir = ""
   let globDir = ""
@@ -45,7 +44,6 @@ export function pluginSsgBuild(opts) {
     apply: "build",
     config: async (config) => {
       isSsr = !!config.build?.ssr
-      base = config.base || base
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")

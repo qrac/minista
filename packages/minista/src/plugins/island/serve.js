@@ -11,6 +11,7 @@ import { decodeSnippet } from "./utils/snippet.js"
 import { getIslandServeCode } from "./utils/code.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
+import { getServeBase } from "../../shared/url.js"
 import { mergeAlias } from "../../shared/vite.js"
 
 /**
@@ -24,6 +25,7 @@ export function pluginIslandServe(opts) {
   const tempName = getTempName(names)
   const islandAlias = `/@${tempName}`
 
+  let base = "/"
   let rootDir = ""
   let tempDir = ""
   let islandDir = ""
@@ -39,6 +41,7 @@ export function pluginIslandServe(opts) {
     enforce: "pre",
     apply: "serve",
     config: async (config) => {
+      base = getServeBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       islandDir = path.resolve(tempDir, "island/serve")
@@ -114,7 +117,9 @@ export function pluginIslandServe(opts) {
             opts
           )
           const timestamp = Date.now()
-          const script = `<script type="module" src="${islandAlias}/${fileName}?=${timestamp}"></script>`
+          const prefixBase = base.replace(/\/$/, "")
+          const scriptSrc = `${prefixBase}${islandAlias}/${fileName}?=${timestamp}`
+          const script = `<script type="module" src="${scriptSrc}"></script>`
           await fs.promises.writeFile(fullPath, code, "utf8")
           newHtml = newHtml.replaceAll(snippet, `${snippetIndex}`)
           newHtml = newHtml.replace(/<\/head>/, `${script}</head>`)

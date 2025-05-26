@@ -7,6 +7,7 @@ import path from "node:path"
 import { getGlobImportCode } from "./utils/code.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
+import { getServeBase } from "../../shared/url.js"
 
 /**
  * @param {PluginOptions} opts
@@ -19,6 +20,7 @@ export function pluginBundleServe(opts) {
   const tempName = getTempName(names)
   const aliasGlob = `/@${tempName}-glob`
 
+  let base = "/"
   let rootDir = ""
   let tempDir = ""
   let globDir = ""
@@ -29,6 +31,7 @@ export function pluginBundleServe(opts) {
     enforce: "pre",
     apply: "serve",
     config: async (config) => {
+      base = getServeBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")
@@ -50,7 +53,8 @@ export function pluginBundleServe(opts) {
       }
     },
     transformIndexHtml(html) {
-      const scriptTag = `<script type="module" src="${aliasGlob}"></script>`
+      const prefixBase = base.replace(/\/$/, "")
+      const scriptTag = `<script type="module" src="${prefixBase}${aliasGlob}"></script>`
       return html.replace("</head>", `${scriptTag}</head>`)
     },
   }

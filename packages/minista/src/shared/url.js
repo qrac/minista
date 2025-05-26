@@ -69,12 +69,42 @@ export function extractUrls(html, tag, attr, start) {
 
 /**
  * @param {string} base
+ * @returns {string}
+ */
+export function getServeBase(base) {
+  if (!base) return "/"
+  try {
+    const url = new URL(base, "https://dummy.com")
+    return url.pathname
+  } catch {
+    return base
+  }
+}
+
+/**
+ * @param {string} base
+ * @returns {string}
+ */
+export function getBuildBase(base) {
+  if (base === "./" || base === "") return base
+  if (!base) return "/"
+  if (/^https?:\/\//.test(base)) return base
+  try {
+    const url = new URL(base, "https://dummy.com")
+    return url.pathname
+  } catch {
+    return base
+  }
+}
+
+/**
+ * @param {string} base
  * @param {string} htmlName
  * @param {string} assetName
  * @returns {string}
  */
 export function getBasedAssetUrl(base, htmlName, assetName) {
-  if (base === "./") {
+  if (base === "./" || base === "") {
     return normalizePath(path.relative(path.dirname(htmlName), assetName))
   }
   return normalizePath(base.replace(/\/$/, "") + "/" + assetName)

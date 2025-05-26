@@ -4,6 +4,8 @@ import {
   getPageUrl,
   resolveParamUrl,
   extractUrls,
+  getServeBase,
+  getBuildBase,
   getBasedAssetUrl,
 } from "../../src/shared/url.js"
 
@@ -97,6 +99,64 @@ describe("extractUrls", () => {
   it("開始文字列が一致しない場合は無視する", () => {
     const result = extractUrls(html, "source", "srcset", "/no-match/")
     expect(result).toEqual([])
+  })
+})
+
+describe("getServeBase", () => {
+  it("絶対URLの場合はパス部分のみを返す", () => {
+    expect(getServeBase("https://bar.com/foo/")).toBe("/foo/")
+    expect(getServeBase("https://bar.com/foo/bar/")).toBe("/foo/bar/")
+    expect(getServeBase("https://bar.com/")).toBe("/")
+  })
+
+  it("プロトコル省略（//）のURLでもパス部分を返す", () => {
+    expect(getServeBase("//bar.com/foo/")).toBe("/foo/")
+  })
+
+  it("ルート相対パスに対応", () => {
+    expect(getServeBase("/foo/")).toBe("/foo/")
+    expect(getServeBase("/")).toBe("/")
+    expect(getServeBase("/foo/bar/")).toBe("/foo/bar/")
+  })
+
+  it("埋め込み用のパスに対応", () => {
+    expect(getServeBase("./")).toBe("/")
+    expect(getServeBase("")).toBe("/")
+  })
+
+  it("undefined、nullにも対応する", () => {
+    expect(getServeBase(undefined)).toBe("/")
+    expect(getServeBase(null)).toBe("/")
+  })
+})
+
+describe("getBuildBase", () => {
+  it("絶対URLの場合はそのまま返す", () => {
+    expect(getBuildBase("https://bar.com/foo/")).toBe("https://bar.com/foo/")
+    expect(getBuildBase("https://bar.com/foo/bar/")).toBe(
+      "https://bar.com/foo/bar/"
+    )
+    expect(getBuildBase("https://bar.com/")).toBe("https://bar.com/")
+  })
+
+  it("プロトコル省略（//）のURLでもパス部分を返す", () => {
+    expect(getBuildBase("//bar.com/foo/")).toBe("/foo/")
+  })
+
+  it("ルート相対パスに対応", () => {
+    expect(getBuildBase("/foo/")).toBe("/foo/")
+    expect(getBuildBase("/")).toBe("/")
+    expect(getBuildBase("/foo/bar/")).toBe("/foo/bar/")
+  })
+
+  it("埋め込み用のパスに対応", () => {
+    expect(getBuildBase("./")).toBe("./")
+    expect(getBuildBase("")).toBe("")
+  })
+
+  it("undefined、nullにも対応する", () => {
+    expect(getBuildBase(undefined)).toBe("/")
+    expect(getBuildBase(null)).toBe("/")
   })
 })
 

@@ -11,7 +11,7 @@ import { decodeSnippet } from "./utils/snippet.js"
 import { getIslandBuildCode } from "./utils/code.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
 import { getRootDir, getTempDir, pathToId } from "../../shared/path.js"
-import { getBasedAssetUrl } from "../../shared/url.js"
+import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
 import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
 
 /**
@@ -56,7 +56,7 @@ export function pluginIslandBuild(opts) {
     apply: "build",
     config: async (config) => {
       isSsr = !!config.build?.ssr
-      base = config.base || base
+      base = getBuildBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       islandDir = path.resolve(tempDir, "island/build")

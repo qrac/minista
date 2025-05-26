@@ -14,7 +14,11 @@ import {
   pathToId,
   idToPath,
 } from "../../shared/path.js"
-import { extractUrls, getBasedAssetUrl } from "../../shared/url.js"
+import {
+  extractUrls,
+  getBuildBase,
+  getBasedAssetUrl,
+} from "../../shared/url.js"
 import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
 
 /**
@@ -47,7 +51,7 @@ export function pluginBundleBuild(opts) {
     apply: "build",
     config: async (config) => {
       isSsr = !!config.build?.ssr
-      base = config.base || base
+      base = getBuildBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")

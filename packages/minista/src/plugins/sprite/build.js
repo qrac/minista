@@ -11,7 +11,11 @@ import { parse as parseHtml } from "node-html-parser"
 import { generateSprite } from "./utils/sprite.js"
 import { getPluginName } from "../../shared/name.js"
 import { getRootDir, getTempDir, pathToId } from "../../shared/path.js"
-import { extractUrls, getBasedAssetUrl } from "../../shared/url.js"
+import {
+  extractUrls,
+  getBuildBase,
+  getBasedAssetUrl,
+} from "../../shared/url.js"
 import { filterOutputAssets } from "../../shared/vite.js"
 
 /**
@@ -47,7 +51,7 @@ export function pluginSpriteBuild(opts) {
     apply: "build",
     config: async (config) => {
       isSsr = config.build?.ssr ? true : false
-      base = config.base || base
+      base = getBuildBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       ssgDir = path.resolve(tempDir, "ssg")

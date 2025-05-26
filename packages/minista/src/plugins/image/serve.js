@@ -23,7 +23,7 @@ import { getPatternMap, getPatternAttrs } from "./utils/pattern.js"
 import { runSharp } from "./utils/sharp.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
-import { extractUrls } from "../../shared/url.js"
+import { extractUrls, getServeBase } from "../../shared/url.js"
 import { mergeAlias } from "../../shared/vite.js"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -44,6 +44,7 @@ export function pluginImageServe(opts) {
   const srcAttr = "data-minista-image-src"
   const optimizeAttr = "data-minista-image-optimize"
 
+  let base = "/"
   let rootDir = ""
   let tempDir = ""
   let remoteDir = ""
@@ -71,6 +72,7 @@ export function pluginImageServe(opts) {
     enforce: "pre",
     apply: "serve",
     config: async (config) => {
+      base = getServeBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       remoteDir = path.resolve(tempDir, "remote")
@@ -214,8 +216,9 @@ export function pluginImageServe(opts) {
           recipe.patternMap[patternHash] = pattern
         }
         const attrs = getPatternAttrs(optimize, recipe, view, true)
+        const prefixBase = base.replace(/\/$/, "")
 
-        el.setAttribute("srcset", imageAlias + "/" + attrs.src)
+        el.setAttribute("srcset", prefixBase + imageAlias + "/" + attrs.src)
         el.setAttribute("sizes", view.sizes)
         el.setAttribute("width", view.width.toString())
         el.setAttribute("height", view.height.toString())
@@ -224,7 +227,7 @@ export function pluginImageServe(opts) {
         el.removeAttribute(optimizeAttr)
 
         if (tagName === "img") {
-          el.setAttribute("src", imageAlias + "/" + attrs.src)
+          el.setAttribute("src", prefixBase + imageAlias + "/" + attrs.src)
         }
       }
 
