@@ -80,6 +80,26 @@ export default defineConfig({
 })
 ```
 
+minista は SSR ビルドと通常ビルドを連続で行うため、ビルドの一括設定がエラーに繋がる場合があります。これは設定を SSR ビルド用・通常ビルド用に切り分けることで解消できます。
+
+```ts
+// ./minista.config.ts
+import { defineConfig, pluginSsg } from "minista"
+
+const common = defineConfig({
+  plugins: [pluginSsg()],
+})
+
+export default defineConfig(({ command, isSsrBuild }) => {
+  if (command === "serve") return { ...common }
+  if (command === "build" && isSsrBuild) return { ...common }
+  if (command === "build" && !isSsrBuild) {
+    return { ...common, build: { minify: false } }
+  }
+  return { ...common }
+})
+```
+
 ## Plugins
 
 minista の各機能は同封されているプラグインをコンフィグに登録することで動作します。使い方は各ディレクトリの README.md を参照ください。
@@ -91,6 +111,7 @@ minista の各機能は同封されているプラグインをコンフィグに
 - [pluginSvg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/svg): SVG ファイルを HTML にインライン展開
 - [pluginSprite](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/sprite): SVG ファイルを スプライト化して出力
 - [pluginIsland](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/island): ページの一部を React App 化
+- [pluginSearch](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/search): 全文検索機能を追加
 - [pluginBeautify](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/beautify): ビルド時に HTML・CSS・JS を整形
 - [pluginArchive](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/archive): ビルド時に圧縮ファイルを生成
 

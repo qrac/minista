@@ -3,7 +3,7 @@
 import { createElement } from "react"
 
 import { resolveAspect } from "../utils/aspect.js"
-import { mergeObj } from "../../../shared/obj.js"
+import { cleanObj, mergeObj } from "../../../shared/obj.js"
 
 const defaultDecoding = "async"
 const defaultLoading = "eager"
@@ -37,7 +37,7 @@ export function Image({
   position,
   ...attributes
 }) {
-  const optimizeObj = {
+  const optimizeObjRaw = {
     outName,
     remoteName,
     layout,
@@ -51,6 +51,7 @@ export function Image({
     fit,
     position,
   }
+  const optimizeObj = cleanObj(optimizeObjRaw)
   const optimizeStr = JSON.stringify(mergeObj(defaultOptimize, optimizeObj))
   return createElement("img", {
     srcSet: "",

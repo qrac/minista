@@ -24,17 +24,11 @@ paragraph
 ## Options
 
 ```js
-// ./minista.config.js (with default options)
-import { pluginMdx } from "minista"
-
-export default {
-  plugins: [
-    pluginMdx({
-      remarkPlugins: [],
-      rehypePlugins: [],
-    }),
-  ],
-}
+// Default
+pluginMdx({
+  remarkPlugins: [],
+  rehypePlugins: [],
+})
 ```
 
 オプションは [@mdx-js/rollup](https://www.npmjs.com/package/@mdx-js/rollup) の Options と同一です。

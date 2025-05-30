@@ -13,8 +13,19 @@
       "types": "./src/node.d.ts"
     },
     "./client": {
-      "import": "./src/client.js",
       "types": "./src/client.d.ts"
+    },
+    "./context": {
+      "import": "./src/context.js",
+      "types": "./src/context.d.ts"
+    },
+    "./head": {
+      "import": "./src/head.js",
+      "types": "./src/head.d.ts"
+    },
+    "./assets": {
+      "import": "./src/assets.js",
+      "types": "./src/assets.d.ts"
     }
   },
   "files": [
@@ -51,10 +62,10 @@
     "@mdx-js/rollup": "^3.1.0",
     "@swc/core": "^1.11.24",
     "archiver": "^7.0.1",
-    "deepmerge-ts": "^7.1.5",
     "image-size": "^2.0.2",
     "js-beautify": "^1.15.4",
     "mime-types": "^3.0.1",
+    "mojigiri": "^0.3.0",
     "node-html-parser": "^7.0.1",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.2",

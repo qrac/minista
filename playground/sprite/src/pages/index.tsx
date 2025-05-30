@@ -1,4 +1,4 @@
-import { Sprite } from "minista/client"
+import { Sprite } from "minista/assets"
 
 export default function () {
   return (

@@ -4,8 +4,16 @@ export default defineConfig({
   plugins: [
     pluginSsg(),
     pluginArchive({
-      multiple: [
-        { srcDir: "src", outName: "src", ignore: "src/pages/nest/*.tsx" },
+      archives: [
+        {
+          srcDir: "dist",
+          outName: "dist",
+        },
+        {
+          srcDir: "src",
+          outName: "src",
+          ignore: "src/pages/nest/*.tsx",
+        },
       ],
     }),
   ],

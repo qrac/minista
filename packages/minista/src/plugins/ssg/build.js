@@ -74,7 +74,7 @@ export function pluginSsgBuild(opts) {
             outDir: ssrDir,
           },
           ssr: {
-            external: mergeSsrExternal(config, ["minista"]),
+            external: mergeSsrExternal(config, ["minista/context"]),
           },
         }
       }

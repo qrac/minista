@@ -8,6 +8,7 @@ import { getGlobImportCode } from "./utils/code.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import { getServeBase } from "../../shared/url.js"
+import { mergeAlias } from "../../shared/vite.js"
 
 /**
  * @param {PluginOptions} opts
@@ -43,12 +44,12 @@ export function pluginBundleServe(opts) {
 
       return {
         resolve: {
-          alias: [
+          alias: mergeAlias(config, [
             {
               find: aliasGlob,
               replacement: globFile,
             },
-          ],
+          ]),
         },
       }
     },

@@ -1,0 +1,298 @@
+# pluginSearch
+
+全文検索機能を追加するプラグイン。
+
+## How To Use
+
+動作させるには、`pluginIsland` の併用と `@vitejs/plugin-react` の追加が必要です。
+
+```sh
+$ npm install --save-dev @vitejs/plugin-react
+```
+
+```js
+// ./minista.config.js
+import { pluginIsland, pluginSearch } from "minista"
+import react from "@vitejs/plugin-react"
+
+export default {
+  plugins: [pluginIsland(), pluginSearch(), react()],
+}
+```
+
+```jsx
+// ./src/pages/index.jsx
+import { Search } from "minista/assets"
+
+export default function () {
+  return <Search client:load />
+}
+```
+
+```jsx
+// ./src/pages/docs/css.jsx
+import { Head } from "minista/head"
+
+export default function () {
+  return (
+    <>
+      <Head>
+        <title>CSS</title>
+      </Head>
+      <h1>CSS</h1>
+      <div data-search>
+        <h2 id="cms">CMS</h2>
+        <p>CMSで使うCSS。</p>
+      </div>
+    </>
+  )
+}
+```
+
+上記の JSX から以下の JSON 出力されます。
+
+```json
+// dist/assets/search.json
+{
+  "words": ["CMS", "CSS", "。", "う", "で", "使"],
+  "hits": [0, 1],
+  "pages": [
+    {
+      "url": "/docs/css",
+      "title": [1],
+      "toc": [[0, "cms"]],
+      "content": [0, 0, 4, 5, 3, 1, 2]
+    }
+  ]
+}
+```
+
+- `words`: すべての文字が種類ごとに収納されており index で参照が可能
+- `hits`: `[0, 1]` なので、検索対象の文字は「CMS」と「CSS」
+- `pages`: 各ページデータ
+  - `title`: `[1]` なので「CSS」
+  - `toc`: `0` 番目の `content` で、ID は `cms`
+  - `content`: 「CMS CMS で使う CSS。」の index が配列形式で格納
+
+## Options
+
+```js
+// Default
+pluginIsland({
+  outName: "search",
+  src: ["**/*.html"],
+  ignore: ["404.html"],
+  trimTitle: "",
+  targetSelector: "[data-search]",
+  relativeAttr: "data-search-relative",
+  inputAttr: "data-search-input",
+  hit: {
+    minLength: 3,
+    number: false,
+    english: true,
+    hiragana: false,
+    katakana: true,
+    kanji: true,
+  },
+})
+```
+
+### outName
+
+- 型: `string`
+- デフォルト: `"search"`
+
+検索用 JSON ファイルの出力名。拡張子は含みません。
+
+### src
+
+- 型: `string[]`
+- デフォルト: `["**/*.html"]`
+
+検索対象の HTML を glob 形式で指定します。対象ファイルはビルドパイプラインに含まれているものから [picomatch](https://www.npmjs.com/package/picomatch) で選ばれます。
+
+デフォルトではすべての HTML ファイルが対象になっているため、`["posts/**/*.html"]` などで対象範囲を絞り込むことをお勧めします。
+
+### ignore
+
+- 型: `string[]`
+- デフォルト: `["404.html"]`
+
+検索対象外の HTML を glob 形式で指定します。対象ファイルはビルドパイプラインに含まれているものから [picomatch](https://www.npmjs.com/package/picomatch) で選ばれます。
+
+### trimTitle
+
+- 型: `string`
+- デフォルト: `""`
+
+検索したタイトルから削除する文字列。例えば「CSS - minista」というページタイトルに対して検索 UI に不要な ` - minista` を指定して削除します。
+
+### targetSelector
+
+- 型: `string`
+- デフォルト: `"[data-search]"`
+
+検索対象ページのインデックス化するセレクターを設定します。
+
+### relativeAttr
+
+- 型: `string`
+- デフォルト: `"data-search-relative"`
+
+検索ルートまでの階層数を調べるために使用するデータ属性名。`body` に付与されます。
+
+### inputAttr
+
+- 型: `string`
+- デフォルト: `"data-search-input"`
+
+検索フィールドに付与するデータ属性名。この属性の有無によって `relativeAttr` の付与を決めます。
+
+### hit.minLength
+
+- 型: `number`
+- デフォルト: `3`
+
+検索でヒットする単語の最低文字数。
+
+### hit.number
+
+- 型: `boolean`
+- デフォルト: `false`
+
+検索で数字をヒットさせるか否か。
+
+### hit.english
+
+- 型: `boolean`
+- デフォルト: `true`
+
+検索で英単語をヒットさせるか否か。
+
+### hit.hiragana
+
+- 型: `boolean`
+- デフォルト: `false`
+
+検索で連続したひらがなの文字列をヒットさせるか否か。
+
+### hit.katakana
+
+- 型: `boolean`
+- デフォルト: `true`
+
+検索で連続したカタカナの文字列をヒットさせるか否か。
+
+### hit.kanji
+
+- 型: `boolean`
+- デフォルト: `true`
+
+検索で連続した漢字の文字列をヒットさせるか否か。
+
+## Search
+
+検索用のコンポーネント。検索フィールドと候補の出力がセットとなっており、`pluginIsland` の併用で動作します。
+
+```jsx
+// ./src/pages/index.jsx
+import { Search } from "minista/assets"
+
+export default function () {
+  return <Search client:load />
+}
+```
+
+`<Search>` コンポーネントには、以下の props を渡せます。
+
+```ts
+type SearchProps = {
+  className?: string
+  minHitLength?: number
+  maxHitPages?: number
+  maxHitWords?: number
+  attributes?: React.HTMLAttributes<HTMLElement>
+  field?: {
+    className?: string
+    placeholder?: string
+    beforeElement?: React.ReactElement
+    afterElement?: React.ReactElement
+    attributes?: React.HTMLAttributes<HTMLElement>
+  } & React.HTMLAttributes<HTMLElement>
+  list?: {
+    className?: string
+    showUrl?: boolean
+    attributes?: React.HTMLAttributes<HTMLElement>
+  } & React.HTMLAttributes<HTMLElement>
+} & React.HTMLAttributes<HTMLElement>
+```
+
+### className
+
+- 型: `string`
+- デフォルト: `"search"`
+
+`<Search>` コンポーネントルートのクラス名。
+
+### minHitLength
+
+- 型: `number`
+- デフォルト: `2`
+
+検索を開始する最低文字数。
+
+### maxHitPages
+
+- 型: `number`
+- デフォルト: `5`
+
+検索結果に表示するページの最大数。
+
+### maxHitWords
+
+- 型: `number`
+- デフォルト: `20`
+
+検索結果に表示する単語の最大数。
+
+### field.className
+
+- 型: `string`
+- デフォルト: `"search-field"`
+
+検索フィールドのクラス名。
+
+### field.placeholder
+
+- 型: `string`
+- デフォルト: `""`
+
+検索フィールドのプレースホルダー。
+
+### field.beforeElement
+
+- 型: `React.ReactElement`
+- デフォルト: `undefined`
+
+検索フィールドの前に挿入する要素。虫眼鏡アイコンなど。
+
+### field.afterElement
+
+- 型: `React.ReactElement`
+- デフォルト: `undefined`
+
+検索フィールドの前に挿入する要素。虫眼鏡アイコンなど。
+
+### list.className
+
+- 型: `string`
+- デフォルト: `"search-list"`
+
+検索結果のクラス名。
+
+### list.showUrl
+
+- 型: `boolean`
+- デフォルト: `true`
+
+検索結果に URL を表示させるか否か。

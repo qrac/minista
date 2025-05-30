@@ -1,4 +1,4 @@
-import { Image, Picture } from "minista/client"
+import { Image, Picture } from "minista/assets"
 
 export default function () {
   return (

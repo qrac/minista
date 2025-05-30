@@ -17,7 +17,7 @@ export default {
 
 ```jsx
 // ./src/pages/index.jsx
-import { Sprite } from "minista/client"
+import { Sprite } from "minista/assets"
 
 export default function () {
   return <Sprite src="/src/assets/sprite/square.svg" />
@@ -27,12 +27,8 @@ export default function () {
 ## Options
 
 ```js
-// ./minista.config.js (with default options)
-import { pluginSprite } from "minista"
-
-export default {
-  plugins: [pluginSprite({})],
-}
+// Default
+pluginSprite({})
 ```
 
 ### config
@@ -50,7 +46,7 @@ export default {
 
 ```jsx
 // ./src/pages/index.jsx
-import { Sprite } from "minista/client"
+import { Sprite } from "minista/assets"
 
 export default function () {
   return <Sprite src="/src/assets/sprite/square.svg" />
@@ -91,7 +87,7 @@ SVG スプライトファイル内の `symbol` は `symbolId` 順に並べ替え
 
 ```tsx
 // ./src/pages/index.jsx
-import { Sprite } from "minista/client"
+import { Sprite } from "minista/assets"
 
 export default function () {
   return (

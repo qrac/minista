@@ -11,6 +11,7 @@ import { generateSprite } from "./utils/sprite.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import { extractUrls, getServeBase } from "../../shared/url.js"
+import { mergeAlias } from "../../shared/vite.js"
 
 /**
  * @param {PluginOptions} opts
@@ -51,12 +52,12 @@ export function pluginSpriteServe(opts) {
       await fs.promises.mkdir(spriteDir, { recursive: true })
       return {
         resolve: {
-          alias: [
+          alias: mergeAlias(config, [
             {
               find: spriteAlias,
               replacement: spriteDir,
             },
-          ],
+          ]),
         },
       }
     },

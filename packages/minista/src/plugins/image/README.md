@@ -15,7 +15,7 @@ export default {
 
 ```jsx
 // ./src/pages/index.jsx
-import { Image } from "minista/client"
+import { Image } from "minista/assets"
 
 export default function () {
   return <Image src="/src/assets/image.png" />
@@ -25,34 +25,26 @@ export default function () {
 ## Options
 
 ```js
-// ./minista.config.js (with default options)
-import { pluginImage } from "minista"
-
-export default {
-  plugins: [
-    pluginImage({
-      useCache: true,
-      optimize: {
-        outName: "[name]-[width]x[height]",
-        remoteName: "remote-[index]",
-        layout: "constrained",
-        breakpoints: [
-          320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840,
-        ],
-        resolutions: [1, 2],
-        aspect: undefined,
-        format: "inherit",
-        formatOptions: {},
-        quality: undefined,
-        fit: "cover",
-        position: "centre",
-        background: undefined,
-      },
-      decoding: "async",
-      loading: "eager",
-    }),
-  ],
-}
+// Default
+pluginImage({
+  useCache: true,
+  optimize: {
+    outName: "[name]-[width]x[height]",
+    remoteName: "remote-[index]",
+    layout: "constrained",
+    breakpoints: [320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840],
+    resolutions: [1, 2],
+    aspect: undefined,
+    format: "inherit",
+    formatOptions: {},
+    quality: undefined,
+    fit: "cover",
+    position: "centre",
+    background: undefined,
+  },
+  decoding: "async",
+  loading: "eager",
+})
 ```
 
 ### useCache
@@ -192,7 +184,7 @@ export default {
 
 ```tsx
 // ./src/pages/index.jsx
-import { Image } from "minista/client"
+import { Image } from "minista/assets"
 
 export default function () {
   return <Image src="/src/assets/image.png" />
@@ -223,8 +215,6 @@ export default function () {
 />
 ```
 
-### ImageProps
-
 `<Image>` コンポーネントには、プラグインオプション `optimize` を含めた props を個別に渡してオーバーライドできます。
 
 ```ts
@@ -251,7 +241,7 @@ type ImageProps = {
 
 ```tsx
 // ./src/pages/index.jsx
-import { Picture } from "minista/client"
+import { Picture } from "minista/assets"
 
 export default function () {
   return <Picture src="/src/assets/image.png" formats={["webp", "inherit"]} />
@@ -300,8 +290,6 @@ export default function () {
   />
 </picture>
 ```
-
-### PictureProps
 
 `<Picture>` コンポーネントには、プラグインオプション `optimize` を含めた props を個別に渡してオーバーライドできます。また、画面幅によって元画像を変更するアートディレクティブを `artDirectives` に設定できます。
 

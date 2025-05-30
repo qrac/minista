@@ -1,5 +1,5 @@
-export { Head } from "./plugins/ssg/components/head.js"
 export { Image } from "./plugins/image/components/image.js"
 export { Picture } from "./plugins/image/components/picture.js"
 export { Svg } from "./plugins/svg/components/svg.js"
 export { Sprite } from "./plugins/sprite/components/sprite.js"
+export { Search } from "./plugins/search/components/search.js"

@@ -48,7 +48,11 @@ export function pluginSsgServe(opts) {
       await fs.promises.mkdir(globDir, { recursive: true })
       await fs.promises.writeFile(globFile, code, "utf8")
 
-      return { ssr: { external: mergeSsrExternal(config, ["minista"]) } }
+      return {
+        ssr: {
+          external: mergeSsrExternal(config, ["minista/context"]),
+        },
+      }
     },
     resolveId(id) {
       if (id === SSG_PAGES_ID) {

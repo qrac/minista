@@ -133,8 +133,7 @@ export function pluginIslandBuild(opts) {
           const snippetIndex = index + 1
           const fileName = `snippet-${snippetIndex}.tsx`
           const fullPath = path.resolve(snippetsDir, fileName)
-          const reactImportLine = `import React from "react"`
-          const code = reactImportLine + "\n" + decodeSnippet(snippet)
+          const code = decodeSnippet(snippet)
           await fs.promises.writeFile(fullPath, code, "utf8")
         })
       )

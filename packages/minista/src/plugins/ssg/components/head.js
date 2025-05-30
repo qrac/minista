@@ -2,9 +2,8 @@
 /** @typedef {import('../types').HeadData} HeadData */
 /** @typedef {import('../types').SetHeadData} SetHeadData */
 
-import { createElement, createContext, useContext } from "react"
-
-const HeadContext = createContext({})
+import { createElement, useContext } from "react"
+import { HeadContext } from "minista/context"
 
 /**
  * @param {HeadProps} props

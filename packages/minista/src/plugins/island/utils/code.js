@@ -10,7 +10,6 @@ export function getIslandServeCode(snippet, snippetIndex, opts) {
   const { rootAttrName } = opts
   const prefix = rootAttrName ? `${rootAttrName}-` : ""
 
-  const reactImportLine = `import React from "react"`
   const reactDomImportLine = `import * as ReactDOM from "react-dom/client"`
   const reactDomConstLine = `const { hydrateRoot, createRoot } = ReactDOM`
 
@@ -90,7 +89,7 @@ export function getIslandServeCode(snippet, snippetIndex, opts) {
 }
 run()`
   return [
-    [reactImportLine, reactDomImportLine].join("\n"),
+    [reactDomImportLine].join("\n"),
     [reactDomConstLine, componentLine].join("\n"),
     hydrateCall,
   ].join("\n\n")
@@ -105,7 +104,6 @@ export function getIslandBuildCode(pattern, opts) {
   const { rootAttrName } = opts
   const prefix = rootAttrName ? `${rootAttrName}-` : ""
 
-  const reactImportLine = `import React from "react"`
   const reactDomImportLine = `import * as ReactDOM from "react-dom/client"`
   const reactDomConstLine = `const { hydrateRoot, createRoot } = ReactDOM`
 
@@ -192,7 +190,7 @@ export function getIslandBuildCode(pattern, opts) {
 }
 run()`
   return [
-    [reactImportLine, reactDomImportLine].join("\n"),
+    [reactDomImportLine].join("\n"),
     snippetImportLines.join("\n"),
     [reactDomConstLine, componentListLine].join("\n"),
     hydrateCall,

@@ -1,4 +1,4 @@
-import { Head } from "minista/client"
+import { Head } from "minista/head"
 
 import { Button } from "../components/button"
 import iconUrl from "../assets/image.png"

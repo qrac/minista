@@ -16,21 +16,15 @@ export default {
 ## Options
 
 ```js
-// ./minista.config.js (with default options)
-import { pluginArchive } from "minista"
-
-export default {
-  plugins: [
-    pluginArchive({
-      archives: [
-        {
-          srcDir: "dist",
-          outName: "dist",
-        },
-      ],
-    }),
+// Default
+pluginArchive({
+  archives: [
+    {
+      srcDir: "dist",
+      outName: "dist",
+    },
   ],
-}
+})
 ```
 
 ### archives

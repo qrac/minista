@@ -16,41 +16,25 @@ export default {
 ## Options
 
 ```js
-// ./minista.config.js (with default options)
-import { pluginBeautify } from "minista"
-
-export default {
-  plugins: [
-    pluginBeautify({
-      src: ["**/*.{html,css,js}"],
-      htmlOptions: {
-        indent_size: 2,
-        max_preserve_newlines: 0,
-        indent_inner_html: true,
-        extra_liners: [],
-        inline: [
-          "span",
-          "strong",
-          "b",
-          "small",
-          "del",
-          "s",
-          "code",
-          "br",
-          "wbr",
-        ],
-      },
-      cssOptions: {
-        indent_size: 2,
-        space_around_combinator: true,
-      },
-      jsOptions: {
-        indent_size: 2,
-      },
-      removeImagePreload: true,
-    }),
-  ],
-}
+// Default
+pluginBeautify({
+  src: ["**/*.{html,css,js}"],
+  htmlOptions: {
+    indent_size: 2,
+    max_preserve_newlines: 0,
+    indent_inner_html: true,
+    extra_liners: [],
+    inline: ["span", "strong", "b", "small", "del", "s", "code", "br", "wbr"],
+  },
+  cssOptions: {
+    indent_size: 2,
+    space_around_combinator: true,
+  },
+  jsOptions: {
+    indent_size: 2,
+  },
+  removeImagePreload: true,
+})
 ```
 
 ### src

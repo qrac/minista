@@ -1,5 +1,5 @@
 import type { LayoutProps } from "minista/client"
-import { Head } from "minista/client"
+import { Head } from "minista/head"
 
 export default function (props: LayoutProps) {
   return (

@@ -23,18 +23,12 @@ export default function () {
 ## Options
 
 ```js
-// ./minista.config.js (with default options)
-import { pluginSsg } from "minista"
-
-export default {
-  plugins: [
-    pluginSsg({
-      layout: "/src/layouts/index.{tsx,jsx}",
-      src: ["/src/pages/**/*.{tsx,jsx,mdx,md}"],
-      srcBases: ["/src/pages"],
-    }),
-  ],
-}
+// Default
+pluginSsg({
+  layout: "/src/layouts/index.{tsx,jsx}",
+  src: ["/src/pages/**/*.{tsx,jsx,mdx,md}"],
+  srcBases: ["/src/pages"],
+})
 ```
 
 ### layout
@@ -68,7 +62,7 @@ export default {
 
 ```jsx
 // ./src/pages/index.jsx
-import { Head } from "minista/client"
+import { Head } from "minista/head"
 
 export default function () {
   return (
@@ -89,12 +83,12 @@ export default function () {
 
 ## Layout
 
-すべてのページテンプレートをラップするコンポーネント。
+すべてのページテンプレートをラップする JSX 形式のテンプレート。
 
 - `/src/layouts/index.{tsx,jsx}`: デフォルトで使用されるファイル
 - `export default`: 使用されるコンポーネント
 - `export const metadata`: ページとマージして使えるデータ
-- `LayoutProps`: ページとマージされたデータ
+- `props: LayoutProps`: ページとマージされたデータ
 
 ```tsx
 // ./src/layouts/index.tsx
@@ -125,7 +119,7 @@ export default function (props: LayoutProps) {
 - `/src/pages/**/*.{tsx,jsx}`: デフォルトで使用されるファイル
 - `export default`: 使用されるコンポーネント
 - `export const metadata`: レイアウトとマージして使えるデータ
-- `PageProps`: レイアウトとマージされたデータ
+- `props: PageProps`: レイアウトとマージされたデータ
 
 ```tsx
 // ./src/pages/index.tsx

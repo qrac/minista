@@ -1,4 +1,4 @@
-import { Head } from "minista/client"
+import { Head } from "minista/head"
 
 export default function () {
   return (

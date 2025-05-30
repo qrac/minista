@@ -4,12 +4,19 @@
 
 ## How To Use
 
+動作させるには、`@vitejs/plugin-react` が必要です。これによって Island の JavaScript に React の import が自動挿入され、同時に開発モードで Island 内の HMR が効くようになります。
+
+```sh
+$ npm install --save-dev @vitejs/plugin-react
+```
+
 ```js
 // ./minista.config.js
 import { pluginIsland } from "minista"
+import react from "@vitejs/plugin-react"
 
 export default {
-  plugins: [pluginIsland()],
+  plugins: [pluginIsland(), react()],
 }
 ```
 
@@ -25,20 +32,14 @@ export default function () {
 ## Options
 
 ```js
-// ./minista.config.js (with default options)
-import { pluginIsland } from "minista"
-
-export default {
-  plugins: [
-    pluginIsland({
-      useSplitPages: true,
-      outName: "island-[index]",
-      rootAttrName: "island",
-      rootDOMElement: "div",
-      rootStyle: { display: "contents" },
-    }),
-  ],
-}
+// Default
+pluginIsland({
+  useSplitPages: true,
+  outName: "island-[index]",
+  rootAttrName: "island",
+  rootDOMElement: "div",
+  rootStyle: { display: "contents" },
+})
 ```
 
 ### useSplitPages

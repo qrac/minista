@@ -30,7 +30,7 @@ import {
   getBuildBase,
   getBasedAssetUrl,
 } from "../../shared/url.js"
-import { mergeAlias, filterOutputAssets } from "../../shared/vite.js"
+import { filterOutputAssets } from "../../shared/vite.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -47,6 +47,8 @@ export function pluginImageBuild(opts) {
   const targetAttr = "data-minista-image"
   const srcAttr = "data-minista-image-src"
   const optimizeAttr = "data-minista-image-optimize"
+  const cpImagePath = path.resolve(__dirname, "components/image.js")
+  const cpPicturePath = path.resolve(__dirname, "components/picture.js")
 
   let isSsr = false
   let base = "/"
@@ -94,18 +96,7 @@ export function pluginImageBuild(opts) {
       imageDirStr = normalizePath(path.relative(rootDir, imageDir))
       imageCacheFile = path.resolve(imageDir, "cache.json")
 
-      if (isSsr) {
-        return {
-          resolve: {
-            alias: mergeAlias(config, [
-              {
-                find: "minista/client",
-                replacement: path.resolve(__dirname, "../../client.js"),
-              },
-            ]),
-          },
-        }
-      }
+      if (isSsr) return
 
       const ssgFiles = await glob(path.resolve(ssgDir, `*.mjs`))
 
@@ -304,10 +295,6 @@ export function pluginImageBuild(opts) {
     },
     transform(code, id) {
       if (!isSsr) return
-
-      const cpImagePath = path.resolve(__dirname, "components/image.js")
-      const cpPicturePath = path.resolve(__dirname, "components/picture.js")
-
       if (![cpImagePath, cpPicturePath].includes(id)) return
 
       let newCode = code

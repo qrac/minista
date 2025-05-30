@@ -19,7 +19,7 @@ export default {
 
 ```jsx
 // ./src/pages/index.jsx
-import { Head } from "minista/client"
+import { Head } from "minista/head"
 
 export default function () {
   return (
@@ -39,17 +39,11 @@ export default function () {
 ## Options
 
 ```js
-// ./minista.config.js (with default options)
-import { pluginBundle } from "minista"
-
-export default {
-  plugins: [
-    pluginBundle({
-      src: ["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"],
-      outName: "bundle",
-    }),
-  ],
-}
+// Default
+pluginBundle({
+  src: ["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"],
+  outName: "bundle",
+})
 ```
 
 ### src

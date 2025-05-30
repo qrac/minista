@@ -3,7 +3,7 @@
 import { createElement } from "react"
 
 import { resolveAspect } from "../utils/aspect.js"
-import { mergeObj } from "../../../shared/obj.js"
+import { cleanObj, mergeObj } from "../../../shared/obj.js"
 
 const defaultDecoding = "async"
 const defaultLoading = "eager"
@@ -45,7 +45,7 @@ export function Picture({
       : []
   const resolvedAspect = aspect ? resolveAspect(aspect) : undefined
 
-  const optimizeObj = {
+  const optimizeObjRaw = {
     outName,
     remoteName,
     layout,
@@ -59,6 +59,7 @@ export function Picture({
     fit,
     position,
   }
+  const optimizeObj = cleanObj(optimizeObjRaw)
   const optimizeStr = JSON.stringify(mergeObj(defaultOptimize, optimizeObj))
 
   return createElement(
@@ -74,7 +75,7 @@ export function Picture({
 
       if (item.formats && item.formats.length > 0) {
         return item.formats.map((itemFormat, formatIndex) => {
-          const sourceOptimizeObj = {
+          const sourceOptimizeObjRaw = {
             outName: item.outName || outName,
             remoteName: item.remoteName || remoteName,
             layout: item.layout || layout,
@@ -88,6 +89,7 @@ export function Picture({
             fit: item.fit || fit,
             position: item.position || position,
           }
+          const sourceOptimizeObj = cleanObj(sourceOptimizeObjRaw)
           const sourceOptimizeStr = JSON.stringify(
             mergeObj(defaultOptimize, sourceOptimizeObj)
           )
@@ -105,7 +107,7 @@ export function Picture({
           })
         })
       } else {
-        const sourceOptimizeObj = {
+        const sourceOptimizeObjRaw = {
           outName: item.outName || outName,
           remoteName: item.remoteName || remoteName,
           layout: item.layout || layout,
@@ -119,6 +121,7 @@ export function Picture({
           fit: item.fit || fit,
           position: item.position || position,
         }
+        const sourceOptimizeObj = cleanObj(sourceOptimizeObjRaw)
         const sourceOptimizeStr = JSON.stringify(
           mergeObj(defaultOptimize, sourceOptimizeObj)
         )
@@ -137,7 +140,7 @@ export function Picture({
       }
     }),
     otherFormats.map((item, index) => {
-      const sourceOptimizeObj = {
+      const sourceOptimizeObjRaw = {
         outName,
         remoteName,
         layout,
@@ -151,6 +154,7 @@ export function Picture({
         fit,
         position,
       }
+      const sourceOptimizeObj = cleanObj(sourceOptimizeObjRaw)
       const sourceOptimizeStr = JSON.stringify(
         mergeObj(defaultOptimize, sourceOptimizeObj)
       )

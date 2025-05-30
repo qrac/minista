@@ -1,5 +1,5 @@
 import type { Metadata, LayoutProps } from "minista/client"
-import { Head } from "minista/client"
+import { Head } from "minista/head"
 
 export const metadata: Metadata = {
   title: "default title",

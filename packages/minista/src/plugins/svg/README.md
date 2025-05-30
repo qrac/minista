@@ -17,7 +17,7 @@ export default {
 
 ```jsx
 // ./src/pages/index.jsx
-import { Svg } from "minista/client"
+import { Svg } from "minista/assets"
 
 export default function () {
   return <Svg src="/src/assets/square.svg" />
@@ -27,12 +27,8 @@ export default function () {
 ## Options
 
 ```js
-// ./minista.config.js (with default options)
-import { pluginSvg } from "minista"
-
-export default {
-  plugins: [pluginSvg({})],
-}
+// Default
+pluginSvg({})
 ```
 
 ### config
@@ -50,7 +46,7 @@ export default {
 
 ```jsx
 // ./src/pages/index.jsx
-import { Svg } from "minista/client"
+import { Svg } from "minista/assets"
 
 export default function () {
   return <Svg src="/src/assets/square.svg" />
