@@ -120,12 +120,12 @@ export function pluginSpriteBuild(opts) {
       const outputAssets = filterOutputAssets(bundle)
       const beforeSet = new Set(Object.values(spriteMap))
 
-      for (const asset of Object.values(outputAssets)) {
-        const matches = asset.originalFileNames.filter((tag) =>
+      for (const item of Object.values(outputAssets)) {
+        const matches = item.originalFileNames.filter((tag) =>
           beforeSet.has(tag)
         )
         if (matches.length > 0) {
-          entryChanges[matches[0]] = asset.fileName
+          entryChanges[matches[0]] = item.fileName
         }
       }
 

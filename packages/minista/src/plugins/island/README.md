@@ -103,6 +103,8 @@ export default function () {
 }
 ```
 
+※ハイドレーションを行うコンポーネン配下で読み込んだ画像パスはルートパス・または絶対パスとなり、埋め込み用の相対パスは反映されません
+
 ## Client Directive
 
 静的な HTML に変換される JSX の一部を React App として動作させる効果があります。`client:*` ディレクティブ配下では React の `useState` `useEffect` などインタラクティブな実装がすべて使えます。`client:*` ディレクティブは React Components または HTML タグに付与でき、同時に props を渡すことも可能です。

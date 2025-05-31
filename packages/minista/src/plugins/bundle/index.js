@@ -7,6 +7,7 @@ import { pluginBundleBuild } from "./build.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
+  useExportCss: true,
   src: ["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"],
   outName: "bundle",
 }

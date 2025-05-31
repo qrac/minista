@@ -1,6 +1,7 @@
 export { defineConfig } from "vite"
 export { pluginSsg } from "./plugins/ssg/index.js"
 export { pluginBundle } from "./plugins/bundle/index.js"
+export { pluginEntry } from "./plugins/entry/index.js"
 export { pluginMdx } from "./plugins/mdx/index.js"
 export { pluginImage } from "./plugins/image/index.js"
 export { pluginSvg } from "./plugins/svg/index.js"

@@ -10,9 +10,14 @@ import { transformDirectives } from "./utils/directive.js"
 import { decodeSnippet } from "./utils/snippet.js"
 import { getIslandBuildCode } from "./utils/code.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
-import { getRootDir, getTempDir, pathToId } from "../../shared/path.js"
+import {
+  getRootDir,
+  getTempDir,
+  pathToId,
+  idToPath,
+} from "../../shared/path.js"
 import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
-import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
+import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
 
 /**
  * @param {PluginOptions} opts
@@ -183,33 +188,23 @@ export function pluginIslandBuild(opts) {
     generateBundle(options, bundle) {
       if (isSsr) return
 
-      const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
+      const outputAssets = filterOutputAssets(bundle)
       const entryIds = Object.keys(entries)
 
       if (entryIds.length === 0) return
 
-      for (const item of Object.values(outputAssets)) {
-        for (const entryId of entryIds) {
-          if (
-            item.names.some((name) => name.replace(/\.css$/, "") === entryId)
-          ) {
-            const name = path.parse(entries[entryId]).name
-            const nameIndex = name.match(/\d+$/)[0]
-            const newFileName = item.fileName
-              .replace(entryId, opts.outName)
-              .replace(/\[index\]/g, nameIndex)
-            item.fileName = newFileName
-          }
-        }
-      }
+      for (const entryId of entryIds) {
+        const before = idToPath(entryId)
 
-      for (const item of Object.values(outputChunks)) {
-        if (entryIds.includes(item.name) && item.code.trim()) {
-          const name = path.parse(entries[item.name]).name
+        for (const item of Object.values(outputChunks)) {
+          if (item.name !== entryId) continue
+          if (!item.code.trim()) continue
+
+          const name = path.parse(before).name
           const nameIndex = name.match(/\d+$/)[0]
           const newFileName = item.fileName
-            .replace(item.name, opts.outName)
+            .replace(entryId, opts.outName)
             .replace(/\[index\]/g, nameIndex)
           item.fileName = newFileName
           entryChanges[nameIndex] = newFileName
@@ -217,10 +212,17 @@ export function pluginIslandBuild(opts) {
           let importedCssFiles = item.viteMetadata?.importedCss
             ? [...item.viteMetadata?.importedCss]
             : []
-          importedCssFiles = importedCssFiles
-            .map((module) => bundle[module]?.fileName)
-            .filter(Boolean)
-          importedCssMap[nameIndex] = importedCssFiles
+          importedCssFiles = importedCssFiles.map((file) => {
+            const fileName = file
+              .replace(entryId, opts.outName)
+              .replace(/\[index\]/g, nameIndex)
+            outputAssets[file].fileName = fileName
+            return fileName
+          })
+          if (importedCssFiles.length > 0) {
+            importedCssMap[nameIndex] = importedCssFiles
+          }
+          break
         }
       }
 

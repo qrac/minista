@@ -1,10 +1,6 @@
 # pluginBundle
 
-ルートパスの CSS・JavaScript・画像をビルドプロセスに乗せるプラグイン。
-
-- ファイルはプロジェクトの root から [tinyglobby](https://www.npmjs.com/package/tinyglobby) の glob で検索
-- テンプレート内で import した CSS を結合して出力
-- テンプレート内で import した画像を出力
+JSX 内で import した CSS・画像を出力するプラグイン。
 
 ## How To Use
 
@@ -19,20 +15,11 @@ export default {
 
 ```jsx
 // ./src/pages/index.jsx
-import { Head } from "minista/head"
+import "../assets/image.css"
+import iconUrl from "../assets/image.png"
 
 export default function () {
-  return (
-    <>
-      <Head>
-        <link rel="stylesheet" href="/src/assets/style.css" />
-        <script type="module" src="/src/assets/script.ts" />
-      </Head>
-      <div>
-        <img src="/src/assets/image.png" width={76} height={76} />
-      </div>
-    </>
-  )
+  return <img src={iconUrl} alt="icon" width={76} height={76} />
 }
 ```
 
@@ -41,17 +28,25 @@ export default function () {
 ```js
 // Default
 pluginBundle({
+  useExportCss: true,
   src: ["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"],
   outName: "bundle",
 })
 ```
+
+### useExportCss
+
+- 型: `boolean`
+- デフォルト: `true`
+
+import した CSS を結合出力します。
 
 ### src
 
 - 型: `string[]`
 - デフォルト: `["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"]`
 
-import している CSS・画像を検出するテンプレートを glob 形式で指定します。対象ファイルは Vite の機能で glob import されます。
+CSS・画像を検出するテンプレートを glob 形式で指定します。対象ファイルは Vite の機能で glob import されます。
 
 ### outName
 

@@ -4,22 +4,13 @@
 
 import fs from "node:fs"
 import path from "node:path"
-import { glob } from "tinyglobby"
+import { normalizePath } from "vite"
 
 import { getGlobImportCode } from "./utils/code.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
-import {
-  getRootDir,
-  getTempDir,
-  pathToId,
-  idToPath,
-} from "../../shared/path.js"
-import {
-  extractUrls,
-  getBuildBase,
-  getBasedAssetUrl,
-} from "../../shared/url.js"
-import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
+import { getRootDir, getTempDir } from "../../shared/path.js"
+import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
+import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
 
 /**
  * @param {PluginOptions} opts
@@ -30,6 +21,7 @@ export function pluginBundleBuild(opts) {
   const names = ["bundle", "build"]
   const pluginName = getPluginName(names)
   const tempName = getTempName(names)
+  const regImg = /\.(png|jpg|jpeg|gif|bmp|svg|webp)$/i
 
   let isSsr = false
   let base = "/"
@@ -37,13 +29,8 @@ export function pluginBundleBuild(opts) {
   let tempDir = ""
   let globDir = ""
   let globFile = ""
-  let ssgDir = ""
-  /** @type {SsgPage[]} */
-  let ssgPages = []
-  /** @type {{[pathId: string]: string}} */
-  let entries = {}
-  /** @type {{[before: string]: string}} */
-  let entryChanges = {}
+  /** @type {Set<string>} */
+  let importedImageFiles = new Set()
 
   return {
     name: pluginName,
@@ -56,61 +43,8 @@ export function pluginBundleBuild(opts) {
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")
       globFile = path.resolve(globDir, `${tempName}.js`)
-      ssgDir = path.resolve(tempDir, "ssg")
 
       if (isSsr) return
-
-      const ssgFiles = await glob(path.resolve(ssgDir, `*.mjs`))
-
-      if (!ssgFiles.length) return
-
-      ssgPages = (
-        await Promise.all(
-          ssgFiles.map(async (file) => {
-            const { ssgPages } = await import(path.resolve(cwd, file))
-            return ssgPages
-          })
-        )
-      ).flat()
-
-      /** @type {string[]} */
-      let assetNames = []
-      /** @type {{ [pathId: string]: string }} */
-      let preEntries = {}
-
-      for (const ssgPage of ssgPages) {
-        const { html } = ssgPage
-        assetNames = [
-          ...assetNames,
-          ...extractUrls(html, "link", "href", "/"),
-          ...extractUrls(html, "script", "src", "/"),
-          ...extractUrls(html, "img", "src", "/"),
-          ...extractUrls(html, "img", "srcset", "/"),
-          ...extractUrls(html, "source", "srcset", "/"),
-          ...extractUrls(html, "use", "href", "/"),
-        ]
-      }
-      assetNames = [...new Set(assetNames)].map((url) => url.replace(/^\//, ""))
-
-      for (const assetName of assetNames) {
-        const pathId = pathToId(assetName)
-        const fullPath = path.resolve(rootDir, assetName)
-        preEntries[pathId] = fullPath
-      }
-
-      const checks = await Promise.all(
-        Object.entries(preEntries).map(async ([key, value]) => {
-          try {
-            await fs.promises.access(value)
-            return [key, value]
-          } catch {
-            return null
-          }
-        })
-      )
-      for (const pair of checks) {
-        if (pair) entries[pair[0]] = pair[1]
-      }
 
       const code = getGlobImportCode(opts)
       await fs.promises.mkdir(globDir, { recursive: true })
@@ -120,90 +54,72 @@ export function pluginBundleBuild(opts) {
         build: {
           rollupOptions: {
             input: {
-              ...entries,
               [tempName]: globFile,
             },
           },
         },
       }
     },
+    load(id) {
+      if (isSsr) return
+      if (regImg.test(id)) {
+        const relativePath = normalizePath(path.relative(rootDir, id))
+        importedImageFiles.add(relativePath)
+      }
+    },
     generateBundle(options, bundle) {
       if (isSsr) return
 
-      let hasBundle = false
-      let bundleName = ""
-
-      const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
-      const entryIds = Object.keys(entries)
-      const entryPaths = Object.keys(entries).map((key) => idToPath(key))
-      const regImg = /\.(png|jpg|jpeg|gif|bmp|svg|webp)$/i
+      const outputAssets = filterOutputAssets(bundle)
 
-      for (const [key, item] of Object.entries(outputAssets)) {
-        if (item.names.some((name) => name === `${tempName}.css`)) {
-          hasBundle = true
-          bundleName = item.fileName.replace(tempName, opts.outName)
-          item.fileName = bundleName
-          continue
-        }
-        const fromEntryPath = item.originalFileNames.find((name) =>
-          entryPaths.some((entryPath) => entryPath === name)
-        )
-        if (fromEntryPath) {
-          const newName = path.parse(fromEntryPath).name
-          const entryId = pathToId(fromEntryPath)
-          const newFileName = item.fileName.replace(entryId, newName)
-          item.fileName = newFileName
-          entryChanges[fromEntryPath] = newFileName
-          continue
-        }
-      }
+      /** @type {string[]} */
+      let bundleCssFiles = []
+      /** @type {string[]} */
+      let bundleImageFiles = []
 
       for (const [key, item] of Object.entries(outputChunks)) {
-        if (item.name === tempName) {
-          delete bundle[key]
-          continue
-        }
-        if (entryIds.includes(item.name) && item.code.trim()) {
-          const newName = path.parse(entries[item.name]).name
-          const newFileName = item.fileName.replace(item.name, newName)
-          item.fileName = newFileName
-          entryChanges[idToPath(item.name)] = newFileName
-        }
+        if (item.name !== tempName) continue
+        bundleCssFiles = item.viteMetadata?.importedCss
+          ? [...item.viteMetadata?.importedCss]
+          : []
+        delete bundle[key]
+        break
       }
+
+      bundleCssFiles = bundleCssFiles.map((file) => {
+        const fileName = file.replace(tempName, opts.outName)
+        outputAssets[file].fileName = fileName
+        if (!opts.useExportCss) delete bundle[file]
+        return fileName
+      })
+      if (!opts.useExportCss) bundleCssFiles = []
+
+      bundleImageFiles = [...importedImageFiles].map((file) => {
+        const targetItem = Object.values(outputAssets).find((item) =>
+          item.originalFileNames.some((name) => name === file)
+        )
+        return targetItem.fileName
+      })
 
       const htmlItems = Object.values(outputAssets).filter((item) => {
         return item.fileName.endsWith(".html")
-      })
-      const afterMap = new Set(Object.values(entryChanges))
-      const otherImgItems = Object.values(outputAssets).filter((item) => {
-        return regImg.test(item.fileName) && !afterMap.has(item.fileName)
       })
 
       for (const item of htmlItems) {
         const htmlName = item.fileName
         let newHtml = String(item.source)
 
-        if (hasBundle) {
-          const basedAssetUrl = getBasedAssetUrl(base, htmlName, bundleName)
+        for (const file of bundleCssFiles) {
+          const basedAssetUrl = getBasedAssetUrl(base, htmlName, file)
           const linkTag = `<link rel="stylesheet" href="${basedAssetUrl}">`
           newHtml = newHtml.replace("</head>", `${linkTag}</head>`)
         }
 
-        if (Object.keys(entryChanges).length > 0) {
-          for (const [before, after] of Object.entries(entryChanges)) {
-            const basedAssetUrl = getBasedAssetUrl(base, htmlName, after)
-            const regExp = new RegExp(`(<[^>]*?)/${before}([^>]*?>)`, "gs")
-            newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
-          }
-        }
-
-        if (base === "./") {
-          for (const item of otherImgItems) {
-            const before = item.fileName
-            const after = item.fileName
-            const basedAssetUrl = getBasedAssetUrl(base, htmlName, after)
-            const regExp = new RegExp(`(<[^>]*?)/${before}([^>]*?>)`, "gs")
+        if (base === "./" || base === "") {
+          for (const file of bundleImageFiles) {
+            const basedAssetUrl = getBasedAssetUrl(base, htmlName, file)
+            const regExp = new RegExp(`(<[^>]*?)/${file}([^>]*?>)`, "gs")
             newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
           }
         }

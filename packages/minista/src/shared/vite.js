@@ -51,19 +51,6 @@ export function mergeAlias(config, aliases = []) {
 
 /**
  * @param {OutputBundle} bundle
- * @returns {{[key:string]:OutputAsset}}
- */
-export function filterOutputAssets(bundle) {
-  return Object.entries(bundle).reduce((acc, [key, item]) => {
-    if (item.type === "asset") {
-      acc[key] = item
-    }
-    return acc
-  }, /** @type {{[key:string]:OutputAsset}} */ ({}))
-}
-
-/**
- * @param {OutputBundle} bundle
  * @returns {{[key:string]:OutputChunk}}
  */
 export function filterOutputChunks(bundle) {
@@ -73,4 +60,17 @@ export function filterOutputChunks(bundle) {
     }
     return acc
   }, /** @type {{[key:string]:OutputChunk}} */ ({}))
+}
+
+/**
+ * @param {OutputBundle} bundle
+ * @returns {{[key:string]:OutputAsset}}
+ */
+export function filterOutputAssets(bundle) {
+  return Object.entries(bundle).reduce((acc, [key, item]) => {
+    if (item.type === "asset") {
+      acc[key] = item
+    }
+    return acc
+  }, /** @type {{[key:string]:OutputAsset}} */ ({}))
 }
