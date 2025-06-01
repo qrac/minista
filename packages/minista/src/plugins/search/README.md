@@ -4,7 +4,11 @@
 
 ## How To Use
 
-動作させるには、`pluginIsland` の併用と `@vitejs/plugin-react` の追加が必要です。
+動作させるには、`pluginIsland` の併用と以下パッケージのいずれが必要です。
+
+- `@vitejs/plugin-react`
+- `@vitejs/plugin-react-swc`
+- `@vitejs/plugin-react-oxc`
 
 ```sh
 $ npm install --save-dev @vitejs/plugin-react

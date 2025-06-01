@@ -24,7 +24,7 @@ import { getView } from "./utils/view.js"
 import { getPatternMap, getPatternAttrs } from "./utils/pattern.js"
 import { runSharp } from "./utils/sharp.js"
 import { getPluginName } from "../../shared/name.js"
-import { getRootDir, getTempDir, pathToId } from "../../shared/path.js"
+import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
   extractUrls,
   getBuildBase,
@@ -255,15 +255,14 @@ export function pluginImageBuild(opts) {
                 const inFullPath = path.resolve(rootDir, recipe.fileName)
                 const outFullPath = path.resolve(imageDir, pattern.fileName)
                 const outDir = path.dirname(outFullPath)
-                const logPath = path.relative(rootDir, outFullPath)
-                const pathId = pathToId(outFullPath)
+                const pathId = path.relative(rootDir, outFullPath)
 
                 if (Object.hasOwn(recipe.usedPatternMap, patternHash)) {
                   entries[pathId] = outFullPath
                   delete recipe.patternMap[patternHash]
                   return
                 }
-                console.log(pc.gray(`[generate] ${logPath}`))
+                console.log(pc.gray(`[generate] ${pathId}`))
 
                 const buffer = await runSharp(inFullPath, pattern)
                 await fs.promises.mkdir(outDir, { recursive: true })

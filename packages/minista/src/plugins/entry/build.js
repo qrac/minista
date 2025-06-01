@@ -5,19 +5,16 @@
 import fs from "node:fs"
 import path from "node:path"
 import { glob } from "tinyglobby"
+import { normalizePath } from "vite"
 
 import { getPluginName } from "../../shared/name.js"
-import {
-  getRootDir,
-  getTempDir,
-  pathToId,
-  idToPath,
-} from "../../shared/path.js"
+import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
   extractUrls,
   getBuildBase,
   getBasedAssetUrl,
 } from "../../shared/url.js"
+import { regScript, regImage } from "../../shared/reg.js"
 import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
 
 /**
@@ -28,7 +25,6 @@ export function pluginEntryBuild(opts) {
   const cwd = process.cwd()
   const names = ["entry", "build"]
   const pluginName = getPluginName(names)
-  const regImg = /\.(png|jpg|jpeg|gif|bmp|svg|webp)$/i
 
   let isSsr = false
   let base = "/"
@@ -90,7 +86,9 @@ export function pluginEntryBuild(opts) {
       assetNames = [...new Set(assetNames)].map((url) => url.replace(/^\//, ""))
 
       for (const assetName of assetNames) {
-        const pathId = pathToId(assetName)
+        const pathId = regScript.test(assetName)
+          ? path.parse(assetName).name
+          : assetName
         const fullPath = path.resolve(rootDir, assetName)
         preEntries[pathId] = fullPath
       }
@@ -129,26 +127,19 @@ export function pluginEntryBuild(opts) {
       if (entryIds.length === 0) return
 
       for (const entryId of entryIds) {
-        const before = idToPath(entryId)
-
         for (const item of Object.values(outputChunks)) {
           if (item.name !== entryId) continue
           if (!item.code.trim()) continue
 
-          const name = path.parse(before).name
-          const newFileName = item.fileName.replace(entryId, name)
-
-          item.fileName = newFileName
+          const before = normalizePath(
+            path.relative(rootDir, item.facadeModuleId)
+          )
+          const newFileName = item.fileName
           entryChanges[before] = newFileName
 
           let importedCssFiles = item.viteMetadata?.importedCss
             ? [...item.viteMetadata?.importedCss]
             : []
-          importedCssFiles = importedCssFiles.map((file) => {
-            const fileName = file.replace(entryId, name)
-            outputAssets[file].fileName = fileName
-            return fileName
-          })
           if (importedCssFiles.length > 0) {
             importedCssMap[before] = importedCssFiles
           }
@@ -156,13 +147,9 @@ export function pluginEntryBuild(opts) {
         }
 
         for (const item of Object.values(outputAssets)) {
-          if (!item.originalFileNames.includes(before)) continue
-
-          const name = path.parse(before).name
-          const newFileName = item.fileName.replace(entryId, name)
-
-          item.fileName = newFileName
-          entryChanges[before] = newFileName
+          if (!item.originalFileNames.includes(entryId)) continue
+          const newFileName = item.fileName
+          entryChanges[entryId] = newFileName
           break
         }
       }

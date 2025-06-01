@@ -4,7 +4,13 @@
 
 ## How To Use
 
-動作させるには、`@vitejs/plugin-react` が必要です。これによって Island の JavaScript に React の import が自動挿入され、同時に開発モードで Island 内の HMR が効くようになります。
+動作させるには以下パッケージのいずれが必要です。
+
+- `@vitejs/plugin-react`
+- `@vitejs/plugin-react-swc`
+- `@vitejs/plugin-react-oxc`
+
+これによって Island の JavaScript に React の import が自動挿入され、同時に開発モードで Island 内の HMR が効くようになります。
 
 ```sh
 $ npm install --save-dev @vitejs/plugin-react

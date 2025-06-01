@@ -10,7 +10,7 @@ import { parse as parseHtml } from "node-html-parser"
 
 import { generateSprite } from "./utils/sprite.js"
 import { getPluginName } from "../../shared/name.js"
-import { getRootDir, getTempDir, pathToId } from "../../shared/path.js"
+import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
   extractUrls,
   getBuildBase,
@@ -102,7 +102,7 @@ export function pluginSpriteBuild(opts) {
           const fullPath = path.resolve(spriteDir, `${name}.svg`)
           const sprite = await generateSprite(targetDir, opts.config)
           await fs.promises.writeFile(fullPath, sprite, "utf8")
-          const pathId = pathToId(fullPath)
+          const pathId = normalizePath(path.relative(rootDir, fullPath))
           entries[pathId] = fullPath
         })
       )

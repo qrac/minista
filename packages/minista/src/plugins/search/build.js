@@ -10,7 +10,7 @@ import { normalizePath } from "vite"
 import { parse as parseHtml } from "node-html-parser"
 
 import { getSearchData } from "./utils/data.js"
-import { getPluginName, getTempName } from "../../shared/name.js"
+import { getPluginName } from "../../shared/name.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import { getBuildBase } from "../../shared/url.js"
 import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
@@ -26,7 +26,6 @@ export function pluginSearchBuild(opts) {
   const cwd = process.cwd()
   const names = ["search", "build"]
   const pluginName = getPluginName(names)
-  const tempName = getTempName(names)
   const cpSearchPath = path.resolve(__dirname, "components/search.js")
 
   let isSsr = false
@@ -38,6 +37,8 @@ export function pluginSearchBuild(opts) {
   let ssgPages = []
   let searchDir = ""
   let searchFile = ""
+  let before = ""
+  let after = ""
 
   return {
     name: pluginName,
@@ -50,7 +51,7 @@ export function pluginSearchBuild(opts) {
       tempDir = getTempDir(cwd, rootDir)
       ssgDir = path.resolve(tempDir, "ssg")
       searchDir = path.resolve(tempDir, "search")
-      searchFile = path.resolve(searchDir, `${tempName}.txt`)
+      searchFile = path.resolve(searchDir, `${opts.outName}.txt`)
 
       if (isSsr) return
 
@@ -70,6 +71,7 @@ export function pluginSearchBuild(opts) {
       if (!ssgPages.length) return
 
       const fullPath = path.resolve(searchDir, searchFile)
+      const pathId = normalizePath(path.relative(rootDir, fullPath))
       const searchData = getSearchData(ssgPages, opts)
       await fs.promises.mkdir(searchDir, { recursive: true })
       await fs.promises.writeFile(fullPath, JSON.stringify(searchData), "utf8")
@@ -78,7 +80,7 @@ export function pluginSearchBuild(opts) {
         build: {
           rollupOptions: {
             input: {
-              [tempName]: searchFile,
+              [pathId]: searchFile,
             },
           },
         },
@@ -87,8 +89,7 @@ export function pluginSearchBuild(opts) {
     generateBundle(options, bundle) {
       if (isSsr) return
 
-      let before = normalizePath(path.relative(rootDir, searchFile))
-      let after = ""
+      before = normalizePath(path.relative(rootDir, searchFile))
 
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
@@ -97,7 +98,6 @@ export function pluginSearchBuild(opts) {
         return item.originalFileNames.some((name) => name === before)
       })
       if (afterItem) {
-        afterItem.fileName = afterItem.fileName.replace(tempName, opts.outName)
         afterItem.fileName = afterItem.fileName.replace(/\.txt$/, ".json")
         after = afterItem.fileName
       }
@@ -128,18 +128,32 @@ export function pluginSearchBuild(opts) {
         item.source = parsedHtml.toString()
       }
     },
+    async writeBundle(options, bundle) {
+      if (isSsr) return
+
+      const outputAssets = filterOutputAssets(bundle)
+
+      const afterItem = Object.values(outputAssets).find((item) => {
+        return item.originalFileNames.some((name) => name === before)
+      })
+      if (afterItem) {
+        const oldPath = path.resolve(options.dir, afterItem.fileName)
+        const newPath = oldPath.replace(/\.txt$/, ".json")
+        await fs.promises.rename(oldPath, newPath)
+      }
+    },
     transform(code, id) {
       if (![cpSearchPath].includes(id)) return
 
       let newCode = code
 
       const regApply = /(const apply = )"serve"/
-      const relativeAttr = /(const relativeAttr = )"data-search-relative"/
-      const inputAttr = /(const inputAttr = )"data-search-input"/
+      const regRelativeAttr = /(const relativeAttr = )"data-search-relative"/
+      const regInputAttr = /(const inputAttr = )"data-search-input"/
 
       newCode = newCode.replace(regApply, `$1"build"`)
-      newCode = newCode.replace(relativeAttr, `$1"${opts.relativeAttr}"`)
-      newCode = newCode.replace(inputAttr, `$1"${opts.inputAttr}"`)
+      newCode = newCode.replace(regRelativeAttr, `$1"${opts.relativeAttr}"`)
+      newCode = newCode.replace(regInputAttr, `$1"${opts.inputAttr}"`)
       return newCode
     },
   }

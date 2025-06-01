@@ -5,17 +5,13 @@
 import fs from "node:fs"
 import path from "node:path"
 import { glob } from "tinyglobby"
+import { normalizePath } from "vite"
 
 import { transformDirectives } from "./utils/directive.js"
 import { decodeSnippet } from "./utils/snippet.js"
 import { getIslandBuildCode } from "./utils/code.js"
 import { getPluginName, getTempName } from "../../shared/name.js"
-import {
-  getRootDir,
-  getTempDir,
-  pathToId,
-  idToPath,
-} from "../../shared/path.js"
+import { getRootDir, getTempDir } from "../../shared/path.js"
 import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
 import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
 
@@ -144,12 +140,15 @@ export function pluginIslandBuild(opts) {
       )
       await Promise.all(
         Object.entries(patternIndexMap).map(async ([patternId, index]) => {
-          const fileName = `${tempName}${index}.tsx`
+          const fileName = `${opts.outName}.tsx`.replace(
+            /\[index\]/g,
+            String(index)
+          )
           const fullPath = path.resolve(islandDir, fileName)
           const pattern = patternId.split(",").map((i) => Number(i))
           const code = getIslandBuildCode(pattern, opts)
           await fs.promises.writeFile(fullPath, code, "utf8")
-          const pathId = pathToId(fullPath)
+          const pathId = path.parse(fileName).name
           entries[pathId] = fullPath
         })
       )
@@ -195,32 +194,22 @@ export function pluginIslandBuild(opts) {
       if (entryIds.length === 0) return
 
       for (const entryId of entryIds) {
-        const before = idToPath(entryId)
-
         for (const item of Object.values(outputChunks)) {
           if (item.name !== entryId) continue
           if (!item.code.trim()) continue
 
-          const name = path.parse(before).name
-          const nameIndex = name.match(/\d+$/)[0]
+          const before = normalizePath(
+            path.relative(rootDir, item.facadeModuleId)
+          )
+          const patternIndex = entryId.match(/(\d+)(?!.*\d)/)[0] || "1"
           const newFileName = item.fileName
-            .replace(entryId, opts.outName)
-            .replace(/\[index\]/g, nameIndex)
-          item.fileName = newFileName
-          entryChanges[nameIndex] = newFileName
+          entryChanges[patternIndex] = newFileName
 
           let importedCssFiles = item.viteMetadata?.importedCss
             ? [...item.viteMetadata?.importedCss]
             : []
-          importedCssFiles = importedCssFiles.map((file) => {
-            const fileName = file
-              .replace(entryId, opts.outName)
-              .replace(/\[index\]/g, nameIndex)
-            outputAssets[file].fileName = fileName
-            return fileName
-          })
           if (importedCssFiles.length > 0) {
-            importedCssMap[nameIndex] = importedCssFiles
+            importedCssMap[patternIndex] = importedCssFiles
           }
           break
         }

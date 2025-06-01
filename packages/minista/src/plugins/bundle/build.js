@@ -7,9 +7,10 @@ import path from "node:path"
 import { normalizePath } from "vite"
 
 import { getGlobImportCode } from "./utils/code.js"
-import { getPluginName, getTempName } from "../../shared/name.js"
+import { getPluginName } from "../../shared/name.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
+import { regImage } from "../../shared/reg.js"
 import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
 
 /**
@@ -20,8 +21,6 @@ export function pluginBundleBuild(opts) {
   const cwd = process.cwd()
   const names = ["bundle", "build"]
   const pluginName = getPluginName(names)
-  const tempName = getTempName(names)
-  const regImg = /\.(png|jpg|jpeg|gif|bmp|svg|webp)$/i
 
   let isSsr = false
   let base = "/"
@@ -42,7 +41,7 @@ export function pluginBundleBuild(opts) {
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")
-      globFile = path.resolve(globDir, `${tempName}.js`)
+      globFile = path.resolve(globDir, `${opts.outName}.js`)
 
       if (isSsr) return
 
@@ -54,7 +53,7 @@ export function pluginBundleBuild(opts) {
         build: {
           rollupOptions: {
             input: {
-              [tempName]: globFile,
+              [opts.outName]: globFile,
             },
           },
         },
@@ -62,7 +61,7 @@ export function pluginBundleBuild(opts) {
     },
     load(id) {
       if (isSsr) return
-      if (regImg.test(id)) {
+      if (regImage.test(id)) {
         const relativePath = normalizePath(path.relative(rootDir, id))
         importedImageFiles.add(relativePath)
       }
@@ -74,28 +73,26 @@ export function pluginBundleBuild(opts) {
       const outputAssets = filterOutputAssets(bundle)
 
       /** @type {string[]} */
-      let bundleCssFiles = []
+      let cssFiles = []
       /** @type {string[]} */
-      let bundleImageFiles = []
+      let imageFiles = []
 
       for (const [key, item] of Object.entries(outputChunks)) {
-        if (item.name !== tempName) continue
-        bundleCssFiles = item.viteMetadata?.importedCss
+        if (item.facadeModuleId !== globFile) continue
+        cssFiles = item.viteMetadata?.importedCss
           ? [...item.viteMetadata?.importedCss]
           : []
         delete bundle[key]
         break
       }
+      if (!opts.useExportCss) {
+        for (const file of cssFiles) {
+          delete bundle[file]
+        }
+        cssFiles = []
+      }
 
-      bundleCssFiles = bundleCssFiles.map((file) => {
-        const fileName = file.replace(tempName, opts.outName)
-        outputAssets[file].fileName = fileName
-        if (!opts.useExportCss) delete bundle[file]
-        return fileName
-      })
-      if (!opts.useExportCss) bundleCssFiles = []
-
-      bundleImageFiles = [...importedImageFiles].map((file) => {
+      imageFiles = [...importedImageFiles].map((file) => {
         const targetItem = Object.values(outputAssets).find((item) =>
           item.originalFileNames.some((name) => name === file)
         )
@@ -110,14 +107,14 @@ export function pluginBundleBuild(opts) {
         const htmlName = item.fileName
         let newHtml = String(item.source)
 
-        for (const file of bundleCssFiles) {
+        for (const file of cssFiles) {
           const basedAssetUrl = getBasedAssetUrl(base, htmlName, file)
           const linkTag = `<link rel="stylesheet" href="${basedAssetUrl}">`
           newHtml = newHtml.replace("</head>", `${linkTag}</head>`)
         }
 
         if (base === "./" || base === "") {
-          for (const file of bundleImageFiles) {
+          for (const file of imageFiles) {
             const basedAssetUrl = getBasedAssetUrl(base, htmlName, file)
             const regExp = new RegExp(`(<[^>]*?)/${file}([^>]*?>)`, "gs")
             newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)

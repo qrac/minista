@@ -58,10 +58,10 @@ export function pluginSearchServe(opts) {
       let newCode = code
 
       const regBase = /(const base = )"\/"/
-      const inputAttr = /(const inputAttr = )"data-search-input"/
+      const regInputAttr = /(const inputAttr = )"data-search-input"/
 
       newCode = newCode.replace(regBase, `$1"${base}"`)
-      newCode = newCode.replace(inputAttr, `$1"${opts.inputAttr}"`)
+      newCode = newCode.replace(regInputAttr, `$1"${opts.inputAttr}"`)
       return newCode
     },
   }
