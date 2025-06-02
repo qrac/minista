@@ -5,6 +5,17 @@ const common = defineConfig({
   plugins: [pluginSsg(), pluginIsland(), pluginSearch(), react()],
 })
 
+const preactAlias = [
+  {
+    find: "react",
+    replacement: "preact/compat",
+  },
+  {
+    find: "react-dom",
+    replacement: "preact/compat",
+  },
+]
+
 export default defineConfig(({ command, isSsrBuild }) => {
   if (command === "serve") return { ...common }
   if (command === "build" && isSsrBuild) return { ...common }
@@ -26,13 +37,17 @@ export default defineConfig(({ command, isSsrBuild }) => {
             advancedChunks: {
               groups: [
                 //{ name: "react", test: /\/react(?:-dom)\// },
-                { name: "react", test: /\/react\// },
-                { name: "react-dom", test: /\/react-dom\// },
+                //{ name: "react", test: /\/react\// },
+                //{ name: "react-dom", test: /\/react-dom\// },
+                { name: "preact", test: /\/preact\// },
                 { name: "minista", test: /\/minista\/src\// },
               ],
             },
           },
         },
+      },
+      resolve: {
+        alias: preactAlias,
       },
     }
   }
