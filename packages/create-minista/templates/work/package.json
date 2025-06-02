@@ -1,0 +1,25 @@
+{
+  "name": "minista-project",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "minista --host",
+    "build": "minista build",
+    "preview": "minista preview"
+  },
+  "dependencies": {
+    "preact": "^10.26.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react-oxc": "^0.2.0",
+    "minista": "^4.0.0-alpha.13",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "rolldown-vite": "^6.3.16",
+    "typescript": "^5.8.3",
+    "vite": "npm:rolldown-vite@latest"
+  }
+}

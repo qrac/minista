@@ -1,0 +1,38 @@
+{
+  "name": "create-minista",
+  "version": "4.0.0-alpha.13",
+  "type": "module",
+  "bin": {
+    "create-minista": "./bin/create-minista.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "license": "MIT",
+  "homepage": "https://minista.qranoko.jp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qrac/minista",
+    "directory": "packages/create-minista"
+  },
+  "bugs": {
+    "url": "https://github.com/qrac/minista/issues"
+  },
+  "keywords": [
+    "static-site-generator",
+    "ssg",
+    "react",
+    "vite-plugin",
+    "minista"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cac": "^6.7.14",
+    "degit": "^2.8.4",
+    "picocolors": "^1.1.1",
+    "prompts": "^2.4.2"
+  }
+}
