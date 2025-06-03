@@ -9,7 +9,7 @@
 
 import fs from "node:fs"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
+import { pathToFileURL, fileURLToPath } from "node:url"
 import { glob } from "tinyglobby"
 import pc from "picocolors"
 import { normalizePath } from "vite"
@@ -47,8 +47,12 @@ export function pluginImageBuild(opts) {
   const targetAttr = "data-minista-image"
   const srcAttr = "data-minista-image-src"
   const optimizeAttr = "data-minista-image-optimize"
-  const cpImagePath = path.resolve(__dirname, "components/image.js")
-  const cpPicturePath = path.resolve(__dirname, "components/picture.js")
+  const cpImagePath = normalizePath(
+    path.resolve(__dirname, "components/image.js")
+  )
+  const cpPicturePath = normalizePath(
+    path.resolve(__dirname, "components/picture.js")
+  )
 
   let isSsr = false
   let base = "/"
@@ -98,14 +102,15 @@ export function pluginImageBuild(opts) {
 
       if (isSsr) return
 
-      const ssgFiles = await glob(path.resolve(ssgDir, `*.mjs`))
+      const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
 
       if (!ssgFiles.length) return
 
       ssgPages = (
         await Promise.all(
           ssgFiles.map(async (file) => {
-            const { ssgPages } = await import(path.resolve(cwd, file))
+            const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
+            const { ssgPages } = await import(ssgFileUrl)
             return ssgPages
           })
         )
@@ -262,7 +267,7 @@ export function pluginImageBuild(opts) {
                   delete recipe.patternMap[patternHash]
                   return
                 }
-                console.log(pc.gray(`[generate] ${pathId}`))
+                console.log(pc.gray(`[generate] ${normalizePath(pathId)}`))
 
                 const buffer = await runSharp(inFullPath, pattern)
                 await fs.promises.mkdir(outDir, { recursive: true })
@@ -376,7 +381,7 @@ export function pluginImageBuild(opts) {
           el.removeAttribute(optimizeAttr)
 
           if (tagName === "img") {
-            const after = entryChangeMap[attrs.src]
+            const after = entryChangeMap[imageDirStr + "/" + attrs.src]
             const assetUrl = getBasedAssetUrl(base, htmlName, after)
             el.setAttribute("src", assetUrl)
           }

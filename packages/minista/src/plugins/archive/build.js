@@ -79,7 +79,10 @@ export function pluginArchiveBuild(opts) {
 
             const rel = path.relative(rootDir, path.dirname(finalPath))
             console.log(
-              pc.gray(rel + path.sep) + pc.green(path.basename(finalPath))
+              pc.gray(
+                normalizePath(rel + path.sep) +
+                  pc.green(path.basename(finalPath))
+              )
             )
           } catch (err) {
             console.error(

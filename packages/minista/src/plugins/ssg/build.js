@@ -4,6 +4,7 @@
 
 import fs from "node:fs"
 import path from "node:path"
+import { pathToFileURL } from "url"
 
 import { getGlobImportCode, getSsgExportCode } from "./utils/code.js"
 import { formatLayout, resolveLayout } from "./utils/layout.js"
@@ -80,7 +81,8 @@ export function pluginSsgBuild(opts) {
       }
 
       if (!isSsr) {
-        const { LAYOUTS = {}, PAGES = {} } = await import(ssrFile)
+        const importUrl = pathToFileURL(ssrFile).href
+        const { LAYOUTS = {}, PAGES = {} } = await import(importUrl)
         const formatedLayout = formatLayout(LAYOUTS)
         const resolvedLayout = await resolveLayout(formatedLayout)
         const formatedPages = formatPages(PAGES, opts)

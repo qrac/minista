@@ -4,6 +4,7 @@
 
 import fs from "node:fs"
 import path from "node:path"
+import { pathToFileURL } from "url"
 import { glob } from "tinyglobby"
 import { normalizePath } from "vite"
 
@@ -70,21 +71,23 @@ export function pluginIslandBuild(opts) {
 
       if (isSsr) return
 
+      const snippetsFileUrl = pathToFileURL(snippetsFile).href
       /** @type {{ssrSnippetList: string[]}} */
-      const { ssrSnippetList } = await import(snippetsFile)
+      const { ssrSnippetList } = await import(snippetsFileUrl)
 
       snippetList = ssrSnippetList
 
       if (!snippetList || snippetList.length === 0) return
 
-      const ssgFiles = await glob(path.resolve(ssgDir, `*.mjs`))
+      const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
 
       if (!ssgFiles.length) return
 
       ssgPages = (
         await Promise.all(
           ssgFiles.map(async (file) => {
-            const { ssgPages } = await import(path.resolve(cwd, file))
+            const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
+            const { ssgPages } = await import(ssgFileUrl)
             return ssgPages
           })
         )

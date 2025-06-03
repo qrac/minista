@@ -78,7 +78,7 @@ export function pluginBundleBuild(opts) {
       let imageFiles = []
 
       for (const [key, item] of Object.entries(outputChunks)) {
-        if (item.facadeModuleId !== globFile) continue
+        if (item.facadeModuleId !== normalizePath(globFile)) continue
         cssFiles = item.viteMetadata?.importedCss
           ? [...item.viteMetadata?.importedCss]
           : []

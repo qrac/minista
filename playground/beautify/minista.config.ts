@@ -1,4 +1,10 @@
-import { defineConfig, pluginSsg, pluginBundle, pluginBeautify } from "minista"
+import {
+  defineConfig,
+  pluginSsg,
+  pluginBundle,
+  pluginEntry,
+  pluginBeautify,
+} from "minista"
 
 export default defineConfig({
   build: {
@@ -6,9 +12,9 @@ export default defineConfig({
     assetsInlineLimit: 0,
     rollupOptions: {
       output: {
-        minifyInternalExports: false,
+        //minifyInternalExports: false,
       },
     },
   },
-  plugins: [pluginSsg(), pluginBundle(), pluginBeautify()],
+  plugins: [pluginSsg(), pluginBundle(), pluginEntry(), pluginBeautify()],
 })

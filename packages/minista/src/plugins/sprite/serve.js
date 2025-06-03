@@ -55,7 +55,7 @@ export function pluginSpriteServe(opts) {
           alias: mergeAlias(config, [
             {
               find: spriteAlias,
-              replacement: spriteDir,
+              replacement: normalizePath(spriteDir),
             },
           ]),
         },
@@ -104,7 +104,7 @@ export function pluginSpriteServe(opts) {
           if (!watchDirs.has(watchDir)) {
             const name = path.basename(assetDirName)
             const fullPath = path.resolve(spriteDir, `${name}.svg`)
-            const sprite = await generateSprite(spriteDir, opts.config)
+            const sprite = await generateSprite(watchDir, opts.config)
             await fs.promises.writeFile(fullPath, sprite, "utf8")
             watchDirs.add(watchDir)
             if (viteServer) {

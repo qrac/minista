@@ -5,6 +5,7 @@
 
 import fs from "node:fs"
 import path from "node:path"
+import { normalizePath } from "vite"
 
 import { transformDirectives } from "./utils/directive.js"
 import { decodeSnippet } from "./utils/snippet.js"
@@ -52,7 +53,7 @@ export function pluginIslandServe(opts) {
           alias: mergeAlias(config, [
             {
               find: islandAlias,
-              replacement: islandDir,
+              replacement: normalizePath(islandDir),
             },
           ]),
         },

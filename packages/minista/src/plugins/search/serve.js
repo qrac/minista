@@ -5,6 +5,7 @@
 
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { normalizePath } from "vite"
 
 import { getSearchData } from "./utils/data.js"
 import { getPluginName } from "../../shared/name.js"
@@ -22,7 +23,9 @@ export function pluginSearchServe(opts) {
   const cwd = process.cwd()
   const names = ["search", "serve"]
   const pluginName = getPluginName(names)
-  const cpSearchPath = path.resolve(__dirname, "components/search.js")
+  const cpSearchPath = normalizePath(
+    path.resolve(__dirname, "components/search.js")
+  )
 
   let base = "/"
   let rootDir = ""

@@ -62,6 +62,7 @@
     "@mdx-js/rollup": "^3.1.0",
     "@swc/core": "^1.11.29",
     "archiver": "^7.0.1",
+    "cross-spawn": "^7.0.6",
     "image-size": "^2.0.2",
     "js-beautify": "^1.15.4",
     "mime-types": "^3.0.1",

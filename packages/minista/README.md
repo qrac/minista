@@ -105,9 +105,9 @@ export default defineConfig(({ command, isSsrBuild }) => {
 minista の各機能は同封されているプラグインをコンフィグに登録することで動作します。使い方は各ディレクトリの README.md を参照ください。
 
 - [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/ssg): React の JSX を静的な HTML に変換
+- [pluginMdx](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/mdx): MDX・Markdown を HTML の変換に対応させる
 - [pluginBundle](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/bundle): JSX 内で import した CSS・画像を出力
 - [pluginEntry](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/entry): CSS・JS・画像をビルドプロセスに乗せる
-- [pluginMdx](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/mdx): MDX・Markdown の HTML 変換に対応
 - [pluginImage](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/image): 画像を最適化・リモート画像をダウンロード
 - [pluginSvg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/svg): SVG ファイルを HTML にインライン展開
 - [pluginSprite](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/sprite): SVG ファイルを スプライト化して出力

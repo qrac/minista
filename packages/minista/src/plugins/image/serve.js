@@ -43,8 +43,12 @@ export function pluginImageServe(opts) {
   const targetAttr = "data-minista-image"
   const srcAttr = "data-minista-image-src"
   const optimizeAttr = "data-minista-image-optimize"
-  const cpImagePath = path.resolve(__dirname, "components/image.js")
-  const cpPicturePath = path.resolve(__dirname, "components/picture.js")
+  const cpImagePath = normalizePath(
+    path.resolve(__dirname, "components/image.js")
+  )
+  const cpPicturePath = normalizePath(
+    path.resolve(__dirname, "components/picture.js")
+  )
 
   let base = "/"
   let rootDir = ""
@@ -89,7 +93,7 @@ export function pluginImageServe(opts) {
           alias: mergeAlias(config, [
             {
               find: imageAlias,
-              replacement: imageDir,
+              replacement: normalizePath(imageDir),
             },
           ]),
         },
@@ -243,7 +247,7 @@ export function pluginImageServe(opts) {
                   delete recipe.patternMap[patternHash]
                   return
                 }
-                console.log(pc.gray(`[generate] ${logPath}`))
+                console.log(pc.gray(`[generate] ${normalizePath(logPath)}`))
 
                 const buffer = await runSharp(inFullPath, imageCreate)
                 await fs.promises.mkdir(outDir, { recursive: true })
