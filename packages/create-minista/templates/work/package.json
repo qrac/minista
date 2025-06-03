@@ -15,7 +15,7 @@
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react-oxc": "^0.2.1",
-    "minista": "^4.0.0-alpha.14",
+    "minista": "^4.0.0-alpha.15",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "rolldown-vite": "^6.3.16",
