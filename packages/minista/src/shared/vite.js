@@ -1,8 +1,8 @@
 /** @typedef {import('vite').UserConfig} UserConfig */
 /** @typedef {import('vite').Alias} Alias */
-/** @typedef {import('rollup').OutputBundle} OutputBundle */
-/** @typedef {import('rollup').OutputAsset} OutputAsset */
-/** @typedef {import('rollup').OutputChunk} OutputChunk */
+/** @typedef {import('rolldown').OutputBundle} OutputBundle */
+/** @typedef {import('rolldown').OutputAsset} OutputAsset */
+/** @typedef {import('rolldown').OutputChunk} OutputChunk */
 
 /**
  * @param {UserConfig} config
