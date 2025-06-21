@@ -116,7 +116,10 @@ export function pluginBundleBuild(opts) {
         if (base === "./" || base === "") {
           for (const file of imageFiles) {
             const basedAssetUrl = getBasedAssetUrl(base, htmlName, file)
-            const regExp = new RegExp(`(<[^>]*?)/${file}([^>]*?>)`, "gs")
+            const regExp = new RegExp(
+              `(<[^>]*?)(?<!\\.)/${file}([^>]*?>)`,
+              "gs"
+            )
             newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
           }
         }

@@ -166,7 +166,10 @@ export function pluginEntryBuild(opts) {
 
         for (const [before, after] of Object.entries(entryChanges)) {
           const basedAssetUrl = getBasedAssetUrl(base, htmlName, after)
-          const regExp = new RegExp(`(<[^>]*?)/${before}([^>]*?>)`, "gs")
+          const regExp = new RegExp(
+            `(<[^>]*?)(?<!\\.)/${before}([^>]*?>)`,
+            "gs"
+          )
           newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
 
           if (!Object.hasOwn(importedCssMap, before)) continue
