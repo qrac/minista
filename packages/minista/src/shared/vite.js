@@ -1,5 +1,5 @@
-/** @typedef {import('vite').UserConfig} UserConfig */
-/** @typedef {import('vite').Alias} Alias */
+/** @typedef {import('rolldown-vite').UserConfig} UserConfig */
+/** @typedef {import('rolldown-vite').Alias} Alias */
 /** @typedef {import('rolldown').OutputBundle} OutputBundle */
 /** @typedef {import('rolldown').OutputAsset} OutputAsset */
 /** @typedef {import('rolldown').OutputChunk} OutputChunk */

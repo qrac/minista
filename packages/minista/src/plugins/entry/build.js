@@ -1,4 +1,4 @@
-/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('rolldown-vite').Plugin} Plugin */
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('../ssg/types.js').SsgPage} SsgPage */
 

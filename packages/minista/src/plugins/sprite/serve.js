@@ -1,5 +1,5 @@
-/** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('vite').ViteDevServer} ViteDevServer */
+/** @typedef {import('rolldown-vite').Plugin} Plugin */
+/** @typedef {import('rolldown-vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 
 import fs from "node:fs"
