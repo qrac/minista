@@ -3,6 +3,7 @@ import {
   pluginSsg,
   pluginEntry,
   //pluginSprite,
+  //pluginComment,
   //pluginIsland,
   pluginBeautify,
   pluginArchive,
@@ -14,6 +15,7 @@ const common = defineConfig({
     pluginSsg(),
     pluginEntry(),
     //pluginSprite(),
+    //pluginComment(),
     //pluginIsland(),
     pluginBeautify(),
     pluginArchive({
