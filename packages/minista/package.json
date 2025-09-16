@@ -59,8 +59,8 @@
     "vite": ">=6.3.0"
   },
   "dependencies": {
-    "@mdx-js/rollup": "^3.1.0",
-    "@swc/core": "^1.12.4",
+    "@mdx-js/rollup": "^3.1.1",
+    "@swc/core": "^1.13.5",
     "archiver": "^7.0.1",
     "cross-spawn": "^7.0.6",
     "image-size": "^2.0.2",
@@ -69,11 +69,11 @@
     "mojigiri": "^0.3.0",
     "node-html-parser": "^7.0.1",
     "picocolors": "^1.1.1",
-    "picomatch": "^4.0.2",
+    "picomatch": "^4.0.3",
     "remark-frontmatter": "^5.0.0",
     "remark-mdx-frontmatter": "^5.2.0",
-    "sharp": "^0.34.2",
-    "svgo": "^3.3.2",
-    "tinyglobby": "^0.2.14"
+    "sharp": "^0.34.3",
+    "svgo": "^4.0.0",
+    "tinyglobby": "^0.2.15"
   }
 }
