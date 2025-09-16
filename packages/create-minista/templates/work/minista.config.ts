@@ -8,7 +8,7 @@ import {
   pluginBeautify,
   pluginArchive,
 } from "minista"
-import react from "@vitejs/plugin-react-oxc"
+import react from "@vitejs/plugin-react"
 
 const common = defineConfig({
   plugins: [
