@@ -9,6 +9,7 @@
     "playground/*"
   ],
   "scripts": {
+    "all-play-build": "npm-run-all2 play-build:*",
     "play": "minista ./playground/_default",
     "play-build": "minista build ./playground/_default",
     "play-preview": "minista preview ./playground/_default",
@@ -79,6 +80,7 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
+    "npm-run-all2": "^8.0.4",
     "preact": "^10.27.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
