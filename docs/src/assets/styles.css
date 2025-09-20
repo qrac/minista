@@ -1,0 +1,21 @@
+@import "musubii";
+
+:root {
+  --header-height: 62px;
+}
+
+.wysiwyg {
+  --wysiwyg-figure-text-align: left;
+}
+
+code[data-theme*=" "],
+code[data-theme*=" "] span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+[data-theme="dark"] code[data-theme*=" "],
+[data-theme="dark"] code[data-theme*=" "] span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}

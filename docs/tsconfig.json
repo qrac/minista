@@ -5,12 +5,10 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
     "noErrorTruncation": true,
     "jsx": "react-jsx",
-    "checkJs": true,
-    "allowJs": true,
-    "noEmit": true
+    "types": ["minista/client"]
   },
-  "include": ["./packages", "./vitest.config.ts"],
-  "exclude": ["node_modules", "./docs", "./playground"]
+  "exclude": ["node_modules", "dist"]
 }

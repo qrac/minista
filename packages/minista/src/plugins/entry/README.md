@@ -2,6 +2,10 @@
 
 ルートパスの CSS・JavaScript・画像をビルドプロセスに乗せるプラグイン。
 
+## Table of Contents
+
+contents list
+
 ## How To Use
 
 ```js

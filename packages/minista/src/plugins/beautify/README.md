@@ -2,6 +2,10 @@
 
 ビルド時に HTML・CSS・JS を整形するプラグイン。
 
+## Table of Contents
+
+contents list
+
 ## How To Use
 
 ```js

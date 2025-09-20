@@ -2,6 +2,10 @@
 
 全文検索機能を追加するプラグイン。
 
+## Table of Contents
+
+contents list
+
 ## How To Use
 
 動作させるには、`pluginIsland` の併用と以下パッケージのいずれが必要です。

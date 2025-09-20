@@ -2,6 +2,10 @@
 
 `pluginSsg` に MDX・Markdown のファイルを対応させるプラグイン。
 
+## Table of Contents
+
+contents list
+
 ## How To Use
 
 ```js

@@ -2,6 +2,10 @@
 
 HTML にコメントを出力するプラグイン。
 
+## Table of Contents
+
+contents list
+
 ## How To Use
 
 ```js

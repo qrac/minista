@@ -2,6 +2,10 @@
 
 ページの一部を React App 化するプラグイン。Astro の Island を再現しています。
 
+## Table of Contents
+
+contents list
+
 ## How To Use
 
 動作させるには以下パッケージのいずれが必要です。

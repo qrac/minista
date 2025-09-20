@@ -2,6 +2,10 @@
 
 ビルド時に圧縮ファイルを生成するプラグイン。
 
+## Table of Contents
+
+contents list
+
 ## How To Use
 
 ```js

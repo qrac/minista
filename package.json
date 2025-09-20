@@ -9,6 +9,9 @@
     "playground/*"
   ],
   "scripts": {
+    "docs": "minista ./docs",
+    "docs-build": "minista build ./docs",
+    "docs-preview": "minista preview ./docs",
     "all-play-build": "npm-run-all2 play-build play-build:*",
     "play": "minista ./playground/_default",
     "play-build": "minista build ./playground/_default",
