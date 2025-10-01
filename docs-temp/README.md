@@ -104,18 +104,18 @@ export default defineConfig(({ command, isSsrBuild }) => {
 
 minista の各機能は同封されているプラグインをコンフィグに登録することで動作します。使い方は各ディレクトリの README.md を参照ください。
 
-- [pluginSsg](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/ssg): React の JSX を静的な HTML に変換
-- [pluginMdx](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/mdx): MDX・Markdown を HTML の変換に対応させる
-- [pluginBundle](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/bundle): JSX 内で import した CSS・画像を出力
-- [pluginEntry](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/entry): CSS・JS・画像をビルドプロセスに乗せる
-- [pluginImage](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/image): 画像を最適化・リモート画像をダウンロード
-- [pluginSvg](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/svg): SVG ファイルを HTML にインライン展開
-- [pluginSprite](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/sprite): SVG ファイルを スプライト化して出力
-- [pluginComment](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/comment): HTML にコメントを出力
-- [pluginIsland](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/island): ページの一部を React App 化
-- [pluginSearch](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/search): 全文検索機能を追加
-- [pluginBeautify](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/beautify): ビルド時に HTML・CSS・JS を整形
-- [pluginArchive](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/archive): ビルド時に圧縮ファイルを生成
+- [pluginSsg](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/ssg.md): React の JSX を静的な HTML に変換
+- [pluginMdx](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/mdx.md): MDX・Markdown を HTML の変換に対応させる
+- [pluginBundle](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/bundle.md): JSX 内で import した CSS・画像を出力
+- [pluginEntry](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/entry.md): CSS・JS・画像をビルドプロセスに乗せる
+- [pluginImage](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/image.md): 画像を最適化・リモート画像をダウンロード
+- [pluginSvg](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/svg.md): SVG ファイルを HTML にインライン展開
+- [pluginSprite](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/sprite.md): SVG ファイルを スプライト化して出力
+- [pluginComment](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/comment.md): HTML にコメントを出力
+- [pluginIsland](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/island.md): ページの一部を React App 化
+- [pluginSearch](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/search.md): 全文検索機能を追加
+- [pluginBeautify](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/beautify.md): ビルド時に HTML・CSS・JS を整形
+- [pluginArchive](https://github.com/qrac/minista/tree/v4-2025/docs-temp/plugins/archive.md): ビルド時に圧縮ファイルを生成
 
 ## License
 
