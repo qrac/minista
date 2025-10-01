@@ -1,0 +1,41 @@
+# pluginEntry
+
+ルートパスの CSS・JavaScript・画像をビルドプロセスに乗せるプラグイン。
+
+## Table of Contents
+
+contents list
+
+## How To Use
+
+```js
+// ./minista.config.js
+import { pluginEntry } from "minista"
+
+export default {
+  plugins: [pluginEntry()],
+}
+```
+
+```jsx
+// ./src/pages/index.jsx
+import { Head } from "minista/head"
+
+export default function () {
+  return (
+    <>
+      <Head>
+        <link rel="stylesheet" href="/src/assets/style.css" />
+        <script type="module" src="/src/assets/script.ts" />
+      </Head>
+      <div>
+        <img src="/src/assets/image.png" width={76} height={76} />
+      </div>
+    </>
+  )
+}
+```
+
+## Options
+
+※オプションはありません
