@@ -11,7 +11,7 @@
     "minista": "^4.0.0-alpha.16",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "rolldown-vite": "^7.1.9",
+    "rolldown-vite": "^7.1.14",
     "vite": "npm:rolldown-vite@latest"
   }
 }
