@@ -11,7 +11,7 @@
     "@types/node": "^24.7.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
-    "minista": "^4.0.0-alpha.16",
+    "minista": "^4.0.0-alpha.17",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "rolldown-vite": "^7.1.16",
