@@ -138,8 +138,8 @@ export function pluginSsgServe(opts) {
 
         /**
          * @param {EnvModuleNode | null | undefined} mod
-         * @param {string} globFileAbs  絶対パスのglobエントリ（クエリなし比較）
-         * @param {string} virtualId    仮想ID（例: "\0virtual:ssg-pages"）
+         * @param {string} globFileAbs
+         * @param {string} virtualId
          * @returns {boolean}
          */
         function isReachableFromGlob(mod, globFileAbs, virtualId) {
