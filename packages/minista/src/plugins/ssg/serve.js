@@ -1,4 +1,5 @@
 /** @typedef {import('rolldown-vite').Plugin} Plugin */
+/** @typedef {import('rolldown-vite').EnvironmentModuleNode} EnvModuleNode */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').SsgPage} SsgPage */
 
@@ -125,18 +126,101 @@ export function pluginSsgServe(opts) {
       }
     },
     hotUpdate: {
-      order: "post",
+      order: "pre",
       handler({ modules, server, timestamp }) {
         if (this.environment.name !== "ssr") return
 
+        /**
+         * @param {string | undefined | null} id
+         * @returns {string | undefined}
+         */
+        const stripQuery = (id) => (id ? id.split("?")[0] : id)
+
+        /**
+         * @param {EnvModuleNode | null | undefined} mod
+         * @param {string} globFileAbs  絶対パスのglobエントリ（クエリなし比較）
+         * @param {string} virtualId    仮想ID（例: "\0virtual:ssg-pages"）
+         * @returns {boolean}
+         */
+        function isReachableFromGlob(mod, globFileAbs, virtualId) {
+          /** @type {Set<EnvModuleNode>} */
+          const seen = new Set()
+          /** @type {EnvModuleNode[]} */
+          const q = []
+
+          if (!mod) return false
+          q.push(mod)
+
+          const rootA = stripQuery(globFileAbs)
+          const rootB = stripQuery(virtualId)
+
+          while (q.length) {
+            const cur = q.shift()
+            if (!cur || seen.has(cur)) continue
+            seen.add(cur)
+
+            if (!cur.importers) continue
+            for (const imp of cur.importers) {
+              if (!imp) continue
+              const impId = stripQuery(imp.id)
+              if (impId === rootA || impId === rootB) {
+                return true
+              }
+              q.push(imp)
+            }
+          }
+          return false
+        }
+
+        const touchSsrHtml = modules.some((m) =>
+          isReachableFromGlob(m, globFile, SSG_PAGES_VIRTUAL)
+        )
+
+        const ssrGraph = server.environments?.ssr?.moduleGraph
+
+        /** @type {EnvModuleNode | null} */
+        const vmod = ssrGraph?.getModuleById(SSG_PAGES_VIRTUAL) ?? null
+        if (vmod) {
+          ssrGraph.invalidateModule(vmod, new Set(), Date.now(), true)
+        }
+        if (vmod) {
+          this.environment.moduleGraph.invalidateModule(
+            vmod,
+            new Set(),
+            timestamp,
+            true
+          )
+        }
+
+        if (touchSsrHtml) {
+          const rel = modules[0]?.id
+            ? stripQuery(path.relative(server.config.root, modules[0].id))
+            : ""
+          server.config.logger.info(
+            [pc.dim("(ssr)"), pc.green("page reload"), pc.dim(rel)]
+              .filter(Boolean)
+              .join(" "),
+            { timestamp: true, clear: false }
+          )
+          server.ws.send({ type: "full-reload" })
+          return []
+        }
+
         let hasSsrOnly = false
         const invalidated = new Set()
+        const clientGraph = server.environments.client.moduleGraph
+
+        const isKnownInClient = (mod) => {
+          if (!mod?.id) return false
+          if (clientGraph.getModuleById(mod.id)) return true
+          const file = mod.file ?? stripQuery(mod.id)
+          const set = file ? clientGraph.getModulesByFile(file) : null
+          return Boolean(set && set.size > 0)
+        }
 
         for (const mod of modules) {
-          if (!mod.id) continue
-          if (server.environments.client.moduleGraph.getModuleById(mod.id))
-            continue
-
+          if (!mod?.id) continue
+          if (isKnownInClient(mod)) continue
           this.environment.moduleGraph.invalidateModule(
             mod,
             invalidated,
@@ -147,24 +231,12 @@ export function pluginSsgServe(opts) {
         }
 
         if (hasSsrOnly) {
-          const rel = path
-            .relative(server.config.root, modules[0].id)
-            .split("?")[0]
-          const count = modules.length
-
+          const rel = stripQuery(
+            path.relative(server.config.root, modules[0].id)
+          )
           server.config.logger.info(
-            [
-              pc.dim("(ssr)"),
-              pc.green("page reload"),
-              pc.dim(rel),
-              count > 1 ? pc.yellow(`(x${count})`) : "",
-            ]
-              .filter(Boolean)
-              .join(" "),
-            {
-              timestamp: true,
-              clear: false,
-            }
+            [pc.dim("(ssr)"), pc.green("page reload"), pc.dim(rel)].join(" "),
+            { timestamp: true, clear: false }
           )
           server.ws.send({ type: "full-reload" })
           return []
