@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "musubii": "^8.6.0"
+    "musubii": "^9.1.0"
   },
   "devDependencies": {
     "rehype-autolink-headings": "^7.1.0",
