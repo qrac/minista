@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "@mdx-js/rollup": "^3.1.1",
-    "@swc/core": "^1.13.5",
+    "@swc/core": "^1.15.1",
     "archiver": "^7.0.1",
     "cross-spawn": "^7.0.6",
     "image-size": "^2.0.2",
@@ -72,7 +72,7 @@
     "picomatch": "^4.0.3",
     "remark-frontmatter": "^5.0.0",
     "remark-mdx-frontmatter": "^5.2.0",
-    "sharp": "^0.34.4",
+    "sharp": "^0.34.5",
     "svgo": "^4.0.0",
     "tinyglobby": "^0.2.15"
   }

@@ -72,24 +72,24 @@
     "release-next:create": "cd ./packages/create-minista && npm publish --tag=next"
   },
   "devDependencies": {
-    "@types/archiver": "^6.0.3",
+    "@types/archiver": "^7.0.0",
     "@types/cross-spawn": "^6.0.6",
     "@types/degit": "^2.8.6",
     "@types/js-beautify": "^1.14.3",
     "@types/mime-types": "^3.0.1",
-    "@types/node": "^24.7.2",
+    "@types/node": "^24.10.0",
     "@types/picomatch": "^4.0.2",
     "@types/prompts": "^2.4.9",
     "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.1",
-    "@vitejs/plugin-react": "^5.0.4",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
     "npm-run-all2": "^8.0.4",
     "preact": "^10.27.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "rolldown-vite": "^7.1.16",
+    "rolldown-vite": "^7.2.2",
     "typescript": "^5.9.3",
     "vite": "npm:rolldown-vite@latest",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.8"
   }
 }
