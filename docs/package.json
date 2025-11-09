@@ -6,6 +6,7 @@
     "musubii": "^9.1.0"
   },
   "devDependencies": {
+    "react-icons": "^5.5.0",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-pretty-code": "^0.14.1",
     "rehype-slug": "^6.0.0",
