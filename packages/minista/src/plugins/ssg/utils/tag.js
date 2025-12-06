@@ -40,7 +40,7 @@ export function filterHeadTags(tags) {
   let autoKey = 0
 
   for (const item of tags) {
-    const key = item.key != null ? item.key : `__auto_${autoKey++}`
+    const key = item?.key != null ? item.key : `__auto_${autoKey++}`
     map.set(key, item)
   }
   return Array.from(map.values())
@@ -54,7 +54,7 @@ export function headTagToStr(tag) {
   const selfClosingTags = new Set(["link", "meta"])
   const attrNameMap = { charSet: "charset" }
 
-  const tagName = typeof tag.type === "string" ? tag.type : ""
+  const tagName = typeof tag?.type === "string" ? tag.type : ""
   if (!tagName) return ""
 
   const attrs = Object.entries(tag.props ?? {})

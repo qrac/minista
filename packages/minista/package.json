@@ -26,6 +26,9 @@
     "./assets": {
       "import": "./src/assets.js",
       "types": "./src/assets.d.ts"
+    },
+    "./package.json": {
+      "import": "./package.json"
     }
   },
   "files": [

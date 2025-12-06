@@ -6,7 +6,7 @@
 
 ## About
 
-minista（ミニスタ）は React の JSX から綺麗な HTML を作るスタティックサイトジェネレーターです。
+minista（ミニスタ）は Vite と React の JSX から 100%静的なサイトを作るスタティックサイトジェネレーターです。
 
 - すべての機能を Vite プラグインとして提供
 - ビルド時に自動で Vite の「SSR ビルド + 通常ビルド」を実行
@@ -46,10 +46,12 @@ export default function () {
 `package.json` を開き、以下のスクリプトを追加します。
 
 ```json
-"scripts": {
-  "dev": "minista",
-  "build": "minista build",
-  "preview": "minista preview",
+{
+  "scripts": {
+    "dev": "minista",
+    "build": "minista build",
+    "preview": "minista preview"
+  }
 }
 ```
 
@@ -104,18 +106,18 @@ export default defineConfig(({ command, isSsrBuild }) => {
 
 minista の各機能は同封されているプラグインをコンフィグに登録することで動作します。使い方は各ディレクトリの README.md を参照ください。
 
-- [pluginSsg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/ssg): React の JSX を静的な HTML に変換
-- [pluginMdx](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/mdx): MDX・Markdown を HTML の変換に対応させる
-- [pluginBundle](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/bundle): JSX 内で import した CSS・画像を出力
-- [pluginEntry](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/entry): CSS・JS・画像をビルドプロセスに乗せる
-- [pluginImage](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/image): 画像を最適化・リモート画像をダウンロード
-- [pluginSvg](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/svg): SVG ファイルを HTML にインライン展開
-- [pluginSprite](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/sprite): SVG ファイルを スプライト化して出力
-- [pluginComment](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/comment): HTML にコメントを出力
-- [pluginIsland](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/island): ページの一部を React App 化
-- [pluginSearch](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/search): 全文検索機能を追加
-- [pluginBeautify](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/beautify): ビルド時に HTML・CSS・JS を整形
-- [pluginArchive](https://github.com/qrac/minista/tree/main/packages/minista/src/plugins/archive): ビルド時に圧縮ファイルを生成
+- [pluginSsg](https://minista.qranoko.jp/docs/plugins/ssg): React の JSX を静的な HTML に変換
+- [pluginMdx](https://minista.qranoko.jp/docs/plugins/mdx): MDX・Markdown を HTML の変換に対応させる
+- [pluginBundle](https://minista.qranoko.jp/docs/plugins/bundle): JSX 内で import した CSS・画像を出力
+- [pluginEntry](https://minista.qranoko.jp/docs/plugins/entry): CSS・JS・画像をビルドプロセスに乗せる
+- [pluginImage](https://minista.qranoko.jp/docs/plugins/image): 画像を最適化・リモート画像をダウンロード
+- [pluginSvg](https://minista.qranoko.jp/docs/plugins/svg): SVG ファイルを HTML にインライン展開
+- [pluginSprite](https://minista.qranoko.jp/docs/plugins/sprite): SVG ファイルを スプライト化して出力
+- [pluginComment](https://minista.qranoko.jp/docs/plugins/comment): HTML にコメントを出力
+- [pluginIsland](https://minista.qranoko.jp/docs/plugins/island): ページの一部を React App 化
+- [pluginSearch](https://minista.qranoko.jp/docs/plugins/search): 全文検索機能を追加
+- [pluginBeautify](https://minista.qranoko.jp/docs/plugins/beautify): ビルド時に HTML・CSS・JS を整形
+- [pluginArchive](https://minista.qranoko.jp/docs/plugins/archive): ビルド時に圧縮ファイルを生成
 
 ## License
 
