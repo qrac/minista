@@ -5,20 +5,21 @@ export type PluginOptions = {
 }
 export type UserPluginOptions = Partial<PluginOptions>
 
-export type Metadata = {
+export interface Metadata {
   title?: string
   draft?: boolean
-  [key: string]: any
 }
 
-export type PageProps = {
+export interface PageProps {
   url: string
   title: string
   draft: boolean
-  [key: string]: any
 }
 
-export type LayoutProps = PageProps & {
+export interface LayoutProps {
+  url: string
+  title: string
+  draft: boolean
   children: React.ReactNode
 }
 
