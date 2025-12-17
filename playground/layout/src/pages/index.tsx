@@ -1,10 +1,9 @@
-import type { Metadata, PageProps } from "minista/client"
+import type { Metadata, PageProps } from "minista/types"
 
 import { Test2 } from "../components/test2"
 
 export const metadata: Metadata = {
   title: "Index",
-  foo: "bar",
 }
 
 export default function (props: PageProps) {

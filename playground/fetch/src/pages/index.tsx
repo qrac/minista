@@ -1,4 +1,4 @@
-import type { StaticData, PageProps } from "minista/client"
+import type { StaticData, PageProps } from "minista/types"
 
 export async function getStaticData(): Promise<StaticData> {
   const apiUrl = "https://api.github.com/repos/qrac/minista/issues"

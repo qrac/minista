@@ -1,4 +1,4 @@
-import type { LayoutProps } from "minista/client"
+import type { LayoutProps } from "minista/types"
 import { Head } from "minista/head"
 
 export default function (props: LayoutProps) {

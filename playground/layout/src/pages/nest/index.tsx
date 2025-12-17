@@ -1,4 +1,4 @@
-import type { Metadata, PageProps } from "minista/client"
+import type { Metadata, PageProps } from "minista/types"
 
 export const metadata: Metadata = {
   title: "Nest",

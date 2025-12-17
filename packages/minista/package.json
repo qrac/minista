@@ -12,6 +12,9 @@
       "import": "./src/node.js",
       "types": "./src/node.d.ts"
     },
+    "./types": {
+      "types": "./src/types.d.ts"
+    },
     "./client": {
       "types": "./src/client.d.ts"
     },
