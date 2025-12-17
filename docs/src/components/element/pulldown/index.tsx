@@ -1,10 +1,11 @@
+import { clsx } from "clsx"
 import { cloneElement } from "react"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
 
 export default function ElementPulldown(props: Partial<Props>) {
-  const { id, buttonNode, children } = {
+  const { id, buttonNode, radius, children } = {
     ...initialProps,
     ...props,
   }
@@ -23,7 +24,7 @@ export default function ElementPulldown(props: Partial<Props>) {
         popover=""
         id={id}
         style={{ positionAnchor: "--" + id }}
-        className="pulldown"
+        className={clsx("pulldown", radius && `is-radius-${radius}`)}
       >
         {children}
       </div>

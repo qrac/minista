@@ -15,20 +15,20 @@ import { initialProps } from "./props"
 export default function PageHomeHero(props: Partial<Props>) {
   return (
     <section className="section is-hero wide:is-lg">
-      <div className="inner is-p-lg">
-        <ElementSpacer height={30} />
-        <div className="box is-none tablet:is-block">
-          <ElementSpacer height={20} />
-        </div>
+      <ElementSpacer height={40} />
+      <div className="box is-none tablet:is-block">
+        <ElementSpacer height={20} />
+      </div>
+      <div className="inner is-px-lg">
         <div className="hero-grid">
           <HeroLeft {...props} />
           <HeroRight {...props} />
         </div>
-        <div className="box is-none tablet:is-block">
-          <ElementSpacer height={20} />
-        </div>
-        <ElementSpacer height={30} />
       </div>
+      <div className="box is-none tablet:is-block">
+        <ElementSpacer height={20} />
+      </div>
+      <ElementSpacer height={60} />
     </section>
   )
 }

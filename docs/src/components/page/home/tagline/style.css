@@ -1,0 +1,16 @@
+.tagline-image {
+  position: absolute;
+  top: 50%;
+  width: 50%;
+  height: auto;
+  translate: 100% -25%;
+  filter: grayscale(1);
+}
+
+[data-theme="light"] .tagline-image {
+  opacity: 0.24;
+}
+
+[data-theme="dark"] .tagline-image {
+  opacity: 0.07;
+}

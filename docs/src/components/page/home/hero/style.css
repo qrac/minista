@@ -31,7 +31,7 @@
 
 .hero-stage:nth-child(1) {
   top: 0;
-  grid-template-columns: 75% 20%;
+  grid-template-columns: 1fr 20%;
   grid-template-rows: 1fr;
 }
 
@@ -43,18 +43,18 @@
 
 .hero-window {
   display: grid;
-  background-color: var(--theme-bg-2);
+  background-color: var(--theme-bg-1);
   border: 6px solid;
   border-radius: 20px;
   overflow: hidden;
 }
 
 .hero-stage:nth-child(1) .hero-window {
-  border-color: var(--theme-ac-1);
+  border-color: var(--theme-primary);
 }
 
 .hero-stage:nth-child(2) .hero-window {
-  border-color: var(--theme-ac-2);
+  border-color: var(--theme-secondary);
 }
 
 .hero-window-content {
