@@ -1,14 +1,20 @@
-import type { Metadata, PageProps } from "minista/client"
+import type { Metadata, PageProps } from "minista/types"
+
+import PageHomeHero from "../components/page/home/hero"
 
 export const metadata: Metadata = {
-  type: "home",
+  layout: "home",
 }
 
 export default function (props: PageProps) {
+  const { pkg, site } = props
   return (
     <>
-      <h1>{props.title}</h1>
-      <a href="/docs/">Go to Documentation</a>
+      <PageHomeHero
+        description={site.description}
+        license={pkg.license}
+        repositoryUrl={pkg.repository.url}
+      />
     </>
   )
 }

@@ -1,0 +1,10 @@
+.spacer {
+  --w: auto;
+  --h: 1px;
+}
+
+.spacer {
+  display: block;
+  width: var(--w);
+  height: var(--h);
+}

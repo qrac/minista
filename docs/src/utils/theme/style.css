@@ -1,0 +1,15 @@
+html:not([data-theme="light"]) [data-theme-content="light"] {
+  display: none;
+}
+
+html:not([data-theme="dark"]) [data-theme-content="dark"] {
+  display: none;
+}
+
+/*html[data-theme="dark"] .illustration {
+  filter: brightness(0.8);
+}*/
+
+[data-theme-button].is-active {
+  color: var(--theme-primary);
+}

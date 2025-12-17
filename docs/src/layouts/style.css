@@ -1,0 +1,6 @@
+.layout {
+  display: grid;
+  min-height: 100svh;
+  grid-template-columns: 100%;
+  grid-template-rows: auto 1fr auto;
+}

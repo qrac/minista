@@ -1,4 +1,13 @@
-import { defineConfig, pluginSsg, pluginMdx, pluginEntry } from "minista"
+import {
+  defineConfig,
+  pluginSsg,
+  pluginMdx,
+  pluginBundle,
+  pluginEntry,
+  pluginSvg,
+  //pluginIsland,
+  pluginSearch,
+} from "minista"
 import react from "@vitejs/plugin-react"
 import remarkToc from "remark-toc"
 import rehypeSlug from "rehype-slug"
@@ -28,18 +37,29 @@ const common = defineConfig({
         [rehypePrettyCode, rehypePrettyCodeOptions],
       ],
     }),
+    pluginBundle(),
     pluginEntry(),
+    pluginSvg(),
+    //pluginIsland(),
+    pluginSearch(),
     react(),
   ],
 })
 
 export default defineConfig(({ command, isSsrBuild }) => {
   if (command === "serve") return { ...common }
-  if (command === "build" && isSsrBuild) return { ...common }
+  if (command === "build" && isSsrBuild)
+    return {
+      ...common,
+      build: {
+        assetsInlineLimit: 0,
+      },
+    }
   if (command === "build" && !isSsrBuild) {
     return {
       ...common,
       build: {
+        assetsInlineLimit: 0,
         rollupOptions: {
           output: {
             /*advancedChunks: {

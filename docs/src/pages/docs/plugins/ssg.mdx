@@ -1,6 +1,6 @@
 ---
 title: pluginSsg
-type: docs
+layout: docs
 ---
 
 # pluginSsg
@@ -101,11 +101,10 @@ export default function () {
 
 ```tsx
 // ./src/layouts/index.tsx
-import type { Matadata, LayoutProps } from "minista/client"
+import type { Metadata, LayoutProps } from "minista/types"
 
-export const metadata: Matadata = {
+export const metadata: Metadata = {
   title: "Layout Title",
-  foo: "bar", // [key: string]: any
 }
 
 export default function (props: LayoutProps) {
@@ -114,7 +113,6 @@ export default function (props: LayoutProps) {
       {props.url /* Page URL */}
       {props.title /* Override with Page Title */}
       {props.draft /* boolean */}
-      {props.foo /* any */}
       {props.children /* Page Contents */}
     </>
   )
@@ -132,12 +130,11 @@ export default function (props: LayoutProps) {
 
 ```tsx
 // ./src/pages/index.tsx
-import type { Matadata, PageProps } from "minista/client"
+import type { Metadata, PageProps } from "minista/types"
 
-export const metadata: Matadata = {
+export const metadata: Metadata = {
   title: "Page Title",
-  draft: false // true = Don't build the page
-  foo: "bar", // [key: string]: any
+  draft: false, // true = Don't build the page
 }
 
 export default function (props: PageProps) {
@@ -146,9 +143,38 @@ export default function (props: PageProps) {
       {props.url /* Page URL */}
       {props.title /* Override Layout Title */}
       {props.draft /* boolean */}
-      {props.foo /* any */}
     </>
   )
+}
+```
+
+## Type Augmentation
+
+`Metadata` `PageProps` `LayoutProps` には独自のプロパティを追加できますが、TypeScript のモジュール拡張を使用することで型も追加できます。
+
+```ts
+// ./types.d.ts
+import "minista/types"
+
+declare module "minista/types" {
+  interface Metadata {
+    foo?: string
+  }
+  interface PageProps {
+    foo: string
+  }
+  interface LayoutProps {
+    foo: string
+  }
+}
+```
+
+```json
+// ./tsconfig.json
+{
+  "compilerOptions": {
+    "types": ["minista/client", "./types.d.ts"]
+  }
 }
 ```
 
@@ -161,7 +187,7 @@ export default function (props: PageProps) {
 
 ```tsx
 // ./src/pages/index.tsx
-import type { StaticData, PageProps } from "minista/client"
+import type { StaticData, PageProps } from "minista/types"
 
 export async function getStaticData(): Promise<StaticData> {
   const apiUrl = "https://api.github.com/repos/qrac/minista/issues"
@@ -203,7 +229,7 @@ export default function (props: PagePropsWithIssues) {
 
 ```tsx
 // ./src/pages/issues/[lang]/[number].tsx
-import type { StaticData, PageProps } from "minista/client"
+import type { StaticData, PageProps } from "minista/types"
 
 export async function getStaticData(): Promise<StaticData[]> {
   const apiUrl = "https://api.github.com/repos/qrac/minista/issues"

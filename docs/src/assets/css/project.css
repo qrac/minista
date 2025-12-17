@@ -1,0 +1,38 @@
+:root {
+  --theme-ac-1: #17cde5;
+  --theme-ac-2: #ff66e2;
+  --theme-ac-3: #282a37;
+}
+
+[data-theme="dark"] {
+  --theme-ac-3: #ffffff;
+}
+
+:root {
+  --header-height: 62px;
+}
+
+.wysiwyg {
+  --wysiwyg-figure-text-align: left;
+}
+
+.text.is-auto-phrase {
+  word-break: auto-phrase;
+}
+
+.image.is-full-auto {
+  width: 100%;
+  height: auto;
+}
+
+code[data-theme*=" "],
+code[data-theme*=" "] span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+[data-theme="dark"] code[data-theme*=" "],
+[data-theme="dark"] code[data-theme*=" "] span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}

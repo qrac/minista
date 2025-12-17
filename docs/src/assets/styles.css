@@ -1,21 +1,8 @@
-@import "musubii";
-
-:root {
-  --header-height: 62px;
-}
-
-.wysiwyg {
-  --wysiwyg-figure-text-align: left;
-}
-
-code[data-theme*=" "],
-code[data-theme*=" "] span {
-  color: var(--shiki-light);
-  background-color: var(--shiki-light-bg);
-}
-
-[data-theme="dark"] code[data-theme*=" "],
-[data-theme="dark"] code[data-theme*=" "] span {
-  color: var(--shiki-dark);
-  background-color: var(--shiki-dark-bg);
-}
+@import "./css/musubii.css";
+@import "./css/project.css";
+@import "../layouts/style.css";
+@import "../components/common/header/style.css";
+@import "../components/element/pulldown/style.css";
+@import "../components/element/spacer/style.css";
+@import "../components/page/home/hero/style.css";
+@import "../utils/theme/style.css";
