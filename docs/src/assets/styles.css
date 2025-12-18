@@ -3,7 +3,7 @@
 @import "../layouts/style.css";
 @import "../components/common/header/style.css";
 @import "../components/element/pulldown/style.css";
+@import "../components/element/huge-title/style.css";
 @import "../components/element/spacer/style.css";
 @import "../components/page/home/hero/style.css";
-@import "../components/page/home/tagline/style.css";
 @import "../utils/theme/style.css";

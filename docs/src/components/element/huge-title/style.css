@@ -1,0 +1,29 @@
+.huge-title {
+  font-size: clamp(3rem, 1.182rem + 7.76vw, 7rem);
+  font-weight: 900;
+  font-family: var(--font-sans-en);
+  text-transform: uppercase;
+  text-shadow: -1px -1px 0px var(--theme-primary),
+    1px 1px 0px var(--theme-secondary);
+}
+
+.huge-title.is-bg-1 {
+  color: var(--theme-bg-1);
+}
+
+.huge-title.is-bg-2 {
+  color: var(--theme-bg-2);
+}
+
+.huge-title.is-center {
+  text-align: center;
+}
+
+.huge-title.is-right {
+  text-align: right;
+}
+
+.huge-title.is-fix-position {
+  margin-bottom: -0.875em;
+  translate: 0 -50%;
+}
