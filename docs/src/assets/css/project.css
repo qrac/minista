@@ -20,6 +20,10 @@
   word-break: auto-phrase;
 }
 
+.text.is-autospace {
+  text-autospace: normal;
+}
+
 .image.is-full-auto {
   width: 100%;
   height: auto;

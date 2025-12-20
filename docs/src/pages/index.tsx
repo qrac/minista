@@ -20,6 +20,7 @@ export default function (props: PageProps) {
       />
       <PageHomeTagline />
       <PageHomeFeature />
+      <PageHomeWhy />
     </>
   )
 }

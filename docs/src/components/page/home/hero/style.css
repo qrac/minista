@@ -1,13 +1,13 @@
 .hero-grid {
   display: grid;
   grid-template-columns: 100%;
-  grid-template-rows: 1fr 348px;
+  grid-template-rows: 1fr 354px;
   gap: 40px;
 }
 
 @media (min-width: 768px) {
   .hero-grid {
-    grid-template-columns: 11fr 10fr;
+    grid-template-columns: 12fr 10fr;
     grid-template-rows: 1fr;
   }
 }
@@ -66,6 +66,21 @@
   word-wrap: normal;
   overflow-y: hidden;
   overflow-x: auto;
+}
+
+.hero-window-content code {
+  position: relative;
+  min-height: 240px;
+}
+
+.hero-window-content code::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 16px;
+  background-color: var(--theme-bg-1);
 }
 
 .hero-brand {

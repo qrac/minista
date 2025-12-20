@@ -3,7 +3,8 @@ export type Props = {
   text: string
   color: "bg-1" | "bg-2"
   align: "left" | "center" | "right"
-  isFixPosition: boolean
+  fixPosition: boolean
+  fixTop: boolean
 }
 
 export const initialProps: Props = {
@@ -11,5 +12,6 @@ export const initialProps: Props = {
   text: "Huge Title",
   color: "bg-1",
   align: "left",
-  isFixPosition: false,
+  fixPosition: false,
+  fixTop: false,
 }

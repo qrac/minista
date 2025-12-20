@@ -44,7 +44,9 @@ function HeroLeft(props: Partial<Props>) {
         className="image is-full-auto"
       />
       <div className="box is-space-md">
-        <h1 className="text is-auto-phrase is-sm">{description}</h1>
+        <h1 className="text is-autospace is-auto-phrase is-sm">
+          {description}
+        </h1>
         <div className="box is-flex">
           <a
             href="/docs/"

@@ -27,3 +27,7 @@
   margin-bottom: -0.875em;
   translate: 0 -50%;
 }
+
+.huge-title.is-fix-top {
+  margin-top: 0.25em;
+}

@@ -4,7 +4,7 @@ import type { Props } from "./props"
 import { initialProps } from "./props"
 
 export default function ElementHugeTitle(props: Partial<Props>) {
-  const { DOMElement, text, color, align, isFixPosition } = {
+  const { DOMElement, text, color, align, fixPosition, fixTop } = {
     ...initialProps,
     ...props,
   }
@@ -14,7 +14,8 @@ export default function ElementHugeTitle(props: Partial<Props>) {
         "huge-title",
         color && `is-${color}`,
         align !== "left" && `is-${align}`,
-        isFixPosition && "is-fix-position"
+        fixPosition && "is-fix-position",
+        fixTop && "is-fix-top"
       )}
     >
       {text}
