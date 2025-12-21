@@ -3,7 +3,7 @@ import { clsx } from "clsx"
 import type { Props } from "./props"
 import { initialProps } from "./props"
 
-export default function ElementHugeTitle(props: Partial<Props>) {
+export default function ElementSectionTitle(props: Partial<Props>) {
   const { DOMElement, text, color, align, fixPosition, fixTop } = {
     ...initialProps,
     ...props,
@@ -11,7 +11,7 @@ export default function ElementHugeTitle(props: Partial<Props>) {
   return (
     <DOMElement
       className={clsx(
-        "huge-title",
+        "section-title",
         color && `is-${color}`,
         align !== "left" && `is-${align}`,
         fixPosition && "is-fix-position",

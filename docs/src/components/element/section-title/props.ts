@@ -9,7 +9,7 @@ export type Props = {
 
 export const initialProps: Props = {
   DOMElement: "h2",
-  text: "Huge Title",
+  text: "Section Title",
   color: "bg-1",
   align: "left",
   fixPosition: false,

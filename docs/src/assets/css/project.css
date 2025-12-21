@@ -12,8 +12,18 @@
   --header-height: 62px;
 }
 
-.wysiwyg {
-  --wysiwyg-figure-text-align: left;
+.card.is-link.is-bg-2 {
+  border: 1px solid transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card.is-link.is-bg-2:hover {
+    border-color: var(--theme-bd-2);
+  }
+}
+
+.box.is-angle-fix {
+  --box-angle-position: 0.925em;
 }
 
 .text.is-auto-phrase {
@@ -27,6 +37,10 @@
 .image.is-full-auto {
   width: 100%;
   height: auto;
+}
+
+.wysiwyg {
+  --wysiwyg-figure-text-align: left;
 }
 
 code[data-theme*=" "],
