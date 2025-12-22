@@ -70,6 +70,7 @@ export function pluginIslandBuild(opts) {
       await fs.promises.mkdir(snippetsDir, { recursive: true })
 
       if (isSsr) return
+      if (!fs.existsSync(snippetsFile)) return
 
       const snippetsFileUrl = pathToFileURL(snippetsFile).href
       /** @type {{ssrSnippetList: string[]}} */
