@@ -7,6 +7,7 @@ import dataMenu from "../assets/data/menu"
 
 import themeSetup from "../utils/theme/setup.js?raw"
 import CommonHeader from "../components/common/header"
+import CommonSidebar from "../components/common/sidebar"
 import CommonFooter from "../components/common/footer"
 
 export const metadata: Metadata = {
@@ -56,13 +57,28 @@ export default function (props: LayoutProps) {
       />
       {isDocs ? (
         <>
-          <div className="box is-flex is-gap-xxl">
-            <aside className="box is-flex-none is-none desktop:is-block"></aside>
-            <main className="box is-flex-0">
-              <div className="wysiwyg">{children}</div>
-            </main>
-            <aside className="box is-flex-none is-none wide:is-block"></aside>
-          </div>
+          <section className="section is-main">
+            <div className="inner is-px-lg">
+              <div className="layout-grid is-docs">
+                <div className="layout-column is-sidebar">
+                  <div className="layout-content">
+                    <CommonSidebar
+                      currentUrl={url}
+                      itemGroups={menu.docs.items}
+                    />
+                  </div>
+                </div>
+                <div className="layout-column is-main">
+                  <div className="layout-content">
+                    <main className="wysiwyg">{children}</main>
+                  </div>
+                </div>
+                <div className="layout-column is-sidetoc">
+                  <div className="layout-content"></div>
+                </div>
+              </div>
+            </div>
+          </section>
         </>
       ) : (
         <>

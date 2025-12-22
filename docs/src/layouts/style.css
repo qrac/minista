@@ -1,6 +1,47 @@
 .layout {
   display: grid;
   min-height: 100svh;
-  grid-template-columns: 100%;
   grid-template-rows: auto 1fr auto;
+  grid-template-columns: 100%;
+}
+
+@media (744px <= width) {
+  .layout-grid.is-docs {
+    display: grid;
+    grid-template-columns: 172px 1fr;
+    gap: 28px;
+  }
+}
+
+@media (992px <= width) {
+  .layout-grid.is-docs:has(#table-of-contents) {
+    grid-template-columns: 172px 1fr 132px;
+  }
+}
+
+@media (744px > width) {
+  .layout-grid.is-docs > .layout-column.is-sidebar {
+    display: none;
+  }
+}
+
+@media (992px > width) {
+  .layout-grid.is-docs > .layout-column.is-sidetoc {
+    display: none;
+  }
+}
+
+.layout-grid.is-docs > .layout-column.is-sidebar > .layout-content,
+.layout-grid.is-docs > .layout-column.is-sidetoc > .layout-content {
+  position: sticky;
+  top: var(--header-height);
+  max-height: calc(100vh - var(--header-height));
+  padding-top: 40px;
+  padding-bottom: 20vh;
+  overflow-y: auto;
+}
+
+.layout-grid.is-docs > .layout-column.is-main > .layout-content {
+  padding-top: 40px;
+  padding-bottom: 20vh;
 }

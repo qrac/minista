@@ -5,7 +5,7 @@ import {
   pluginBundle,
   pluginEntry,
   pluginSvg,
-  //pluginIsland,
+  pluginIsland,
   pluginSearch,
 } from "minista"
 import react from "@vitejs/plugin-react"
@@ -40,7 +40,7 @@ const common = defineConfig({
     pluginBundle(),
     pluginEntry(),
     pluginSvg(),
-    //pluginIsland(),
+    pluginIsland(),
     pluginSearch(),
     react(),
   ],

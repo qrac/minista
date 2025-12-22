@@ -18,6 +18,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .card.is-link.is-bg-2:hover {
+    background-color: var(--theme-bg-3);
     border-color: var(--theme-bd-2);
   }
 }

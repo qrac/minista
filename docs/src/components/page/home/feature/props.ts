@@ -57,7 +57,7 @@ export const initialProps: Props = {
       href: "",
       title: "📘 MDX or Markdown",
       description:
-        "MDXやMarkdownを書いてページ生成。アセットとしてJSX内で利用も可能。",
+        "MDXやMarkdownを書いてページ生成。JSX内でインポートしての利用も可能。",
     },
     {
       tabletColumn: 4,
