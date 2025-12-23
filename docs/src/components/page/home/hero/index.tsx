@@ -13,6 +13,7 @@ import type { Props } from "./props"
 import { initialProps } from "./props"
 
 export default function PageHomeHero(props: Partial<Props>) {
+  const {} = { ...initialProps, ...props }
   return (
     <section className="section is-hero wide:is-lg">
       <ElementSpacer height={40} />

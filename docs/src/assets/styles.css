@@ -2,6 +2,8 @@
 @import "./css/project.css";
 @import "../layouts/style.css";
 @import "../components/common/header/style.css";
+@import "../components/common/docs/style.css";
+@import "../components/common/sidetoc/style.css";
 @import "../components/element/pulldown/style.css";
 @import "../components/element/section-title/style.css";
 @import "../components/element/spacer/style.css";

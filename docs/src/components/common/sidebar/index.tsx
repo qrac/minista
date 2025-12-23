@@ -4,7 +4,7 @@ import { initialProps } from "./props"
 export default function CommonSidebar(props: Partial<Props>) {
   const { currentUrl, itemGroups } = { ...initialProps, ...props }
   return (
-    <nav className="common-sidebar">
+    <nav className="sidebar">
       <div className="box is-pr-md is-space-xl">
         {itemGroups.map((group, groupIndex) => (
           <div className="box is-space-sm" key={groupIndex}>

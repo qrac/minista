@@ -1,0 +1,236 @@
+.docs > * + * {
+  margin-top: 0.75em;
+}
+
+.docs > *:first-child {
+  text-box-trim: trim-start;
+}
+
+.docs > :is(h1, h2, h3, h4, h5, h6) {
+  position: relative;
+  margin-left: -0.75em;
+  padding-left: 0.75em;
+  font-weight: 700;
+  font-family: var(--font-sans-en);
+  letter-spacing: 0.0125em;
+}
+
+.docs > :is(h1, h2, h3, h4, h5, h6):not(:first-child) {
+  padding-top: 1em;
+}
+
+.docs > h1 {
+  font-size: 200%;
+}
+
+.docs > h2 {
+  font-size: 150%;
+}
+
+.docs > h3 {
+  font-size: 125%;
+}
+
+.docs > :is(h2, h3, h4, h5, h6) a {
+  position: absolute;
+  left: 0;
+  bottom: 2px;
+  color: var(--theme-primary);
+  font-size: 0.875em;
+  text-decoration: none;
+  visibility: hidden;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .docs > :is(h2, h3, h4, h5, h6):not(#table-of-contents):hover a {
+    visibility: visible;
+  }
+}
+
+.docs > :is(h2, h3, h4, h5, h6) a .icon-link::before {
+  content: "#";
+}
+
+.docs > #table-of-contents {
+  margin-bottom: 12px;
+  font-size: 100%;
+  text-transform: uppercase;
+}
+
+.docs > #table-of-contents + ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 8px;
+  padding: 0;
+}
+
+.docs > #table-of-contents + ul > li {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+}
+
+.docs > #table-of-contents + ul > li::before {
+  content: "#";
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.docs > #table-of-contents + ul a {
+  color: var(--theme-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .docs > #table-of-contents + ul a:hover {
+    text-decoration: underline;
+  }
+}
+
+.docs > #table-of-contents + ul > li > ul {
+  display: none;
+}
+
+.docs > p,
+.docs > .alert p {
+  line-height: 1.75;
+  word-break: auto-phrase;
+}
+
+.docs > :is(p, table, ul, ol, .alert) a {
+  color: var(--theme-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .docs > :is(p, table, ul, ol, .alert) a:hover {
+    text-decoration: underline;
+  }
+}
+
+.docs > ul:not([class]),
+.docs > ol:not([class]) {
+  padding-left: 32px;
+  line-height: 1.75;
+  list-style: initial;
+  word-break: auto-phrase;
+}
+
+.docs > ul:not([class]) {
+  list-style-type: circle;
+}
+
+.docs > ol:not([class]) {
+  list-style-type: decimal;
+}
+
+.docs > ul:not([class]) > li,
+.docs > ol:not([class]) > li {
+  margin-top: 8px;
+}
+
+.docs > table {
+  display: block;
+  max-width: 100%;
+  padding-bottom: 12px;
+  font-size: 0.875rem;
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+
+.docs > table tr {
+  position: relative;
+  border-bottom-width: 1px;
+  border-bottom-color: transparent;
+}
+
+.docs > table tr::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  min-width: calc(100vw - 40px);
+  width: 100%;
+  height: 0;
+  border-top-width: 1px;
+}
+
+@media (576px <= width) {
+  .docs > table tr::after {
+    min-width: calc(var(--section-inner-fablet-width) - 40px);
+  }
+}
+
+@media (768px <= width) {
+  .docs > table tr::after {
+    min-width: calc(var(--section-inner-tablet-width) - 40px);
+  }
+}
+
+@media (992px <= width) {
+  .docs > table tr::after {
+    min-width: 732px;
+  }
+}
+
+@media (1200px <= width) {
+  .docs > table tr::after {
+    min-width: 752px;
+  }
+}
+
+.docs > table th,
+.docs > table td {
+  padding: 12px 0;
+  line-height: 1.75;
+  vertical-align: baseline;
+}
+
+.docs > table th + th,
+.docs > table td + td {
+  padding-left: 20px;
+}
+
+.docs > table small {
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.docs > table th {
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.docs > :is(p, table, ul, ol, .alert) code {
+  padding: 0.2em 0.5em;
+  background: var(--theme-bg-2);
+  border-radius: 4px;
+  color: var(--theme-code);
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+}
+
+.docs > table code {
+  white-space: nowrap;
+}
+
+.docs > pre,
+.docs [data-rehype-pretty-code-figure] pre {
+  background: var(--theme-bg-2);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  white-space: pre;
+  word-wrap: normal;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.docs > pre code,
+.docs > pre .hljs,
+.docs [data-rehype-pretty-code-figure] code {
+  display: block;
+  padding: 20px 24px;
+  color: var(--theme-tx-2);
+  font-family: var(--font-mono);
+}

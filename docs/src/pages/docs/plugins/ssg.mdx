@@ -148,36 +148,6 @@ export default function (props: PageProps) {
 }
 ```
 
-## Type Augmentation
-
-`Metadata` `PageProps` `LayoutProps` には独自のプロパティを追加できますが、TypeScript のモジュール拡張を使用することで型も追加できます。
-
-```ts
-// ./types.d.ts
-import "minista/types"
-
-declare module "minista/types" {
-  interface Metadata {
-    foo?: string
-  }
-  interface PageProps {
-    foo: string
-  }
-  interface LayoutProps {
-    foo: string
-  }
-}
-```
-
-```json
-// ./tsconfig.json
-{
-  "compilerOptions": {
-    "types": ["minista/client", "./types.d.ts"]
-  }
-}
-```
-
 ## Fetch
 
 リモートのデータを取得してページを生成することが可能です。
@@ -260,5 +230,35 @@ export default function (props: PagePropsMergedIssue) {
       <div>{props.body}</div>
     </>
   )
+}
+```
+
+## Merge Types
+
+`Metadata` `PageProps` `LayoutProps` には独自のプロパティを追加できますが、TypeScript のモジュール拡張を使用することで型も追加できます。
+
+```ts
+// ./types.d.ts
+import "minista/types"
+
+declare module "minista/types" {
+  interface Metadata {
+    foo?: string
+  }
+  interface PageProps {
+    foo: string
+  }
+  interface LayoutProps {
+    foo: string
+  }
+}
+```
+
+```json
+// ./tsconfig.json
+{
+  "compilerOptions": {
+    "types": ["minista/client", "./types.d.ts"]
+  }
 }
 ```

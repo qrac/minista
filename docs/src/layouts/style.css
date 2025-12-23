@@ -17,6 +17,12 @@
   .layout-grid.is-docs:has(#table-of-contents) {
     grid-template-columns: 172px 1fr 132px;
   }
+  .layout-grid.is-docs .docs > #table-of-contents {
+    display: none;
+  }
+  .layout-grid.is-docs .docs > #table-of-contents + ul {
+    display: none;
+  }
 }
 
 @media (744px > width) {

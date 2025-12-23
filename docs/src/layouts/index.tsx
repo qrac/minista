@@ -8,6 +8,8 @@ import dataMenu from "../assets/data/menu"
 import themeSetup from "../utils/theme/setup.js?raw"
 import CommonHeader from "../components/common/header"
 import CommonSidebar from "../components/common/sidebar"
+import CommonDocs from "../components/common/docs"
+import CommonSidetoc from "../components/common/sidetoc"
 import CommonFooter from "../components/common/footer"
 
 export const metadata: Metadata = {
@@ -61,20 +63,24 @@ export default function (props: LayoutProps) {
             <div className="inner is-px-lg">
               <div className="layout-grid is-docs">
                 <div className="layout-column is-sidebar">
-                  <div className="layout-content">
+                  <aside className="layout-content">
                     <CommonSidebar
                       currentUrl={url}
                       itemGroups={menu.docs.items}
                     />
-                  </div>
+                  </aside>
                 </div>
                 <div className="layout-column is-main">
-                  <div className="layout-content">
-                    <main className="wysiwyg">{children}</main>
-                  </div>
+                  <main className="layout-content">
+                    <CommonDocs DOMElement="article" isSidetocTarget={true}>
+                      {children}
+                    </CommonDocs>
+                  </main>
                 </div>
                 <div className="layout-column is-sidetoc">
-                  <div className="layout-content"></div>
+                  <aside className="layout-content">
+                    <CommonSidetoc />
+                  </aside>
                 </div>
               </div>
             </div>

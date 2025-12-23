@@ -1,0 +1,27 @@
+[data-sidetoc] {
+  opacity: 0;
+  transition: opacity 0.35s ease-in;
+}
+
+[data-sidetoc] li > ul > li {
+  padding-left: 8px;
+}
+
+[data-sidetoc] a {
+  display: flex;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 75%;
+  font-family: var(--font-sans-en);
+  transition: 0.12s ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-sidetoc] a:hover {
+    background: var(--theme-bg-2);
+  }
+}
+
+[data-sidetoc] a.is-active {
+  color: var(--theme-primary);
+}
