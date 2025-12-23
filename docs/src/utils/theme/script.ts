@@ -1,74 +1,110 @@
-function switchAttr(theme: string, lightModeQuery: MediaQueryList) {
-  switch (theme) {
-    case "light":
-      document.documentElement.setAttribute("data-theme", "light")
-      break
-    case "dark":
-      document.documentElement.setAttribute("data-theme", "dark")
-      break
-    default:
-      if (lightModeQuery.matches) {
-        document.documentElement.setAttribute("data-theme", "light")
-      } else {
-        document.documentElement.setAttribute("data-theme", "dark")
-      }
-      break
+type ThemeAttrs = {
+  button: string
+  targetAttr: string
+}
+
+type ThemeConfig = {
+  root?: HTMLElement
+  attrs?: Partial<ThemeAttrs>
+}
+
+type ResolvedThemeConfig = {
+  root: HTMLElement
+  attrs: ThemeAttrs
+}
+
+export const jsTheme = (() => {
+  const listenerMap = new WeakMap<HTMLElement, Record<string, EventListener>>()
+
+  const defaultConfig: ResolvedThemeConfig = {
+    root: document.documentElement,
+    attrs: {
+      button: "data-theme-button",
+      targetAttr: "data-theme",
+    },
   }
-}
-
-function switchMode(
-  lightModeQuery: MediaQueryList,
-  darkModeQuery: MediaQueryList
-) {
-  if (localStorage.getItem("theme") === "system") {
-    if (lightModeQuery.matches) {
-      document.documentElement.setAttribute("data-theme", "light")
-    }
-    if (darkModeQuery.matches) {
-      document.documentElement.setAttribute("data-theme", "dark")
-    }
-  }
-}
-
-function switchActive(els: HTMLButtonElement[], theme: string) {
-  els.forEach((el) => {
-    if (el.dataset.themeButton === theme) {
-      el.classList.add("is-active")
-    } else {
-      el.classList.remove("is-active")
-    }
-  })
-}
-
-export function jsThemeSwitch() {
-  const savedTheme = localStorage.getItem("theme") || "system"
 
   const lightModeQuery = window.matchMedia("(prefers-color-scheme: light)")
-  const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)")
 
-  const buttonEls = [
-    ...document.querySelectorAll("[data-theme-button]"),
-  ] as HTMLButtonElement[]
+  function bindOnce(
+    el: HTMLElement | MediaQueryList,
+    key: string,
+    type: string,
+    handler: EventListener
+  ) {
+    if (el instanceof MediaQueryList) {
+      el.addEventListener(type, handler as any)
+      return
+    }
 
-  switchActive(buttonEls, savedTheme)
+    const map = listenerMap.get(el) ?? {}
+    if (map[key]) return
+    el.addEventListener(type, handler as any)
+    map[key] = handler
+    listenerMap.set(el, map)
+  }
 
-  buttonEls.forEach((el) => {
-    el.addEventListener("click", () => {
-      const theme = el.dataset.themeButton
+  function updateTheme(config: ResolvedThemeConfig, theme: string) {
+    const { root, attrs } = config
+    let targetTheme = theme
 
-      if (theme) {
-        switchAttr(theme, lightModeQuery)
-        switchActive(buttonEls, theme)
-        localStorage.setItem("theme", theme)
+    if (theme === "system") {
+      targetTheme = lightModeQuery.matches ? "light" : "dark"
+    }
+
+    root.setAttribute(attrs.targetAttr, targetTheme)
+  }
+
+  function updateButtons(config: ResolvedThemeConfig, activeTheme: string) {
+    const { root, attrs } = config
+    const buttons = Array.from(
+      root.querySelectorAll(`[${attrs.button}]`)
+    ) as HTMLElement[]
+
+    buttons.forEach((btn) => {
+      if (btn.getAttribute(attrs.button) === activeTheme) {
+        btn.classList.add("is-active")
+      } else {
+        btn.classList.remove("is-active")
       }
-      el.blur()
     })
-  })
+  }
 
-  lightModeQuery.addEventListener("change", () =>
-    switchMode(lightModeQuery, darkModeQuery)
-  )
-  darkModeQuery.addEventListener("change", () =>
-    switchMode(lightModeQuery, darkModeQuery)
-  )
-}
+  function init(config?: ThemeConfig) {
+    const resolvedConfig = {
+      ...defaultConfig,
+      ...config,
+    } as ResolvedThemeConfig
+    const { root, attrs } = resolvedConfig
+
+    const savedTheme = localStorage.getItem("theme") || "system"
+
+    updateTheme(resolvedConfig, savedTheme)
+    updateButtons(resolvedConfig, savedTheme)
+
+    const buttons = Array.from(
+      root.querySelectorAll(`[${attrs.button}]`)
+    ) as HTMLElement[]
+
+    buttons.forEach((btn) => {
+      bindOnce(btn, "themeClick", "click", () => {
+        const theme = btn.getAttribute(attrs.button)
+        if (theme) {
+          localStorage.setItem("theme", theme)
+          updateTheme(resolvedConfig, theme)
+          updateButtons(resolvedConfig, theme)
+        }
+        btn.blur()
+      })
+    })
+
+    bindOnce(lightModeQuery, "themeChange", "change", () => {
+      const currentTheme = localStorage.getItem("theme") || "system"
+      if (currentTheme === "system") {
+        updateTheme(resolvedConfig, "system")
+      }
+    })
+  }
+
+  return { init }
+})()

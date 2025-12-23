@@ -1,5 +1,5 @@
-import { jsThemeSwitch } from "../utils/theme/script"
-import { jsSidetoc } from "../components/common/sidetoc/script"
+import { jsTheme } from "../utils/theme/script"
+import { jsSidetoc } from "../utils/sidetoc/script"
 
-jsThemeSwitch()
-jsSidetoc()
+jsTheme.init()
+jsSidetoc.init()
