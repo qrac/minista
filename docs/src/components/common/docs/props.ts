@@ -1,7 +1,9 @@
+import type { ElementType, ReactNode } from "react"
+
 export type Props = {
-  DOMElement: React.ElementType
+  DOMElement: ElementType
   isSidetocTarget: boolean
-  children: React.ReactNode
+  children: ReactNode
 }
 
 export const initialProps: Props = {

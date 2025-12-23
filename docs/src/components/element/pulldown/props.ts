@@ -1,11 +1,13 @@
+import type { ReactElement, ReactNode, CSSProperties } from "react"
+
 export type Props = {
   id: string
-  buttonNode: React.ReactElement<{
-    style?: React.CSSProperties
+  buttonNode: ReactElement<{
+    style?: CSSProperties
     popoverTarget?: string
   }>
   radius: string
-  children: React.ReactNode
+  children: ReactNode
 }
 
 export const initialProps: Props = {
