@@ -10,6 +10,13 @@
 
 :root {
   --header-height: 62px;
+  --layout-gap: 28px;
+  --sidebar-width: 200px;
+  --sidetoc-width: 160px;
+}
+
+html {
+  scroll-padding-top: var(--header-height);
 }
 
 .card.is-link.is-bg-2 {

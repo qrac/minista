@@ -121,6 +121,7 @@ export const jsSidetoc = (() => {
     const resolvedConfig = {
       ...defaultConfig,
       ...config,
+      attrs: { ...defaultConfig.attrs, ...config?.attrs },
     } as ResolvedSidetocConfig
     const { root } = resolvedConfig
 

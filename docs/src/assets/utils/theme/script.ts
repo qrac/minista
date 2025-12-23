@@ -74,6 +74,7 @@ export const jsTheme = (() => {
     const resolvedConfig = {
       ...defaultConfig,
       ...config,
+      attrs: { ...defaultConfig.attrs, ...config?.attrs },
     } as ResolvedThemeConfig
     const { root, attrs } = resolvedConfig
 

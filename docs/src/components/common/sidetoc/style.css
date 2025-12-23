@@ -9,10 +9,11 @@
 
 [data-sidetoc] a {
   display: flex;
-  padding: 4px 8px;
+  padding: 6px 8px;
   border-radius: 4px;
   font-size: 75%;
   font-family: var(--font-sans-en);
+  line-height: 1.25;
   transition: 0.12s ease-out;
 }
 

@@ -8,14 +8,14 @@
 @media (744px <= width) {
   .layout-grid.is-docs {
     display: grid;
-    grid-template-columns: 172px 1fr;
-    gap: 28px;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    gap: var(--layout-gap);
   }
 }
 
 @media (992px <= width) {
   .layout-grid.is-docs:has(#table-of-contents) {
-    grid-template-columns: 172px 1fr 132px;
+    grid-template-columns: var(--sidebar-width) 1fr var(--sidetoc-width);
   }
   .layout-grid.is-docs .docs > #table-of-contents {
     display: none;
