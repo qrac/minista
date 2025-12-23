@@ -1,22 +1,22 @@
-type ThemeAttrs = {
+type Attrs = {
   button: string
   targetAttr: string
 }
 
-type ThemeConfig = {
+type Config = {
   root?: HTMLElement
-  attrs?: Partial<ThemeAttrs>
+  attrs?: Partial<Attrs>
 }
 
-type ResolvedThemeConfig = {
+type ResolvedConfig = {
   root: HTMLElement
-  attrs: ThemeAttrs
+  attrs: Attrs
 }
 
 export const jsTheme = (() => {
   const listenerMap = new WeakMap<HTMLElement, Record<string, EventListener>>()
 
-  const defaultConfig: ResolvedThemeConfig = {
+  const defaultConfig: ResolvedConfig = {
     root: document.documentElement,
     attrs: {
       button: "data-theme-button",
@@ -44,7 +44,7 @@ export const jsTheme = (() => {
     listenerMap.set(el, map)
   }
 
-  function updateTheme(config: ResolvedThemeConfig, theme: string) {
+  function updateTheme(config: ResolvedConfig, theme: string) {
     const { root, attrs } = config
     let targetTheme = theme
 
@@ -55,7 +55,7 @@ export const jsTheme = (() => {
     root.setAttribute(attrs.targetAttr, targetTheme)
   }
 
-  function updateButtons(config: ResolvedThemeConfig, activeTheme: string) {
+  function updateButtons(config: ResolvedConfig, activeTheme: string) {
     const { root, attrs } = config
     const buttons = Array.from(
       root.querySelectorAll(`[${attrs.button}]`)
@@ -70,12 +70,12 @@ export const jsTheme = (() => {
     })
   }
 
-  function init(config?: ThemeConfig) {
+  function init(config?: Config) {
     const resolvedConfig = {
       ...defaultConfig,
       ...config,
       attrs: { ...defaultConfig.attrs, ...config?.attrs },
-    } as ResolvedThemeConfig
+    } as ResolvedConfig
     const { root, attrs } = resolvedConfig
 
     const savedTheme = localStorage.getItem("theme") || "system"

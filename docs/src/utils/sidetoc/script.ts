@@ -1,23 +1,23 @@
-type SidetocAttrs = {
+type Attrs = {
   container: string
   targetArea: string
   sourceToc: string
 }
 
-type SidetocConfig = {
+type Config = {
   root?: HTMLElement
-  attrs?: Partial<SidetocAttrs>
+  attrs?: Partial<Attrs>
 }
 
-type ResolvedSidetocConfig = {
+type ResolvedConfig = {
   root: HTMLElement
-  attrs: SidetocAttrs
+  attrs: Attrs
 }
 
 export const jsSidetoc = (() => {
   const listenerMap = new WeakMap<HTMLElement, Record<string, EventListener>>()
 
-  const defaultConfig: ResolvedSidetocConfig = {
+  const defaultConfig: ResolvedConfig = {
     root: document.body,
     attrs: {
       container: "data-sidetoc",
@@ -50,7 +50,7 @@ export const jsSidetoc = (() => {
     })
   }
 
-  function copyToc(config: ResolvedSidetocConfig) {
+  function copyToc(config: ResolvedConfig) {
     const { root, attrs } = config
     const sourceEl = root.querySelector(attrs.sourceToc) as HTMLElement
     const containerEl = root.querySelector(
@@ -64,7 +64,7 @@ export const jsSidetoc = (() => {
     containerEl.style.opacity = "1"
   }
 
-  function highlightToc(config: ResolvedSidetocConfig) {
+  function highlightToc(config: ResolvedConfig) {
     const { root, attrs } = config
 
     const headings = Array.from(
@@ -117,12 +117,12 @@ export const jsSidetoc = (() => {
     headings.forEach((heading) => observer.observe(heading))
   }
 
-  function init(config?: SidetocConfig) {
+  function init(config?: Config) {
     const resolvedConfig = {
       ...defaultConfig,
       ...config,
       attrs: { ...defaultConfig.attrs, ...config?.attrs },
-    } as ResolvedSidetocConfig
+    } as ResolvedConfig
     const { root } = resolvedConfig
 
     const resizeObserver = new ResizeObserver((entries) => {
