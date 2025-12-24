@@ -77,19 +77,19 @@
     "@types/degit": "^2.8.6",
     "@types/js-beautify": "^1.14.3",
     "@types/mime-types": "^3.0.1",
-    "@types/node": "^25.0.1",
+    "@types/node": "^25.0.3",
     "@types/picomatch": "^4.0.2",
     "@types/prompts": "^2.4.9",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
     "npm-run-all2": "^8.0.4",
-    "preact": "^10.28.0",
+    "preact": "^10.28.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "rolldown-vite": "^7.2.11",
+    "rolldown-vite": "^7.3.0",
     "typescript": "^5.9.3",
     "vite": "npm:rolldown-vite@latest",
-    "vitest": "^4.0.15"
+    "vitest": "^4.0.16"
   }
 }
