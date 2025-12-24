@@ -102,7 +102,7 @@ export default function (props: LayoutProps) {
       />
       <CommonMenu
         currentUrl={url}
-        itemGroups={[menu.main, ...menu.docs.items]}
+        itemGroups={[{ ...menu.main, isMain: true }, ...menu.docs.items]}
       />
       <script dangerouslySetInnerHTML={{ __html: themeSetup }} />
     </>

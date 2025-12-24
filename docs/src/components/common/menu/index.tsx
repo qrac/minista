@@ -31,7 +31,7 @@ export default function CommonMenu(props: Partial<Props>) {
                 <ul>
                   {group.items.map((item, itemIndex) => (
                     <li key={itemIndex}>
-                      {currentUrl === item.url && group.name !== "Main" ? (
+                      {currentUrl === item.url && !group.isMain ? (
                         <div className="box is-flex is-flex-full is-py-xs is-px-md">
                           <span className="text is-primary is-font-sans-en">
                             {item.name}

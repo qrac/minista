@@ -7,6 +7,7 @@ type Item = {
 type ItemGroup = {
   name: string
   items: Item[]
+  isMain?: boolean
 }
 
 export type Props = {
