@@ -10,6 +10,7 @@ import CommonSidebar from "../components/common/sidebar"
 import CommonDocs from "../components/common/docs"
 import CommonSidetoc from "../components/common/sidetoc"
 import CommonFooter from "../components/common/footer"
+import CommonMenu from "../components/common/menu"
 
 export const metadata: Metadata = {
   pkg: dataPkg,
@@ -98,6 +99,10 @@ export default function (props: LayoutProps) {
         copyrightStartYear={site.copyright.startYear}
         copyrightUrl={site.copyright.url}
         copyrightName={site.copyright.name}
+      />
+      <CommonMenu
+        currentUrl={url}
+        itemGroups={[menu.main, ...menu.docs.items]}
       />
       <script dangerouslySetInnerHTML={{ __html: themeSetup }} />
     </>

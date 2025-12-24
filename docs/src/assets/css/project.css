@@ -19,6 +19,12 @@ html {
   scroll-padding-top: var(--header-height);
 }
 
+.box.is-sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
 .card.is-link.is-bg-2 {
   border: 1px solid transparent;
 }
@@ -49,6 +55,18 @@ html {
 
 .wysiwyg {
   --wysiwyg-figure-text-align: left;
+}
+
+.is-max-width-100per {
+  max-width: 100%;
+}
+
+.is-width-240px {
+  width: 240px;
+}
+
+.is-height-100vh {
+  height: 100vh;
 }
 
 code[data-theme*=" "],

@@ -16,16 +16,16 @@ export default function CommonSidebar(props: Partial<Props>) {
                 <li key={itemIndex}>
                   {currentUrl === item.url ? (
                     <div className="box is-flex is-flex-full is-py-xs is-px-md">
-                      <div className="text is-primary is-font-sans-en">
+                      <span className="text is-primary is-font-sans-en">
                         {item.name}
-                      </div>
+                      </span>
                     </div>
                   ) : (
                     <a
                       className="box is-flex is-flex-full is-link is-py-xs is-px-md is-radius-ml"
                       href={item.url}
                     >
-                      <div className="text is-font-sans-en">{item.name}</div>
+                      <span className="text is-font-sans-en">{item.name}</span>
                     </a>
                   )}
                 </li>

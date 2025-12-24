@@ -152,7 +152,6 @@ function NavMain(props: Partial<Props>) {
               <a
                 href={item.url}
                 className="box is-flex is-middle is-gap-xxs"
-                rel={item.externalLink ? "noopener noreferrer" : undefined}
                 target={item.externalLink ? "_blank" : undefined}
               >
                 <span className="text is-font-sans-en is-weight-500">
@@ -174,7 +173,11 @@ function NavButton() {
   return (
     <div className="box desktop:is-none">
       <div className="box is-flex is-middle is-gap-xxs">
-        <button type="button" className="box is-flex is-p-xs" data-menu-open="">
+        <button
+          type="button"
+          className="box is-flex is-p-xs"
+          data-modal-open="menu"
+        >
           <FiMenu title="Menu" className="icon is-lg" />
         </button>
       </div>

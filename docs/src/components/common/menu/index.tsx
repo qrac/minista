@@ -1,48 +1,64 @@
-const groups = [
-  {
-    title: "Getting Started",
-    items: [
-      { title: "Introduction", href: "/docs/" },
-      { title: "Migration", href: "/docs/migration" },
-    ],
-  },
-  {
-    title: "Plugins",
-    items: [
-      { title: "pluginSsg", href: "/docs/plugins/ssg" },
-      { title: "pluginMdx", href: "/docs/plugins/mdx" },
-      { title: "pluginBundle", href: "/docs/plugins/bundle" },
-      { title: "pluginEntry", href: "/docs/plugins/entry" },
-      { title: "pluginImage", href: "/docs/plugins/image" },
-      { title: "pluginSvg", href: "/docs/plugins/svg" },
-      { title: "pluginSprite", href: "/docs/plugins/sprite" },
-      { title: "pluginComment", href: "/docs/plugins/comment" },
-      { title: "pluginIsland", href: "/docs/plugins/island" },
-      { title: "pluginSearch", href: "/docs/plugins/search" },
-      { title: "pluginBeautify", href: "/docs/plugins/beautify" },
-      { title: "pluginArchive", href: "/docs/plugins/archive" },
-    ],
-  },
-]
+import { FiExternalLink, FiX } from "react-icons/fi"
 
-export function Menu({ url }: { url: string }) {
+import ElementModal from "../../element/modal"
+import ElementSpacer from "../../element/spacer"
+
+import type { Props } from "./props"
+import { initialProps } from "./props"
+
+export default function CommonMenu(props: Partial<Props>) {
+  const { currentUrl, itemGroups } = { ...initialProps, ...props }
   return (
-    <nav>
-      {groups.map((group) => (
-        <div key={group.title}>
-          <h2>{group.title}</h2>
-          <ul>
-            {group.items.map((item) => (
-              <li
-                className={url === item.href ? "is-current" : undefined}
-                key={item.title}
-              >
-                <a href={item.href}>{item.title}</a>
-              </li>
+    <ElementModal modalId="menu" position="right" slide="left">
+      <nav className="menu">
+        <div className="card is-max-width-100per is-width-240px is-height-100vh is-bg-1 is-overflow-scroll-y">
+          <div className="box is-flex is-right is-bg-light is-sticky-top">
+            <div tabIndex={-1} autoFocus />
+            <button
+              type="button"
+              className="box is-flex is-p-lg"
+              data-modal-close="menu"
+            >
+              <FiX className="icon is-lg" />
+            </button>
+          </div>
+          <div className="box is-px-xl is-space-xl">
+            {itemGroups.map((group, groupIndex) => (
+              <div className="box is-space-sm" key={groupIndex}>
+                <h3 className="text is-weight-700 is-font-sans-en is-uppercase">
+                  {group.name}
+                </h3>
+                <ul>
+                  {group.items.map((item, itemIndex) => (
+                    <li key={itemIndex}>
+                      {currentUrl === item.url && group.name !== "Main" ? (
+                        <div className="box is-flex is-flex-full is-py-xs is-px-md">
+                          <span className="text is-primary is-font-sans-en">
+                            {item.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <a
+                          className="box is-flex is-middle is-gap-xxs is-py-xs is-px-md"
+                          href={item.url}
+                        >
+                          <span className="text is-font-sans-en">
+                            {item.name}
+                          </span>
+                          {item.externalLink && (
+                            <FiExternalLink className="icon is-dark-4" />
+                          )}
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
+          <ElementSpacer height={100} />
         </div>
-      ))}
-    </nav>
+      </nav>
+    </ElementModal>
   )
 }
