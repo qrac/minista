@@ -2,6 +2,7 @@
   --theme-tx-1: oklch(0.34 0.02 277.99 / 1);
   --theme-primary: oklch(0.74 0.15 209.92 / 1);
   --theme-secondary: oklch(0.74 0.22 335.78 / 1);
+  --theme-bg-2-only-dark: #18212f;
 }
 
 [data-theme="dark"] {
@@ -17,6 +18,10 @@
 
 html {
   scroll-padding-top: var(--header-height);
+}
+
+.box.is-bg-2-only-dark {
+  background-color: var(--theme-bg-2-only-dark);
 }
 
 .box.is-sticky-top {

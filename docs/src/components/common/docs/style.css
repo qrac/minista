@@ -94,7 +94,6 @@
 .docs > p,
 .docs > .alert p {
   line-height: 1.75;
-  word-break: auto-phrase;
 }
 
 .docs > :is(p, table, ul, ol, .alert) a {
@@ -112,7 +111,6 @@
   padding-left: 32px;
   line-height: 1.75;
   list-style: initial;
-  word-break: auto-phrase;
 }
 
 .docs > ul:not([class]) {
