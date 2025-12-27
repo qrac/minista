@@ -8,52 +8,52 @@ export default function ElementStageSpeed(props: Partial<Props>) {
   return (
     <div className="box is-outline is-bg-2 is-radius-xl is-px-xl is-py-xxl is-space-md">
       <div className="box">
-        <Record
-          titleTexts={["develop:", "v1-latest"]}
+        <Content
+          beforeTexts={["develop:", "v1-latest"]}
           width={85}
           color="secondary"
-          resultTexts={["9.1715s"]}
+          afterTexts={["9.1715s"]}
         />
-        <Comparison beforeWidth={85} afterWidth={5} />
-        <Record
-          titleTexts={["develop:", "v2.0.0"]}
+        <Space beforeWidth={85} afterWidth={5} />
+        <Content
+          beforeTexts={["develop:", "v2.0.0"]}
           width={5}
           color="primary"
-          resultTexts={["0.6006s", "(-93.45%)"]}
+          afterTexts={["0.6006s", "(-93.45%)"]}
         />
       </div>
       <div className="box">
-        <Record
-          titleTexts={["build:", "v1-latest"]}
+        <Content
+          beforeTexts={["build:", "v1-latest"]}
           width={100}
           color="secondary"
-          resultTexts={["10.7899s"]}
+          afterTexts={["10.7899s"]}
         />
-        <Comparison beforeWidth={100} afterWidth={55} />
-        <Record
-          titleTexts={["build:", "v2.0.0"]}
+        <Space beforeWidth={100} afterWidth={55} />
+        <Content
+          beforeTexts={["build:", "v2.0.0"]}
           width={55}
           color="primary"
-          resultTexts={["5.9628s", "(-44.73%)"]}
+          afterTexts={["5.9628s", "(-44.73%)"]}
         />
       </div>
       <p className="text is-font-mono is-tx-3 is-center is-nb-xs is-xs">
-        {"Example: { js: 319KB, css: 101KB, components: 38, pages: 15 }"}
+        {"Example: { pages: 15, components: 38, css: 101KB, js: 319KB }"}
       </p>
     </div>
   )
 }
 
-function Record({
-  titleTexts,
+function Content({
+  beforeTexts,
   width,
   color,
-  resultTexts,
+  afterTexts,
 }: {
-  titleTexts: string[]
+  beforeTexts: string[]
   width: number
   color: "primary" | "secondary"
-  resultTexts: string[]
+  afterTexts: string[]
 }) {
   const widthFr = width / 100
   return (
@@ -66,7 +66,7 @@ function Record({
       }}
     >
       <p className="text is-font-mono is-line-height-xs is-xs">
-        {titleTexts.map((text, index) => (
+        {beforeTexts.map((text, index) => (
           <span key={index} className="text is-block">
             {text}
           </span>
@@ -79,7 +79,7 @@ function Record({
           color === "primary" && "is-primary"
         )}
       >
-        {resultTexts.map((text, index) => (
+        {afterTexts.map((text, index) => (
           <span key={index} className="text is-block">
             {text}
           </span>
@@ -89,7 +89,7 @@ function Record({
   )
 }
 
-function Comparison({
+function Space({
   beforeWidth,
   afterWidth,
 }: {

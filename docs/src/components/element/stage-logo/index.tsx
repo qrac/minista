@@ -1,8 +1,9 @@
 import { clsx } from "clsx"
+import { Svg } from "minista/assets"
 
 import logoV1 from "../../../assets/images/logo-v1.svg"
 import logoV3 from "../../../assets/images/logo-v3.svg"
-import logoV4 from "../../../assets/images/logo.svg"
+import logoV4 from "../../../assets/images/logo-v4.svg"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"

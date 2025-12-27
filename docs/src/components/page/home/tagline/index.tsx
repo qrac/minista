@@ -1,4 +1,5 @@
 import ElementSpacer from "../../../element/spacer"
+import ElementRecord from "../../../element/record"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
@@ -20,7 +21,7 @@ export default function PageHomeTagline(props: Partial<Props>) {
               </p>
             ))}
           </div>
-          <p className="text is-tx-3 is-autospace is-xs">{note}</p>
+          <ElementRecord text={note} />
         </div>
       </div>
       <ElementSpacer height={50} />

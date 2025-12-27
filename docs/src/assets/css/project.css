@@ -53,6 +53,19 @@ html {
   text-autospace: normal;
 }
 
+.text.is-record {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
+.text.is-record::before {
+  content: "";
+  width: 3em;
+  height: 0.125em;
+  border-bottom: 0.5px solid currentColor;
+}
+
 .image.is-full-auto {
   width: 100%;
   height: auto;

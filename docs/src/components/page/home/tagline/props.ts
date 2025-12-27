@@ -10,5 +10,5 @@ export const initialProps: Props = {
     "静的HTMLが必要なウェブ制作の現場にもJSXのコンポーネント管理を導入したい。",
     "独自構文を使わず、エディタサポートの優れたTypeScriptを活用したい。",
   ],
-  note: "ー ministaコンセプト",
+  note: "minista concept by Qrac.",
 }

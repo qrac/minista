@@ -3,6 +3,7 @@ title: Introduction
 layout: docs
 ---
 
+import ElementRecord from "../../components/element/record"
 import ElementStageLogo from "../../components/element/stage-logo"
 import ElementStageSpeed from "../../components/element/stage-speed"
 
@@ -22,16 +23,29 @@ contents list
 
 では、EJS・Pug・Nunjucks を引っ張り出しますか？いいえ、彼らにはとても助けられてきましたが、使い心地が異なるため Next.js と並行して使い続けるのは辛いものがあります。
 
-### v0 ~ v1
+### v0
+
+<ElementRecord text="First commit: 2021/03/21" />
 
 そこで、理想の形を求めてフレームワークを試作。React の `renderToStaticMarkup()` と webpack を組み合わせてパッケージ化したものが初期の minista です。
 
 - [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
-- [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
 
 <ElementStageLogo version={1} />
 
+### v1
+
+<ElementRecord text="Release: 2022/01/15" />
+
+仕様が単純で拡張しやすく多数の業務で活躍してくれました！ただ、webpack は起動時にすべてをバンドルしてメモリに乗せる設計なので、内容が膨らむほどパフォーマンスが悪化。プロジェクト終盤だと起動に 10 秒以上かかる場合もあり悩みました。
+
+また、Next.js の使い勝手を再現できていない部分も気になっていました。例えば、ページは HTML 化する関数が省略不可、コンポーネントは自身の CSS を import できず、fetch からのダイナミックルーティングや Markdown 統合など気の遠くなる話に思えました。
+
+- [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
+
 ### v2
+
+<ElementRecord text="Release: 2022/04/12" />
 
 そんなパフォーマンスと機能の問題をすべて解決したのが minista v2 です！webpack には感謝しつつも一旦別れを告げ Vite と esbuild を組み込みゼロから開発。
 
@@ -45,6 +59,8 @@ contents list
 
 ### v3
 
+<ElementRecord text="Release: 2023/03/31" />
+
 <ElementStageLogo version={3} />
 
 それから 1 年後、minista v3 をリリースしました！基本的な使い方は変わりませんが、本体の完成度を上げるためにソースコードはすべて書き直しています。
@@ -54,3 +70,19 @@ contents list
 画像の最適化・アセットのダイナミックエントリー・納品ページの自動リストアップ・Zip でまとめる機能などが追加されています。
 
 - [React の JSX で書ける SSG を 1 から作り直した - minista v3](https://zenn.dev/qrac/articles/980efced76634f)
+
+### v4
+
+<ElementRecord text="Release: 2026/01/07" />
+
+<ElementStageLogo version={4} />
+
+3 年後、Vite と完全に統合するための minista v4 を公開しました。
+
+**すべての機能を Vite プラグイン化！** コンフィグも `vite.config.ts` で動作します。
+
+機能面の大きな変化は、既存の Partial Hydration を廃止し、Astro の Island を再現したこと。JSX の任意の部分を手軽に React App 化できるようになりました。
+
+開発環境はビルドの手間を無くすために TypeScript を JavaScript + JSDoc に変更。キーカラーには OKLCH を採用。ドキュメントにライトテーマを追加しています。
+
+新設計の minista と Rolldown ベースとなった Vite を併用することで、より高速で柔軟な静的サイト生成が可能になりました。
