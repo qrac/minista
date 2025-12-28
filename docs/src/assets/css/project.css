@@ -12,6 +12,7 @@
 :root {
   --header-height: 62px;
   --layout-gap: 28px;
+  --layout-gap-count-max: 2;
   --sidebar-width: 200px;
   --sidetoc-width: 160px;
 }

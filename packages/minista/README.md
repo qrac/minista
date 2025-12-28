@@ -55,19 +55,23 @@ export default function () {
 }
 ```
 
-## Commands
+## CLI
 
-[Vite の CLI コマンドとオプション](https://ja.vitejs.dev/guide/cli.html)がすべて使えます。
+### Commands
 
-| コマンド                 | 内容                            |
-| ------------------------ | ------------------------------- |
-| `minista [root]`         | 開発モード（`Ctrl + C` で停止） |
-| `minista build [root]`   | 静的書き出し                    |
-| `minista preview [root]` | 静的書き出し後の動作確認        |
+| コマンド                 | 内容                                           |
+| ------------------------ | ---------------------------------------------- |
+| `minista [root]`         | 開発モード（`Ctrl + C` で停止）                |
+| `minista build [root]`   | 静的書き出し（SSR ビルド後に連続で通常ビルド） |
+| `minista preview [root]` | 静的書き出し後の動作確認                       |
 
-| minista 独自のオプション | 内容                              |
-| ------------------------ | --------------------------------- |
-| `--oneBuild`             | minista のビルドを 1 回に制限する |
+### Options
+
+[Vite の CLI コマンドオプション](https://ja.vitejs.dev/guide/cli.html)がすべて使えるほか、以下の独自オプションがあります。
+
+| 独自のオプション | 内容                                              |
+| ---------------- | ------------------------------------------------- |
+| `--oneBuild`     | minista のビルドを 1 回に制限（連続ビルドしない） |
 
 ## Config
 

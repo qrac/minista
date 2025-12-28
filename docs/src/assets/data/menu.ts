@@ -39,16 +39,16 @@ export default {
             url: "/docs/setup",
           },
           {
-            name: "Migration",
-            url: "/docs/migration",
-          },
-          {
-            name: "Commands",
-            url: "/docs/commands",
+            name: "CLI",
+            url: "/docs/cli",
           },
           {
             name: "Config",
             url: "/docs/config",
+          },
+          {
+            name: "Migration",
+            url: "/docs/migration",
           },
         ],
       },

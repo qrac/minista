@@ -9,6 +9,7 @@ import {
   pluginSearch,
 } from "minista"
 import react from "@vitejs/plugin-react"
+import remarkGfm from "remark-gfm"
 import remarkToc from "remark-toc"
 import rehypeSlug from "rehype-slug"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
@@ -30,7 +31,7 @@ const common = defineConfig({
   plugins: [
     pluginSsg(),
     pluginMdx({
-      remarkPlugins: [[remarkToc, remarkTocOptions]],
+      remarkPlugins: [remarkGfm, [remarkToc, remarkTocOptions]],
       rehypePlugins: [
         rehypeSlug,
         rehypeAutolinkHeadings,

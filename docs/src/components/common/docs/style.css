@@ -171,7 +171,8 @@
   .docs > table tr::after {
     min-width: calc(
       var(--section-inner-desktop-width) - var(--sidebar-width) -
-        var(--layout-gap) * 2 - var(--sidetoc-width) - 40px
+        var(--layout-gap) * var(--layout-gap-count-max) - var(--sidetoc-width) -
+        40px
     );
   }
 }
@@ -180,7 +181,7 @@
   .docs > table tr::after {
     min-width: calc(
       var(--section-inner-wide-width) - var(--sidebar-width) - var(--layout-gap) *
-        2 - var(--sidetoc-width) - 40px
+        var(--layout-gap-count-max) - var(--sidetoc-width) - 40px
     );
   }
 }

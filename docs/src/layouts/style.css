@@ -14,6 +14,10 @@
 }
 
 @media (992px <= width) {
+  .layout-grid.is-docs:not(:has(#table-of-contents)) {
+    --layout-gap-count-max: 1;
+    --sidetoc-width: 0px;
+  }
   .layout-grid.is-docs:has(#table-of-contents) {
     grid-template-columns: var(--sidebar-width) 1fr var(--sidetoc-width);
   }
