@@ -10,6 +10,11 @@ type Menu = typeof menu
 declare module "minista/types" {
   interface Metadata {
     layout?: string
+    description?: string
+    prevTitle?: string
+    prevUrl?: string
+    nextTitle?: string
+    nextUrl?: string
     noindex?: boolean
     pkg?: Pkg
     site?: Site
@@ -17,6 +22,11 @@ declare module "minista/types" {
   }
   interface PageProps {
     layout: string
+    description: string
+    prevTitle: string
+    prevUrl: string
+    nextTitle: string
+    nextUrl: string
     noindex: boolean
     pkg: Pkg
     site: Site
@@ -24,6 +34,11 @@ declare module "minista/types" {
   }
   interface LayoutProps {
     layout: string
+    description: string
+    prevTitle: string
+    prevUrl: string
+    nextTitle: string
+    nextUrl: string
     noindex: boolean
     pkg: Pkg
     site: Site

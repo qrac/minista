@@ -1,4 +1,62 @@
 ---
-title: Config
 layout: docs
+title: Config
+prevTitle: "CLI"
+prevUrl: "/docs/cli"
+nextTitle: "Migration"
+nextUrl: "/docs/migration"
 ---
+
+# Config
+
+[Vite のコンフィグ](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `minista.config.{ts,js}`・`vite.config.{ts,js}` のどちらでも動作し、`defineConfig` も使用できます。
+
+```ts
+// ./minista.config.ts
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+## Table of Contents
+
+contents list
+
+## Plugins
+
+minista は v4 以降、すべての機能を Vite プラグイン化しています。プロジェクトに必要なプラグインを選び、コンフィグの `plugins` に追加してください。
+
+例えば、基本の SSG に加えて MDX やアセットのエントリー機能を追加する場合は以下のように記述を増やします。プラグインの使い方は各ページを参照ください。
+
+```ts
+// ./minista.config.ts
+import { defineConfig, pluginSsg, pluginsMdx, pluginEntry } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginsMdx(), pluginEntry()],
+})
+```
+
+## Troubleshooting
+
+minista は Vite の SSR ビルドと通常ビルドを連続で行うため、ビルドの一括設定がエラーに繋がる場合があります。これは設定を SSR ビルド用・通常ビルド用に切り分けることで解消できます。
+
+```ts
+// ./minista.config.ts
+import { defineConfig, pluginSsg } from "minista"
+
+const common = defineConfig({
+  plugins: [pluginSsg()],
+})
+
+export default defineConfig(({ command, isSsrBuild }) => {
+  if (command === "serve") return { ...common }
+  if (command === "build" && isSsrBuild) return { ...common }
+  if (command === "build" && !isSsrBuild) {
+    return { ...common, build: { minify: false } }
+  }
+  return { ...common }
+})
+```

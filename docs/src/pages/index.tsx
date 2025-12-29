@@ -4,9 +4,7 @@ import PageHomeHero from "../components/page/home/hero"
 import PageHomeTagline from "../components/page/home/tagline"
 import PageHomeFeature from "../components/page/home/feature"
 
-export const metadata: Metadata = {
-  layout: "home",
-}
+export const metadata: Metadata = {}
 
 export default function (props: PageProps) {
   const { pkg, site } = props

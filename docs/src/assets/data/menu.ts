@@ -39,6 +39,10 @@ export default {
             url: "/docs/setup",
           },
           {
+            name: "TypeScript",
+            url: "/docs/typescript",
+          },
+          {
             name: "CLI",
             url: "/docs/cli",
           },

@@ -1,7 +1,8 @@
 import type { Metadata, PageProps } from "minista/types"
 
 export const metadata: Metadata = {
-  layout: "home",
+  title: "404",
+  noindex: true,
 }
 
 export default function (props: PageProps) {

@@ -11,6 +11,8 @@ import CommonDocs from "../components/common/docs"
 import CommonSidetoc from "../components/common/sidetoc"
 import CommonFooter from "../components/common/footer"
 import CommonMenu from "../components/common/menu"
+import ElementSpacer from "../components/element/spacer"
+import ElementPager from "../components/element/pager"
 
 export const metadata: Metadata = {
   pkg: dataPkg,
@@ -19,12 +21,16 @@ export const metadata: Metadata = {
 }
 
 export default function (props: LayoutProps) {
-  const { url, title, children, layout, noindex, pkg, site, menu } = props
+  const { url, title, children } = props
+  const { layout, description, noindex } = props
+  const { prevTitle, prevUrl, nextTitle, nextUrl } = props
+  const { pkg, site, menu } = props
   const isDocs = layout === "docs"
+  const hasPager = (prevTitle && prevUrl) || (nextTitle && nextUrl)
   const siteName = site.name
-  const siteDesc = site.description
   const siteUrl = site.url
   const pageTitle = url === "/" ? siteName : `${title} - ${siteName}`
+  const pageDesc = description || site.description
   const ogUrl = siteUrl + url
   const ogImage = siteUrl + site.ogp
   const ogType = url === "/" ? "website" : "article"
@@ -36,9 +42,9 @@ export default function (props: LayoutProps) {
     <>
       <Head bodyAttributes={{ class: "layout" }}>
         <title>{pageTitle}</title>
-        <meta name="description" content={siteDesc} />
+        <meta name="description" content={pageDesc} />
         <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={siteDesc} />
+        <meta property="og:description" content={pageDesc} />
         <meta property="og:url" content={ogUrl} />
         <meta property="og:image" content={ogImage} />
         <meta property="og:site_name" content={siteName} />
@@ -75,6 +81,17 @@ export default function (props: LayoutProps) {
                     <CommonDocs DOMElement="article" isSidetocTarget={true}>
                       {children}
                     </CommonDocs>
+                    {hasPager && (
+                      <>
+                        <ElementSpacer height={40} />
+                        <ElementPager
+                          prevTitle={prevTitle}
+                          prevUrl={prevUrl}
+                          nextTitle={nextTitle}
+                          nextUrl={nextUrl}
+                        />
+                      </>
+                    )}
                   </main>
                 </div>
                 <div className="layout-column is-sidetoc">
