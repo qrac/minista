@@ -24,8 +24,7 @@ contents list
 $ npm install --save-dev @vitejs/plugin-react
 ```
 
-```js
-// ./minista.config.js
+```js title="./minista.config.js"
 import { pluginIsland } from "minista"
 import react from "@vitejs/plugin-react"
 
@@ -34,8 +33,7 @@ export default {
 }
 ```
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Counter } from "../components/counter"
 
 export default function () {
@@ -45,8 +43,7 @@ export default function () {
 
 ## Options
 
-```js
-// Default
+```js title="Default"
 pluginIsland({
   useSplitPages: true,
   outName: "island-[index]",

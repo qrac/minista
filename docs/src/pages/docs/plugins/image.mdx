@@ -13,8 +13,7 @@ contents list
 
 ## How To Use
 
-```js
-// ./minista.config.js
+```js title="./minista.config.js"
 import { pluginImage } from "minista"
 
 export default {
@@ -22,8 +21,7 @@ export default {
 }
 ```
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Image } from "minista/assets"
 
 export default function () {
@@ -33,8 +31,7 @@ export default function () {
 
 ## Options
 
-```js
-// Default
+```js title="Default"
 pluginImage({
   useCache: true,
   optimize: {
@@ -191,8 +188,7 @@ pluginImage({
 - 自動で画像の幅と高さを取得して `width` `height` を付与
 - リモート画像をダウンロード
 
-```tsx
-// ./src/pages/index.jsx
+```tsx title="./src/pages/index.jsx"
 import { Image } from "minista/assets"
 
 export default function () {
@@ -200,8 +196,7 @@ export default function () {
 }
 ```
 
-```html
-<!-- dist -->
+```html title="Dist"
 <img
   srcset="
     /assets/images/image-320x157.png    320w,
@@ -248,8 +243,7 @@ type ImageProps = {
 - 自動で画像の幅と高さを取得して `width` `height` を付与
 - リモート画像をダウンロード
 
-```tsx
-// ./src/pages/index.jsx
+```tsx title="./src/pages/index.jsx"
 import { Picture } from "minista/assets"
 
 export default function () {
@@ -257,8 +251,7 @@ export default function () {
 }
 ```
 
-```html
-<!-- dist -->
+```html title="Dist"
 <picture>
   <source
     srcset="

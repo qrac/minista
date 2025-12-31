@@ -13,8 +13,7 @@ contents list
 
 ## How To Use
 
-```js
-// ./minista.config.js
+```js title="./minista.config.js"
 import { pluginSsg } from "minista"
 
 export default {
@@ -22,8 +21,7 @@ export default {
 }
 ```
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 export default function () {
   return <h1>Hello!</h1>
 }
@@ -31,8 +29,7 @@ export default function () {
 
 ## Options
 
-```js
-// Default
+```js title="Default"
 pluginSsg({
   layout: "/src/layouts/index.{tsx,jsx}",
   src: ["/src/pages/**/*.{tsx,jsx,mdx,md}"],
@@ -69,8 +66,7 @@ pluginSsg({
 - `bodyAttributes`: body の属性を変更
 - `key`: タグを後のものに差し替え
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Head } from "minista/head"
 
 export default function () {
@@ -99,8 +95,7 @@ export default function () {
 - `export const metadata`: ページとマージして使えるデータ
 - `props: LayoutProps`: ページとマージされたデータ
 
-```tsx
-// ./src/layouts/index.tsx
+```tsx title="./src/layouts/index.tsx"
 import type { Metadata, LayoutProps } from "minista/types"
 
 export const metadata: Metadata = {
@@ -128,8 +123,7 @@ export default function (props: LayoutProps) {
 - `export const metadata`: レイアウトとマージして使えるデータ
 - `props: PageProps`: レイアウトとマージされたデータ
 
-```tsx
-// ./src/pages/index.tsx
+```tsx title="./src/pages/index.tsx"
 import type { Metadata, PageProps } from "minista/types"
 
 export const metadata: Metadata = {
@@ -155,8 +149,7 @@ export default function (props: PageProps) {
 - `getStaticData()`: ページ生成前に非同期処理を実行
 - `/src/pages/[foo]/[bar].{tsx,jsx}`: 動的ルーティング
 
-```tsx
-// ./src/pages/index.tsx
+```tsx title="./src/pages/index.tsx"
 import type { StaticData, PageProps } from "minista/types"
 
 export async function getStaticData(): Promise<StaticData> {
@@ -197,8 +190,7 @@ export default function (props: PagePropsWithIssues) {
 }
 ```
 
-```tsx
-// ./src/pages/issues/[lang]/[number].tsx
+```tsx title="./src/pages/issues/[lang]/[number].tsx"
 import type { StaticData, PageProps } from "minista/types"
 
 export async function getStaticData(): Promise<StaticData[]> {
@@ -237,8 +229,7 @@ export default function (props: PagePropsMergedIssue) {
 
 `Metadata` `PageProps` `LayoutProps` には独自のプロパティを追加できますが、TypeScript のモジュール拡張を使用することで型も追加できます。
 
-```ts
-// ./types.d.ts
+```ts title="./types.d.ts"
 import "minista/types"
 
 declare module "minista/types" {
@@ -254,8 +245,7 @@ declare module "minista/types" {
 }
 ```
 
-```json
-// ./tsconfig.json
+```json title="./tsconfig.json"
 {
   "compilerOptions": {
     "types": ["minista/client", "./types.d.ts"]

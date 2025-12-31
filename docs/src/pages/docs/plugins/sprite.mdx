@@ -15,8 +15,7 @@ contents list
 
 ## How To Use
 
-```js
-// ./minista.config.js
+```js title="./minista.config.js"
 import { pluginSprite } from "minista"
 
 export default {
@@ -24,8 +23,7 @@ export default {
 }
 ```
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Sprite } from "minista/assets"
 
 export default function () {
@@ -35,8 +33,7 @@ export default function () {
 
 ## Options
 
-```js
-// Default
+```js title="Default"
 pluginSprite({})
 ```
 
@@ -53,8 +50,7 @@ pluginSprite({})
 
 - スプライト生成時に SVGO でコードを最適化
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Sprite } from "minista/assets"
 
 export default function () {
@@ -62,8 +58,7 @@ export default function () {
 }
 ```
 
-```xml
-<!-- dist -->
+```xml title="Dist"
 <svg><use href="/assets/sprite.svg#square"></use>
 ```
 
@@ -94,8 +89,7 @@ SVG スプライトファイル内の `symbol` は `symbolId` 順に並べ替え
 
 スプライト対象ディレクトリ内には既存の SVG スプライトファイルを混ぜることもできます。その場合、SVG スプライトのファイル名は `symbolId` にならないため、既存の SVG スプライトファイル内の `symbol` を使う場合はコンポーネントに `symbolId` を設定します。
 
-```tsx
-// ./src/pages/index.jsx
+```tsx title="./src/pages/index.jsx"
 import { Sprite } from "minista/assets"
 
 export default function () {

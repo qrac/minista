@@ -18,10 +18,12 @@ contents list
 ## Automatic
 
 ```sh
-# Interactive
 $ npm create minista@latest
+```
 
-# Shortcut
+※対話形式をショートカットしたい場合は create コマンドに引数でインストールディレクトリとテンプレート指定します。
+
+```sh
 $ npm create minista@latest my-minista-project -- --template minimal-ts
 ```
 
@@ -36,13 +38,15 @@ $ npm create minista@latest my-minista-project -- --template minimal-ts
 
 ```sh
 $ npm install --save-dev minista vite react react-dom
-$ touch ./src/pages/index.jsx
 ```
 
 `src/pages` ディレクトリに `index.jsx (or .tsx)` を作成。
 
-```js
-// ./src/pages/index.jsx
+```sh
+$ touch ./src/pages/index.jsx
+```
+
+```jsx title="./src/pages/index.jsx"
 export default function () {
   return <h1>Hello!</h1>
 }

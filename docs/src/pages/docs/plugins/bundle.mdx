@@ -13,8 +13,7 @@ contents list
 
 ## How To Use
 
-```js
-// ./minista.config.js
+```js title="./minista.config.js"
 import { pluginBundle } from "minista"
 
 export default {
@@ -22,8 +21,7 @@ export default {
 }
 ```
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import "../assets/image.css"
 import iconUrl from "../assets/image.png"
 
@@ -34,8 +32,7 @@ export default function () {
 
 ## Options
 
-```js
-// Default
+```js title="Default"
 pluginBundle({
   useExportCss: true,
   src: ["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"],

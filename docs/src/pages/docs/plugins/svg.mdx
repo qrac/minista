@@ -15,8 +15,7 @@ contents list
 
 ## How To Use
 
-```js
-// ./minista.config.js
+```js title="./minista.config.js"
 import { pluginSvg } from "minista"
 
 export default {
@@ -24,8 +23,7 @@ export default {
 }
 ```
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Svg } from "minista/assets"
 
 export default function () {
@@ -35,8 +33,7 @@ export default function () {
 
 ## Options
 
-```js
-// Default
+```js title="Default"
 pluginSvg({})
 ```
 
@@ -53,8 +50,7 @@ pluginSvg({})
 
 - 展開時に SVGO でコードを最適化
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Svg } from "minista/assets"
 
 export default function () {
@@ -62,8 +58,7 @@ export default function () {
 }
 ```
 
-```xml
-<!-- dist -->
+```xml title="Dist"
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <path d="M76 76h360v360H76z" style="fill:#000;stroke-width:0"></path>
 </svg>

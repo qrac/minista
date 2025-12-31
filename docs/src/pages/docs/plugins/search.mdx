@@ -22,8 +22,7 @@ contents list
 $ npm install --save-dev @vitejs/plugin-react
 ```
 
-```js
-// ./minista.config.js
+```js title="./minista.config.js"
 import { pluginIsland, pluginSearch } from "minista"
 import react from "@vitejs/plugin-react"
 
@@ -32,8 +31,7 @@ export default {
 }
 ```
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Search } from "minista/assets"
 
 export default function () {
@@ -41,8 +39,7 @@ export default function () {
 }
 ```
 
-```jsx
-// ./src/pages/docs/css.jsx
+```jsx title="./src/pages/docs/css.jsx"
 import { Head } from "minista/head"
 
 export default function () {
@@ -63,8 +60,7 @@ export default function () {
 
 上記の JSX から以下の JSON 出力されます。
 
-```json
-// dist/assets/search.json
+```json title="./dist/assets/search.json"
 {
   "words": ["CMS", "CSS", "。", "う", "で", "使"],
   "hits": [0, 1],
@@ -88,9 +84,8 @@ export default function () {
 
 ## Options
 
-```js
-// Default
-pluginIsland({
+```js title="Default"
+pluginSearch({
   outName: "search",
   src: ["**/*.html"],
   ignore: ["404.html"],
@@ -206,8 +201,7 @@ pluginIsland({
 
 検索用のコンポーネント。検索フィールドと候補の出力がセットとなっており、`pluginIsland` の併用で動作します。
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Search } from "minista/assets"
 
 export default function () {

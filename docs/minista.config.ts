@@ -19,6 +19,7 @@ const remarkTocOptions = {
   maxDepth: 3,
 }
 const rehypePrettyCodeOptions = {
+  grid: false,
   theme: {
     light: "github-light",
     dark: "dracula-soft",

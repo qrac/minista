@@ -20,6 +20,18 @@ export const metadata: Metadata = {
   menu: dataMenu,
 }
 
+function formatDesc(text: string, maxLength: number = 160): string {
+  if (!text) return ""
+
+  const normalized = text.replace(/\s+/g, " ").trim()
+  const chars = Array.from(normalized)
+
+  if (chars.length <= maxLength) {
+    return normalized
+  }
+  return chars.slice(0, maxLength).join("") + "…"
+}
+
 export default function (props: LayoutProps) {
   const { url, title, children } = props
   const { layout, description, noindex } = props
@@ -30,7 +42,7 @@ export default function (props: LayoutProps) {
   const siteName = site.name
   const siteUrl = site.url
   const pageTitle = url === "/" ? siteName : `${title} - ${siteName}`
-  const pageDesc = description || site.description
+  const pageDesc = description ? formatDesc(description) : site.description
   const ogUrl = siteUrl + url
   const ogImage = siteUrl + site.ogp
   const ogType = url === "/" ? "website" : "article"

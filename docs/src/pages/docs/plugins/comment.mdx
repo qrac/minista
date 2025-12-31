@@ -13,8 +13,7 @@ contents list
 
 ## How To Use
 
-```js
-// ./minista.config.js
+```js title="./minista.config.js"
 import { pluginComment } from "minista"
 
 export default {
@@ -22,8 +21,7 @@ export default {
 }
 ```
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Comment } from "minista/assets"
 
 export default function () {
@@ -39,8 +37,7 @@ export default function () {
 
 HTML にコメントを出力するコンポーネント。
 
-```jsx
-// ./src/pages/index.jsx
+```jsx title="./src/pages/index.jsx"
 import { Comment } from "minista/assets"
 
 export default function () {
@@ -54,7 +51,7 @@ export default function () {
 }
 ```
 
-```xml
+```html title="Dist"
 <!-- + comment -->
 <h1>index</h1>
 <!-- - comment -->

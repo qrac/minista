@@ -6,7 +6,7 @@ import { initialProps } from "./props"
 export default function ElementStageSpeed(props: Partial<Props>) {
   const {} = { ...initialProps, ...props }
   return (
-    <div className="box is-outline is-bg-2 is-radius-xl is-px-xl is-py-xxl is-space-md">
+    <div className="box is-bg-2 is-radius-xl is-px-xl is-py-xxl is-space-md">
       <div className="box">
         <Content
           beforeTexts={["develop:", "v1-latest"]}

@@ -223,6 +223,31 @@
   white-space: nowrap;
 }
 
+.docs [data-rehype-pretty-code-figure] {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px;
+}
+
+.docs
+  [data-rehype-pretty-code-figure]:has([data-rehype-pretty-code-title])
+  [data-code-copy] {
+  border-top-right-radius: 0;
+}
+
+.docs
+  [data-rehype-pretty-code-figure]:has([data-rehype-pretty-code-title])
+  pre {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.docs [data-rehype-pretty-code-figure]:has([data-code-copy]) pre {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .docs > pre,
 .docs [data-rehype-pretty-code-figure] pre {
   background: var(--theme-bg-2);
@@ -234,11 +259,92 @@
   overflow-x: auto;
 }
 
+/*.docs [data-rehype-pretty-code-figure] pre::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 6px;
+  right: 11px;
+  color: var(--theme-tx-3);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}*/
+
 .docs > pre code,
-.docs > pre .hljs,
 .docs [data-rehype-pretty-code-figure] code {
   display: block;
+  min-width: 100%;
+  width: fit-content;
   padding: 20px 24px;
   color: var(--theme-tx-2);
   font-family: var(--font-mono);
+}
+
+.docs [data-rehype-pretty-code-title] {
+  grid-column: 1 / 3;
+  padding: 8px 12px 6px;
+  background: var(--theme-bg-2);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  color: var(--theme-tx-3);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}
+
+.docs [data-code-copy] {
+  position: relative;
+  height: 100%;
+  padding: 10px;
+  background-color: var(--theme-bg-2);
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  transition: ease-out 0.12s;
+  z-index: 2;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .docs [data-code-copy]:hover {
+    background-color: color-mix(
+      in srgb,
+      var(--theme-bg-2) 80%,
+      var(--theme-bg-3) 20%
+    );
+  }
+}
+
+.docs [data-code-copy-copied] {
+  position: absolute;
+  display: none;
+  bottom: calc(50% + 8px + 6px);
+  left: 50%;
+  padding: 5px 8px;
+  background-color: var(--theme-bg-3);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  text-indent: 0.375em;
+  line-height: 1;
+  white-space: nowrap;
+  translate: -50% 0;
+}
+
+.docs [data-code-copy-copied]::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 8px;
+  height: 4px;
+  background: var(--theme-bg-3);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  translate: -50% 0;
+}
+
+.docs [data-code-copy="is-copied"] [data-code-copy-copied] {
+  display: block;
+}
+
+.docs [data-code-copy] > svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
 }
