@@ -3,7 +3,7 @@
 /** @typedef {import('../types').SearchResult} SearchResult */
 /** @typedef {import('../types').SearchProps} SearchProps */
 
-import { useState, useEffect, createElement } from "react"
+import { useState, useEffect, createElement, cloneElement } from "react"
 
 /** @type {"serve"|"build"} */
 const apply = "serve"
@@ -31,6 +31,7 @@ export function Search(props) {
     placeholder = "",
     beforeElement,
     afterElement,
+    clearElement,
     attributes: fieldAttributes = {},
     ...fieldRest
   } = field
@@ -43,6 +44,8 @@ export function Search(props) {
 
   const [root, setRoot] = useState("/")
   const [callSearchData, setCallSearchData] = useState(false)
+
+  const [inputValue, setInputValue] = useState("")
 
   /** @type {[SearchData, React.Dispatch<React.SetStateAction<SearchData>>]} */
   const [searchData, setSearchData] = useState({
@@ -71,13 +74,13 @@ export function Search(props) {
   const checkResults = searchResults && searchResults.length
 
   /**
-   * @param {React.ChangeEvent<HTMLInputElement>} event
+   * @param {string} nextValue
    */
-  const searchHandler = (event) => {
+  const runSearch = (nextValue) => {
     if (!callSearchData) setCallSearchData(true)
     if (!searchData || !searchHits || !searchPages) return
 
-    const input = event.target.value || ""
+    const input = nextValue || ""
     const inputValues = input.split(" ").filter(Boolean)
     const mergedInputValues = [...new Set(inputValues)].sort()
 
@@ -90,6 +93,7 @@ export function Search(props) {
     const hitIndexes = mergedHitValues.map((value) =>
       searchData.words.indexOf(value)
     )
+
     /** @type {SearchPage[]} */
     const hitPages = searchPages.flatMap((page) => {
       const titleIndexs = page.title.filter((i) => hitIndexes.indexOf(i) !== -1)
@@ -155,6 +159,36 @@ export function Search(props) {
     setSearchHitValues(mergedHitValues)
     setSearchResults(resultHitPages)
   }
+
+  /**
+   * @param {React.ChangeEvent<HTMLInputElement>} event
+   */
+  const searchHandler = (event) => {
+    const nextValue = event.target.value || ""
+    setInputValue(nextValue)
+    runSearch(nextValue)
+  }
+
+  const clearInput = () => {
+    setInputValue("")
+    setSearchValues([])
+    setSearchHitValues([])
+    setSearchResults([])
+  }
+
+  const resolvedClearElement =
+    clearElement && inputValue
+      ? cloneElement(clearElement, {
+          /**
+           * @param {import("react").MouseEvent<HTMLElement>} e
+           */
+          onClick: (e) => {
+            clearElement.props?.onClick?.(e)
+            e?.preventDefault?.()
+            clearInput()
+          },
+        })
+      : null
 
   /**
    * @param {string} content
@@ -259,8 +293,10 @@ export function Search(props) {
         type: "search",
         placeholder,
         [inputAttr]: "",
+        value: inputValue,
         onChange: searchHandler,
       }),
+      resolvedClearElement,
       afterElement || null
     ),
 

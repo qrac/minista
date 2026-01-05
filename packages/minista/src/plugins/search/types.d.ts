@@ -52,6 +52,7 @@ export type SearchProps = {
     placeholder?: string
     beforeElement?: React.ReactElement
     afterElement?: React.ReactElement
+    clearElement?: React.ReactElement<React.HTMLAttributes<HTMLElement>>
     attributes?: React.HTMLAttributes<HTMLElement>
   } & React.HTMLAttributes<HTMLElement>
   list?: {

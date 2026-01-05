@@ -223,6 +223,7 @@ type SearchProps = {
     placeholder?: string
     beforeElement?: React.ReactElement
     afterElement?: React.ReactElement
+    clearElement?: React.ReactElement<React.HTMLAttributes<HTMLElement>>
     attributes?: React.HTMLAttributes<HTMLElement>
   } & React.HTMLAttributes<HTMLElement>
   list?: {
@@ -287,7 +288,14 @@ type SearchProps = {
 - 型: `React.ReactElement`
 - デフォルト: `undefined`
 
-検索フィールドの前に挿入する要素。虫眼鏡アイコンなど。
+検索フィールドの後に挿入する要素。虫眼鏡アイコンなど。
+
+### field.clearElement
+
+- 型: `React.ReactElement<React.HTMLAttributes<HTMLElement>>`
+- デフォルト: `undefined`
+
+検索フィールドをクリアする要素。× ボタンなど。
 
 ### list.className
 
