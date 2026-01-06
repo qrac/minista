@@ -4,6 +4,7 @@ type PluginOptionBase = {
   ignore: string[]
   trimTitle: string
   targetSelector: string
+  ignoreSelectors: string[]
   relativeAttr: string
   inputAttr: string
 }

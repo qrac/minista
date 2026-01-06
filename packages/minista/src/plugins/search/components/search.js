@@ -3,7 +3,7 @@
 /** @typedef {import('../types').SearchResult} SearchResult */
 /** @typedef {import('../types').SearchProps} SearchProps */
 
-import { useState, useEffect, createElement, cloneElement } from "react"
+import { useState, useRef, useEffect, createElement, cloneElement } from "react"
 
 /** @type {"serve"|"build"} */
 const apply = "serve"
@@ -11,6 +11,23 @@ const apply = "serve"
 const base = "/"
 const relativeAttr = "data-search-relative"
 const inputAttr = "data-search-input"
+
+/**
+ * @param {string[]} tokens
+ * @returns {string}
+ */
+function joinTokens(tokens) {
+  let out = ""
+  for (let i = 0; i < tokens.length; i++) {
+    const cur = tokens[i] ?? ""
+    const prev = tokens[i - 1] ?? ""
+    const needSpace =
+      prev && cur && /[0-9A-Za-z]$/.test(prev) && /^[0-9A-Za-z]/.test(cur)
+
+    out += (needSpace ? " " : "") + cur
+  }
+  return out
+}
 
 /**
  * @param {SearchProps} props
@@ -46,6 +63,9 @@ export function Search(props) {
   const [callSearchData, setCallSearchData] = useState(false)
 
   const [inputValue, setInputValue] = useState("")
+
+  /** @type {import("react").RefObject<HTMLInputElement>} */
+  const inputRef = useRef(null)
 
   /** @type {[SearchData, React.Dispatch<React.SetStateAction<SearchData>>]} */
   const [searchData, setSearchData] = useState({
@@ -138,9 +158,9 @@ export function Search(props) {
           targetIndex,
           targetIndex + maxHitWords
         )
-        const targetWords = targetIndexes
-          .map((num) => searchData.words[num])
-          .join("")
+        const targetWords = joinTokens(
+          targetIndexes.map((num) => searchData.words[num])
+        )
         const targetContent = "..." + targetWords + "..."
         const targetId = () => {
           if (!page.toc.length) return ""
@@ -174,6 +194,9 @@ export function Search(props) {
     setSearchValues([])
     setSearchHitValues([])
     setSearchResults([])
+    requestAnimationFrame(() => {
+      inputRef.current?.focus()
+    })
   }
 
   const resolvedClearElement =
@@ -295,6 +318,7 @@ export function Search(props) {
         [inputAttr]: "",
         value: inputValue,
         onChange: searchHandler,
+        ref: inputRef,
       }),
       resolvedClearElement,
       afterElement || null
@@ -321,13 +345,13 @@ export function Search(props) {
                   "div",
                   null,
                   createElement(
-                    "div",
+                    "p",
                     null,
                     createElement("strong", null, highlight(item.content))
                   ),
                   showUrl
                     ? createElement(
-                        "div",
+                        "p",
                         null,
                         createElement("small", null, url)
                       )

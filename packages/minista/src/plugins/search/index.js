@@ -13,6 +13,7 @@ export const defaultOptions = {
   ignore: ["404.html"],
   trimTitle: "",
   targetSelector: "[data-search]",
+  ignoreSelectors: [],
   relativeAttr: "data-search-relative",
   inputAttr: "data-search-input",
   hit: {

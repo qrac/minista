@@ -7,6 +7,83 @@ import picomatch from "picomatch"
 import { parse } from "node-html-parser"
 import mojigiri from "mojigiri"
 
+const BLOCK_TAGS = new Set([
+  "address",
+  "article",
+  "aside",
+  "blockquote",
+  "br",
+  "div",
+  "dl",
+  "dt",
+  "dd",
+  "fieldset",
+  "figcaption",
+  "figure",
+  "footer",
+  "form",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "header",
+  "hr",
+  "li",
+  "main",
+  "nav",
+  "ol",
+  "p",
+  "pre",
+  "section",
+  "table",
+  "thead",
+  "tbody",
+  "tfoot",
+  "tr",
+  "td",
+  "th",
+  "ul",
+])
+
+/**
+ * @param {HTMLElement} root
+ * @param {{ blockTags?: Set<string>; addNewline?: boolean }} [opts]
+ * @returns {string}
+ */
+export function getSpacedRawText(root, opts) {
+  const blockTags = opts?.blockTags ?? BLOCK_TAGS
+  const sep = opts?.addNewline ? "\n" : " "
+
+  /** @type {string[]} */
+  const out = []
+
+  /**
+   * @param {any} node
+   */
+  function walk(node) {
+    if (!node) return
+
+    const tag = node.tagName ? String(node.tagName).toLowerCase() : ""
+    if (tag === "script" || tag === "style") return
+
+    if (tag && blockTags.has(tag)) out.push(sep)
+
+    if (typeof node.rawText === "string" && !node.childNodes?.length) {
+      out.push(node.rawText)
+    } else if (node.childNodes?.length) {
+      for (const child of node.childNodes) walk(child)
+    } else if (typeof node._rawText === "string") {
+      out.push(node._rawText)
+    }
+    if (tag && blockTags.has(tag)) out.push(sep)
+  }
+
+  walk(root)
+  return out.join("")
+}
+
 /**
  * @param {HTMLElement} parsedHtml
  * @param {string} trimTitle
@@ -36,10 +113,23 @@ function optimizeStr(text) {
 }
 
 /**
+ * @param {HTMLElement} el
+ * @param {string[]} selectors
+ * @returns {boolean}
+ */
+function isIgnored(el, selectors) {
+  return selectors.some((selector) => {
+    const parent = el.parentNode
+    return parent && parent.querySelector(selector) === el
+  })
+}
+
+/**
  * @param {HTMLElement} pageEl
+ * @param {string[]} ignoreSelectors
  * @returns {{toc: [number, string][]; content: string[]}}
  */
-function extractPage(pageEl) {
+function extractPage(pageEl, ignoreSelectors) {
   /** @type {[number, string][]} */
   let toc = []
   /** @type {string[][]} */
@@ -50,9 +140,10 @@ function extractPage(pageEl) {
    * @param {HTMLElement & {_rawText?: string}} el
    */
   function walk(el) {
+    if (isIgnored(el, ignoreSelectors)) return
     if (el.id) toc.push([contentCount, el.id])
     if (el._rawText) {
-      const text = optimizeStr(el._rawText)
+      const text = optimizeStr(getSpacedRawText(el))
       const words = mojigiri(text)
       if (words.length) {
         contentArray.push(words)
@@ -74,7 +165,7 @@ function extractPage(pageEl) {
  * @returns {SearchData}
  */
 export function getSearchData(ssgPages, opts) {
-  const { src, ignore, trimTitle, targetSelector, hit } = opts
+  const { src, ignore, trimTitle, targetSelector, ignoreSelectors, hit } = opts
 
   /** @type {string[]} */
   let tempWords = []
@@ -89,21 +180,20 @@ export function getSearchData(ssgPages, opts) {
   if (filterdPages.length === 0) return result
 
   for (const page of filterdPages) {
-    const spacedHtml = page.html.replace(/<\/([^>]+)>([^\n\s<])/g, "</$1> $2")
-    const parsedHtml = parse(spacedHtml, {
+    const parsedHtml = parse(page.html, {
       blockTextElements: { script: false, style: false, pre: false },
     })
     const titleStr = getTitleStr(parsedHtml, trimTitle)
     const titleArray = mojigiri(titleStr)
-    const pageEl = parsedHtml.querySelector(targetSelector)
+    let pageEl = parsedHtml.querySelector(targetSelector)
 
     if (!pageEl) {
       tempWords.push(titleStr)
       tempPages.push({ url: page.url, title: titleArray, toc: [], content: [] })
       continue
     }
-    const { toc, content } = extractPage(pageEl)
-    const pageStr = optimizeStr(parsedHtml.rawText)
+    const { toc, content } = extractPage(pageEl, ignoreSelectors)
+    const pageStr = optimizeStr(getSpacedRawText(pageEl))
     tempWords.push(titleStr)
     tempWords.push(pageStr)
     tempPages.push({
