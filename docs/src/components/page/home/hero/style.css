@@ -58,6 +58,7 @@
 }
 
 .hero-window-content {
+  position: relative;
   padding: 10px 12px;
   font-size: 12px;
   font-family: var(--theme-font-mono);
@@ -68,19 +69,19 @@
   overflow-x: auto;
 }
 
-.hero-window-content code {
-  position: relative;
-  min-height: 240px;
-}
-
-.hero-window-content code::after {
+.hero-window-content::after {
   content: "";
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 16px;
+  height: 3px;
   background-color: var(--theme-bg-1);
+}
+
+.hero-window-content code {
+  position: relative;
+  min-height: 240px;
 }
 
 .hero-brand {

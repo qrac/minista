@@ -54,3 +54,15 @@ draft: false // true = Don't build the page
 
 # {props.title}
 ```
+
+## Component
+
+MDX・Markdown のファイルはレイアウトテンプレートやページテンプレート内でコンポーネントとして使用できます。
+
+```jsx title="./src/pages/index.jsx"
+import Content from "./index.mdx"
+
+export default function () {
+  return <Content />
+}
+```
