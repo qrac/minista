@@ -1,0 +1,112 @@
+.search > * + * {
+  margin-top: 8px;
+}
+
+.search-field {
+  position: relative;
+  border: 1px solid var(--theme-bd-2);
+  border-radius: 6px;
+}
+
+.search-field:focus-within {
+  border-color: var(--theme-primary);
+}
+
+.search-field > svg {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--theme-tx-2);
+  translate: 0 -50%;
+  z-index: 1;
+}
+
+.search-field > input {
+  display: block;
+  width: 100%;
+  padding: 8px 36px;
+  background-color: transparent;
+  border: none;
+  box-sizing: border-box;
+  color: var(--theme-tx-2);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.search-field input:focus {
+  outline: none;
+}
+
+.search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-field-clear {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: var(--theme-secondary);
+  translate: 0 -50%;
+  z-index: 1;
+}
+
+.search-list {
+  list-style: none;
+}
+
+.search-list > li + li {
+  margin-top: 6px;
+}
+
+.search-list a {
+  display: block;
+  padding: 8px 16px;
+  border: 1px solid var(--theme-bd-2);
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-list a:hover {
+    background-color: var(--theme-bg-2);
+  }
+}
+
+.search-list p {
+  margin: 0;
+  line-height: 1.375;
+}
+
+.search-list p + p {
+  margin-top: 4px;
+}
+
+.search-list p > strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.search-list p > strong mark {
+  background: none;
+  color: var(--theme-primary);
+}
+
+.search-list p > small {
+  display: block;
+  color: var(--theme-tx-3);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

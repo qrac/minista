@@ -43,7 +43,11 @@ const common = defineConfig({
     pluginEntry(),
     pluginSvg(),
     pluginIsland(),
-    pluginSearch(),
+    pluginSearch({
+      src: ["docs/**/*.html"],
+      ignoreSelectors: ["h1", "#table-of-contents", "#table-of-contents + div"],
+      trimTitle: " - minista",
+    }),
     react(),
   ],
 })

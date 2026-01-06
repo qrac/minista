@@ -1,3 +1,5 @@
+import ElementSearch from "../../element/search"
+
 import type { Props } from "./props"
 import { initialProps } from "./props"
 
@@ -6,6 +8,7 @@ export default function CommonSidebar(props: Partial<Props>) {
   return (
     <nav className="sidebar">
       <div className="box is-pr-md is-space-xl">
+        <ElementSearch />
         {itemGroups.map((group, groupIndex) => (
           <div className="box is-space-sm" key={groupIndex}>
             <h3 className="text is-weight-700 is-font-sans-en is-uppercase">

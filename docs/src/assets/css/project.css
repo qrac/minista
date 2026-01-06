@@ -3,6 +3,7 @@
   --theme-primary: oklch(0.74 0.15 209.92 / 1);
   --theme-secondary: oklch(0.74 0.22 335.78 / 1);
   --theme-bg-2-only-dark: #18212f;
+  --theme-placeholder: var(--theme-tx-3);
 }
 
 [data-theme="dark"] {

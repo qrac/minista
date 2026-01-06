@@ -1,6 +1,7 @@
 import { FiExternalLink, FiX } from "react-icons/fi"
 
 import ElementModal from "../../element/modal"
+import ElementSearch from "../../element/search"
 import ElementSpacer from "../../element/spacer"
 
 import type { Props } from "./props"
@@ -23,6 +24,7 @@ export default function CommonMenu(props: Partial<Props>) {
             </button>
           </div>
           <div className="box is-px-xl is-space-xl">
+            <ElementSearch />
             {itemGroups.map((group, groupIndex) => (
               <div className="box is-space-sm" key={groupIndex}>
                 <h3 className="text is-weight-700 is-font-sans-en is-uppercase">

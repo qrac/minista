@@ -90,7 +90,11 @@ export default function (props: LayoutProps) {
                 </div>
                 <div className="layout-column is-main">
                   <main className="layout-content">
-                    <CommonDocs DOMElement="article" isSidetocTarget={true}>
+                    <CommonDocs
+                      DOMElement="article"
+                      isSidetocTarget={true}
+                      hasSearch={true}
+                    >
                       {children}
                     </CommonDocs>
                     {hasPager && (
