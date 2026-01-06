@@ -59,7 +59,19 @@
 
 .hero-window-content {
   position: relative;
-  padding: 10px 12px;
+}
+
+.hero-window-content::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 26px;
+  background-color: var(--theme-bg-1);
+}
+
+.hero-window-content pre {
   font-size: 12px;
   font-family: var(--theme-font-mono);
   line-height: 1.325;
@@ -69,19 +81,13 @@
   overflow-x: auto;
 }
 
-.hero-window-content::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background-color: var(--theme-bg-1);
-}
-
 .hero-window-content code {
   position: relative;
+  display: block;
+  min-width: 100%;
   min-height: 240px;
+  width: fit-content;
+  padding: 10px 12px;
 }
 
 .hero-brand {
