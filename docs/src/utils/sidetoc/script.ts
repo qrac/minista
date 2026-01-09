@@ -112,7 +112,7 @@ export const jsSidetoc = (() => {
           })
         }
       },
-      { root: null, rootMargin: "0px 0px -50% 0px", threshold: 0 }
+      { root: null, rootMargin: "0px 0px -40% 0px", threshold: 0 }
     )
     headings.forEach((heading) => observer.observe(heading))
   }

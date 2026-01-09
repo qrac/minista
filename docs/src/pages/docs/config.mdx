@@ -39,7 +39,13 @@ export default defineConfig({
 
 ## Troubleshooting
 
-minista は Vite の SSR ビルドと通常ビルドを連続で行うため、ビルドの一括設定がエラーに繋がる場合があります。これは設定を SSR ビルド用・通常ビルド用に切り分けることで解消できます。
+### SSR build error
+
+minista は Vite の SSR ビルドと通常ビルドを連続で行います。
+
+**SSR ビルドで JSX を Node.js 用の JavaScript に変換し、通常ビルドで HTML と各種アセットを生成**するからです。
+
+そのため、ビルドの設定を一括で行うと多くの場合 SSR ビルドがエラーになります。これは設定を SSR ビルド用・通常ビルド用に切り分けることで解消できます。
 
 ```ts title="./minista.config.ts"
 import { defineConfig, pluginSsg } from "minista"
@@ -54,6 +60,123 @@ export default defineConfig(({ command, isSsrBuild }) => {
   if (command === "build" && !isSsrBuild) {
     return { ...common, build: { minify: false } }
   }
-  return { ...common }
 })
+```
+
+### Bundle error
+
+`pluginBundle` を使って画像をバンドルした際にビルドが失敗する現象があります。これは主に小さい画像を Vite がインライン判定したものの SSR ビルドでインライン化されないことが原因です。
+
+対策の一つとしては、`build.assetsInlineLimit` を `0` に設定し、インライン化を無効化する方法があります。納品時には特にこの対策が効果的です。
+
+```ts title="./minista.config.ts"
+export default {
+  build: {
+    assetsInlineLimit: 0,
+  },
+}
+```
+
+もしインライン化を利用したい場合は、インポートパスに `?inline` を付与してください。
+
+```tsx title="./src/pages/index.tsx"
+import imageUrl from "../assets/image.png?inline"
+
+export default function () {
+  return <img src={imageUrl} alt="image" width={76} height={76} />
+}
+```
+
+### Don't minify
+
+Vite のデフォルト設定では、ビルド時にコードが圧縮（minify）されます。納品データに圧縮が不要な場合は `build.minify` を `false` に設定してください。
+
+```ts title="./minista.config.ts"
+export default { build: { minify: false } }
+```
+
+### Remove preload
+
+Vite は HTML 内の画像パスを読み取って自動的に Preload タグを挿入します。納品時にこれが邪魔になる場合がありますが、非活性化するコンフィグはありません。
+
+そこで minista の `pluginBeautify` を使います。デフォルトの状態で HTML に出力する画像用の Preload タグを削除します。
+
+```ts title="./minista.config.ts"
+import { pluginBeautify } from "minista"
+
+export default { plugins: [pluginBeautify()] }
+```
+
+### Remove hash
+
+Vite のデフォルト設定では、出力ファイル名にハッシュが付与されます。ハッシュは納品データには不要な場合が多いです。これを無効化するには、以下のプロパティを設定し `[hash]` を削除してください。
+
+- CSS・画像・フォント: `build.rollupOptions.output.assetFileNames`
+- JavaScript（chunk）: `build.rollupOptions.output.chunkFileNames`
+- JavaScript（entry）: `build.rollupOptions.output.entryFileNames`
+
+※これらを設定した場合 `build.assetsDir` は無視されます。
+
+```ts title="./minista.config.ts"
+export default {
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: "assets/[name][extname]",
+        chunkFileNames: "assets/[name].js",
+        entryFileNames: "assets/[name].js",
+      },
+    },
+  },
+}
+```
+
+### Separate assets
+
+Vite のデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
+
+- CSS・画像・フォント: `build.rollupOptions.output.assetFileNames`
+- JavaScript（chunk）: `build.rollupOptions.output.chunkFileNames`
+- JavaScript（entry）: `build.rollupOptions.output.entryFileNames`
+
+※これらを設定した場合 `build.assetsDir` は無視されます。
+
+`assetFileNames` は拡張子ごとに分けることができます。
+
+```ts title="./minista.config.ts"
+import type { PreRenderedAsset } from "rolldown"
+import { normalizePath } from "vite"
+
+const assetFileNames = (assetInfo: PreRenderedAsset) => {
+  const name = assetInfo.name ?? ""
+  const originalNames = assetInfo.originalFileNames ?? []
+  const isSprite = originalNames.some((file) =>
+    normalizePath(file).includes("/.minista/sprite/")
+  )
+  if (name.endsWith(".css")) {
+    return "assets/css/[name][extname]"
+  }
+  if (isSprite) {
+    return "assets/sprites/[name][extname]"
+  }
+  if (/\.(png|jpe?g|gif|bmp|svg|webp|avif)$/.test(name)) {
+    return "assets/images/[name][extname]"
+  }
+  if (/\.(woff2?|ttf|otf|eot)$/.test(name)) {
+    return "assets/fonts/[name][extname]"
+  }
+  return "assets/others/[name][extname]"
+}
+
+export default {
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames,
+        chunkFileNames: "assets/js/[name].js",
+        entryFileNames: "assets/js/[name].js",
+      },
+    },
+  },
+}
 ```

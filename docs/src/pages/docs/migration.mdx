@@ -7,4 +7,304 @@ prevUrl: "/docs/config"
 
 # Migration
 
-このページに minista v3 と v4 の相違点をまとめています。
+ここでは minista v3 から v4 への移行方法について説明します。
+
+## Table of Contents
+
+contents list
+
+## Overview
+
+v4 は設計が大きく変わっています。v3 まではオールインワンのライブラリでしたが、v4 からは本体が Vite のラッパーとして動作し、SSG や画像最適化などの機能はすべて Vite プラグインとして提供されます。
+
+## Changes
+
+- すべての機能を Vite プラグイン化
+- コンフィグを Vite 公式に変更
+- インポートパスを細分化して変更
+- Svgr を Svg コンポーネントに変更
+- Icon を Sprite に変更
+- Partial Hydration を Island に変更
+- Delivery（納品リスト）を廃止
+
+## Agent Mode
+
+まず、エディタのエージェントモードを使用して効率的に移行する方法を検討してください。GitHub 上に[このページの Markdown データ](https://github.com/qrac/minista/blob/main/docs/src/pages/docs/migration.mdx?plain=1)がありますので、エージェントへの指示としてコピーして使用（またはダウンロードして指示に添付）し、その上でうまくいかなかった箇所を修正してみてください。
+
+## Packages
+
+最初にパッケージを更新します。v4 では `vite` も peerDependencies になりました。
+
+```bash
+npm install --save-dev minista@latest vite react react-dom
+```
+
+TypeScript を使用している場合は `@types/react` `@types/react-dom` も更新。
+
+```bash
+npm install --save-dev @types/react @types/react-dom
+```
+
+Partial Hydration や Search の移行には `@vitejs/plugin-react` が必要です。
+
+```bash
+npm install --save-dev @vitejs/plugin-react
+```
+
+## Config
+
+次にコンフィグファイルを更新します。v4 は minista 独自のコンフィグを廃止し Vite 公式と同一になりました。ファイルは `minista.config.{ts,js}` または `vite.config.{ts,js}` のどちらでも動作します。
+
+基本設定は [Vite 公式](https://ja.vite.dev/config/)に沿って移行。minista 独自の機能は Vite プラグイン化されているため、必要なプラグインをインポートして `plugins` 配列に追加します。
+
+注意点として、minista は **Vite と異なり SSR ビルドと通常ビルドを連続で行う**ことを意識してください。ビルド用に設定した内容が SSR ビルドを壊してしまう可能性があります。そのため、設定はなるべく SSR ビルド用・通常ビルド用に切り分けると良いです。
+
+```ts title="Before"
+import { defineConfig } from "minista"
+
+export default defineConfig({
+  out: "dist",
+  assets: {
+    images: {},
+  },
+})
+```
+
+```ts title="After"
+import { defineConfig, pluginSsg, pluginImage } from "minista"
+
+const common = defineConfig({
+  plugins: [pluginSsg(), pluginImage()],
+})
+
+export default defineConfig(({ command, isSsrBuild }) => {
+  if (command === "serve") return { ...common }
+  if (command === "build" && isSsrBuild) return { ...common }
+  if (command === "build" && !isSsrBuild) {
+    return { ...common, build: { outDir: "dist" } }
+  }
+})
+```
+
+### root
+
+※新旧ともに Vite と同じなので変更なし
+
+### base
+
+※新旧ともに Vite と同じなので変更なし
+
+### public
+
+Vite の `publicDir` に変更してください。
+
+```ts title="Before"
+export default { public: "public" }
+```
+
+```ts title="After"
+export default { publicDir: "public" }
+```
+
+### out
+
+Vite の `build.outDir` に変更してください。
+
+```ts title="Before"
+export default { out: "dist" }
+```
+
+```ts title="After"
+export default { build: { outDir: "dist" } }
+```
+
+### assets.outDir
+
+Vite の `build.assetsDir` に変更してください。
+
+```ts title="Before"
+export default { assets: { outDir: "assets" } }
+```
+
+```ts title="After"
+export default { build: { assetsDir: "assets" } }
+```
+
+### assets.outName
+
+rollupOptions でそれぞれ設定する必要があります。
+
+- CSS・画像・フォント: `build.rollupOptions.output.assetFileNames`
+- JavaScript（chunk）: `build.rollupOptions.output.chunkFileNames`
+- JavaScript（entry）: `build.rollupOptions.output.entryFileNames`
+
+※これらを設定した場合 `build.assetsDir` は無視されます。
+
+```ts title="Before"
+export default { assets: { outName: "pjt-[name]" } }
+```
+
+```ts title="After"
+export default {
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: "assets/pjt-[name][extname]",
+        chunkFileNames: "assets/pjt-[name].js",
+        entryFileNames: "assets/pjt-[name].js",
+      },
+    },
+  },
+}
+```
+
+### assets.images
+
+#### remoteName
+
+minista のプラグイン `pluginImage` のオプションに変更してください。v3 では固定だった `[index]` プレースホルダーの位置を指定できます。
+
+```ts title="Before"
+export default { assets: { images: { remoteName: "remote" } } }
+```
+
+```ts title="After"
+import { pluginImage } from "minista"
+
+export default {
+  plugins: [pluginImage({ optimize: { remoteName: "remote-[index]" } })],
+}
+```
+
+#### optimize
+
+minista のプラグイン `pluginImage` のオプションに変更してください。v3 では固定だった出力画像の名前（`[name]-[width]x[height]`）を変更できます。
+
+```ts title="Before"
+export default { assets: { images: { optimize: { layout: "constrained" } } } }
+```
+
+```ts title="After"
+import { pluginImage } from "minista"
+
+export default {
+  plugins: [
+    pluginImage({
+      optimize: { name: "[name]-[width]x[height]", layout: "constrained" },
+    }),
+  ],
+}
+```
+
+### assets.svgr
+
+#### svgrOptions
+
+[SVGR が提供するオプション](https://github.com/gregberge/svgr/blob/v8.0.0/packages/core/src/config.ts#L28)の中で `svgoConfig` のみ `pluginSvg` のオプションとしてそのまま移行できます。その他のオプションはサポートされていないため、後述の Svgr 移行を参照して対応してください。
+
+```ts title="Before"
+export default {
+  assets: { svgr: { svgrOptions: { svgoConfig: { plugins: [] } } } },
+}
+```
+
+```ts title="After"
+import { pluginSvg } from "minista"
+
+export default { plugins: [pluginSvg({ plugins: [] })] }
+```
+
+### assets.icons
+
+後述により Icon は Sprite に移行となりますが、事前にオプションの移行先を記載します。
+
+#### srcDir
+
+オプションとして指定することはなくなり、テンプレートに設置した Sprite の `src` により実質的に複数のディレクトリをターゲットにできるようになりました。
+
+```ts title="Before"
+export default { assets: { icons: { srcDir: "src/assets/icons" } } }
+```
+
+```tsx title="After"
+import { Sprite } from "minista/assets"
+
+export default function () {
+  return <Sprite src="/src/assets/icons/square.svg" />
+}
+```
+
+#### outDir
+
+Vite の `build.assetsDir` または `build.rollupOptions.output.assetFileNames` に設定してください。CSS や画像と同じビルドパイプラインを通ります。
+
+```ts title="Before"
+export default { assets: { icons: { outDir: "assets/images" } } }
+```
+
+```ts title="After"
+export default { build: { assetsDir: "assets" } }
+```
+
+#### outName
+
+オプションとして指定することはなくなり、テンプレートに設置した Sprite の `src` に存在するディレクトリ名が出力名になります。
+
+```ts title="Before"
+export default { assets: { icons: { outName: "[dirname]" } } }
+```
+
+```tsx title="After"
+import { Sprite } from "minista/assets"
+
+export default function () {
+  return <Sprite src="/src/assets/icons/square.svg" />
+}
+```
+
+#### svgstoreOptions
+
+依存関係の SVG 最適化ライブラリが `svgstore` から `svgo` に変更となったため、同様のオプションは存在しません。`pluginSvg` に `svgo` オプションを渡すことで最適化を図ってください。
+
+```ts title="Before"
+export default {
+  assets: {
+    icons: {
+      svgstoreOptions: {
+        cleanSymbols: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
+      },
+    },
+  },
+}
+```
+
+```ts title="After"
+import { pluginSvg } from "minista"
+
+export default {
+  plugins: [
+    pluginSvg({
+      svgoConfig: {
+        plugins: [
+          {
+            name: "removeAttrs",
+            params: {
+              attrs: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
+            },
+          },
+        ],
+      },
+    }),
+  ],
+}
+```
+
+## Config Plus
+
+### Remove hash
+
+Vite のデフォルト設定では、ビルド時にファイル名にハッシュが付与されます。ハッシュを無効化するには以下のように設定します。
+
+### Separate assets
+
+Vite のデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・画像・フォントを別々のディレクトリに出力したい場合は、`build.rollupOptions.output.assetFileNames`でそれぞれ設定します。

@@ -82,5 +82,4 @@ export default defineConfig(({ command, isSsrBuild }) => {
       },
     }
   }
-  return { ...common }
 })

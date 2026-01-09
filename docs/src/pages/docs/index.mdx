@@ -11,11 +11,22 @@ import ElementStageSpeed from "../../components/element/stage-speed"
 
 # Introduction
 
-minista（ミニスタ）は、React の JSX と Vite で 100%静的なサイトを作るスタティックサイトジェネレーターです。HTML テンプレートのコーディング業務を想定しているため、ビルド後のデータが綺麗（ヒューマンリーダブル）です。
+minista（ミニスタ）は、React の JSX と Vite で 100%静的なサイトを作るスタティックサイトジェネレーターです。
 
 ## Table of Contents
 
 contents list
+
+## Concept
+
+- **すべてを JSX で書き、綺麗な HTML を生成！**
+- 静的 HTML が必要なウェブ制作の現場にも JSX のコンポーネント管理を導入したい
+- 独自構文を使わず、エディタサポートの優れた TypeScript を活用したい
+
+## Features
+
+- すべての機能を Vite プラグインとして提供
+- ビルド時に自動で Vite の「SSR ビルド + 通常ビルド」を実行
 
 ## History
 
@@ -28,12 +39,11 @@ contents list
 ### v0
 
 <ElementRecord text="First commit: 2021/03/21" />
+<ElementStageLogo version={1} />
 
 そこで、理想の形を求めてフレームワークを試作。React の `renderToStaticMarkup()` と webpack を組み合わせてパッケージ化したものが初期の minista です。
 
 - [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
-
-<ElementStageLogo version={1} />
 
 ### v1
 
@@ -62,7 +72,6 @@ contents list
 ### v3
 
 <ElementRecord text="Release: 2023/03/31" />
-
 <ElementStageLogo version={3} />
 
 それから 1 年後、minista v3 をリリースしました！基本的な使い方は変わりませんが、本体の完成度を上げるためにソースコードはすべて書き直しています。
@@ -76,7 +85,6 @@ contents list
 ### v4
 
 <ElementRecord text="Release: 2026/01/07" />
-
 <ElementStageLogo version={4} />
 
 3 年後、Vite（Rolldown ベース）と完全に統合するための minista v4 を公開。
@@ -84,5 +92,3 @@ contents list
 **すべての機能を Vite プラグイン化！** コンフィグも `vite.config.ts` で動作します。
 
 機能面の大きな変化は、既存の Partial Hydration を廃止し、Astro の Island を再現したこと。JSX の任意の部分を手軽に React App 化できるようになりました。
-
-開発環境はビルドの手間を無くすために TypeScript を JavaScript + JSDoc に変更。そのほか、ドキュメントへのライトテーマ追加や OKLCH 採用など細かい調整も行なっています。

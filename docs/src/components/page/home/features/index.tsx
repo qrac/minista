@@ -6,12 +6,12 @@ import ElementSectionTitle from "../../../element/section-title"
 import type { Props } from "./props"
 import { initialProps } from "./props"
 
-export default function PageHomeFeature(props: Partial<Props>) {
+export default function PageHomeFeatures(props: Partial<Props>) {
   const { items } = { ...initialProps, ...props }
   return (
     <section className="section">
       <div className="inner is-px-lg">
-        <ElementSectionTitle text="Feature" align="right" fixPosition={true} />
+        <ElementSectionTitle text="Features" align="right" fixPosition={true} />
         <div className="grid is-gap-sm">
           {items.map((item, index) => (
             <div
