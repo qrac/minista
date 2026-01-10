@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "musubii": "^9.2.0"
+    "musubii": "^9.2.0",
+    "preact": "^10.28.2"
   },
   "devDependencies": {
     "clsx": "^2.1.1",

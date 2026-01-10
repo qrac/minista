@@ -50,22 +50,17 @@ minista は Vite の SSR ビルドと通常ビルドを連続で行います。
 ```ts title="./minista.config.ts"
 import { defineConfig, pluginSsg } from "minista"
 
-const common = defineConfig({
-  plugins: [pluginSsg()],
-})
-
 export default defineConfig(({ command, isSsrBuild }) => {
-  if (command === "serve") return { ...common }
-  if (command === "build" && isSsrBuild) return { ...common }
-  if (command === "build" && !isSsrBuild) {
-    return { ...common, build: { minify: false } }
-  }
+  const isDev = command === "serve"
+  const isSsr = command === "build" && isSsrBuild
+  const isBuild = command === "build" && !isSsrBuild
+  return { plugins: [pluginSsg()], build: { minify: isBuild ? false : true } }
 })
 ```
 
 ### Bundle error
 
-`pluginBundle` を使って画像をバンドルした際にビルドが失敗する現象があります。これは主に小さい画像を Vite がインライン判定したものの SSR ビルドでインライン化されないことが原因です。
+`pluginBundle` を使って画像をバンドルした際にビルドが失敗する現象があります。これは主に Vite が小さい画像をインライン判定したものの SSR ビルドでインライン化されないことが原因です。
 
 対策の一つとしては、`build.assetsInlineLimit` を `0` に設定し、インライン化を無効化する方法があります。納品時には特にこの対策が効果的です。
 
@@ -77,7 +72,7 @@ export default {
 }
 ```
 
-もしインライン化を利用したい場合は、インポートパスに `?inline` を付与してください。
+もしインライン化を利用したい場合は、インポートパスに `?inline` を付与してください。SSR ビルドでもインライン化されビルドが成功します。
 
 ```tsx title="./src/pages/index.tsx"
 import imageUrl from "../assets/image.png?inline"
@@ -97,7 +92,7 @@ export default { build: { minify: false } }
 
 ### Remove preload
 
-Vite は HTML 内の画像パスを読み取って自動的に Preload タグを挿入します。納品時にこれが邪魔になる場合がありますが、非活性化するコンフィグはありません。
+React 19 は HTML 内の[画像パスを読み取って自動的に Preload タグを挿入](https://github.com/facebook/react/issues/34217)します。納品時にこれが邪魔になる場合がありますが、非活性化するコンフィグはありません。
 
 そこで minista の `pluginBeautify` を使います。デフォルトの状態で HTML に出力する画像用の Preload タグを削除します。
 
@@ -179,4 +174,77 @@ export default {
     },
   },
 }
+```
+
+### Separate chunk
+
+JavaScript から特定のコードを分割したい場合は以下のプロパティを設定してください。
+
+- `build.rollupOptions.output.advancedChunks.groups`
+
+`node_modules` 内のモジュールを `vendor` という名前でまとめる例。
+
+```ts title="./minista.config.ts"
+export default {
+  build: {
+    rollupOptions: {
+      output: {
+        advancedChunks: {
+          groups: [{ name: "vendor", test: /\/node_modules\/(?!\.)/ }],
+        },
+      },
+    },
+  },
+}
+```
+
+特定のモジュールごとに分割する例。
+
+```ts title="./minista.config.ts"
+export default {
+  build: {
+    rollupOptions: {
+      output: {
+        advancedChunks: {
+          groups: [
+            { name: "react", test: /\/react(?:-dom)\// },
+            { name: "preact", test: /\/preact\// },
+            { name: "minista", test: /\/minista\/src|react-icons\// },
+          ],
+        },
+      },
+    },
+  },
+}
+```
+
+※`advancedChunks` を使った際に以下のような条件が発生した場合、Vite は `rolldown-runtime.js` 出力して互換性を保とうとします。
+
+- CJS と ESM が混在
+- default export と named export が混在
+
+### Replace with preact
+
+`pluginIsland` などでバンドルした `react` `react-dom` のファイルサイズは 190KB（gzip: 60KB）ほどになります。これを軽量な `preact` に置き換えることで、ファイルサイズを約 25KB（gzip: 10KB）に削減できます。
+
+```sh
+$ npm install preact
+```
+
+```ts title="./minista.config.ts"
+const preactAlias = {
+  react: "preact/compat",
+  "react-dom": "preact/compat",
+}
+
+export default defineConfig(({ command, isSsrBuild }) => {
+  const isDev = command === "serve"
+  const isSsr = command === "build" && isSsrBuild
+  const isBuild = command === "build" && !isSsrBuild
+  return {
+    resolve: {
+      alias: isBuild ? preactAlias : undefined,
+    },
+  }
+})
 ```

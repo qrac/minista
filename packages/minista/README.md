@@ -96,17 +96,11 @@ minista は Vite の SSR ビルドと通常ビルドを連続で行うため、�
 // ./minista.config.ts
 import { defineConfig, pluginSsg } from "minista"
 
-const common = defineConfig({
-  plugins: [pluginSsg()],
-})
-
 export default defineConfig(({ command, isSsrBuild }) => {
-  if (command === "serve") return { ...common }
-  if (command === "build" && isSsrBuild) return { ...common }
-  if (command === "build" && !isSsrBuild) {
-    return { ...common, build: { minify: false } }
-  }
-  return { ...common }
+  const isDev = command === "serve"
+  const isSsr = command === "build" && isSsrBuild
+  const isBuild = command === "build" && !isSsrBuild
+  return { plugins: [pluginSsg()], build: { minify: isBuild ? false : true } }
 })
 ```
 

@@ -27,59 +27,58 @@ const rehypePrettyCodeOptions = {
   keepBackground: false,
   keepFigure: false,
 }
-
-const common = defineConfig({
-  plugins: [
-    pluginSsg(),
-    pluginMdx({
-      remarkPlugins: [remarkGfm, [remarkToc, remarkTocOptions]],
-      rehypePlugins: [
-        rehypeSlug,
-        rehypeAutolinkHeadings,
-        [rehypePrettyCode, rehypePrettyCodeOptions],
-      ],
-    }),
-    pluginBundle(),
-    pluginEntry(),
-    pluginSvg(),
-    pluginIsland(),
-    pluginSearch({
-      src: ["docs/**/*.html"],
-      ignoreSelectors: ["h1", "#table-of-contents", "#table-of-contents + div"],
-      trimTitle: " - minista",
-    }),
-    react(),
-  ],
-})
+const preactAlias = {
+  react: "preact/compat",
+  "react-dom": "preact/compat",
+}
 
 export default defineConfig(({ command, isSsrBuild }) => {
-  if (command === "serve") return { ...common }
-  if (command === "build" && isSsrBuild)
-    return {
-      ...common,
-      build: {
-        assetsInlineLimit: 0,
-      },
-    }
-  if (command === "build" && !isSsrBuild) {
-    return {
-      ...common,
-      build: {
-        assetsInlineLimit: 0,
-        rollupOptions: {
-          output: {
-            /*advancedChunks: {
-              groups: [
-                //{ name: "react", test: /\/react(?:-dom)\// },
-                //{ name: "react", test: /\/react\// },
-                //{ name: "react-dom", test: /\/react-dom\// },
-                { name: "preact", test: /\/preact\// },
-                { name: "minista", test: /\/minista\/src\// },
-              ],
-            },*/
+  const isDev = command === "serve"
+  const isSsr = command === "build" && isSsrBuild
+  const isBuild = command === "build" && !isSsrBuild
+  return {
+    plugins: [
+      pluginSsg(),
+      pluginMdx({
+        remarkPlugins: [remarkGfm, [remarkToc, remarkTocOptions]],
+        rehypePlugins: [
+          rehypeSlug,
+          rehypeAutolinkHeadings,
+          [rehypePrettyCode, rehypePrettyCodeOptions],
+        ],
+      }),
+      pluginBundle(),
+      pluginEntry(),
+      pluginSvg(),
+      pluginIsland(),
+      pluginSearch({
+        src: ["docs/**/*.html"],
+        ignoreSelectors: [
+          "h1",
+          "#table-of-contents",
+          "#table-of-contents + div",
+        ],
+        trimTitle: " - minista",
+      }),
+      react(),
+    ],
+    build: {
+      assetsInlineLimit: 0,
+      rollupOptions: {
+        output: {
+          advancedChunks: {
+            groups: [
+              //{ name: "vendor", test: /\/node_modules\/(?!\.)/ },
+              //{ name: "react", test: /\/react(?:-dom)\// },
+              //{ name: "preact", test: /\/preact\// },
+              //{ name: "minista", test: /\/minista\/src|react-icons\// },
+            ],
           },
         },
       },
-    }
+    },
+    resolve: {
+      alias: isBuild ? preactAlias : undefined,
+    },
   }
 })

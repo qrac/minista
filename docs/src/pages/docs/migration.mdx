@@ -57,7 +57,7 @@ npm install --save-dev @vitejs/plugin-react
 
 基本設定は [Vite 公式](https://ja.vite.dev/config/)に沿って移行。minista 独自の機能は Vite プラグイン化されているため、必要なプラグインをインポートして `plugins` 配列に追加します。
 
-注意点として、minista は **Vite と異なり SSR ビルドと通常ビルドを連続で行う**ことを意識してください。ビルド用に設定した内容が SSR ビルドを壊してしまう可能性があります。そのため、設定はなるべく SSR ビルド用・通常ビルド用に切り分けると良いです。
+注意点として、v4 は **Vite の SSR ビルドと通常ビルドを連続で行う**ことを意識してください。ビルド用に設定した内容が SSR ビルドを壊してしまう可能性があります。これは設定を SSR ビルド用・通常ビルド用に切り分けることで解消できます。
 
 ```ts title="Before"
 import { defineConfig } from "minista"
@@ -73,15 +73,13 @@ export default defineConfig({
 ```ts title="After"
 import { defineConfig, pluginSsg, pluginImage } from "minista"
 
-const common = defineConfig({
-  plugins: [pluginSsg(), pluginImage()],
-})
-
 export default defineConfig(({ command, isSsrBuild }) => {
-  if (command === "serve") return { ...common }
-  if (command === "build" && isSsrBuild) return { ...common }
-  if (command === "build" && !isSsrBuild) {
-    return { ...common, build: { outDir: "dist" } }
+  const isDev = command === "serve"
+  const isSsr = command === "build" && isSsrBuild
+  const isBuild = command === "build" && !isSsrBuild
+  return {
+    plugins: [pluginSsg()],
+    build: { outDir: isBuild ? "dist" : undefined },
   }
 })
 ```
