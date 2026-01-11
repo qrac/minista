@@ -31,7 +31,10 @@ export default function ElementStageLogo(props: Partial<Props>) {
   }
   const logo = logos[version]
   return (
-    <div className="box is-bg-2 is-radius-xl is-p-xl is-space-xs">
+    <div
+      className="box is-bg-2 is-radius-xl is-p-xl is-space-xs"
+      data-stage="logo"
+    >
       <div className="box is-flex is-center">
         <div
           className={clsx(
