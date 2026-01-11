@@ -82,7 +82,7 @@ export default function () {
 }
 ```
 
-### Don't minify
+### Deactivate minify
 
 Vite のデフォルト設定では、ビルド時にコードが圧縮（minify）されます。納品データに圧縮が不要な場合は `build.minify` を `false` に設定してください。
 
@@ -247,4 +247,12 @@ export default defineConfig(({ command, isSsrBuild }) => {
     },
   }
 })
+```
+
+### Empty dist
+
+Vite のデフォルト設定では、プロジェクトルート配下にない出力ディレクトリは安全を考えて空にしません。src と dist が別の場所にあるプロジェクトは不要なファイルが残る可能性があるため、`build.emptyOutDir` を `true` に設定してください。
+
+```ts title="./minista.config.ts"
+export default { build: { emptyOutDir: true } }
 ```
