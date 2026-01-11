@@ -8,6 +8,8 @@
   },
   "devDependencies": {
     "clsx": "^2.1.1",
+    "node-html-parser": "^7.0.2",
+    "picomatch": "^4.0.3",
     "react-icons": "^5.5.0",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-pretty-code": "^0.14.1",

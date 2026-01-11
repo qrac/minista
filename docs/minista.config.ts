@@ -15,6 +15,8 @@ import rehypeSlug from "rehype-slug"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
 import rehypePrettyCode from "rehype-pretty-code"
 
+import { pluginSeo } from "./minista.local.js"
+
 const remarkTocOptions = {
   maxDepth: 3,
 }
@@ -56,9 +58,20 @@ export default defineConfig(({ command, isSsrBuild }) => {
         ignoreSelectors: [
           "h1",
           "#table-of-contents",
-          "#table-of-contents + div",
+          "#table-of-contents + ul",
+          "[data-rehype-pretty-code-title]",
         ],
         trimTitle: " - minista",
+      }),
+      pluginSeo({
+        src: ["docs/**/*.html"],
+        targetSelector: "[data-search]",
+        ignoreSelectors: [
+          "h1",
+          "#table-of-contents",
+          "#table-of-contents + ul",
+          "[data-rehype-pretty-code-title]",
+        ],
       }),
       react(),
     ],
