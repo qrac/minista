@@ -51,6 +51,10 @@
   content: "#";
 }
 
+.docs strong {
+  font-weight: 700;
+}
+
 .docs > #table-of-contents {
   margin-bottom: 12px;
   font-size: 100%;

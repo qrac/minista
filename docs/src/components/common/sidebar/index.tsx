@@ -11,7 +11,7 @@ export default function CommonSidebar(props: Partial<Props>) {
         <ElementSearch />
         {itemGroups.map((group, groupIndex) => (
           <div className="box is-space-sm" key={groupIndex}>
-            <h3 className="text is-weight-700 is-font-sans-en is-uppercase">
+            <h3 className="text is-strong is-font-sans-en is-uppercase">
               {group.name}
             </h3>
             <ul>

@@ -130,7 +130,7 @@ export default { build: { assetsDir: "assets" } }
 
 ### assets.outName
 
-rollupOptions でそれぞれ設定する必要があります。
+Vite の `build.rollupOptions` でそれぞれ設定する必要があります。
 
 - CSS・画像・フォント: `build.rollupOptions.output.assetFileNames`
 - JavaScript（chunk）: `build.rollupOptions.output.chunkFileNames`
@@ -157,6 +157,10 @@ export default {
 ```
 
 ### assets.images
+
+#### outDir, outName
+
+Vite の `build.rollupOptions` で設定する必要があります。後述の Separate assets を参照して設定してください。
 
 #### remoteName
 
@@ -216,15 +220,17 @@ export default { plugins: [pluginSvg({ plugins: [] })] }
 
 後述により Icon は Sprite に移行となりますが、事前にオプションの移行先を記載します。
 
-#### srcDir
+#### srcDir, outName
 
-オプションとして指定することはなくなり、テンプレートに設置した Sprite の `src` により実質的に複数のディレクトリをターゲットにできるようになりました。
+オプションとして指定することはなくなり、テンプレートに設置した Sprite の `src` により実質的に複数のディレクトリをターゲットにできるようになりました。また、`src` のファイルが存在するディレクトリ名が出力名になります。
 
 ```ts title="Before"
-export default { assets: { icons: { srcDir: "src/assets/icons" } } }
+export default {
+  assets: { icons: { srcDir: "src/assets/icons", outName: "[dirname]" } },
+}
 ```
 
-```tsx title="After"
+```tsx title="After (template)"
 import { Sprite } from "minista/assets"
 
 export default function () {
@@ -234,35 +240,11 @@ export default function () {
 
 #### outDir
 
-Vite の `build.assetsDir` または `build.rollupOptions.output.assetFileNames` に設定してください。CSS や画像と同じビルドパイプラインを通ります。
-
-```ts title="Before"
-export default { assets: { icons: { outDir: "assets/images" } } }
-```
-
-```ts title="After"
-export default { build: { assetsDir: "assets" } }
-```
-
-#### outName
-
-オプションとして指定することはなくなり、テンプレートに設置した Sprite の `src` に存在するディレクトリ名が出力名になります。
-
-```ts title="Before"
-export default { assets: { icons: { outName: "[dirname]" } } }
-```
-
-```tsx title="After"
-import { Sprite } from "minista/assets"
-
-export default function () {
-  return <Sprite src="/src/assets/icons/square.svg" />
-}
-```
+Vite の `build.rollupOptions` で設定する必要があります。後述の Separate assets を参照して設定してください。
 
 #### svgstoreOptions
 
-依存関係の SVG 最適化ライブラリが `svgstore` から `svgo` に変更となったため、同様のオプションは存在しません。`pluginSvg` に `svgo` オプションを渡すことで最適化を図ってください。
+依存関係の SVG 最適化ライブラリが `svgstore` から `svgo` に変更となったため、同様のオプションは存在しません。`pluginSprite` に `svgo` オプションを渡すことで最適化を図ってください。
 
 ```ts title="Before"
 export default {
@@ -277,32 +259,246 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginSvg } from "minista"
+import { pluginSprite } from "minista"
 
 export default {
   plugins: [
-    pluginSvg({
-      svgoConfig: {
-        plugins: [
-          {
-            name: "removeAttrs",
-            params: {
-              attrs: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
-            },
+    pluginSprite({
+      plugins: [
+        {
+          name: "removeAttrs",
+          params: {
+            attrs: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
           },
-        ],
-      },
+        },
+      ],
     }),
   ],
 }
 ```
 
-## Config Plus
+### assets.fonts
 
-### Remove hash
+#### outDir, outName
 
-Vite のデフォルト設定では、ビルド時にファイル名にハッシュが付与されます。ハッシュを無効化するには以下のように設定します。
+Vite の `build.rollupOptions` で設定する必要があります。後述の Separate assets を参照して設定してください。
+
+### assets.bundle
+
+#### outName
+
+minista のプラグイン `pluginBundle` のオプションに変更してください。
+
+```ts title="Before"
+export default { assets: { bundle: { outName: "bundle" } } }
+```
+
+```ts title="After"
+import { pluginBundle } from "minista"
+
+export default { plugins: [pluginBundle({ outName: "bundle" })] }
+```
+
+### assets.partial
+
+後述により Partial Hydration は Island に移行となりますが、事前にオプションの移行先を記載します。
+
+#### usePreact
+
+自動切り替えは廃止されたため、Vite の `resolve.alias` を使用してください。
+
+```ts title="Before"
+export default { assets: { partial: { usePreact: true } } }
+```
+
+```ts title="After"
+const preactAlias = {
+  react: "preact/compat",
+  "react-dom": "preact/compat",
+}
+
+export default defineConfig(({ command, isSsrBuild }) => {
+  const isDev = command === "serve"
+  const isSsr = command === "build" && isSsrBuild
+  const isBuild = command === "build" && !isSsrBuild
+  return {
+    resolve: {
+      alias: isBuild ? preactAlias : undefined,
+    },
+  }
+})
+```
+
+`preact` のインストールも必要となります。
+
+```sh
+$ npm install preact
+```
+
+#### useIntersectionObserver
+
+IntersectionObserver を使うかどうかはコンフィグではなくコンポーネントのディレクティブで指定するようになりました。`client:visible` を使用してください。
+
+```tsx title="Before"
+export default { assets: { partial: { useIntersectionObserver: true } } }
+```
+
+```tsx title="After (template)"
+import { Counter } from "../components/counter"
+
+export default function () {
+  return <Counter client:visible />
+}
+```
+
+#### outName
+
+minista のプラグイン `pluginIsland` のオプションに変更してください。v3 では固定だった `[index]` プレースホルダーの位置を指定できます。
+
+```ts title="Before"
+export default { assets: { partial: { outName: "hydrate" } } }
+```
+
+```ts title="After"
+import { pluginIsland } from "minista"
+
+export default { plugins: [pluginIsland({ outName: "hydrate-[index]" })] }
+```
+
+#### rootAttrSuffix, rootValuePrefix
+
+`rootAttrSuffix` は minista のプラグイン `pluginIsland` のオプションに変更してください。`rootValuePrefix` で設定していた識別子の接頭辞は廃止され、HTML には数字のみ記載されます。
+
+```ts title="Before"
+export default {
+  assets: {
+    partial: { rootAttrSuffix: "partial-hydration", rootValuePrefix: "ph" },
+  },
+}
+```
+
+```ts title="After"
+import { pluginIsland } from "minista"
+
+export default {
+  plugins: [pluginIsland({ rootAttrName: "partial-hydration" })],
+}
+```
+
+ただし、ハイドレーション対象のルート要素に付与される属性名は機能の細分化に伴い変更されているので、同一の値を渡しても異なる名前になります。CSS や JavaScript で参照している場合は注意してください。
+
+```html title="Before"
+<div data-partial-hydration="ph-1">...</div>
+```
+
+```html title="After"
+<div
+  data-partial-hydration-client-directive="load"
+  data-partial-hydration-client-directive-params
+  data-partial-hydration-client-snippet="1"
+>
+  ...
+</div>
+```
+
+#### rootDOMElement, rootStyle
+
+minista のプラグイン `pluginIsland` のオプションに変更してください。
+
+```ts title="Before"
+export default {
+  assets: {
+    partial: { rootDOMElement: "div", rootStyle: { display: "contents" } },
+  },
+}
+```
+
+```ts title="After"
+import { pluginIsland } from "minista"
+
+export default {
+  plugins: [
+    pluginIsland({ rootDOMElement: "div", rootStyle: { display: "contents" } }),
+  ],
+}
+```
+
+#### intersectionObserverOptions
+
+IntersectionObserver の設定はそれが使用されるコンポーネントの `client:visible` ディレクティブで指定するようになりました。
+
+```ts title="Before"
+export default {
+  assets: { partial: { intersectionObserverOptions: { rootMargin: "0px" } } },
+}
+```
+
+```tsx title="After (template)"
+import { Counter } from "../components/counter"
+
+export default function () {
+  return <Counter client:visible={{ rootMargin: "0px" }} />
+}
+```
+
+### resolve.alias
+
+※新旧ともに Vite と同じなので変更なし
+
+### css
+
+※新旧ともに Vite と同じなので変更なし
+
+### markdown
+
+Vite プラグイン `pluginsMdx` のオプションに変更となりますが、一部のプロパティは廃止されており個別設定となります。
 
 ### Separate assets
 
-Vite のデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・画像・フォントを別々のディレクトリに出力したい場合は、`build.rollupOptions.output.assetFileNames`でそれぞれ設定します。
+Vite のデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
+
+- CSS・画像・フォント: `build.rollupOptions.output.assetFileNames`
+- JavaScript（chunk）: `build.rollupOptions.output.chunkFileNames`
+- JavaScript（entry）: `build.rollupOptions.output.entryFileNames`
+
+※これらを設定した場合 `build.assetsDir` は無視されます。
+
+`assetFileNames` は拡張子ごとに分けることができます。
+
+```ts title="./minista.config.ts"
+import type { PreRenderedAsset } from "rolldown"
+import { normalizePath } from "vite"
+
+const assetFileNames = (assetInfo: PreRenderedAsset) => {
+  const name = assetInfo.name ?? ""
+  const originalNames = assetInfo.originalFileNames ?? []
+  const isSprite = originalNames.some((file) =>
+    normalizePath(file).includes("/.minista/sprite/")
+  )
+  if (name.endsWith(".css")) {
+    return "assets/css/[name][extname]"
+  }
+  if (isSprite) {
+    return "assets/sprites/[name][extname]"
+  }
+  if (/\.(png|jpe?g|gif|bmp|svg|webp|avif)$/.test(name)) {
+    return "assets/images/[name][extname]"
+  }
+  if (/\.(woff2?|ttf|otf|eot)$/.test(name)) {
+    return "assets/fonts/[name][extname]"
+  }
+  return "assets/others/[name][extname]"
+}
+
+export default {
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames,
+        chunkFileNames: "assets/js/[name].js",
+        entryFileNames: "assets/js/[name].js",
+      },
+    },
+  },
+}
+```

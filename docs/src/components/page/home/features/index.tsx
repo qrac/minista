@@ -23,7 +23,7 @@ export default function PageHomeFeatures(props: Partial<Props>) {
             >
               <a href={item.href} className="card is-link is-bg-2 is-radius-xl">
                 <div className="box is-p-xl is-space-xs is-angle-right is-angle-fix">
-                  <h3 className="text is-font-sans-en is-weight-700 is-mlg">
+                  <h3 className="text is-font-sans-en is-strong is-mlg">
                     {item.title}
                   </h3>
                   <p className="text is-dark-2 is-autospace is-auto-phrase is-sm">
