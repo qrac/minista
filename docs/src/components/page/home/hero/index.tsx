@@ -7,7 +7,6 @@ import ExampleTsx from "./example-tsx.md"
 import ExampleHtml from "./example-html.md"
 import brandReact from "../../../../assets/images/brand-react.svg"
 import brandVite from "../../../../assets/images/brand-vite.svg"
-import brandRolldown from "../../../../assets/images/brand-rolldown.svg"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
@@ -115,16 +114,9 @@ function HeroRight(props: Partial<Props>) {
             <img
               className="image"
               src={brandVite}
-              alt="React"
+              alt="Vite"
               width="200"
-              height="200"
-            />
-            <img
-              className="image is-sub"
-              src={brandRolldown}
-              alt="Rolldown"
-              width="200"
-              height="200"
+              height="192"
             />
           </div>
           <div className="hero-window">

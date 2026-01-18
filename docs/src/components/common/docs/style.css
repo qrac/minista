@@ -10,7 +10,7 @@
   position: relative;
   margin-left: -0.75em;
   padding-left: 0.75em;
-  font-weight: 700;
+  font-weight: 600;
   font-family: var(--font-sans-en);
   letter-spacing: 0.0125em;
 }
@@ -52,7 +52,7 @@
 }
 
 .docs strong {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .docs > #table-of-contents {
@@ -184,8 +184,9 @@
 @media (1200px <= width) {
   .docs > table tr::after {
     min-width: calc(
-      var(--section-inner-wide-width) - var(--sidebar-width) - var(--layout-gap) *
-        var(--layout-gap-count-max) - var(--sidetoc-width) - 40px
+      var(--section-inner-wide-width) - var(--sidebar-width) -
+        var(--layout-gap) * var(--layout-gap-count-max) - var(--sidetoc-width) -
+        40px
     );
   }
 }

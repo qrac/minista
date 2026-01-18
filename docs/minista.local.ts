@@ -14,7 +14,7 @@ function filterOutputAssets(bundle: OutputBundle): {
   }, {})
 }
 
-export function pluginSeo(opts: {
+export function pluginSeo(uOpts: {
   src?: string[]
   maxLength?: number
   targetSelector?: string
@@ -31,23 +31,23 @@ export function pluginSeo(opts: {
       `head > meta[property="og:description"]`,
     ],
   }
-  const _opts = { ...defaultOptions, ...opts }
-  const { src, maxLength } = _opts
-  const { targetSelector, ignoreSelectors, writeSelectors } = _opts
+  const opts = { ...defaultOptions, ...uOpts }
 
+  let isDev = false
   let isSsr = false
+  let isBuild = false
 
   return {
-    name: "minista-local-plugin-seo",
+    name: "vite-plugin:minista-local-seo",
     enforce: "pre",
-    apply: "build",
-    config: async (config) => {
-      isSsr = !!config.build?.ssr
+    apply(_, { command, isSsrBuild }) {
+      isDev = command === "serve"
+      isSsr = command === "build" && isSsrBuild
+      isBuild = command === "build" && !isSsrBuild
+      return isBuild
     },
     async generateBundle(options, bundle) {
-      if (isSsr) return
-
-      const isMatch = picomatch(src)
+      const isMatch = picomatch(opts.src)
       const regAssets = /\.(html)$/
 
       const outputAssets = filterOutputAssets(bundle)
@@ -60,13 +60,13 @@ export function pluginSeo(opts: {
         let tempHtml = parseHtml(String(item.source), {
           blockTextElements: { script: false, style: false, pre: false },
         })
-        let targetEl = tempHtml.querySelector(targetSelector)
+        let targetEl = tempHtml.querySelector(opts.targetSelector)
 
         if (!targetEl) continue
 
         let ignoreEls = []
 
-        for (const selector of ignoreSelectors) {
+        for (const selector of opts.ignoreSelectors) {
           const ignoreItems = targetEl.querySelectorAll(selector)
           for (const el of ignoreItems) {
             ignoreEls.push(el)
@@ -76,14 +76,14 @@ export function pluginSeo(opts: {
 
         const textContent = targetEl.textContent || ""
         const excerpt =
-          textContent.replace(/\s+/g, " ").trim().slice(0, maxLength) +
-          (textContent.length > maxLength ? "…" : "")
+          textContent.replace(/\s+/g, " ").trim().slice(0, opts.maxLength) +
+          (textContent.length > opts.maxLength ? "…" : "")
 
         if (!excerpt) continue
 
         let parsedHtml = parseHtml(String(item.source))
 
-        const writeEls = writeSelectors
+        const writeEls = opts.writeSelectors
           .map((selector) => parsedHtml.querySelector(selector))
           .filter((el): el is typeof el => !!el)
 

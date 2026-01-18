@@ -107,8 +107,3 @@
 .hero-stage:nth-child(2) .hero-brand .image {
   bottom: 0;
 }
-
-.hero-stage:nth-child(2) .hero-brand .image.is-sub {
-  right: -20%;
-  width: 55%;
-}
