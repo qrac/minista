@@ -13,11 +13,19 @@ export const defaultOptions = {
 }
 
 /**
- * @param {UserPluginOptions} opts
+ * @param {UserPluginOptions} uOpts
  * @returns {Plugin[]}
  */
-export function pluginMdx(opts = {}) {
-  const _opts = { ...defaultOptions, ...opts }
-  const mdxOptions = resolveMdxOptions(_opts)
-  return [mdxjsRollup(mdxOptions)]
+export function pluginMdx(uOpts = {}) {
+  /** @type {PluginOptions} */
+  const opts = { ...defaultOptions, ...uOpts }
+  const mdxOptions = resolveMdxOptions(opts)
+
+  return [
+    {
+      ...mdxjsRollup(mdxOptions),
+      name: "vite-plugin:minista-mdx",
+      enforce: "pre",
+    },
+  ]
 }

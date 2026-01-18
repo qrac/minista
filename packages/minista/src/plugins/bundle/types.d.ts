@@ -1,6 +1,6 @@
 export type PluginOptions = {
-  useExportCss: boolean
   src: string[]
   outName: string
+  useExportCss: boolean
 }
 export type UserPluginOptions = Partial<PluginOptions>
