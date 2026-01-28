@@ -160,7 +160,7 @@ export default {
 
 #### outDir, outName
 
-Vite の `build.rollupOptions` で設定する必要があります。後述の Separate assets を参照して設定してください。
+Vite の `build.rollupOptions` で設定する必要があります。後述の Separate asset directories を参照して設定してください。
 
 #### remoteName
 
@@ -240,7 +240,7 @@ export default function () {
 
 #### outDir
 
-Vite の `build.rollupOptions` で設定する必要があります。後述の Separate assets を参照して設定してください。
+Vite の `build.rollupOptions` で設定する必要があります。後述の Separate asset directories を参照して設定してください。
 
 #### svgstoreOptions
 
@@ -281,7 +281,7 @@ export default {
 
 #### outDir, outName
 
-Vite の `build.rollupOptions` で設定する必要があります。後述の Separate assets を参照して設定してください。
+Vite の `build.rollupOptions` で設定する必要があります。後述の Separate asset directories を参照して設定してください。
 
 ### assets.bundle
 
@@ -453,7 +453,7 @@ export default function () {
 
 Vite プラグイン `pluginsMdx` のオプションに変更となりますが、一部のプロパティは廃止されており個別設定となります。
 
-### Separate assets
+### Separate asset directories
 
 Vite のデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
 
@@ -473,7 +473,7 @@ const assetFileNames = (assetInfo: PreRenderedAsset) => {
   const name = assetInfo.name ?? ""
   const originalNames = assetInfo.originalFileNames ?? []
   const isSprite = originalNames.some((file) =>
-    normalizePath(file).includes("/.minista/sprite/")
+    normalizePath(file).includes("/.minista/sprite/"),
   )
   if (name.endsWith(".css")) {
     return "assets/css/[name][extname]"

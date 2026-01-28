@@ -126,7 +126,7 @@ export default {
 }
 ```
 
-### Separate assets
+### Separate asset directories
 
 Vite のデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
 
@@ -146,7 +146,7 @@ const assetFileNames = (assetInfo: PreRenderedAsset) => {
   const name = assetInfo.name ?? ""
   const originalNames = assetInfo.originalFileNames ?? []
   const isSprite = originalNames.some((file) =>
-    normalizePath(file).includes("/.minista/sprite/")
+    normalizePath(file).includes("/.minista/sprite/"),
   )
   if (name.endsWith(".css")) {
     return "assets/css/[name][extname]"
@@ -176,7 +176,7 @@ export default {
 }
 ```
 
-### Separate chunk
+### Split chunks
 
 JavaScript から特定のコードを分割したい場合は以下のプロパティを設定してください。
 
