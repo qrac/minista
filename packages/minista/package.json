@@ -73,7 +73,7 @@
     "js-beautify": "^1.15.4",
     "mime-types": "^3.0.2",
     "mojigiri": "^0.3.0",
-    "node-html-parser": "^7.0.1",
+    "node-html-parser": "^7.0.2",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.3",
     "remark-frontmatter": "^5.0.0",
