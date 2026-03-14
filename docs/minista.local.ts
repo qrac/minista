@@ -1,4 +1,4 @@
-import type { Plugin } from "rolldown-vite"
+import type { Plugin } from "vite"
 import type { OutputBundle, OutputAsset } from "rolldown"
 import { parse as parseHtml } from "node-html-parser"
 import picomatch from "picomatch"

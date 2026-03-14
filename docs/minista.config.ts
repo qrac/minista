@@ -81,7 +81,7 @@ export default defineConfig(({ command, isSsrBuild }) => {
       assetsInlineLimit: 0,
       rollupOptions: {
         output: {
-          advancedChunks: {
+          codeSplitting: {
             groups: [
               //{ name: "vendor", test: /\/node_modules\/(?!\.)/ },
               //{ name: "react", test: /\/react(?:-dom)\// },

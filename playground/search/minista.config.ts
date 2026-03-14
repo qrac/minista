@@ -34,7 +34,7 @@ export default defineConfig(({ command, isSsrBuild }) => {
               "react-dom": ["react-dom", "react-dom/client"],
               minista: ["minista/assets"],
             },*/
-            advancedChunks: {
+            codeSplitting: {
               groups: [
                 //{ name: "react", test: /\/react(?:-dom)\// },
                 //{ name: "react", test: /\/react\// },
