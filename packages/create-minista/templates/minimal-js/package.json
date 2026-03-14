@@ -9,9 +9,8 @@
   },
   "devDependencies": {
     "minista": "^4.0.0-alpha.17",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "rolldown-vite": "^7.3.1",
-    "vite": "npm:rolldown-vite@latest"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "vite": "^8.0.0"
   }
 }

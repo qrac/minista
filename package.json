@@ -80,16 +80,15 @@
     "@types/node": "^25.0.3",
     "@types/picomatch": "^4.0.2",
     "@types/prompts": "^2.4.9",
-    "@types/react": "^19.2.7",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.2",
+    "@vitejs/plugin-react": "^6.0.1",
     "npm-run-all2": "^8.0.4",
     "preact": "^10.28.2",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "rolldown-vite": "^7.3.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "typescript": "^5.9.3",
-    "vite": "npm:rolldown-vite@latest",
+    "vite": "^8.0.0",
     "vitest": "^4.0.16"
   }
 }

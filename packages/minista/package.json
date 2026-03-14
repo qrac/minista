@@ -66,20 +66,20 @@
   },
   "dependencies": {
     "@mdx-js/rollup": "^3.1.1",
-    "@swc/core": "^1.15.8",
+    "@swc/core": "^1.15.18",
     "archiver": "^7.0.1",
     "cross-spawn": "^7.0.6",
     "image-size": "^2.0.2",
     "js-beautify": "^1.15.4",
     "mime-types": "^3.0.2",
     "mojigiri": "^0.3.0",
-    "node-html-parser": "^7.0.2",
+    "node-html-parser": "^7.1.0",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.3",
     "remark-frontmatter": "^5.0.0",
     "remark-mdx-frontmatter": "^5.2.0",
     "sharp": "^0.34.5",
-    "svgo": "^4.0.0",
+    "svgo": "^4.0.1",
     "tinyglobby": "^0.2.15"
   }
 }
