@@ -67,6 +67,9 @@
     "up": "npx npm-check-updates --deep --cooldown 7",
     "up:u": "npx npm-check-updates --deep --cooldown 7 -u",
     "rev": "npx npm-replace-versions --deps minista --ignore node_modules",
+    "release": "npm run release:main && npm run release:create",
+    "release:main": "cd ./packages/minista && npm publish",
+    "release:create": "cd ./packages/create-minista && npm publish",
     "release-next": "npm run release-next:main && npm run release-next:create",
     "release-next:main": "cd ./packages/minista && npm publish --tag=next",
     "release-next:create": "cd ./packages/create-minista && npm publish --tag=next"
