@@ -1,6 +1,6 @@
 {
   "name": "minista-monorepo",
-  "version": "4.0.0-alpha.17",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -66,7 +66,7 @@
     "test:w": "vitest watch",
     "up": "npx npm-check-updates --deep --cooldown 7",
     "up:u": "npx npm-check-updates --deep --cooldown 7 -u",
-    "rev": "npx npm-replace-versions --deps minista --ignore **/node_modules",
+    "rev": "npx npm-replace-versions --deps minista --ignore node_modules",
     "release-next": "npm run release-next:main && npm run release-next:create",
     "release-next:main": "cd ./packages/minista && npm publish --tag=next",
     "release-next:create": "cd ./packages/create-minista && npm publish --tag=next"
