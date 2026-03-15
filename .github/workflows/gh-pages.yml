@@ -25,11 +25,8 @@ jobs:
       - name: 依存関係をインストール
         run: npm ci
 
-      - name: ビルド 1
-        run: npm run build:main-src
-
-      - name: ビルド 2
-        run: npm run docs:build
+      - name: ビルド
+        run: npm run docs-build
 
       - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
