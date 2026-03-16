@@ -40,6 +40,30 @@ $ npm create minista@latest my-minista-project -- --template minimal-ts
 $ npm install --save-dev minista vite react react-dom
 ```
 
+`package.json` を開き、以下のスクリプトを追加します。
+
+```json
+"scripts": {
+  "dev": "minista",
+  "build": "minista build",
+  "preview": "minista preview",
+}
+```
+
+`minista.config.js (or .ts)` をプロジェクトルートに作成。
+
+```sh
+$ touch ./minista.config.js
+```
+
+```js title="./minista.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
 `src/pages` ディレクトリに `index.jsx (or .tsx)` を作成。
 
 ```sh
@@ -49,15 +73,5 @@ $ touch ./src/pages/index.jsx
 ```jsx title="./src/pages/index.jsx"
 export default function () {
   return <h1>Hello!</h1>
-}
-```
-
-`package.json` を開き、以下のスクリプトを追加します。
-
-```json
-"scripts": {
-  "dev": "minista",
-  "build": "minista build",
-  "preview": "minista preview",
 }
 ```
