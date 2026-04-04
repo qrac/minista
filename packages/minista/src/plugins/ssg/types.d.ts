@@ -102,4 +102,4 @@ export type HeadProps = HeadData & {
   children?: React.ReactNode
 }
 
-export type SetHeadData = (key: string, value: any) => void
+export type SetHeadData = (key: keyof HeadData, value: any) => void

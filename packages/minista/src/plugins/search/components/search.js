@@ -64,30 +64,32 @@ export function Search(props) {
 
   const [inputValue, setInputValue] = useState("")
 
-  /** @type {import("react").RefObject<HTMLInputElement>} */
+  /** @type {React.RefObject<HTMLInputElement|null>} */
   const inputRef = useRef(null)
 
-  /** @type {[SearchData, React.Dispatch<React.SetStateAction<SearchData>>]} */
-  const [searchData, setSearchData] = useState({
+  /** @type {SearchData} */
+  const defaultSearchData = {
     words: [],
     hits: [],
     pages: [],
-  })
+  }
+  /** @type {string[]} */
+  const defaultSearchHits = []
+  /** @type {SearchPage[]} */
+  const defaultSearchPages = []
+  /** @type {string[]} */
+  const defaultSearchValues = []
+  /** @type {string[]} */
+  const defaultSearchHitValues = []
+  /** @type {SearchResult[]} */
+  const defaultSearchResults = []
 
-  /** @type {[string[], React.Dispatch<React.SetStateAction<string[]>>]} */
-  const [searchHits, setSearchHits] = useState([])
-
-  /** @type {[SearchPage[], React.Dispatch<React.SetStateAction<SearchPage[]>>]} */
-  const [searchPages, setSearchPages] = useState([])
-
-  /** @type {[string[], React.Dispatch<React.SetStateAction<string[]>>]} */
-  const [searchValues, setSearchValues] = useState([])
-
-  /** @type {[string[], React.Dispatch<React.SetStateAction<string[]>>]} */
-  const [searchHitValues, setSearchHitValues] = useState([])
-
-  /** @type {[SearchResult[], React.Dispatch<React.SetStateAction<SearchResult[]>>]} */
-  const [searchResults, setSearchResults] = useState([])
+  const [searchData, setSearchData] = useState(defaultSearchData)
+  const [searchHits, setSearchHits] = useState(defaultSearchHits)
+  const [searchPages, setSearchPages] = useState(defaultSearchPages)
+  const [searchValues, setSearchValues] = useState(defaultSearchValues)
+  const [searchHitValues, setSearchHitValues] = useState(defaultSearchHitValues)
+  const [searchResults, setSearchResults] = useState(defaultSearchResults)
 
   const checkValues = searchValues && searchValues.length
   const checkHitValues = searchHitValues && searchHitValues.length
@@ -107,18 +109,18 @@ export function Search(props) {
     const hitValues = mergedInputValues.flatMap((value) =>
       value.length >= minHitLength
         ? searchHits.filter((hit) => new RegExp(value, "i").test(hit))
-        : []
+        : [],
     )
     const mergedHitValues = [...new Set(hitValues)].sort()
     const hitIndexes = mergedHitValues.map((value) =>
-      searchData.words.indexOf(value)
+      searchData.words.indexOf(value),
     )
 
     /** @type {SearchPage[]} */
     const hitPages = searchPages.flatMap((page) => {
       const titleIndexs = page.title.filter((i) => hitIndexes.indexOf(i) !== -1)
       const contentIndexs = page.content.filter(
-        (i) => hitIndexes.indexOf(i) !== -1
+        (i) => hitIndexes.indexOf(i) !== -1,
       )
       if (titleIndexs.length || contentIndexs.length) {
         return {
@@ -142,39 +144,48 @@ export function Search(props) {
       })
       .slice(0, maxHitPages)
 
-    const resultHitPages = sortedHitPages.map((page) => {
-      const targetPage = searchData.pages.find(
-        (dataPage) => dataPage.url === page.url
-      )
-      if (page.title.length) {
-        const targetContent = targetPage.title
-          .map((num) => searchData.words[num])
-          .join(" ")
-        return { url: targetPage.url, content: targetContent }
-      } else {
-        const targetWord = page.content[0]
-        const targetIndex = targetPage.content.indexOf(targetWord)
-        const targetIndexes = targetPage.content.slice(
-          targetIndex,
-          targetIndex + maxHitWords
+    const resultHitPages = sortedHitPages
+      .map((page) => {
+        const targetPage = searchData.pages.find(
+          (dataPage) => dataPage.url === page.url,
         )
-        const targetWords = joinTokens(
-          targetIndexes.map((num) => searchData.words[num])
-        )
-        const targetContent = "..." + targetWords + "..."
-        const targetId = () => {
-          if (!page.toc.length) return ""
-          const targetToc = page.toc
-            .filter((item) => targetIndex >= item[0])
-            .slice(-1)[0]
-          return targetToc ? "#" + targetToc[1] : ""
+        if (!targetPage) return null
+        if (page.title.length) {
+          const targetContent = targetPage?.title
+            .map((num) => searchData.words[num])
+            .join(" ")
+          return { url: targetPage.url, content: targetContent }
+        } else {
+          const targetWord = page.content[0]
+          const targetIndex = targetPage.content.indexOf(targetWord)
+          const targetIndexes = targetPage.content.slice(
+            targetIndex,
+            targetIndex + maxHitWords,
+          )
+          const targetWords = joinTokens(
+            targetIndexes.map((num) => searchData.words[num]),
+          )
+          const targetContent = "..." + targetWords + "..."
+          const targetId = () => {
+            if (!page.toc.length) return ""
+            const targetToc = page.toc
+              .filter((item) => targetIndex >= item[0])
+              .slice(-1)[0]
+            return targetToc ? "#" + targetToc[1] : ""
+          }
+          return { url: targetPage.url + targetId(), content: targetContent }
         }
-        return { url: targetPage.url + targetId(), content: targetContent }
-      }
-    })
+      })
+      .filter(
+        /**
+         * @param {SearchResult | null} file
+         * @returns {file is SearchResult}
+         */
+        (file) => Boolean(file),
+      )
 
     setSearchValues(
-      mergedInputValues.filter((value) => value && !value.includes(" "))
+      mergedInputValues.filter((value) => value && !value.includes(" ")),
     )
     setSearchHitValues(mergedHitValues)
     setSearchResults(resultHitPages)
@@ -232,8 +243,8 @@ export function Search(props) {
           glyphs.map((glyph, glyphIndex) =>
             glyph.match(regValues)
               ? createElement("mark", { key: glyphIndex }, glyph)
-              : createElement("span", { key: glyphIndex }, glyph)
-          )
+              : createElement("span", { key: glyphIndex }, glyph),
+          ),
         )
       } else {
         return createElement("span", { key: wordIndex }, word)
@@ -268,7 +279,7 @@ export function Search(props) {
 
       if (apply === "build") {
         const el = document.querySelector(`[${relativeAttr}]`)
-        const distance = Number(el.getAttribute(relativeAttr)) || 0
+        const distance = Number(el?.getAttribute(relativeAttr)) || 0
         const here = location.pathname
         let segments = here.split("/").filter(Boolean)
         distance > 0 && (segments = segments.slice(0, -distance))
@@ -301,16 +312,18 @@ export function Search(props) {
 
   return createElement(
     "div",
-    Object.assign({}, attributes, className ? { className } : {}, wrapperRest),
-
+    {
+      ...attributes,
+      ...(className ? { className } : {}),
+      ...wrapperRest,
+    },
     createElement(
       "div",
-      Object.assign(
-        {},
-        fieldAttributes,
-        fieldClassName ? { className: fieldClassName } : {},
-        fieldRest
-      ),
+      {
+        ...fieldAttributes,
+        ...(fieldClassName ? { className: fieldClassName } : {}),
+        ...fieldRest,
+      },
       beforeElement || null,
       createElement("input", {
         type: "search",
@@ -321,18 +334,17 @@ export function Search(props) {
         ref: inputRef,
       }),
       resolvedClearElement,
-      afterElement || null
+      afterElement || null,
     ),
 
     checkResults
       ? createElement(
           "ul",
-          Object.assign(
-            {},
-            listAttributes,
-            listClassName ? { className: listClassName } : {},
-            listRest
-          ),
+          {
+            ...listAttributes,
+            ...(listClassName ? { className: listClassName } : {}),
+            ...listRest,
+          },
           searchResults.map((item, index) => {
             const url = basedUrl(item.url)
             return createElement(
@@ -347,20 +359,20 @@ export function Search(props) {
                   createElement(
                     "p",
                     null,
-                    createElement("strong", null, highlight(item.content))
+                    createElement("strong", null, highlight(item.content)),
                   ),
                   showUrl
                     ? createElement(
                         "p",
                         null,
-                        createElement("small", null, url)
+                        createElement("small", null, url),
                       )
-                    : null
-                )
-              )
+                    : null,
+                ),
+              ),
             )
-          })
+          }),
         )
-      : null
+      : null,
   )
 }

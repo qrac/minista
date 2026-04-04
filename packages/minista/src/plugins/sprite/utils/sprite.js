@@ -39,8 +39,8 @@ export async function generateSprite(targetDir, config) {
       const doc = parseHtml(code)
       const el = doc.querySelector("svg")
       const id = path.parse(svgName).name
-      const viewBox = el.getAttribute("viewBox")
-      const { data: content } = optimize(el.innerHTML, config)
+      const viewBox = el?.getAttribute("viewBox")
+      const { data: content } = optimize(el?.innerHTML || "", config)
       if (!id || !viewBox || !content) continue
       symbols[id] = { viewBox, content }
     }
@@ -66,7 +66,7 @@ export async function generateSprite(targetDir, config) {
     symbolList
       .map(
         ({ id, viewBox, content }) =>
-          `<symbol id="${id}" viewBox="${viewBox}">${content}</symbol>`
+          `<symbol id="${id}" viewBox="${viewBox}">${content}</symbol>`,
       )
       .join("\n"),
     `</svg>`,

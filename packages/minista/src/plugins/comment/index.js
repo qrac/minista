@@ -1,4 +1,4 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
+/** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
 
@@ -27,7 +27,7 @@ export function pluginComment(uOpts = {}) {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
@@ -47,7 +47,7 @@ export function pluginComment(uOpts = {}) {
     async generateBundle(options, bundle) {
       const outputAssets = filterOutputAssets(bundle)
       const htmlItems = Object.values(outputAssets).filter((item) =>
-        item.fileName.endsWith(".html")
+        item.fileName.endsWith(".html"),
       )
 
       for (const item of htmlItems) {

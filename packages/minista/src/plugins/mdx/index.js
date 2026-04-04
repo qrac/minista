@@ -1,4 +1,4 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
+/** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 

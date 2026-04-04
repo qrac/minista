@@ -23,7 +23,7 @@ export function getPatternName(
   remoteName,
   width,
   height,
-  format
+  format,
 ) {
   const parsed = path.parse(fileName)
 
@@ -49,6 +49,7 @@ export function getPatternName(
  * @returns {{[patternHash: string]: ImagePattern}|{}}
  */
 export function getPatternMap(optimize, recipe, view, resizeOnly) {
+  /** @type {{[patternHash: string]: ImagePattern}} */
   let result = {}
 
   const {
@@ -95,7 +96,7 @@ export function getPatternMap(optimize, recipe, view, resizeOnly) {
       remoteName,
       width,
       height,
-      format
+      format,
     )
 
     /** @type {ImagePattern} */
@@ -121,6 +122,7 @@ export function getPatternMap(optimize, recipe, view, resizeOnly) {
  * @returns {{ srcset: { [key: string]: string }, src: string }}
  */
 export function getPatternAttrs(optimize, recipe, view, resizeOnly) {
+  /** @type {{ srcset: { [key: string]: string }, src: string }} */
   let result = { srcset: {}, src: "" }
 
   const { outName, remoteName, layout, breakpoints, resolutions, format } =
@@ -160,7 +162,7 @@ export function getPatternAttrs(optimize, recipe, view, resizeOnly) {
       remoteName,
       width,
       height,
-      format
+      format,
     )
 
     if (!resizeOnly) {

@@ -1,4 +1,4 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
+/** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import ('node-html-parser').HTMLElement} HTMLElement */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
@@ -73,10 +73,10 @@ export function pluginImage(uOpts = {}) {
   const srcAttr = "data-minista-image-src"
   const optimizeAttr = "data-minista-image-optimize"
   const cpImagePath = normalizePath(
-    path.resolve(__dirname, "components/image.js")
+    path.resolve(__dirname, "components/image.js"),
   )
   const cpPicturePath = normalizePath(
-    path.resolve(__dirname, "components/picture.js")
+    path.resolve(__dirname, "components/picture.js"),
   )
 
   let isDev = false
@@ -120,7 +120,7 @@ export function pluginImage(uOpts = {}) {
   async function selfLoadCache() {
     if (useCache && fs.existsSync(imageCacheFile)) {
       imageCache = JSON.parse(
-        await fs.promises.readFile(imageCacheFile, "utf8")
+        await fs.promises.readFile(imageCacheFile, "utf8"),
       )
     }
     if (useCache) {
@@ -136,7 +136,7 @@ export function pluginImage(uOpts = {}) {
     await fs.promises.writeFile(
       imageCacheFile,
       JSON.stringify(imageCache, null, 2),
-      "utf8"
+      "utf8",
     )
   }
 
@@ -184,7 +184,7 @@ export function pluginImage(uOpts = {}) {
         await fs.promises.writeFile(fullPath, data, "utf8")
 
         urlNameMap[remoteUrl] = normalizePath(path.relative(rootDir, fullPath))
-      })
+      }),
     )
   }
 
@@ -220,7 +220,7 @@ export function pluginImage(uOpts = {}) {
             ...(recipeMap[bufferHash]?.usedPatternMap || {}),
           },
         }
-      })
+      }),
     )
   }
 
@@ -231,9 +231,9 @@ export function pluginImage(uOpts = {}) {
     const tagName = el.tagName.toLowerCase()
     const isTarget = ["img", "source"].includes(tagName)
 
-    let imageName = el.getAttribute(srcAttr).replace(/^\//, "")
+    let imageName = el.getAttribute(srcAttr)?.replace(/^\//, "")
 
-    if (!isTarget || !imageName) return
+    if (!isTarget || !imageName) return {}
 
     if (imageName.startsWith("http")) {
       imageName = urlNameMap[imageName]
@@ -276,10 +276,10 @@ export function pluginImage(uOpts = {}) {
               if (isBuild) entries[pathId] = outFullPath
               recipe.usedPatternMap[patternHash] = pattern
               delete recipe.patternMap[patternHash]
-            }
-          )
+            },
+          ),
         )
-      })
+      }),
     )
   }
 
@@ -288,7 +288,7 @@ export function pluginImage(uOpts = {}) {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isDev || isSsr || isBuild
     },
@@ -331,7 +331,7 @@ export function pluginImage(uOpts = {}) {
               const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
               const { ssgPages } = await import(ssgFileUrl)
               return ssgPages
-            })
+            }),
           )
         ).flat()
 
@@ -353,6 +353,7 @@ export function pluginImage(uOpts = {}) {
 
           for (const el of targetEls) {
             const { optimize, recipe, view } = selfGetElData(el)
+            if (!optimize || !recipe || !view) continue
             const patternMap = getPatternMap(optimize, recipe, view, false)
 
             for (const [patternHash, pattern] of Object.entries(patternMap)) {
@@ -390,6 +391,7 @@ export function pluginImage(uOpts = {}) {
 
       for (const el of targetEls) {
         const { tagName, optimize, recipe, view } = selfGetElData(el)
+        if (!optimize || !recipe || !view) continue
         const patternMap = getPatternMap(optimize, recipe, view, true)
 
         for (const [patternHash, pattern] of Object.entries(patternMap)) {
@@ -463,6 +465,7 @@ export function pluginImage(uOpts = {}) {
 
         for (const el of targetEls) {
           const { tagName, optimize, recipe, view } = selfGetElData(el)
+          if (!optimize || !recipe || !view) continue
           const attrs = getPatternAttrs(optimize, recipe, view, false)
           const srcset = Object.entries(attrs.srcset)
             .map(([size, before]) => {

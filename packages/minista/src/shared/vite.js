@@ -1,5 +1,6 @@
-/** @typedef {import('rolldown-vite').UserConfig} UserConfig */
-/** @typedef {import('rolldown-vite').Alias} Alias */
+/** @typedef {import('vite').UserConfig} UserConfig */
+/** @typedef {import('vite').SSROptions} SSROptions */
+/** @typedef {import('vite').Alias} Alias */
 /** @typedef {import('rolldown').OutputBundle} OutputBundle */
 /** @typedef {import('rolldown').OutputAsset} OutputAsset */
 /** @typedef {import('rolldown').OutputChunk} OutputChunk */
@@ -7,7 +8,7 @@
 /**
  * @param {UserConfig} config
  * @param {string[]} modules
- * @returns {UserConfig['ssr']['external']}
+ * @returns {SSROptions['external']}
  */
 export function mergeSsrExternal(config, modules = []) {
   const ssrExternal = config.ssr?.external
@@ -24,7 +25,7 @@ export function mergeSsrExternal(config, modules = []) {
 /**
  * @param {UserConfig} config
  * @param {Alias[]} aliases
- * @returns {UserConfig['resolve']['alias']}
+ * @returns {Alias[]}
  */
 export function mergeAlias(config, aliases = []) {
   const existing = config.resolve?.alias
@@ -32,11 +33,11 @@ export function mergeAlias(config, aliases = []) {
   let list = Array.isArray(existing)
     ? [...existing]
     : existing && typeof existing === "object"
-    ? Object.entries(existing).map(([find, replacement]) => ({
-        find,
-        replacement,
-      }))
-    : []
+      ? Object.entries(existing).map(([find, replacement]) => ({
+          find,
+          replacement,
+        }))
+      : []
 
   const findSet = new Set(list.map((item) => item.find))
 

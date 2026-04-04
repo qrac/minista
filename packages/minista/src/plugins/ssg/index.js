@@ -1,5 +1,5 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
-/** @typedef {import('rolldown-vite').EnvironmentModuleNode} EnvModuleNode */
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('vite').EnvironmentModuleNode} EnvModuleNode */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').SsgPage} SsgPage */
@@ -60,20 +60,24 @@ export function pluginSsg(uOpts = {}) {
    * @param {ResolvedPage[]} resolvedPages
    */
   function selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages) {
-    ssgPages = resolvedPages.map((resolvedPage) => {
-      if (resolvedPage.metadata?.draft === true) {
-        return null
-      }
-      const url = resolvedPage.url
-      const fileName = getHtmlFileName(url)
-      const html = transformHtml({ resolvedLayout, resolvedPage })
-      return {
-        url,
-        fileName,
-        html,
-      }
-    })
-    ssgPages = ssgPages.filter(Boolean)
+    ssgPages = resolvedPages
+      .map((resolvedPage) => {
+        if (resolvedPage.metadata?.draft === true) {
+          return null
+        }
+        const url = resolvedPage.url
+        const fileName = getHtmlFileName(url)
+        const html = transformHtml({ resolvedLayout, resolvedPage })
+        return {
+          url,
+          fileName,
+          html,
+        }
+      })
+      .filter(
+        /** @type {(page: SsgPage | null) => page is SsgPage} */
+        (page) => page !== null,
+      )
   }
 
   return {
@@ -81,7 +85,7 @@ export function pluginSsg(uOpts = {}) {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isDev || isSsr || isBuild
     },
@@ -204,7 +208,7 @@ export function pluginSsg(uOpts = {}) {
               next()
             }
           } catch (e) {
-            server.ssrFixStacktrace(e)
+            if (e instanceof Error) server.ssrFixStacktrace(e)
             next(e)
           }
         })
@@ -219,7 +223,7 @@ export function pluginSsg(uOpts = {}) {
          * @param {string | undefined | null} id
          * @returns {string | undefined}
          */
-        const stripQuery = (id) => (id ? id.split("?")[0] : id)
+        const stripQuery = (id) => (id ? id.split("?")[0] : undefined)
 
         /**
          * @param {EnvModuleNode | null | undefined} mod
@@ -295,7 +299,7 @@ export function pluginSsg(uOpts = {}) {
         const invalidated = new Set()
         const clientGraph = server.environments.client.moduleGraph
 
-        const isKnownInClient = (mod) => {
+        const isKnownInClient = (/** @type {EnvModuleNode} */ mod) => {
           if (!mod?.id) return false
           if (clientGraph.getModuleById(mod.id)) return true
           const file = mod.file ?? stripQuery(mod.id)
@@ -317,7 +321,7 @@ export function pluginSsg(uOpts = {}) {
 
         if (hasSsrOnly) {
           const rel = stripQuery(
-            path.relative(server.config.root, modules[0].id),
+            path.relative(server.config.root, modules[0].id || ""),
           )
           server.config.logger.info(
             [pc.dim("(ssr)"), pc.green("page reload"), pc.dim(rel)].join(" "),

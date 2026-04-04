@@ -30,6 +30,6 @@ export async function resolveLayout(layout) {
   return {
     component: layout.component,
     staticData,
-    metadata: layout.metadata,
+    metadata: layout.metadata ?? {},
   }
 }

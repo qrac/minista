@@ -1,4 +1,4 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
+/** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
@@ -44,7 +44,7 @@ export function pluginSvg(uOpts = {}) {
     if (!targetEls.length) return html
 
     for (const el of targetEls) {
-      const svgName = el.getAttribute(srcAttr).replace(/^\//, "") ?? ""
+      const svgName = el?.getAttribute(srcAttr)?.replace(/^\//, "") ?? ""
       if (!svgName) continue
 
       let svgData = svgObj[svgName]
@@ -86,7 +86,7 @@ export function pluginSvg(uOpts = {}) {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },

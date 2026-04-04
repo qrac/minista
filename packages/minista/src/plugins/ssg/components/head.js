@@ -18,6 +18,7 @@ export function Head({
 }) {
   /** @type {{ setHeadData?: SetHeadData }} */
   const { setHeadData } = useContext(HeadContext)
+  if (!setHeadData) return null
 
   if (htmlAttributes) setHeadData("htmlAttributes", htmlAttributes)
   if (bodyAttributes) setHeadData("bodyAttributes", bodyAttributes)
@@ -56,6 +57,6 @@ export function HeadProvider({ headData, children }) {
   return createElement(
     HeadContext.Provider,
     { value: { setHeadData } },
-    children
+    children,
   )
 }

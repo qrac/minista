@@ -151,7 +151,11 @@ function extractPage(pageEl, ignoreSelectors) {
       }
     }
     if (el.childNodes) {
-      el.childNodes.forEach(walk)
+      el.childNodes.forEach((node) => {
+        if (node.nodeType === 1) {
+          walk(/** @type {HTMLElement & {_rawText?: string}} */ (node))
+        }
+      })
     }
   }
   walk(pageEl)
@@ -217,7 +221,7 @@ export function getSearchData(ssgPages, opts) {
   const regHits = new RegExp(`(${regHitsArray.join("|")})`)
   const hitWords = result.words.filter(
     (word) =>
-      word.length >= hit.minLength && regHits.test(word) && word !== "..."
+      word.length >= hit.minLength && regHits.test(word) && word !== "...",
   )
   result.hits = hitWords.map((word) => result.words.indexOf(word))
 

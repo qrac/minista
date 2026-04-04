@@ -1,4 +1,4 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
+/** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
@@ -56,7 +56,7 @@ export function pluginBundle(uOpts = {}) {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
@@ -134,12 +134,20 @@ export function pluginBundle(uOpts = {}) {
         cssFiles = []
       }
 
-      imageFiles = [...importedImageFiles].map((file) => {
-        const targetItem = Object.values(outputAssets).find((item) =>
-          item.originalFileNames.some((name) => name === file)
+      imageFiles = [...importedImageFiles]
+        .map((file) => {
+          const targetItem = Object.values(outputAssets).find((item) =>
+            item.originalFileNames.some((name) => name === file),
+          )
+          return targetItem?.fileName
+        })
+        .filter(
+          /**
+           * @param {string | undefined} file
+           * @returns {file is string}
+           */
+          (file) => Boolean(file),
         )
-        return targetItem.fileName
-      })
 
       const htmlItems = Object.values(outputAssets).filter((item) => {
         return item.fileName.endsWith(".html")
@@ -160,7 +168,7 @@ export function pluginBundle(uOpts = {}) {
             const basedAssetUrl = getBasedAssetUrl(base, htmlName, file)
             const regExp = new RegExp(
               `(<[^>]*?)(?<!\\.)/${file}([^>]*?>)`,
-              "gs"
+              "gs",
             )
             newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
           }

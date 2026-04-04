@@ -1,4 +1,4 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
+/** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('../ssg/types.js').SsgPage} SsgPage */
@@ -52,7 +52,7 @@ export function pluginEntry(uOpts = {}) {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isBuild
     },
@@ -72,7 +72,7 @@ export function pluginEntry(uOpts = {}) {
             const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
             const { ssgPages } = await import(ssgFileUrl)
             return ssgPages
-          })
+          }),
         )
       ).flat()
 
@@ -111,7 +111,7 @@ export function pluginEntry(uOpts = {}) {
           } catch {
             return null
           }
-        })
+        }),
       )
       for (const pair of checks) {
         if (pair) entries[pair[0]] = pair[1]
@@ -138,9 +138,10 @@ export function pluginEntry(uOpts = {}) {
         for (const item of Object.values(outputChunks)) {
           if (item.name !== entryId) continue
           if (!item.code.trim()) continue
+          if (!item.facadeModuleId) continue
 
           const before = normalizePath(
-            path.relative(rootDir, item.facadeModuleId)
+            path.relative(rootDir, item.facadeModuleId),
           )
           const newFileName = item.fileName
           entryChanges[before] = newFileName
@@ -174,7 +175,7 @@ export function pluginEntry(uOpts = {}) {
           const basedAssetUrl = getBasedAssetUrl(base, htmlName, after)
           const regExp = new RegExp(
             `(<[^>]*?)(?<!\\.)/${before}([^>]*?>)`,
-            "gs"
+            "gs",
           )
           newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
 

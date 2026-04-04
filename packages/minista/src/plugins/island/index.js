@@ -1,5 +1,5 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
-/** @typedef {import('rolldown-vite').ViteDevServer} ViteDevServer */
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('../ssg/types').SsgPage} SsgPage */
@@ -81,7 +81,7 @@ export function pluginIsland(uOpts = {}) {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isDev || isSsr || isBuild
     },
@@ -293,8 +293,9 @@ export function pluginIsland(uOpts = {}) {
         for (const item of Object.values(outputChunks)) {
           if (item.name !== entryId) continue
           if (!item.code.trim()) continue
+          if (!entryId) continue
 
-          const patternIndex = entryId.match(/(\d+)(?!.*\d)/)[0] || "1"
+          const patternIndex = entryId.match(/(\d+)(?!.*\d)/)?.[0] || "1"
           const newFileName = item.fileName
           entryChanges[patternIndex] = newFileName
 

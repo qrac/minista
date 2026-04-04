@@ -40,6 +40,7 @@ function printNode(node) {
  * @returns {{[key: string]: any}}
  */
 function evalObjectExpr(objExpr) {
+  /** @type {{[key: string]: any}} */
   let out = {}
   for (const prop of objExpr.properties) {
     if (prop.type !== "KeyValueProperty") continue
@@ -64,6 +65,7 @@ export function transformDirectives(code, id, opts) {
   const prefix = rootAttrName ? `${rootAttrName}-` : ""
   const ast = parseSync(code, { syntax: "typescript", tsx: true })
 
+  /** @type {{[key: string]: any}} */
   let importMap = {}
 
   for (const node of ast.body) {
@@ -107,10 +109,11 @@ export function transformDirectives(code, id, opts) {
       const opening = node.opening
       if (opening && Array.isArray(opening.attributes)) {
         const idx = opening.attributes.findIndex(
+          /** @param {any} attr */
           (attr) =>
             attr.type === "JSXAttribute" &&
             attr.name.type === "JSXNamespacedName" &&
-            attr.name.namespace.value === "client"
+            attr.name.namespace.value === "client",
         )
         if (idx !== -1) {
           const [directive] = opening.attributes.splice(idx, 1)
@@ -121,22 +124,25 @@ export function transformDirectives(code, id, opts) {
 
           if (clientName === "only") {
             const fallback = (node.children || []).find(
+              /** @param {any} c */
               (c) =>
                 c.type === "JSXElement" &&
                 Array.isArray(c.opening.attributes) &&
                 c.opening.attributes.some(
+                  /** @param {any} a */
                   (a) =>
                     a.type === "JSXAttribute" &&
                     a.name.value === "slot" &&
-                    a.value?.value === "fallback"
-                )
+                    a.value?.value === "fallback",
+                ),
             )
             if (fallback) {
               ssrNode = fallback
 
               const { opening: origOpening, children: origChildren } = node
               const filteredChildren = (origChildren || []).filter(
-                (c) => c !== fallback
+                /** @param {any} c */
+                (c) => c !== fallback,
               )
               snippetNode = {
                 ...node,
@@ -158,6 +164,10 @@ export function transformDirectives(code, id, opts) {
           let rawJsx = printNode(snippetNode).replace(/;?\s*$/, "")
           let tagNames = new Set()
 
+          /**
+           * @param {*} n
+           * @returns {void}
+           */
           function collect(n) {
             if (!n || typeof n !== "object") return
             if (n.type === "JSXElement") {

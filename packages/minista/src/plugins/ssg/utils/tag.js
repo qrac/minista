@@ -1,3 +1,5 @@
+import { createElement } from "react"
+
 /**
  * @param {string | undefined} title
  * @param {boolean} hasCharset
@@ -5,30 +7,24 @@
  * @returns {React.ReactElement[]}
  */
 export function getDefaultHeadTags(title, hasCharset, hasViewport) {
-  return [
-    !hasCharset && {
-      type: "meta",
-      key: null,
-      props: {
-        charSet: "UTF-8",
-      },
-    },
-    !hasViewport && {
-      type: "meta",
-      key: null,
-      props: {
+  /** @type {React.ReactElement[]} */
+  const tags = []
+
+  if (!hasCharset) {
+    tags.push(createElement("meta", { charSet: "UTF-8" }))
+  }
+  if (!hasViewport) {
+    tags.push(
+      createElement("meta", {
         name: "viewport",
         content: "width=device-width, initial-scale=1.0",
-      },
-    },
-    title && {
-      type: "title",
-      key: null,
-      props: {
-        children: title,
-      },
-    },
-  ].filter(Boolean)
+      }),
+    )
+  }
+  if (title) {
+    tags.push(createElement("title", null, title))
+  }
+  return tags
 }
 
 /**
@@ -52,6 +48,7 @@ export function filterHeadTags(tags) {
  */
 export function headTagToStr(tag) {
   const selfClosingTags = new Set(["link", "meta"])
+  /** @type {{ [key: string]: string }} */
   const attrNameMap = { charSet: "charset" }
 
   const tagName = typeof tag?.type === "string" ? tag.type : ""

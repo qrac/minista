@@ -1,5 +1,5 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
-/** @typedef {import('rolldown-vite').ViteDevServer} ViteDevServer */
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('../ssg/types').SsgPage} SsgPage */
@@ -72,7 +72,7 @@ export function pluginSearch(uOpts = {}) {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
@@ -195,7 +195,7 @@ export function pluginSearch(uOpts = {}) {
 
         const slashCount = (htmlName.match(/\//g) || []).length
         const bodyEl = parsedHtml.querySelector("body")
-        bodyEl.setAttribute(opts.relativeAttr, String(slashCount))
+        bodyEl?.setAttribute(opts.relativeAttr, String(slashCount))
 
         item.source = parsedHtml.toString()
       }
@@ -207,7 +207,7 @@ export function pluginSearch(uOpts = {}) {
         return item.originalFileNames.some((name) => name === before)
       })
       if (afterItem) {
-        const oldPath = path.resolve(options.dir, afterItem.fileName)
+        const oldPath = path.resolve(options.dir || "", afterItem.fileName)
         const newPath = oldPath.replace(/\.txt$/, ".json")
         await fs.promises.rename(oldPath, newPath)
       }

@@ -1,4 +1,4 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
+/** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
@@ -42,7 +42,7 @@ export function pluginArchive(uOpts = {}) {
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isBuild
     },
@@ -79,7 +79,7 @@ export function pluginArchive(uOpts = {}) {
                   reject(err)
                 }
               })
-              output.on("close", () => resolve())
+              output.on("close", () => resolve(undefined))
 
               archive.pipe(output)
               archive.glob(`${normalizePath(srcDir)}/**/*`, {
@@ -96,15 +96,19 @@ export function pluginArchive(uOpts = {}) {
             console.log(
               pc.gray(
                 normalizePath(rel + path.sep) +
-                  pc.green(path.basename(finalPath))
-              )
+                  pc.green(path.basename(finalPath)),
+              ),
             )
           } catch (err) {
-            console.error(
-              pc.red(`Error creating archive ${outName}: ${err.message}`)
-            )
+            if (err instanceof Error) {
+              console.error(
+                pc.red(`Error creating archive ${outName}: ${err.message}`),
+              )
+            } else {
+              console.error(pc.red(`An unknown error occurred: ${err}`))
+            }
           }
-        })
+        }),
       )
     },
   }

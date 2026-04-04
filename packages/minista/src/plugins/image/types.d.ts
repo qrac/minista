@@ -10,8 +10,8 @@ export type ImageFormat = "inherit" | "jpg" | "png" | "webp" | "avif"
 export type ResolvedImageFormat = Omit<ImageFormat, "inherit">
 
 export type ImageOptimize = {
-  outName?: string
-  remoteName?: string
+  outName: string
+  remoteName: string
   layout: "constrained" | "fixed"
   breakpoints: number[] | { count: number; minWidth: number; maxWidth: number }
   resolutions: number[]

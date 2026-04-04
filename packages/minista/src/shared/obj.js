@@ -9,7 +9,7 @@ export function cleanObj(obj) {
     return Object.fromEntries(
       Object.entries(obj)
         .filter(([, v]) => v !== undefined)
-        .map(([k, v]) => [k, cleanObj(v)])
+        .map(([k, v]) => [k, cleanObj(v)]),
     )
   }
   return obj
@@ -28,7 +28,7 @@ export function mergeObj(obj1, obj2) {
 
   for (const key in obj2) {
     if (
-      obj2.hasOwnProperty(key) &&
+      Object.prototype.hasOwnProperty.call(obj2, key) &&
       typeof obj2[key] === "object" &&
       obj2[key] !== null &&
       !Array.isArray(obj2[key])

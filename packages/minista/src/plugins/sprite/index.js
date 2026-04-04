@@ -1,5 +1,5 @@
-/** @typedef {import('rolldown-vite').Plugin} Plugin */
-/** @typedef {import('rolldown-vite').ViteDevServer} ViteDevServer */
+/** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('../ssg/types').SsgPage} SsgPage */
@@ -83,7 +83,7 @@ export function pluginSprite(uOpts = {}) {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
+      isSsr = command === "build" && Boolean(isSsrBuild)
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
@@ -206,7 +206,7 @@ export function pluginSprite(uOpts = {}) {
       if (!targetEls.length) return html
 
       for (const el of targetEls) {
-        const assetName = el.getAttribute(srcAttr).replace(/^\//, "")
+        const assetName = el?.getAttribute(srcAttr)?.replace(/^\//, "") || ""
         const symbolId =
           el.getAttribute(symbolIdAttr) || path.parse(assetName).name
         const assetUrl = assetMap[assetName]
@@ -247,7 +247,7 @@ export function pluginSprite(uOpts = {}) {
         if (!targetEls.length) continue
 
         for (const el of targetEls) {
-          const assetName = el.getAttribute(srcAttr).replace(/^\//, "")
+          const assetName = el?.getAttribute(srcAttr)?.replace(/^\//, "") || ""
           const symbolId =
             el.getAttribute(symbolIdAttr) || path.parse(assetName).name
           const before = spriteMap[assetName]
