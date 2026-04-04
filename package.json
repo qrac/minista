@@ -64,8 +64,8 @@
     "play:create": "cd ./playground/_create && create-minista",
     "test": "vitest run",
     "test:w": "vitest watch",
-    "up": "npx npm-check-updates --deep --cooldown 7",
-    "up:u": "npx npm-check-updates --deep --cooldown 7 -u",
+    "up": "npx npm-check-updates --deep --cooldown 1",
+    "up:u": "npx npm-check-updates --deep --cooldown 1 -u",
     "rev": "npx npm-replace-versions --deps minista --ignore node_modules",
     "release": "npm run release:main && npm run release:create",
     "release:main": "cd ./packages/minista && npm publish",
@@ -81,7 +81,7 @@
     "@types/js-beautify": "^1.14.3",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^25.0.3",
-    "@types/picomatch": "^4.0.2",
+    "@types/picomatch": "^4.0.3",
     "@types/prompts": "^2.4.9",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -90,8 +90,8 @@
     "preact": "^10.28.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "typescript": "^5.9.3",
-    "vite": "^8.0.0",
-    "vitest": "^4.0.16"
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3",
+    "vitest": "^4.1.2"
   }
 }
