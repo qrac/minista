@@ -33,7 +33,11 @@ import {
   getBuildBase,
   getBasedAssetUrl,
 } from "../../shared/url.js"
-import { mergeAlias, filterOutputAssets } from "../../shared/vite.js"
+import {
+  mergeSsrNoExternal,
+  mergeAlias,
+  filterOutputAssets,
+} from "../../shared/vite.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -307,6 +311,9 @@ export function pluginImage(uOpts = {}) {
       if (isDev) {
         base = getServeBase(config.base || base)
         return {
+          ssr: {
+            noExternal: mergeSsrNoExternal(config, ["minista"]),
+          },
           resolve: {
             alias: mergeAlias(config, [
               {
@@ -314,6 +321,13 @@ export function pluginImage(uOpts = {}) {
                 replacement: normalizePath(imageDir),
               },
             ]),
+          },
+        }
+      }
+      if (isSsr) {
+        return {
+          ssr: {
+            noExternal: mergeSsrNoExternal(config, ["minista"]),
           },
         }
       }

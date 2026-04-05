@@ -91,7 +91,7 @@ export function Picture({
           }
           const sourceOptimizeObj = cleanObj(sourceOptimizeObjRaw)
           const sourceOptimizeStr = JSON.stringify(
-            mergeObj(defaultOptimize, sourceOptimizeObj)
+            mergeObj(defaultOptimize, sourceOptimizeObj),
           )
 
           return createElement("source", {
@@ -123,7 +123,7 @@ export function Picture({
         }
         const sourceOptimizeObj = cleanObj(sourceOptimizeObjRaw)
         const sourceOptimizeStr = JSON.stringify(
-          mergeObj(defaultOptimize, sourceOptimizeObj)
+          mergeObj(defaultOptimize, sourceOptimizeObj),
         )
 
         return createElement("source", {
@@ -156,7 +156,7 @@ export function Picture({
       }
       const sourceOptimizeObj = cleanObj(sourceOptimizeObjRaw)
       const sourceOptimizeStr = JSON.stringify(
-        mergeObj(defaultOptimize, sourceOptimizeObj)
+        mergeObj(defaultOptimize, sourceOptimizeObj),
       )
 
       return createElement("source", {
@@ -183,6 +183,6 @@ export function Picture({
       "data-minista-image-src": src,
       "data-minista-image-optimize": optimizeStr,
       ...attributes,
-    })
+    }),
   )
 }

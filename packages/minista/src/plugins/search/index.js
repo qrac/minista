@@ -15,7 +15,11 @@ import { getSearchData } from "./utils/data.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import { getServeBase, getBuildBase } from "../../shared/url.js"
-import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
+import {
+  mergeSsrNoExternal,
+  filterOutputAssets,
+  filterOutputChunks,
+} from "../../shared/vite.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -82,6 +86,18 @@ export function pluginSearch(uOpts = {}) {
 
       if (isDev) {
         base = getServeBase(config.base || base)
+        return {
+          ssr: {
+            noExternal: mergeSsrNoExternal(config, ["minista"]),
+          },
+        }
+      }
+      if (isSsr) {
+        return {
+          ssr: {
+            noExternal: mergeSsrNoExternal(config, ["minista"]),
+          },
+        }
       }
       if (isBuild) {
         base = getBuildBase(config.base || base)

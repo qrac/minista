@@ -151,11 +151,8 @@ function extractPage(pageEl, ignoreSelectors) {
       }
     }
     if (el.childNodes) {
-      el.childNodes.forEach((node) => {
-        if (node.nodeType === 1) {
-          walk(/** @type {HTMLElement & {_rawText?: string}} */ (node))
-        }
-      })
+      /* @ts-ignore */
+      el.childNodes.forEach(walk)
     }
   }
   walk(pageEl)

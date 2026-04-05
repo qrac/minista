@@ -13,6 +13,9 @@
 export function mergeSsrExternal(config, modules = []) {
   const ssrExternal = config.ssr?.external
 
+  if (ssrExternal === true) {
+    return true
+  }
   if (typeof ssrExternal === "undefined") {
     return modules
   }
@@ -20,6 +23,26 @@ export function mergeSsrExternal(config, modules = []) {
     return Array.from(new Set([...ssrExternal, ...modules]))
   }
   return ssrExternal
+}
+
+/**
+ * @param {UserConfig} config
+ * @param {string[]} modules
+ * @returns {SSROptions['noExternal']}
+ */
+export function mergeSsrNoExternal(config, modules = []) {
+  const noExternal = config.ssr?.noExternal
+
+  if (noExternal === true) {
+    return true
+  }
+  if (typeof noExternal === "undefined") {
+    return modules
+  }
+  if (Array.isArray(noExternal)) {
+    return Array.from(new Set([...noExternal, ...modules]))
+  }
+  return noExternal
 }
 
 /**

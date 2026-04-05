@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest"
 
-import { mergeSsrExternal, mergeAlias } from "../../src/shared/vite.js"
+import {
+  mergeSsrExternal,
+  mergeSsrNoExternal,
+  mergeAlias,
+} from "../../src/shared/vite.js"
 
 describe("mergeSsrExternal", () => {
   it("ssr.externalが未定義の場合は渡したモジュールを返す", () => {
@@ -37,6 +41,51 @@ describe("mergeSsrExternal", () => {
   it("入力がない場合は空配列を返す", () => {
     const config = {}
     const result = mergeSsrExternal(config)
+    expect(result).toEqual([])
+  })
+})
+
+describe("mergeSsrNoExternal", () => {
+  it("ssr.noExternalが未定義の場合は渡したモジュールを返す", () => {
+    const config = {}
+    const result = mergeSsrNoExternal(config, ["minista"])
+    expect(result).toEqual(["minista"])
+  })
+
+  it("ssr.noExternalがtrueの場合はtrueをそのまま返す", () => {
+    const config = { ssr: { noExternal: true } }
+    const result = mergeSsrNoExternal(config, ["minista"])
+    expect(result).toBe(true)
+  })
+
+  it("existing noExternalが配列でない場合はそのまま返す", () => {
+    const config = { ssr: { noExternal: "some-lib" } }
+    // @ts-ignore テスト用に不正な型を入れる
+    const result = mergeSsrNoExternal(config, ["minista"])
+    expect(result).toBe("some-lib")
+  })
+
+  it("既存の配列にモジュールをマージする", () => {
+    const config = { ssr: { noExternal: ["react", "vue"] } }
+    const result = mergeSsrNoExternal(config, ["minista"])
+    expect(result).toEqual(["react", "vue", "minista"])
+  })
+
+  it("モジュールが既に存在する場合は重複を避ける", () => {
+    const config = { ssr: { noExternal: ["minista", "react"] } }
+    const result = mergeSsrNoExternal(config, ["minista"])
+    expect(result).toEqual(["minista", "react"])
+  })
+
+  it("複数のモジュールを重複排除して処理する", () => {
+    const config = { ssr: { noExternal: ["react"] } }
+    const result = mergeSsrNoExternal(config, ["minista", "react", "vue"])
+    expect(result).toEqual(["react", "minista", "vue"])
+  })
+
+  it("入力がない場合は空配列を返す", () => {
+    const config = {}
+    const result = mergeSsrNoExternal(config)
     expect(result).toEqual([])
   })
 })
