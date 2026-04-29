@@ -209,9 +209,10 @@ export function pluginSearch(uOpts = {}) {
         const inputEl = parsedHtml.querySelector(`[${opts.inputAttr}]`)
         if (!inputEl) continue
 
-        const slashCount = (htmlName.match(/\//g) || []).length
+        const isIndex = htmlName.split("/").pop() === "index.html"
+        const level = (htmlName.match(/\//g) || []).length + (isIndex ? 0 : 1)
         const bodyEl = parsedHtml.querySelector("body")
-        bodyEl?.setAttribute(opts.relativeAttr, String(slashCount))
+        bodyEl?.setAttribute(opts.relativeAttr, String(level))
 
         item.source = parsedHtml.toString()
       }
