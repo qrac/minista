@@ -4,7 +4,7 @@
   "type": "module",
   "dependencies": {
     "musubii": "^9.4.0",
-    "preact": "^10.28.2"
+    "preact": "^10.29.1"
   },
   "devDependencies": {
     "clsx": "^2.1.1",

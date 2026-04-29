@@ -1,6 +1,6 @@
 {
   "name": "minista",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "type": "module",
   "bin": {
     "minista": "./bin/minista.js"
@@ -66,7 +66,7 @@
   },
   "dependencies": {
     "@mdx-js/rollup": "^3.1.1",
-    "@swc/core": "^1.15.21",
+    "@swc/core": "^1.15.32",
     "archiver": "^7.0.1",
     "cross-spawn": "^7.0.6",
     "image-size": "^2.0.2",
@@ -80,6 +80,6 @@
     "remark-mdx-frontmatter": "^5.2.0",
     "sharp": "^0.34.5",
     "svgo": "^4.0.1",
-    "tinyglobby": "^0.2.15"
+    "tinyglobby": "^0.2.16"
   }
 }

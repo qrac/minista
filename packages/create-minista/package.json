@@ -1,6 +1,6 @@
 {
   "name": "create-minista",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "type": "module",
   "bin": {
     "create-minista": "./bin/create-minista.js"
