@@ -25,7 +25,7 @@ export default defineConfig(({ command, isSsrBuild }) => {
       build: {
         minify: false,
         //outDir: "dest",
-        rollupOptions: {
+        rolldownOptions: {
           output: {
             //minifyInternalExports: false,
             /*manualChunks: {

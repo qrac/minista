@@ -10,7 +10,7 @@ export default defineConfig({
   build: {
     minify: false,
     assetsInlineLimit: 0,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         //minifyInternalExports: false,
       },

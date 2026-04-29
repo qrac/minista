@@ -89,7 +89,7 @@ export function pluginBundle(uOpts = {}) {
         await fs.promises.writeFile(globFile, code, "utf8")
         return {
           build: {
-            rollupOptions: {
+            rolldownOptions: {
               input: {
                 [opts.outName]: globFile,
               },

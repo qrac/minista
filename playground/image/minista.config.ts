@@ -3,7 +3,7 @@ import { defineConfig, pluginSsg, pluginImage } from "minista"
 export default defineConfig({
   plugins: [pluginSsg(), pluginImage({ useCache: true })],
   /*build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         assetFileNames: (assetInfo) => {
           //console.dir(assetInfo, { depth: 3 })

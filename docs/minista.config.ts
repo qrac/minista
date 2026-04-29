@@ -79,7 +79,8 @@ export default defineConfig(({ command, isSsrBuild }) => {
     ],
     build: {
       assetsInlineLimit: 0,
-      rollupOptions: {
+      rolldownOptions: {
+        checks: { pluginTimings: false },
         output: {
           codeSplitting: {
             groups: [

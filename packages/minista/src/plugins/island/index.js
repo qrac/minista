@@ -207,7 +207,7 @@ export function pluginIsland(uOpts = {}) {
 
         return {
           build: {
-            rollupOptions: {
+            rolldownOptions: {
               input: entries,
             },
           },

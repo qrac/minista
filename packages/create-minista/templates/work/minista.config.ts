@@ -53,7 +53,7 @@ export default defineConfig(({ command, isSsrBuild }) => {
       ...common,
       build: {
         minify: false,
-        rollupOptions: {
+        rolldownOptions: {
           output: {
             /*advancedChunks: {
               groups: [

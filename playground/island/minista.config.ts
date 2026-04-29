@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [pluginSsg(), pluginIsland(), react()],
   build: {
     //minify: false,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         //minifyInternalExports: false,
       },

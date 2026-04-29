@@ -116,7 +116,7 @@ export function pluginSsg(uOpts = {}) {
       if (isSsr) {
         return {
           build: {
-            rollupOptions: {
+            rolldownOptions: {
               input: {
                 [tempName]: globFile,
               },
@@ -150,7 +150,7 @@ export function pluginSsg(uOpts = {}) {
 
         return {
           build: {
-            rollupOptions: {
+            rolldownOptions: {
               input: {
                 [tempName]: throughFile,
               },

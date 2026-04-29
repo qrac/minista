@@ -119,7 +119,7 @@ export function pluginEntry(uOpts = {}) {
 
       return {
         build: {
-          rollupOptions: {
+          rolldownOptions: {
             input: {
               ...entries,
             },

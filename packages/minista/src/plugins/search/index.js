@@ -132,7 +132,7 @@ export function pluginSearch(uOpts = {}) {
 
         return {
           build: {
-            rollupOptions: {
+            rolldownOptions: {
               input: {
                 [pathId]: searchFile,
               },

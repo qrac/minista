@@ -382,7 +382,7 @@ export function pluginImage(uOpts = {}) {
 
         return {
           build: {
-            rollupOptions: {
+            rolldownOptions: {
               input: entries,
             },
           },

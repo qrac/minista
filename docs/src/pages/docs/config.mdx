@@ -106,16 +106,16 @@ export default { plugins: [pluginBeautify()] }
 
 Vite のデフォルト設定では、出力ファイル名にハッシュが付与されます。ハッシュは納品データには不要な場合が多いです。これを無効化するには、以下のプロパティを設定し `[hash]` を削除してください。
 
-- CSS・画像・フォント: `build.rollupOptions.output.assetFileNames`
-- JavaScript（chunk）: `build.rollupOptions.output.chunkFileNames`
-- JavaScript（entry）: `build.rollupOptions.output.entryFileNames`
+- CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
+- JavaScript（chunk）: `build.rolldownOptions.output.chunkFileNames`
+- JavaScript（entry）: `build.rolldownOptions.output.entryFileNames`
 
 ※これらを設定した場合 `build.assetsDir` は無視されます。
 
 ```ts title="./minista.config.ts"
 export default {
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         assetFileNames: "assets/[name][extname]",
         chunkFileNames: "assets/[name].js",
@@ -130,9 +130,9 @@ export default {
 
 Vite のデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
 
-- CSS・画像・フォント: `build.rollupOptions.output.assetFileNames`
-- JavaScript（chunk）: `build.rollupOptions.output.chunkFileNames`
-- JavaScript（entry）: `build.rollupOptions.output.entryFileNames`
+- CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
+- JavaScript（chunk）: `build.rolldownOptions.output.chunkFileNames`
+- JavaScript（entry）: `build.rolldownOptions.output.entryFileNames`
 
 ※これらを設定した場合 `build.assetsDir` は無視されます。
 
@@ -165,7 +165,7 @@ const assetFileNames = (assetInfo: PreRenderedAsset) => {
 
 export default {
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         assetFileNames,
         chunkFileNames: "assets/js/[name].js",
@@ -180,14 +180,14 @@ export default {
 
 JavaScript から特定のコードを分割したい場合は以下のプロパティを設定してください。
 
-- `build.rollupOptions.output.codeSplitting.groups`
+- `build.rolldownOptions.output.codeSplitting.groups`
 
 `node_modules` 内のモジュールを `vendor` という名前でまとめる例。
 
 ```ts title="./minista.config.ts"
 export default {
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         codeSplitting: {
           groups: [{ name: "vendor", test: /\/node_modules\/(?!\.)/ }],
@@ -203,7 +203,7 @@ export default {
 ```ts title="./minista.config.ts"
 export default {
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         codeSplitting: {
           groups: [
