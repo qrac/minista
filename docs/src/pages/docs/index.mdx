@@ -11,7 +11,7 @@ import ElementStageSpeed from "../../components/element/stage-speed"
 
 # Introduction
 
-minista（ミニスタ）は、React の JSX と Vite で 100%静的なサイトを作るスタティックサイトジェネレーターです。
+minista（ミニスタ）は、ReactのJSXとViteで100%静的なサイトを作るスタティックサイトジェネレーターです。
 
 ## Table of Contents
 
@@ -19,76 +19,76 @@ contents list
 
 ## Concept
 
-- **すべてを JSX で書き、綺麗な HTML を生成！**
-- 静的 HTML が必要なウェブ制作の現場にも JSX のコンポーネント管理を導入したい
-- 独自構文を使わず、エディタサポートの優れた TypeScript を活用したい
+- **すべてをJSXで書き、綺麗なHTMLを生成！**
+- 静的HTMLが必要なウェブ制作の現場にもJSXのコンポーネント管理を導入したい
+- 独自構文を使わず、エディタサポートの優れたTypeScriptを活用したい
 
 ## Features
 
-- すべての機能を Vite プラグインとして提供
-- ビルド時に自動で Vite の「SSR ビルド + 通常ビルド」を実行
+- すべての機能をViteプラグインとして提供
+- ビルド時に自動でViteの「SSRビルド+通常ビルド」を実行
 
 ## History
 
-2020 年頃にフロントエンドの主流が Next.js になりました。エディタの補完が優秀な React の JSX で書けて快適です。ただ、SPA を主軸としているため綺麗な HTML を納品する SaaS 開発には不向きです。
+2020年頃にフロントエンドの主流がNext.jsになりました。エディタの補完が優秀なReactのJSXで書けて快適です。ただ、SPAを主軸としているため綺麗なHTMLを納品するSaaS開発には不向きです。
 
-最適化されたハッシュ付与・コード分割・preload など、SPA 系フレームワークの静的書き出しは求めているものと違います。Nuxt が流行っている頃から気づいていました。
+最適化されたハッシュ付与・コード分割・preloadなど、SPA系フレームワークの静的書き出しは求めているものと違います。Nuxtが流行っている頃から気づいていました。
 
-では、EJS・Pug・Nunjucks を引っ張り出しますか？いいえ、彼らにはとても助けられてきましたが、使い心地が異なるため Next.js と並行して使い続けるのは辛いものがあります。
+では、EJS・Pug・Nunjucksを引っ張り出しますか？いいえ、彼らにはとても助けられてきましたが、使い心地が異なるためNext.jsと並行して使い続けるのは辛いものがあります。
 
 ### v0
 
 <ElementRecord text="First commit: 2021/03/21" />
 <ElementStageLogo version={1} />
 
-そこで、理想の形を求めてフレームワークを試作。React の `renderToStaticMarkup()` と webpack を組み合わせてパッケージ化したものが初期の minista です。
+そこで、理想の形を求めてフレームワークを試作。Reactの `renderToStaticMarkup()` とwebpackを組み合わせてパッケージ化したものが初期のministaです。
 
-- [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
+- [React(JSX)で書けるコーディング用SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
 
 ### v1
 
 <ElementRecord text="Release: 2022/01/15" />
 
-仕様が単純で拡張しやすく多数の業務で活躍してくれました！ただ、webpack は起動時にすべてをバンドルしてメモリに乗せる設計なので、内容が膨らむほどパフォーマンスが悪化。プロジェクト終盤だと起動に 10 秒以上かかる場合もあり悩みました。
+仕様が単純で拡張しやすく多数の業務で活躍してくれました！ただ、webpackは起動時にすべてをバンドルしてメモリに乗せる設計なので、内容が膨らむほどパフォーマンスが悪化。プロジェクト終盤だと起動に10秒以上かかる場合もあり悩みました。
 
-また、Next.js の使い勝手を再現できていない部分も気になっていました。例えば、ページは HTML 化する関数が省略不可、コンポーネントは自身の CSS を import できず、fetch からのダイナミックルーティングや Markdown 統合など気の遠くなる話に思えました。
+また、Next.jsの使い勝手を再現できていない部分も気になっていました。例えば、ページはHTML化する関数が省略不可、コンポーネントは自身のCSSをimportできず、fetchからのダイナミックルーティングやMarkdown統合など気の遠くなる話に思えました。
 
-- [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
+- [Reactで書けるSSG改善点と今後について- minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
 
 ### v2
 
 <ElementRecord text="Release: 2022/04/12" />
 
-そんなパフォーマンスと機能の問題をすべて解決したのが minista v2 です！webpack には感謝しつつも一旦別れを告げ Vite と esbuild を組み込みゼロから開発。
+そんなパフォーマンスと機能の問題をすべて解決したのがminista v2です！webpackには感謝しつつも一旦別れを告げViteとesbuildを組み込みゼロから開発。
 
 <ElementStageSpeed />
 
-開発サーバーは規模に関係なく 0.6 秒ほどで立ち上がり、本番ビルドの時間も半分近く短縮。設計を見直したことで Next.js との親和性も増し、よりストレスなく静的サイトを作れるようになりました。
+開発サーバーは規模に関係なく0.6秒ほどで立ち上がり、本番ビルドの時間も半分近く短縮。設計を見直したことでNext.jsとの親和性も増し、よりストレスなく静的サイトを作れるようになりました。
 
-- [Vite と esbuild を組み込み React 製 SSG を再構築 - minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
-- [SSG + Partial Hydration (部分的な React App) - minista v2.4](https://zenn.dev/qrac/articles/b9c65c1c0be901)
-- [SSG に client サイド完結型の全文検索を実装した - minista v2.7](https://zenn.dev/qrac/articles/653f7512b707ff)
+- [Viteとesbuildを組み込みReact製SSGを再構築- minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
+- [SSG + Partial Hydration (部分的なReact App) - minista v2.4](https://zenn.dev/qrac/articles/b9c65c1c0be901)
+- [SSGにclientサイド完結型の全文検索を実装した- minista v2.7](https://zenn.dev/qrac/articles/653f7512b707ff)
 
 ### v3
 
 <ElementRecord text="Release: 2023/03/31" />
 <ElementStageLogo version={3} />
 
-それから 1 年後、minista v3 をリリースしました！基本的な使い方は変わりませんが、本体の完成度を上げるためにソースコードはすべて書き直しています。
+それから1年後、minista v3をリリースしました！基本的な使い方は変わりませんが、本体の完成度を上げるためにソースコードはすべて書き直しています。
 
-より厳密なコーディングが行えるよう、開発中も Vite の SPA ではなく本番に近い静的ページが表示されるようになりました。本番ビルドは esbuild をやめて Vite に統一。
+より厳密なコーディングが行えるよう、開発中もViteのSPAではなく本番に近い静的ページが表示されるようになりました。本番ビルドはesbuildをやめてViteに統一。
 
-画像の最適化・アセットのダイナミックエントリー・納品ページの自動リストアップ・Zip でまとめる機能などが追加されています。
+画像の最適化・アセットのダイナミックエントリー・納品ページの自動リストアップ・Zipでまとめる機能などが追加されています。
 
-- [React の JSX で書ける SSG を 1 から作り直した - minista v3](https://zenn.dev/qrac/articles/980efced76634f)
+- [ReactのJSXで書けるSSGを1から作り直した- minista v3](https://zenn.dev/qrac/articles/980efced76634f)
 
 ### v4
 
 <ElementRecord text="Release: 2026/03/15" />
 <ElementStageLogo version={4} />
 
-3 年後、Vite（Rolldown ベース）と完全に統合するための minista v4 を公開。
+3年後、Vite（Rolldownベース）と完全に統合するためのminista v4を公開。
 
-**すべての機能を Vite プラグイン化！** コンフィグも `vite.config.ts` で動作します。
+**すべての機能をViteプラグイン化！**コンフィグも `vite.config.ts` で動作します。
 
-機能面の大きな変化は、既存の Partial Hydration を廃止し、Astro の Island を再現したこと。JSX の任意の部分を手軽に React App 化できるようになりました。
+機能面の大きな変化は、既存のPartial Hydrationを廃止し、AstroのIslandを再現したこと。JSXの任意の部分を手軽にReact App化できるようになりました。

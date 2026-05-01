@@ -58,7 +58,7 @@ export default function () {
 }
 ```
 
-上記の JSX から以下の JSON 出力されます。
+上記のJSXから以下のJSON出力されます。
 
 ```json title="./dist/assets/search.json"
 {
@@ -75,12 +75,12 @@ export default function () {
 }
 ```
 
-- `words`: すべての文字が種類ごとに収納されており index で参照が可能
+- `words`:すべての文字が種類ごとに収納されておりindexで参照が可能
 - `hits`: `[0, 1]` なので、検索対象の文字は「CMS」と「CSS」
-- `pages`: 各ページデータ
+- `pages`:各ページデータ
   - `title`: `[1]` なので「CSS」
-  - `toc`: `0` 番目の `content` で、ID は `cms`
-  - `content`: 「CMS CMS で使う CSS。」の index が配列形式で格納
+  - `toc`: `0` 番目の `content` で、IDは `cms`
+  - `content`:「CMS CMSで使うCSS。」のindexが配列形式で格納
 
 ## Options
 
@@ -109,30 +109,30 @@ pluginSearch({
 - 型: `string`
 - デフォルト: `"search"`
 
-検索用 JSON ファイルの出力名。拡張子は含みません。
+検索用JSONファイルの出力名。拡張子は含みません。
 
 ### src
 
 - 型: `string[]`
 - デフォルト: `["**/*.html"]`
 
-検索対象の HTML を glob 形式で指定します。対象ファイルはビルドパイプラインに含まれているものから [picomatch](https://www.npmjs.com/package/picomatch) で選ばれます。
+検索対象のHTMLをglob形式で指定します。対象ファイルはビルドパイプラインに含まれているものから[picomatch](https://www.npmjs.com/package/picomatch)で選ばれます。
 
-デフォルトではすべての HTML ファイルが対象になっているため、`["posts/**/*.html"]` などで対象範囲を絞り込むことをお勧めします。
+デフォルトではすべてのHTMLファイルが対象になっているため、`["posts/**/*.html"]` などで対象範囲を絞り込むことをお勧めします。
 
 ### ignore
 
 - 型: `string[]`
 - デフォルト: `["404.html"]`
 
-検索対象外の HTML を glob 形式で指定します。対象ファイルはビルドパイプラインに含まれているものから [picomatch](https://www.npmjs.com/package/picomatch) で選ばれます。
+検索対象外のHTMLをglob形式で指定します。対象ファイルはビルドパイプラインに含まれているものから[picomatch](https://www.npmjs.com/package/picomatch)で選ばれます。
 
 ### trimTitle
 
 - 型: `string`
 - デフォルト: `""`
 
-検索したタイトルから削除する文字列。例えば「CSS - minista」というページタイトルに対して検索 UI に不要な ` - minista` を指定して削除します。
+検索したタイトルから削除する文字列。例えば「CSS - minista」というページタイトルに対して検索UIに不要な ` - minista` を指定して削除します。
 
 ### targetSelector
 
@@ -218,7 +218,7 @@ export default function () {
 }
 ```
 
-`<Search>` コンポーネントには、以下の props を渡せます。
+`<Search>` コンポーネントには、以下のpropsを渡せます。
 
 ```ts
 type SearchProps = {
@@ -318,4 +318,4 @@ type SearchProps = {
 - 型: `boolean`
 - デフォルト: `true`
 
-検索結果に URL を表示させるか否か。
+検索結果にURLを表示させるか否か。

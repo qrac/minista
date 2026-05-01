@@ -7,7 +7,7 @@ prevUrl: "/docs/config"
 
 # Migration
 
-ここでは minista v3 から v4 への移行方法について説明します。
+ここではminista v3からv4への移行方法について説明します。
 
 ## Table of Contents
 
@@ -15,37 +15,37 @@ contents list
 
 ## Overview
 
-v4 は設計が大きく変わっています。v3 まではオールインワンのライブラリでしたが、v4 からは本体が Vite のラッパーとして動作し、SSG や画像最適化などの機能はすべて Vite プラグインとして提供されます。
+v4は設計が大きく変わっています。v3まではオールインワンのライブラリでしたが、v4からは本体がViteのラッパーとして動作し、SSGや画像最適化などの機能はすべてViteプラグインとして提供されます。
 
 ## Changes
 
-- すべての機能を Vite プラグイン化
-- コンフィグを Vite 公式に変更
+- すべての機能をViteプラグイン化
+- コンフィグをVite公式に変更
 - インポートパスを細分化して変更
-- Svgr を Svg コンポーネントに変更
-- Icon を Sprite に変更
-- Partial Hydration を Island に変更
+- SvgrをSvgコンポーネントに変更
+- IconをSpriteに変更
+- Partial HydrationをIslandに変更
 - Delivery（納品リスト）を廃止
 
 ## Agent Mode
 
-まず、エディタのエージェントモードを使用して効率的に移行する方法を検討してください。GitHub 上に[このページの Markdown データ](https://github.com/qrac/minista/blob/main/docs/src/pages/docs/migration.mdx?plain=1)がありますので、エージェントへの指示としてコピーして使用（またはダウンロードして指示に添付）し、その上でうまくいかなかった箇所を修正してみてください。
+まず、エディタのエージェントモードを使用して効率的に移行する方法を検討してください。GitHub上に[このページのMarkdownデータ](https://github.com/qrac/minista/blob/main/docs/src/pages/docs/migration.mdx?plain=1)がありますので、エージェントへの指示としてコピーして使用（またはダウンロードして指示に添付）し、その上でうまくいかなかった箇所を修正してみてください。
 
 ## Packages
 
-最初にパッケージを更新します。v4 では `vite` も peerDependencies になりました。
+最初にパッケージを更新します。v4では `vite` もpeerDependenciesになりました。
 
 ```bash
 npm install --save-dev minista@latest vite react react-dom
 ```
 
-TypeScript を使用している場合は `@types/react` `@types/react-dom` も更新。
+TypeScriptを使用している場合は `@types/react` `@types/react-dom` も更新。
 
 ```bash
 npm install --save-dev @types/react @types/react-dom
 ```
 
-Partial Hydration や Search の移行には `@vitejs/plugin-react` が必要です。
+Partial HydrationやSearchの移行には `@vitejs/plugin-react` が必要です。
 
 ```bash
 npm install --save-dev @vitejs/plugin-react
@@ -53,11 +53,11 @@ npm install --save-dev @vitejs/plugin-react
 
 ## Config
 
-次にコンフィグファイルを更新します。v4 は minista 独自のコンフィグを廃止し Vite 公式と同一になりました。ファイルは `vite.config.{ts,js}` または `minista.config.{ts,js}` のどちらでも動作します。
+次にコンフィグファイルを更新します。v4はminista独自のコンフィグを廃止しVite公式と同一になりました。ファイルは `vite.config.{ts,js}` または `minista.config.{ts,js}` のどちらでも動作します。
 
-基本設定は [Vite 公式](https://ja.vite.dev/config/)に沿って移行。minista 独自の機能は Vite プラグイン化されているため、必要なプラグインをインポートして `plugins` 配列に追加します。
+基本設定は[Vite公式](https://ja.vite.dev/config/)に沿って移行。minista独自の機能はViteプラグイン化されているため、必要なプラグインをインポートして `plugins` 配列に追加します。
 
-注意点として、v4 は **Vite の SSR ビルドと通常ビルドを連続で行う**ことを意識してください。ビルド用に設定した内容が SSR ビルドを壊してしまう可能性があります。これは設定を SSR ビルド用・通常ビルド用に切り分けることで解消できます。
+注意点として、v4は**ViteのSSRビルドと通常ビルドを連続で行う**ことを意識してください。ビルド用に設定した内容がSSRビルドを壊してしまう可能性があります。これは設定をSSRビルド用・通常ビルド用に切り分けることで解消できます。
 
 ```ts title="Before"
 import { defineConfig } from "minista"
@@ -86,15 +86,15 @@ export default defineConfig(({ command, isSsrBuild }) => {
 
 ### root
 
-※新旧ともに Vite と同じなので変更なし
+※新旧ともにViteと同じなので変更なし
 
 ### base
 
-※新旧ともに Vite と同じなので変更なし
+※新旧ともにViteと同じなので変更なし
 
 ### public
 
-Vite の `publicDir` に変更してください。
+Viteの `publicDir` に変更してください。
 
 ```ts title="Before"
 export default { public: "public" }
@@ -106,7 +106,7 @@ export default { publicDir: "public" }
 
 ### out
 
-Vite の `build.outDir` に変更してください。
+Viteの `build.outDir` に変更してください。
 
 ```ts title="Before"
 export default { out: "dist" }
@@ -118,7 +118,7 @@ export default { build: { outDir: "dist" } }
 
 ### assets.outDir
 
-Vite の `build.assetsDir` に変更してください。
+Viteの `build.assetsDir` に変更してください。
 
 ```ts title="Before"
 export default { assets: { outDir: "assets" } }
@@ -130,7 +130,7 @@ export default { build: { assetsDir: "assets" } }
 
 ### assets.outName
 
-Vite の `build.rolldownOptions` でそれぞれ設定する必要があります。
+Viteの `build.rolldownOptions` でそれぞれ設定する必要があります。
 
 - CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
 - JavaScript（chunk）: `build.rolldownOptions.output.chunkFileNames`
@@ -160,11 +160,11 @@ export default {
 
 #### outDir, outName
 
-Vite の `build.rolldownOptions` で設定する必要があります。後述の Separate asset directories を参照して設定してください。
+Viteの `build.rolldownOptions` で設定する必要があります。後述のSeparate asset directoriesを参照して設定してください。
 
 #### remoteName
 
-minista のプラグイン `pluginImage` のオプションに変更してください。v3 では固定だった `[index]` プレースホルダーの位置を指定できます。
+ministaのプラグイン `pluginImage` のオプションに変更してください。v3では固定だった `[index]` プレースホルダーの位置を指定できます。
 
 ```ts title="Before"
 export default { assets: { images: { remoteName: "remote" } } }
@@ -180,7 +180,7 @@ export default {
 
 #### optimize
 
-minista のプラグイン `pluginImage` のオプションに変更してください。v3 では固定だった出力画像の名前（`[name]-[width]x[height]`）を変更できます。
+ministaのプラグイン `pluginImage` のオプションに変更してください。v3では固定だった出力画像の名前（`[name]-[width]x[height]`）を変更できます。
 
 ```ts title="Before"
 export default { assets: { images: { optimize: { layout: "constrained" } } } }
@@ -202,7 +202,7 @@ export default {
 
 #### svgrOptions
 
-[SVGR が提供するオプション](https://github.com/gregberge/svgr/blob/v8.0.0/packages/core/src/config.ts#L28)の中で `svgoConfig` のみ `pluginSvg` のオプションとしてそのまま移行できます。その他のオプションはサポートされていないため、後述の Svgr 移行を参照して対応してください。
+[SVGRが提供するオプション](https://github.com/gregberge/svgr/blob/v8.0.0/packages/core/src/config.ts#L28)の中で `svgoConfig` のみ `pluginSvg` のオプションとしてそのまま移行できます。その他のオプションはサポートされていないため、後述のSvgr移行を参照して対応してください。
 
 ```ts title="Before"
 export default {
@@ -218,11 +218,11 @@ export default { plugins: [pluginSvg({ config: { plugins: [] } })] }
 
 ### assets.icons
 
-後述により Icon は Sprite に移行となりますが、事前にオプションの移行先を記載します。
+後述によりIconはSpriteに移行となりますが、事前にオプションの移行先を記載します。
 
 #### srcDir, outName
 
-オプションとして指定することはなくなり、テンプレートに設置した Sprite の `src` により実質的に複数のディレクトリをターゲットにできるようになりました。また、`src` のファイルが存在するディレクトリ名が出力名になります。
+オプションとして指定することはなくなり、テンプレートに設置したSpriteの `src` により実質的に複数のディレクトリをターゲットにできるようになりました。また、`src` のファイルが存在するディレクトリ名が出力名になります。
 
 ```ts title="Before"
 export default {
@@ -240,11 +240,11 @@ export default function () {
 
 #### outDir
 
-Vite の `build.rolldownOptions` で設定する必要があります。後述の Separate asset directories を参照して設定してください。
+Viteの `build.rolldownOptions` で設定する必要があります。後述のSeparate asset directoriesを参照して設定してください。
 
 #### svgstoreOptions
 
-依存関係の SVG 最適化ライブラリが `svgstore` から `svgo` に変更となったため、同様のオプションは存在しません。`pluginSprite` に `svgo` オプションを渡すことで最適化を図ってください。
+依存関係のSVG最適化ライブラリが `svgstore` から `svgo` に変更となったため、同様のオプションは存在しません。`pluginSprite` に `svgo` オプションを渡すことで最適化を図ってください。
 
 ```ts title="Before"
 export default {
@@ -283,13 +283,13 @@ export default {
 
 #### outDir, outName
 
-Vite の `build.rolldownOptions` で設定する必要があります。後述の Separate asset directories を参照して設定してください。
+Viteの `build.rolldownOptions` で設定する必要があります。後述のSeparate asset directoriesを参照して設定してください。
 
 ### assets.bundle
 
 #### outName
 
-minista のプラグイン `pluginBundle` のオプションに変更してください。
+ministaのプラグイン `pluginBundle` のオプションに変更してください。
 
 ```ts title="Before"
 export default { assets: { bundle: { outName: "bundle" } } }
@@ -303,11 +303,11 @@ export default { plugins: [pluginBundle({ outName: "bundle" })] }
 
 ### assets.partial
 
-後述により Partial Hydration は Island に移行となりますが、事前にオプションの移行先を記載します。
+後述によりPartial HydrationはIslandに移行となりますが、事前にオプションの移行先を記載します。
 
 #### usePreact
 
-自動切り替えは廃止されたため、Vite の `resolve.alias` を使用してください。
+自動切り替えは廃止されたため、Viteの `resolve.alias` を使用してください。
 
 ```ts title="Before"
 export default { assets: { partial: { usePreact: true } } }
@@ -339,7 +339,7 @@ $ npm install preact
 
 #### useIntersectionObserver
 
-IntersectionObserver を使うかどうかはコンフィグではなくコンポーネントのディレクティブで指定するようになりました。`client:visible` を使用してください。
+IntersectionObserverを使うかどうかはコンフィグではなくコンポーネントのディレクティブで指定するようになりました。`client:visible` を使用してください。
 
 ```tsx title="Before"
 export default { assets: { partial: { useIntersectionObserver: true } } }
@@ -355,7 +355,7 @@ export default function () {
 
 #### outName
 
-minista のプラグイン `pluginIsland` のオプションに変更してください。v3 では固定だった `[index]` プレースホルダーの位置を指定できます。
+ministaのプラグイン `pluginIsland` のオプションに変更してください。v3では固定だった `[index]` プレースホルダーの位置を指定できます。
 
 ```ts title="Before"
 export default { assets: { partial: { outName: "hydrate" } } }
@@ -369,7 +369,7 @@ export default { plugins: [pluginIsland({ outName: "hydrate-[index]" })] }
 
 #### rootAttrSuffix, rootValuePrefix
 
-`rootAttrSuffix` は minista のプラグイン `pluginIsland` のオプションに変更してください。`rootValuePrefix` で設定していた識別子の接頭辞は廃止され、HTML には数字のみ記載されます。
+`rootAttrSuffix` はministaのプラグイン `pluginIsland` のオプションに変更してください。`rootValuePrefix` で設定していた識別子の接頭辞は廃止され、HTMLには数字のみ記載されます。
 
 ```ts title="Before"
 export default {
@@ -387,7 +387,7 @@ export default {
 }
 ```
 
-ただし、ハイドレーション対象のルート要素に付与される属性名は機能の細分化に伴い変更されているので、同一の値を渡しても異なる名前になります。CSS や JavaScript で参照している場合は注意してください。
+ただし、ハイドレーション対象のルート要素に付与される属性名は機能の細分化に伴い変更されているので、同一の値を渡しても異なる名前になります。CSSやJavaScriptで参照している場合は注意してください。
 
 ```html title="Before"
 <div data-partial-hydration="ph-1">...</div>
@@ -405,7 +405,7 @@ export default {
 
 #### rootDOMElement, rootStyle
 
-minista のプラグイン `pluginIsland` のオプションに変更してください。
+ministaのプラグイン `pluginIsland` のオプションに変更してください。
 
 ```ts title="Before"
 export default {
@@ -427,7 +427,7 @@ export default {
 
 #### intersectionObserverOptions
 
-IntersectionObserver の設定はそれが使用されるコンポーネントの `client:visible` ディレクティブで指定するようになりました。
+IntersectionObserverの設定はそれが使用されるコンポーネントの `client:visible` ディレクティブで指定するようになりました。
 
 ```ts title="Before"
 export default {
@@ -445,15 +445,15 @@ export default function () {
 
 ### resolve.alias
 
-※新旧ともに Vite と同じなので変更なし
+※新旧ともにViteと同じなので変更なし
 
 ### css
 
-※新旧ともに Vite と同じなので変更なし
+※新旧ともにViteと同じなので変更なし
 
 ### markdown
 
-Vite プラグイン `pluginMdx` のオプションに変更となります。v3 で minista が用意していた `useRemarkGfm` `useRehypeHighlight` は廃止されたため、必要な Remark / Rehype プラグインをインストールして `remarkPlugins` `rehypePlugins` に渡してください。
+Viteプラグイン `pluginMdx` のオプションに変更となります。v3でministaが用意していた `useRemarkGfm` `useRehypeHighlight` は廃止されたため、必要なRemark / Rehypeプラグインをインストールして `remarkPlugins` `rehypePlugins` に渡してください。
 
 #### useRemarkGfm, remarkGfmOptions
 
@@ -479,7 +479,7 @@ export default {
 
 #### useRehypeHighlight, rehypeHighlightOptions
 
-`rehype-highlight` を直接設定してください。また、見た目の調整まで含めたい場合は `rehype-pretty-code` など別の Rehype プラグインへの移行も検討してください。
+`rehype-highlight` を直接設定してください。また、見た目の調整まで含めたい場合は `rehype-pretty-code` など別のRehypeプラグインへの移行も検討してください。
 
 ```ts title="Before"
 export default {
@@ -524,7 +524,7 @@ export default {
 
 ### search
 
-minista のプラグイン `pluginSearch` のオプションに変更してください。検索 UI は Island として動作するため、`pluginIsland` と `@vitejs/plugin-react` も併用します。
+ministaのプラグイン `pluginSearch` のオプションに変更してください。検索UIはIslandとして動作するため、`pluginIsland` と `@vitejs/plugin-react` も併用します。
 
 ```ts title="Before"
 export default {
@@ -561,15 +561,15 @@ export default {
 
 #### outDir
 
-検索用 JSON も Vite のアセットとして出力されるため、個別の `outDir` は廃止されました。出力先を変える場合は `build.rolldownOptions.output.assetFileNames` で制御してください。
+検索用JSONもViteのアセットとして出力されるため、個別の `outDir` は廃止されました。出力先を変える場合は `build.rolldownOptions.output.assetFileNames` で制御してください。
 
 #### include, exclude
 
-`include` は `src`、`exclude` は `ignore` に変更してください。対象は SSG 後の HTML ファイルなので、`"/404"` のような URL パスではなく `"404.html"` のようなファイル名の glob を指定します。
+`include` は `src`、`exclude` は `ignore` に変更してください。対象はSSG後のHTMLファイルなので、`"/404"` のようなURLパスではなく `"404.html"` のようなファイル名のglobを指定します。
 
 #### baseUrl
 
-`baseUrl` は廃止されました。URL の基準は Vite の `base` から解決されます。
+`baseUrl` は廃止されました。URLの基準はViteの `base` から解決されます。
 
 #### hit
 
@@ -613,7 +613,7 @@ export default {
 
 Delivery（納品リスト）は廃止されました。`include` `exclude` `trimTitle` `sortBy` に対応する移行先はありません。
 
-`archives` で圧縮ファイルを生成していた場合は、minista のプラグイン `pluginArchive` に移行してください。
+`archives` で圧縮ファイルを生成していた場合は、ministaのプラグイン `pluginArchive` に移行してください。
 
 ```ts title="Before"
 export default {
@@ -637,7 +637,7 @@ export default {
 
 ### beautify
 
-minista のプラグイン `pluginBeautify` のオプションに変更してください。v3 の `useHtml` `useAssets` は廃止され、対象ファイルは `src` で指定します。
+ministaのプラグイン `pluginBeautify` のオプションに変更してください。v3の `useHtml` `useAssets` は廃止され、対象ファイルは `src` で指定します。
 
 ```ts title="Before"
 export default {
@@ -668,7 +668,7 @@ export default {
 
 ### vite
 
-v4 では minista のコンフィグ自体が Vite のコンフィグになったため、`vite` の中身は直下に移動してください。
+v4ではministaのコンフィグ自体がViteのコンフィグになったため、`vite` の中身は直下に移動してください。
 
 ```ts title="Before"
 export default {
@@ -686,7 +686,7 @@ export default {
 
 ### Separate asset directories
 
-Vite のデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
+Viteのデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
 
 - CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
 - JavaScript（chunk）: `build.rolldownOptions.output.chunkFileNames`
@@ -736,11 +736,11 @@ export default {
 
 ## Import Paths
 
-v4 では機能ごとにインポートパスが分かれています。主な移行先は以下です。
+v4では機能ごとにインポートパスが分かれています。主な移行先は以下です。
 
 - コンフィグ・プラグイン: `minista`
 - アセット系コンポーネント: `minista/assets`
-- Head コンポーネント: `minista/head`
+- Headコンポーネント: `minista/head`
 
 ```tsx title="Before"
 import { Head, Image } from "minista"
@@ -753,7 +753,7 @@ import { Head } from "minista/head"
 
 ## Svgr to Svg
 
-v3 の SVGR は、SVG を React コンポーネントとして import していました。v4 では `pluginSvg` と `<Svg>` コンポーネントに移行してください。
+v3のSVGRは、SVGをReactコンポーネントとしてimportしていました。v4では `pluginSvg` と `<Svg>` コンポーネントに移行してください。
 
 ```tsx title="Before"
 import Logo from "../assets/logo.svg"
@@ -773,7 +773,7 @@ export default function () {
 
 ## Icon to Sprite
 
-v3 の `Icon` は v4 の `Sprite` に移行してください。`name` で指定していたアイコン名は、SVG ファイルへのルートパスを `src` に指定する形へ変わります。
+v3の `Icon` はv4の `Sprite` に移行してください。`name` で指定していたアイコン名は、SVGファイルへのルートパスを `src` に指定する形へ変わります。
 
 ```tsx title="Before"
 import { Icon } from "minista"
@@ -793,9 +793,9 @@ export default function () {
 
 ## Partial Hydration to Island
 
-v3 の Partial Hydration は v4 の Island に移行してください。v3 ではコンポーネントの import パス末尾に `?ph` を付与していましたが、v4 では通常の import に戻し、使用箇所に `client:*` ディレクティブを付与します。
+v3のPartial Hydrationはv4のIslandに移行してください。v3ではコンポーネントのimportパス末尾に `?ph` を付与していましたが、v4では通常のimportに戻し、使用箇所に `client:*` ディレクティブを付与します。
 
-v3 の Partial Hydration 対象コンポーネントは隔離されていたため props を渡せず、named export にも対応していませんでした。v4 の Island では props を渡せるため、必要に応じてコンポーネント設計も見直してください。
+v3のPartial Hydration対象コンポーネントは隔離されていたためpropsを渡せず、named exportにも対応していませんでした。v4のIslandではpropsを渡せるため、必要に応じてコンポーネント設計も見直してください。
 
 ```tsx title="Before"
 import BlockCounter from "../../components/block-counter?ph"
@@ -813,7 +813,7 @@ export default function () {
 }
 ```
 
-v3 のデフォルト設定では、ブラウザでコンポーネントが画面に表示されると React App として復元されていました。同じタイミングに寄せる場合は `client:visible` を使用してください。
+v3のデフォルト設定では、ブラウザでコンポーネントが画面に表示されるとReact Appとして復元されていました。同じタイミングに寄せる場合は `client:visible` を使用してください。
 
 ```tsx title="After"
 import BlockCounter from "../../components/block-counter"

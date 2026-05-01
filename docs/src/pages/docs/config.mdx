@@ -9,7 +9,7 @@ nextUrl: "/docs/migration"
 
 # Config
 
-[Vite のコンフィグ](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `vite.config.{ts,js}`・`minista.config.{ts,js}` のどちらでも動作し、`defineConfig` も使用できます。
+[Viteのコンフィグ](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `vite.config.{ts,js}`・`minista.config.{ts,js}` のどちらでも動作し、`defineConfig` も使用できます。
 
 ```ts title="./vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"
@@ -25,9 +25,9 @@ contents list
 
 ## Plugins
 
-minista は v4 以降、すべての機能を Vite プラグイン化しています。プロジェクトに必要なプラグインを選び、コンフィグの `plugins` に追加してください。
+ministaはv4以降、すべての機能をViteプラグイン化しています。プロジェクトに必要なプラグインを選び、コンフィグの `plugins` に追加してください。
 
-例えば、基本の SSG に加えて MDX やアセットのエントリー機能を追加する場合は以下のように記述を増やします。プラグインの使い方は各ページを参照ください。
+例えば、基本のSSGに加えてMDXやアセットのエントリー機能を追加する場合は以下のように記述を増やします。プラグインの使い方は各ページを参照ください。
 
 ```ts title="./vite.config.ts"
 import { defineConfig, pluginSsg, pluginsMdx, pluginEntry } from "minista"
@@ -41,11 +41,11 @@ export default defineConfig({
 
 ### SSR build error
 
-minista は Vite の SSR ビルドと通常ビルドを連続で行います。
+ministaはViteのSSRビルドと通常ビルドを連続で行います。
 
-**SSR ビルドで JSX を Node.js 用の JavaScript に変換し、通常ビルドで HTML と各種アセットを生成**するからです。
+**SSRビルドでJSXをNode.js用のJavaScriptに変換し、通常ビルドでHTMLと各種アセットを生成**するからです。
 
-そのため、ビルドの設定を一括で行うと多くの場合 SSR ビルドがエラーになります。これは設定を SSR ビルド用・通常ビルド用に切り分けることで解消できます。
+そのため、ビルドの設定を一括で行うと多くの場合SSRビルドがエラーになります。これは設定をSSRビルド用・通常ビルド用に切り分けることで解消できます。
 
 ```ts title="./vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"
@@ -60,7 +60,7 @@ export default defineConfig(({ command, isSsrBuild }) => {
 
 ### Bundle error
 
-`pluginBundle` を使って画像をバンドルした際にビルドが失敗する現象があります。これは主に Vite が小さい画像をインライン判定したものの SSR ビルドでインライン化されないことが原因です。
+`pluginBundle` を使って画像をバンドルした際にビルドが失敗する現象があります。これは主にViteが小さい画像をインライン判定したもののSSRビルドでインライン化されないことが原因です。
 
 対策の一つとしては、`build.assetsInlineLimit` を `0` に設定し、インライン化を無効化する方法があります。納品時には特にこの対策が効果的です。
 
@@ -72,7 +72,7 @@ export default {
 }
 ```
 
-もしインライン化を利用したい場合は、インポートパスに `?inline` を付与してください。SSR ビルドでもインライン化されビルドが成功します。
+もしインライン化を利用したい場合は、インポートパスに `?inline` を付与してください。SSRビルドでもインライン化されビルドが成功します。
 
 ```tsx title="./src/pages/index.tsx"
 import imageUrl from "../assets/image.png?inline"
@@ -84,7 +84,7 @@ export default function () {
 
 ### Deactivate minify
 
-Vite のデフォルト設定では、ビルド時にコードが圧縮（minify）されます。納品データに圧縮が不要な場合は `build.minify` を `false` に設定してください。
+Viteのデフォルト設定では、ビルド時にコードが圧縮（minify）されます。納品データに圧縮が不要な場合は `build.minify` を `false` に設定してください。
 
 ```ts title="./vite.config.ts"
 export default { build: { minify: false } }
@@ -92,9 +92,9 @@ export default { build: { minify: false } }
 
 ### Remove preload
 
-React 19 は HTML 内の[画像パスを読み取って自動的に Preload タグを挿入](https://github.com/facebook/react/issues/34217)します。納品時にこれが邪魔になる場合がありますが、非活性化するコンフィグはありません。
+React 19はHTML内の[画像パスを読み取って自動的にPreloadタグを挿入](https://github.com/facebook/react/issues/34217)します。納品時にこれが邪魔になる場合がありますが、非活性化するコンフィグはありません。
 
-そこで minista の `pluginBeautify` を使います。デフォルトの状態で HTML に出力する画像用の Preload タグを削除します。
+そこでministaの `pluginBeautify` を使います。デフォルトの状態でHTMLに出力する画像用のPreloadタグを削除します。
 
 ```ts title="./vite.config.ts"
 import { pluginBeautify } from "minista"
@@ -104,7 +104,7 @@ export default { plugins: [pluginBeautify()] }
 
 ### Remove hash
 
-Vite のデフォルト設定では、出力ファイル名にハッシュが付与されます。ハッシュは納品データには不要な場合が多いです。これを無効化するには、以下のプロパティを設定し `[hash]` を削除してください。
+Viteのデフォルト設定では、出力ファイル名にハッシュが付与されます。ハッシュは納品データには不要な場合が多いです。これを無効化するには、以下のプロパティを設定し `[hash]` を削除してください。
 
 - CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
 - JavaScript（chunk）: `build.rolldownOptions.output.chunkFileNames`
@@ -128,7 +128,7 @@ export default {
 
 ### Separate asset directories
 
-Vite のデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
+Viteのデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
 
 - CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
 - JavaScript（chunk）: `build.rolldownOptions.output.chunkFileNames`
@@ -178,7 +178,7 @@ export default {
 
 ### Split chunks
 
-JavaScript から特定のコードを分割したい場合は以下のプロパティを設定してください。
+JavaScriptから特定のコードを分割したい場合は以下のプロパティを設定してください。
 
 - `build.rolldownOptions.output.codeSplitting.groups`
 
@@ -218,14 +218,14 @@ export default {
 }
 ```
 
-※`codeSplitting` を使った際に以下のような条件が発生した場合、Vite は `rolldown-runtime.js` 出力して互換性を保とうとします。
+※`codeSplitting` を使った際に以下のような条件が発生した場合、Viteは `rolldown-runtime.js` 出力して互換性を保とうとします。
 
-- CJS と ESM が混在
-- default export と named export が混在
+- CJSとESMが混在
+- default exportとnamed exportが混在
 
 ### Replace with preact
 
-`pluginIsland` などでバンドルした `react` `react-dom` のファイルサイズは 190KB（gzip: 60KB）ほどになります。これを軽量な `preact` に置き換えることで、ファイルサイズを約 25KB（gzip: 10KB）に削減できます。
+`pluginIsland` などでバンドルした `react` `react-dom` のファイルサイズは190KB（gzip: 60KB）ほどになります。これを軽量な `preact` に置き換えることで、ファイルサイズを約25KB（gzip: 10KB）に削減できます。
 
 ```sh
 $ npm install preact
@@ -251,7 +251,7 @@ export default defineConfig(({ command, isSsrBuild }) => {
 
 ### Empty dist
 
-Vite のデフォルト設定では、プロジェクトルート配下にない出力ディレクトリは安全を考えて空にしません。src と dist が別の場所にあるプロジェクトは不要なファイルが残る可能性があるため、`build.emptyOutDir` を `true` に設定してください。
+Viteのデフォルト設定では、プロジェクトルート配下にない出力ディレクトリは安全を考えて空にしません。srcとdistが別の場所にあるプロジェクトは不要なファイルが残る可能性があるため、`build.emptyOutDir` を `true` に設定してください。
 
 ```ts title="./vite.config.ts"
 export default { build: { emptyOutDir: true } }

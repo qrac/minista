@@ -5,7 +5,7 @@ layout: docs
 
 # pluginSsg
 
-React の JSX・TSX ファイルを静的な HTML に変換するプラグイン。
+ReactのJSX・TSXファイルを静的なHTMLに変換するプラグイン。
 
 ## Table of Contents
 
@@ -42,29 +42,29 @@ pluginSsg({
 - 型: `string`
 - デフォルト: `"/src/layouts/index.{tsx,jsx}"`
 
-すべてのページテンプレートをラップするコンポーネントの場所を指定します。対象ファイルは Vite の機能で glob import され最初に見つかったファイルが使用されます。
+すべてのページテンプレートをラップするコンポーネントの場所を指定します。対象ファイルはViteの機能でglob importされ最初に見つかったファイルが使用されます。
 
 ### src
 
 - 型: `string[]`
 - デフォルト: `["/src/pages/**/*.{tsx,jsx,mdx,md}"]`
 
-ページテンプレートを glob 形式で指定します。対象ファイルは Vite の機能で glob import されます。
+ページテンプレートをglob形式で指定します。対象ファイルはViteの機能でglob importされます。
 
 ### srcBases
 
 - 型: `string[]`
 - デフォルト: `["/src/pages"]`
 
-ページテンプレートを URL に変換する際に省くパス。前方一致で削除されます。
+ページテンプレートをURLに変換する際に省くパス。前方一致で削除されます。
 
 ## Head
 
 `<head>` タグ内に `title` `meta` `link` `script` `style` を設置できるコンポーネント。
 
-- `htmlAttributes`: html の属性を変更
-- `bodyAttributes`: body の属性を変更
-- `key`: タグを後のものに差し替え
+- `htmlAttributes`: htmlの属性を変更
+- `bodyAttributes`: bodyの属性を変更
+- `key`:タグを後のものに差し替え
 
 ```jsx title="./src/pages/index.jsx"
 import { Head } from "minista/head"
@@ -88,12 +88,12 @@ export default function () {
 
 ## Layout
 
-すべてのページテンプレートをラップする JSX 形式のテンプレート。
+すべてのページテンプレートをラップするJSX形式のテンプレート。
 
-- `/src/layouts/index.{tsx,jsx}`: デフォルトで使用されるファイル
-- `export default`: 使用されるコンポーネント
-- `export const metadata`: ページとマージして使えるデータ
-- `props: LayoutProps`: ページとマージされたデータ
+- `/src/layouts/index.{tsx,jsx}`:デフォルトで使用されるファイル
+- `export default`:使用されるコンポーネント
+- `export const metadata`:ページとマージして使えるデータ
+- `props: LayoutProps`:ページとマージされたデータ
 
 ```tsx title="./src/layouts/index.tsx"
 import type { Metadata, LayoutProps } from "minista/types"
@@ -116,12 +116,12 @@ export default function (props: LayoutProps) {
 
 ## Page
 
-各 HTML ページの元となる JSX 形式のテンプレート。
+各HTMLページの元となるJSX形式のテンプレート。
 
-- `/src/pages/**/*.{tsx,jsx}`: デフォルトで使用されるファイル
-- `export default`: 使用されるコンポーネント
-- `export const metadata`: レイアウトとマージして使えるデータ
-- `props: PageProps`: レイアウトとマージされたデータ
+- `/src/pages/**/*.{tsx,jsx}`:デフォルトで使用されるファイル
+- `export default`:使用されるコンポーネント
+- `export const metadata`:レイアウトとマージして使えるデータ
+- `props: PageProps`:レイアウトとマージされたデータ
 
 ```tsx title="./src/pages/index.tsx"
 import type { Metadata, PageProps } from "minista/types"
@@ -146,8 +146,8 @@ export default function (props: PageProps) {
 
 リモートのデータを取得してページを生成することが可能です。
 
-- `getStaticData()`: ページ生成前に非同期処理を実行
-- `/src/pages/[foo]/[bar].{tsx,jsx}`: 動的ルーティング
+- `getStaticData()`:ページ生成前に非同期処理を実行
+- `/src/pages/[foo]/[bar].{tsx,jsx}`:動的ルーティング
 
 ```tsx title="./src/pages/index.tsx"
 import type { StaticData, PageProps } from "minista/types"
@@ -227,7 +227,7 @@ export default function (props: PagePropsMergedIssue) {
 
 ## Merge Types
 
-`Metadata` `PageProps` `LayoutProps` には独自のプロパティを追加できますが、TypeScript のモジュール拡張を使用することで型も追加できます。
+`Metadata` `PageProps` `LayoutProps` には独自のプロパティを追加できますが、TypeScriptのモジュール拡張を使用することで型も追加できます。
 
 ```ts title="./types.d.ts"
 import "minista/types"

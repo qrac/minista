@@ -5,7 +5,7 @@ layout: docs
 
 # pluginBeautify
 
-ビルド時に HTML・CSS・JS を整形するプラグイン。
+ビルド時にHTML・CSS・JSを整形するプラグイン。
 
 ## Table of Contents
 
@@ -49,29 +49,29 @@ pluginBeautify({
 - 型: `string[]`
 - デフォルト: `["**/*.{html,css,js}"]`
 
-対象ファイルを dist からの glob 形式で指定します。対象ファイルはビルドパイプラインに含まれているものから [picomatch](https://www.npmjs.com/package/picomatch) で選ばれます。
+対象ファイルをdistからのglob形式で指定します。対象ファイルはビルドパイプラインに含まれているものから[picomatch](https://www.npmjs.com/package/picomatch)で選ばれます。
 
 ### htmlOptions
 
 - 型: `HTMLBeautifyOptions`
 
-[js-beautify](https://www.npmjs.com/package/js-beautify) の HTML フォーマットに関する設定。
+[js-beautify](https://www.npmjs.com/package/js-beautify)のHTMLフォーマットに関する設定。
 
 ### cssOptions
 
 - 型: `HTMLBeautifyOptions`
 
-[js-beautify](https://www.npmjs.com/package/js-beautify) の CSS フォーマットに関する設定。
+[js-beautify](https://www.npmjs.com/package/js-beautify)のCSSフォーマットに関する設定。
 
 ### jsOptions
 
 - 型: `HTMLBeautifyOptions`
 
-[js-beautify](https://www.npmjs.com/package/js-beautify) の JavaScript フォーマットに関する設定。
+[js-beautify](https://www.npmjs.com/package/js-beautify)のJavaScriptフォーマットに関する設定。
 
 ### removeImagePreload
 
 - 型: `boolean`
 - デフォルト: `true`
 
-React 19 が HTML に出力する画像用の Preload タグを削除します。
+React 19がHTMLに出力する画像用のPreloadタグを削除します。

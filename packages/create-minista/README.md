@@ -2,7 +2,7 @@
 
 ## About
 
-簡単なコマンド入力で [minista](https://minista.qranoko.jp/) のプロジェクトを開始できます。
+簡単なコマンド入力で[minista](https://minista.qranoko.jp/)のプロジェクトを開始できます。
 
 ## How To Use
 
@@ -14,10 +14,10 @@ $ npm create minista@latest
 $ npm create minista@latest my-minista-project -- --template minimal-ts
 ```
 
-| テンプレート | 内容                            |
+|テンプレート|内容                            |
 | ------------ | ------------------------------- |
-| `minimal-js` | JavaScript を使った最低限の構成 |
-| `minimal-ts` | TypeScript を使った最低限の構成 |
+| `minimal-js` | JavaScriptを使った最低限の構成|
+| `minimal-ts` | TypeScriptを使った最低限の構成|
 
 ## License
 

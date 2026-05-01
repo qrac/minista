@@ -5,7 +5,7 @@ layout: docs
 
 # pluginBundle
 
-JSX 内で import した CSS・画像を出力するプラグイン。
+JSX内でimportしたCSS・画像を出力するプラグイン。
 
 ## Table of Contents
 
@@ -45,18 +45,18 @@ pluginBundle({
 - 型: `string[]`
 - デフォルト: `["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"]`
 
-CSS・画像を検出するテンプレートを glob 形式で指定します。対象ファイルは Vite の機能で glob import されます。
+CSS・画像を検出するテンプレートをglob形式で指定します。対象ファイルはViteの機能でglob importされます。
 
 ### outName
 
 - 型: `string`
 - デフォルト: `"bundle"`
 
-JSX 内で import した CSS を結合出力する場合のファイル名（拡張子なし）。
+JSX内でimportしたCSSを結合出力する場合のファイル名（拡張子なし）。
 
 ### useExportCss
 
 - 型: `boolean`
 - デフォルト: `true`
 
-JSX 内で import した CSS を結合出力します。
+JSX内でimportしたCSSを結合出力します。

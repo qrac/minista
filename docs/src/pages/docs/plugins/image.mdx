@@ -67,9 +67,9 @@ pluginImage({
 
 出力画像のファイル名。拡張子は含みません。以下の動的出力タグを使用できます。
 
-- `[name]`: 元ファイルの名前
-- `[width]`: 出力ファイルの幅
-- `[height]`: 出力ファイルの高さ
+- `[name]`:元ファイルの名前
+- `[width]`:出力ファイルの幅
+- `[height]`:出力ファイルの高さ
 
 ### optimize.remoteName
 
@@ -78,7 +78,7 @@ pluginImage({
 
 リモート画像をダウンロードした際の名前。拡張子は含みません。`optimize.outName` の `[name]` として利用されます。以下の動的出力タグを使用できます。
 
-- `[index]`: ダウンロードされた順番（開始: 1）
+- `[index]`:ダウンロードされた順番（開始: 1）
 
 ### optimize.layout
 
@@ -87,8 +87,8 @@ pluginImage({
 
 出力画像のレイアウト方法。選択肢によって採用される出力パターンが決まります。
 
-- `"constrained"`: コンテナサイズ（`breakpoint` を採用）
-- `"fixed"`: 固定サイズ（`resolutions` を採用）
+- `"constrained"`:コンテナサイズ（`breakpoint` を採用）
+- `"fixed"`:固定サイズ（`resolutions` を採用）
 
 ### optimize.breakpoints
 
@@ -102,7 +102,7 @@ pluginImage({
 - 型: `number[]`
 - デフォルト: `[1, 2]`
 
-出力画像の解像度。デフォルトでは通常用 + 2 倍サイズ用。
+出力画像の解像度。デフォルトでは通常用+ 2倍サイズ用。
 
 ### optimize.format
 
@@ -116,7 +116,7 @@ pluginImage({
 - 型: `{ jpg?: JpegOptions, png?: PngOptions, webp?: WebpOptions, avif?: AvifOptions }`
 - デフォルト: `{}`
 
-フォーマットごとの圧縮オプション。 [sharp](https://www.npmjs.com/package/sharp) の各種オプションが利用できます。
+フォーマットごとの圧縮オプション。[sharp](https://www.npmjs.com/package/sharp)の各種オプションが利用できます。
 
 ### optimize.quality
 
@@ -137,7 +137,7 @@ pluginImage({
 - 型: `ResizeOptions["fit"]`
 - デフォルト: `"cover"`
 
-[sharp](https://www.npmjs.com/package/sharp) の Resize にフィット方法を指定します。
+[sharp](https://www.npmjs.com/package/sharp)のResizeにフィット方法を指定します。
 
 - 例: `"cover"`, `"contain"`, `"fill"`, `"inside"`, `"outside"`
 
@@ -146,7 +146,7 @@ pluginImage({
 - 型: `ResizeOptions["position"]`
 - デフォルト: `"centre"`
 
-[sharp](https://www.npmjs.com/package/sharp) の Resize にトリミングやリサイズ時の重心位置を指定します。
+[sharp](https://www.npmjs.com/package/sharp)のResizeにトリミングやリサイズ時の重心位置を指定します。
 
 - 例: `"centre"`, `"top"`, `"left"`, `"right"`, `"bottom"`
 
@@ -155,7 +155,7 @@ pluginImage({
 - 型: `ResizeOptions["background"]`
 - デフォルト: `undefined`
 
-[sharp](https://www.npmjs.com/package/sharp) の Resize に背景色を指定します。主に `fit` が `"contain"` の場合に有効となります。
+[sharp](https://www.npmjs.com/package/sharp)のResizeに背景色を指定します。主に `fit` が `"contain"` の場合に有効となります。
 
 - 例: `"#ffffff"`, `{r: 255, g: 255, b: 255, alpha: 0.5}`
 
@@ -166,9 +166,9 @@ pluginImage({
 
 生成される `<img>` タグに一括で `decoding` 属性を付与します。
 
-- `"async"`: 非同期デコード
-- `"sync"`: 同期デコード
-- `"auto"`: ブラウザに任せる
+- `"async"`:非同期デコード
+- `"sync"`:同期デコード
+- `"auto"`:ブラウザに任せる
 
 ### loading
 
@@ -177,14 +177,14 @@ pluginImage({
 
 生成される `<img>` タグに一括で `loading` 属性を付与します。
 
-- `"eager"`: ページロード時に即座に読み込み
-- `"lazy"`: ビューポートに入るまで遅延読み込み
+- `"eager"`:ページロード時に即座に読み込み
+- `"lazy"`:ビューポートに入るまで遅延読み込み
 
 ## Image
 
 シンプルな `<img>` タグで画像の最適化を行うコンポーネント。
 
-- 元画像 1 枚・出力フォーマット 1 種類にのみ対応
+- 元画像1枚・出力フォーマット1種類にのみ対応
 - 自動で画像の幅と高さを取得して `width` `height` を付与
 - リモート画像をダウンロード
 
@@ -219,7 +219,7 @@ export default function () {
 />
 ```
 
-`<Image>` コンポーネントには、プラグインオプション `optimize` を含めた props を個別に渡してオーバーライドできます。
+`<Image>` コンポーネントには、プラグインオプション `optimize` を含めたpropsを個別に渡してオーバーライドできます。
 
 ```ts
 type ImageProps = {
@@ -293,7 +293,7 @@ export default function () {
 </picture>
 ```
 
-`<Picture>` コンポーネントには、プラグインオプション `optimize` を含めた props を個別に渡してオーバーライドできます。また、画面幅によって元画像を変更するアートディレクティブを `artDirectives` に設定できます。
+`<Picture>` コンポーネントには、プラグインオプション `optimize` を含めたpropsを個別に渡してオーバーライドできます。また、画面幅によって元画像を変更するアートディレクティブを `artDirectives` に設定できます。
 
 ```ts
 type PictureProps = {

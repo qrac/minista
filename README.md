@@ -6,23 +6,23 @@
 
 ## About
 
-minista（ミニスタ）は、React の JSX と Vite で 100%静的なサイトを作るスタティックサイトジェネレーターです。
+minista（ミニスタ）は、ReactのJSXとViteで100%静的なサイトを作るスタティックサイトジェネレーターです。
 
 ## Concept
 
-- **すべてを JSX で書き、綺麗な HTML を生成！**
-- 静的 HTML が必要なウェブ制作の現場にも JSX のコンポーネント管理を導入したい
-- 独自構文を使わず、エディタサポートの優れた TypeScript を活用したい
+- **すべてをJSXで書き、綺麗なHTMLを生成！**
+- 静的HTMLが必要なウェブ制作の現場にもJSXのコンポーネント管理を導入したい
+- 独自構文を使わず、エディタサポートの優れたTypeScriptを活用したい
 
 ## Features
 
-- すべての機能を Vite プラグインとして提供
-- ビルド時に自動で Vite の「SSR ビルド + 通常ビルド」を実行
+- すべての機能をViteプラグインとして提供
+- ビルド時に自動でViteの「SSRビルド+通常ビルド」を実行
 
 ## Packages
 
-- [minista](https://github.com/qrac/minista/tree/main/packages/minista) — minista 本体
-- [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista) — minista の環境を作る CLI
+- [minista](https://github.com/qrac/minista/tree/main/packages/minista) — minista本体
+- [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista) — ministaの環境を作るCLI
 
 ## Quick Start
 
@@ -32,12 +32,12 @@ $ npm create minista@latest
 
 ## Media
 
-- [React の JSX で書ける SSG を 1 から作り直した - minista v3](https://zenn.dev/qrac/articles/980efced76634f)
-- [SSG に client サイド完結型の全文検索を実装した - minista v2.7](https://zenn.dev/qrac/articles/653f7512b707ff)
-- [SSG + Partial Hydration (部分的な React App) - minista v2.4](https://zenn.dev/qrac/articles/b9c65c1c0be901)
-- [Vite と esbuild を組み込み React 製 SSG を再構築 - minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
-- [React で書ける SSG 改善点と今後について - minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
-- [React(JSX)で書けるコーディング用 SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
+- [ReactのJSXで書けるSSGを1から作り直した- minista v3](https://zenn.dev/qrac/articles/980efced76634f)
+- [SSGにclientサイド完結型の全文検索を実装した- minista v2.7](https://zenn.dev/qrac/articles/653f7512b707ff)
+- [SSG + Partial Hydration (部分的なReact App) - minista v2.4](https://zenn.dev/qrac/articles/b9c65c1c0be901)
+- [Viteとesbuildを組み込みReact製SSGを再構築- minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
+- [Reactで書けるSSG改善点と今後について- minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
+- [React(JSX)で書けるコーディング用SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
 
 ## Respect
 
@@ -51,11 +51,11 @@ $ npm create minista@latest
 - [astro/packages/create-astro at main · withastro/astro](https://github.com/withastro/astro/tree/main/packages/create-astro)
 - [vite/packages/create-vite at main · vitejs/vite](https://github.com/vitejs/vite/tree/main/packages/create-vite)
 - [vite/cli.ts at main · vitejs/vite](https://github.com/vitejs/vite/blob/main/packages/vite/src/node/cli.ts)
-- [テンプレートエンジンに React を使いつつ、きれいな HTML を生成したいんじゃ！！](https://zenn.dev/otsukayuhi/articles/e52651b4e2c5ae7c4a17)
-- [EJS をやめて React で HTML を書く](https://zenn.dev/hisho/scraps/4ef6c6106a6395)
-- [MPA(マルチページアプリ)で webpack を使う](https://www.key-p.com/blog/staff/archives/107125)
-- [HTML コーディングでも React+TypeScript の開発体験を得る](https://zenn.dev/nanaki14/articles/html-template-react)
-- [Astro と microCMS でポートフォリオサイトを作る](https://zenn.dev/takanorip/articles/c75717c280c81d)
+- [テンプレートエンジンにReactを使いつつ、きれいなHTMLを生成したいんじゃ！！](https://zenn.dev/otsukayuhi/articles/e52651b4e2c5ae7c4a17)
+- [EJSをやめてReactでHTMLを書く](https://zenn.dev/hisho/scraps/4ef6c6106a6395)
+- [MPA(マルチページアプリ)でwebpackを使う](https://www.key-p.com/blog/staff/archives/107125)
+- [HTMLコーディングでもReact+TypeScriptの開発体験を得る](https://zenn.dev/nanaki14/articles/html-template-react)
+- [AstroとmicroCMSでポートフォリオサイトを作る](https://zenn.dev/takanorip/articles/c75717c280c81d)
 
 ## License
 

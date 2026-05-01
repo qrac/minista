@@ -9,9 +9,9 @@ nextUrl: "/docs/config"
 
 # CLI
 
-minista のコマンドは基本的に Vite と同じで、`vite` のラッパーのように動作します。
+ministaのコマンドは基本的にViteと同じで、`vite` のラッパーのように動作します。
 
-ただし、`minista build` は**自動で SSR ビルドと通常ビルドを連続で行います**。通常ビルドの前に JSX を Node.js で扱える JavaScript に変換する必要があるからです。
+ただし、`minista build` は**自動でSSRビルドと通常ビルドを連続で行います**。通常ビルドの前にJSXをNode.jsで扱えるJavaScriptに変換する必要があるからです。
 
 ## Table of Contents
 
@@ -19,16 +19,16 @@ contents list
 
 ## Commands
 
-| コマンド                 | 内容                                           |
+|コマンド                 |内容                                           |
 | ------------------------ | ---------------------------------------------- |
-| `minista [root]`         | 開発モード（`Ctrl + C` で停止）                |
-| `minista build [root]`   | 静的書き出し（SSR ビルド後に連続で通常ビルド） |
-| `minista preview [root]` | 静的書き出し後の動作確認                       |
+| `minista [root]`         |開発モード（`Ctrl + C` で停止）                |
+| `minista build [root]`   |静的書き出し（SSRビルド後に連続で通常ビルド）|
+| `minista preview [root]` |静的書き出し後の動作確認                       |
 
 ## Options
 
-[Vite の CLI コマンドオプション](https://ja.vitejs.dev/guide/cli.html)がすべて使えるほか、以下の独自オプションがあります。
+[ViteのCLIコマンドオプション](https://ja.vitejs.dev/guide/cli.html)がすべて使えるほか、以下の独自オプションがあります。
 
-| 独自のオプション | 内容                                              |
+|独自のオプション|内容                                              |
 | ---------------- | ------------------------------------------------- |
-| `--oneBuild`     | minista のビルドを 1 回に制限（連続ビルドしない） |
+| `--oneBuild`     | ministaのビルドを1回に制限（連続ビルドしない）|
