@@ -53,7 +53,7 @@ npm install --save-dev @vitejs/plugin-react
 
 ## Config
 
-次にコンフィグファイルを更新します。v4 は minista 独自のコンフィグを廃止し Vite 公式と同一になりました。ファイルは `minista.config.{ts,js}` または `vite.config.{ts,js}` のどちらでも動作します。
+次にコンフィグファイルを更新します。v4 は minista 独自のコンフィグを廃止し Vite 公式と同一になりました。ファイルは `vite.config.{ts,js}` または `minista.config.{ts,js}` のどちらでも動作します。
 
 基本設定は [Vite 公式](https://ja.vite.dev/config/)に沿って移行。minista 独自の機能は Vite プラグイン化されているため、必要なプラグインをインポートして `plugins` 配列に追加します。
 
@@ -75,8 +75,8 @@ import { defineConfig, pluginSsg, pluginImage } from "minista"
 
 export default defineConfig(({ command, isSsrBuild }) => {
   const isDev = command === "serve"
-  const isSsr = command === "build" && isSsrBuild
-  const isBuild = command === "build" && !isSsrBuild
+  const isSsr = command === "build" && (isSsrBuild ?? false)
+  const isBuild = command === "build" && !(isSsrBuild ?? false)
   return {
     plugins: [pluginSsg()],
     build: { outDir: isBuild ? "dist" : undefined },
@@ -321,8 +321,8 @@ const preactAlias = {
 
 export default defineConfig(({ command, isSsrBuild }) => {
   const isDev = command === "serve"
-  const isSsr = command === "build" && isSsrBuild
-  const isBuild = command === "build" && !isSsrBuild
+  const isSsr = command === "build" && (isSsrBuild ?? false)
+  const isBuild = command === "build" && !(isSsrBuild ?? false)
   return {
     resolve: {
       alias: isBuild ? preactAlias : undefined,
@@ -793,30 +793,32 @@ export default function () {
 
 ## Partial Hydration to Island
 
-v3 の Partial Hydration は v4 の Island に移行してください。コンポーネント側の書き方は `partial` 系の指定から `client:*` ディレクティブに変わります。
+v3 の Partial Hydration は v4 の Island に移行してください。v3 ではコンポーネントの import パス末尾に `?ph` を付与していましたが、v4 では通常の import に戻し、使用箇所に `client:*` ディレクティブを付与します。
+
+v3 の Partial Hydration 対象コンポーネントは隔離されていたため props を渡せず、named export にも対応していませんでした。v4 の Island では props を渡せるため、必要に応じてコンポーネント設計も見直してください。
 
 ```tsx title="Before"
-import { Counter } from "../components/counter"
+import BlockCounter from "../../components/block-counter?ph"
 
 export default function () {
-  return <Counter partialHydration />
+  return <BlockCounter /> // You can't pass Props.
 }
 ```
 
 ```tsx title="After"
-import { Counter } from "../components/counter"
+import BlockCounter from "../../components/block-counter"
 
 export default function () {
-  return <Counter client:load />
+  return <BlockCounter client:load />
 }
 ```
 
-IntersectionObserver で表示時に実行していたものは `client:visible` に移行してください。
+v3 のデフォルト設定では、ブラウザでコンポーネントが画面に表示されると React App として復元されていました。同じタイミングに寄せる場合は `client:visible` を使用してください。
 
 ```tsx title="After"
-import { Counter } from "../components/counter"
+import BlockCounter from "../../components/block-counter"
 
 export default function () {
-  return <Counter client:visible={{ rootMargin: "200px" }} />
+  return <BlockCounter client:visible />
 }
 ```
