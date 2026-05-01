@@ -103,7 +103,7 @@ function NavThemes() {
       }
       radius="xl"
     >
-      <div className="box is-bg-2 is-outline is-p-sm is-radius-xl is-font-sans-en">
+      <div className="box is-bg-light is-outline is-p-sm is-radius-xl is-font-sans-en">
         <ul>
           <li className="box is-flex">
             <button
@@ -112,7 +112,7 @@ function NavThemes() {
               data-theme-button="light"
             >
               <FiSun className="icon is-lg" />
-              <span className="text is-font-sans-en">Lignt</span>
+              <span className="text is-font-sans-en">Light</span>
             </button>
           </li>
           <li className="box is-flex">
