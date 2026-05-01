@@ -192,7 +192,7 @@ import { pluginImage } from "minista"
 export default {
   plugins: [
     pluginImage({
-      optimize: { name: "[name]-[width]x[height]", layout: "constrained" },
+      optimize: { outName: "[name]-[width]x[height]", layout: "constrained" },
     }),
   ],
 }
@@ -213,7 +213,7 @@ export default {
 ```ts title="After"
 import { pluginSvg } from "minista"
 
-export default { plugins: [pluginSvg({ plugins: [] })] }
+export default { plugins: [pluginSvg({ config: { plugins: [] } })] }
 ```
 
 ### assets.icons
@@ -264,14 +264,16 @@ import { pluginSprite } from "minista"
 export default {
   plugins: [
     pluginSprite({
-      plugins: [
-        {
-          name: "removeAttrs",
-          params: {
-            attrs: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
+      config: {
+        plugins: [
+          {
+            name: "removeAttrs",
+            params: {
+              attrs: ["fill", "stroke", "stroke-linejoin", "stroke-width"],
+            },
           },
-        },
-      ],
+        ],
+      },
     }),
   ],
 }
@@ -451,7 +453,236 @@ export default function () {
 
 ### markdown
 
-Vite プラグイン `pluginsMdx` のオプションに変更となりますが、一部のプロパティは廃止されており個別設定となります。
+Vite プラグイン `pluginMdx` のオプションに変更となります。v3 で minista が用意していた `useRemarkGfm` `useRehypeHighlight` は廃止されたため、必要な Remark / Rehype プラグインをインストールして `remarkPlugins` `rehypePlugins` に渡してください。
+
+#### useRemarkGfm, remarkGfmOptions
+
+`remark-gfm` を直接設定してください。
+
+```ts title="Before"
+export default {
+  markdown: {
+    useRemarkGfm: true,
+    remarkGfmOptions: {},
+  },
+}
+```
+
+```ts title="After"
+import { pluginMdx } from "minista"
+import remarkGfm from "remark-gfm"
+
+export default {
+  plugins: [pluginMdx({ remarkPlugins: [[remarkGfm, {}]] })],
+}
+```
+
+#### useRehypeHighlight, rehypeHighlightOptions
+
+`rehype-highlight` を直接設定してください。また、見た目の調整まで含めたい場合は `rehype-pretty-code` など別の Rehype プラグインへの移行も検討してください。
+
+```ts title="Before"
+export default {
+  markdown: {
+    useRehypeHighlight: true,
+    rehypeHighlightOptions: {},
+  },
+}
+```
+
+```ts title="After"
+import { pluginMdx } from "minista"
+import rehypeHighlight from "rehype-highlight"
+
+export default {
+  plugins: [pluginMdx({ rehypePlugins: [[rehypeHighlight, {}]] })],
+}
+```
+
+#### mdxOptions
+
+`mdxOptions` の中身は `pluginMdx` の直下に移動してください。
+
+```ts title="Before"
+export default {
+  markdown: {
+    mdxOptions: {
+      remarkPlugins: [],
+      rehypePlugins: [],
+    },
+  },
+}
+```
+
+```ts title="After"
+import { pluginMdx } from "minista"
+
+export default {
+  plugins: [pluginMdx({ remarkPlugins: [], rehypePlugins: [] })],
+}
+```
+
+### search
+
+minista のプラグイン `pluginSearch` のオプションに変更してください。検索 UI は Island として動作するため、`pluginIsland` と `@vitejs/plugin-react` も併用します。
+
+```ts title="Before"
+export default {
+  search: {
+    outDir: "assets",
+    outName: "search",
+    include: ["**/*"],
+    exclude: ["/404"],
+    baseUrl: "",
+    trimTitle: "",
+    targetSelector: "[data-search]",
+  },
+}
+```
+
+```ts title="After"
+import { pluginIsland, pluginSearch } from "minista"
+import react from "@vitejs/plugin-react"
+
+export default {
+  plugins: [
+    pluginIsland(),
+    pluginSearch({
+      outName: "search",
+      src: ["**/*.html"],
+      ignore: ["404.html"],
+      trimTitle: "",
+      targetSelector: "[data-search]",
+    }),
+    react(),
+  ],
+}
+```
+
+#### outDir
+
+検索用 JSON も Vite のアセットとして出力されるため、個別の `outDir` は廃止されました。出力先を変える場合は `build.rolldownOptions.output.assetFileNames` で制御してください。
+
+#### include, exclude
+
+`include` は `src`、`exclude` は `ignore` に変更してください。対象は SSG 後の HTML ファイルなので、`"/404"` のような URL パスではなく `"404.html"` のようなファイル名の glob を指定します。
+
+#### baseUrl
+
+`baseUrl` は廃止されました。URL の基準は Vite の `base` から解決されます。
+
+#### hit
+
+`hit` の中身は同じ名前で `pluginSearch` に移行できます。
+
+```ts title="Before"
+export default {
+  search: {
+    hit: {
+      minLength: 3,
+      number: false,
+      english: true,
+      hiragana: false,
+      katakana: true,
+      kanji: true,
+    },
+  },
+}
+```
+
+```ts title="After"
+import { pluginSearch } from "minista"
+
+export default {
+  plugins: [
+    pluginSearch({
+      hit: {
+        minLength: 3,
+        number: false,
+        english: true,
+        hiragana: false,
+        katakana: true,
+        kanji: true,
+      },
+    }),
+  ],
+}
+```
+
+### delivery
+
+Delivery（納品リスト）は廃止されました。`include` `exclude` `trimTitle` `sortBy` に対応する移行先はありません。
+
+`archives` で圧縮ファイルを生成していた場合は、minista のプラグイン `pluginArchive` に移行してください。
+
+```ts title="Before"
+export default {
+  delivery: {
+    archives: [{ srcDir: "dist", outName: "dist" }],
+  },
+}
+```
+
+```ts title="After"
+import { pluginArchive } from "minista"
+
+export default {
+  plugins: [
+    pluginArchive({
+      archives: [{ srcDir: "dist", outName: "dist" }],
+    }),
+  ],
+}
+```
+
+### beautify
+
+minista のプラグイン `pluginBeautify` のオプションに変更してください。v3 の `useHtml` `useAssets` は廃止され、対象ファイルは `src` で指定します。
+
+```ts title="Before"
+export default {
+  beautify: {
+    useHtml: true,
+    useAssets: false,
+    htmlOptions: {},
+    cssOptions: {},
+    jsOptions: {},
+  },
+}
+```
+
+```ts title="After"
+import { pluginBeautify } from "minista"
+
+export default {
+  plugins: [
+    pluginBeautify({
+      src: ["**/*.{html,css,js}"],
+      htmlOptions: {},
+      cssOptions: {},
+      jsOptions: {},
+    }),
+  ],
+}
+```
+
+### vite
+
+v4 では minista のコンフィグ自体が Vite のコンフィグになったため、`vite` の中身は直下に移動してください。
+
+```ts title="Before"
+export default {
+  vite: {
+    server: { port: 3000 },
+  },
+}
+```
+
+```ts title="After"
+export default {
+  server: { port: 3000 },
+}
+```
 
 ### Separate asset directories
 
@@ -500,5 +731,92 @@ export default {
       },
     },
   },
+}
+```
+
+## Import Paths
+
+v4 では機能ごとにインポートパスが分かれています。主な移行先は以下です。
+
+- コンフィグ・プラグイン: `minista`
+- アセット系コンポーネント: `minista/assets`
+- Head コンポーネント: `minista/head`
+
+```tsx title="Before"
+import { Head, Image } from "minista"
+```
+
+```tsx title="After"
+import { Image } from "minista/assets"
+import { Head } from "minista/head"
+```
+
+## Svgr to Svg
+
+v3 の SVGR は、SVG を React コンポーネントとして import していました。v4 では `pluginSvg` と `<Svg>` コンポーネントに移行してください。
+
+```tsx title="Before"
+import Logo from "../assets/logo.svg"
+
+export default function () {
+  return <Logo className="logo" />
+}
+```
+
+```tsx title="After"
+import { Svg } from "minista/assets"
+
+export default function () {
+  return <Svg src="/src/assets/logo.svg" className="logo" />
+}
+```
+
+## Icon to Sprite
+
+v3 の `Icon` は v4 の `Sprite` に移行してください。`name` で指定していたアイコン名は、SVG ファイルへのルートパスを `src` に指定する形へ変わります。
+
+```tsx title="Before"
+import { Icon } from "minista"
+
+export default function () {
+  return <Icon name="square" />
+}
+```
+
+```tsx title="After"
+import { Sprite } from "minista/assets"
+
+export default function () {
+  return <Sprite src="/src/assets/icons/square.svg" />
+}
+```
+
+## Partial Hydration to Island
+
+v3 の Partial Hydration は v4 の Island に移行してください。コンポーネント側の書き方は `partial` 系の指定から `client:*` ディレクティブに変わります。
+
+```tsx title="Before"
+import { Counter } from "../components/counter"
+
+export default function () {
+  return <Counter partialHydration />
+}
+```
+
+```tsx title="After"
+import { Counter } from "../components/counter"
+
+export default function () {
+  return <Counter client:load />
+}
+```
+
+IntersectionObserver で表示時に実行していたものは `client:visible` に移行してください。
+
+```tsx title="After"
+import { Counter } from "../components/counter"
+
+export default function () {
+  return <Counter client:visible={{ rootMargin: "200px" }} />
 }
 ```

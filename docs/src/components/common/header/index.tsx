@@ -56,7 +56,7 @@ function NavVersions(props: Partial<Props>) {
       }
       radius="xl"
     >
-      <div className="box is-bg-2 is-outline is-p-sm is-radius-xl">
+      <div className="box is-bg-light is-outline is-p-sm is-radius-xl">
         <ul>
           <li className="box is-flex">
             <div className="box is-flex is-middle is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full">
