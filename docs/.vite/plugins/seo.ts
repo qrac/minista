@@ -6,12 +6,15 @@ import picomatch from "picomatch"
 function filterOutputAssets(bundle: OutputBundle): {
   [key: string]: OutputAsset
 } {
-  return Object.entries(bundle).reduce((acc, [key, item]) => {
-    if (item.type === "asset") {
-      acc[key] = item
-    }
-    return acc
-  }, {})
+  return Object.entries(bundle).reduce(
+    (acc, [key, item]) => {
+      if (item.type === "asset") {
+        acc[key] = item
+      }
+      return acc
+    },
+    {} as { [key: string]: OutputAsset },
+  )
 }
 
 export function pluginSeo(uOpts: {
@@ -42,8 +45,8 @@ export function pluginSeo(uOpts: {
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && isSsrBuild
-      isBuild = command === "build" && !isSsrBuild
+      isSsr = command === "build" && (isSsrBuild ?? false)
+      isBuild = command === "build" && !(isSsrBuild ?? false)
       return isBuild
     },
     async generateBundle(options, bundle) {
@@ -88,7 +91,7 @@ export function pluginSeo(uOpts: {
           .filter((el): el is typeof el => !!el)
 
         for (const el of writeEls) {
-          if (el.tagName.toLowerCase() !== "meta") continue
+          if (!el || el.tagName.toLowerCase() !== "meta") continue
           el.setAttribute("content", excerpt)
         }
 

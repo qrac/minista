@@ -15,7 +15,7 @@ import rehypeSlug from "rehype-slug"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
 import rehypePrettyCode from "rehype-pretty-code"
 
-import { pluginSeo } from "./minista.local.js"
+import { pluginSeo } from "./.vite/plugins/seo"
 
 const remarkTocOptions = {
   maxDepth: 3,
@@ -81,16 +81,6 @@ export default defineConfig(({ command, isSsrBuild }) => {
       assetsInlineLimit: 0,
       rolldownOptions: {
         checks: { pluginTimings: false },
-        output: {
-          codeSplitting: {
-            groups: [
-              //{ name: "vendor", test: /\/node_modules\/(?!\.)/ },
-              //{ name: "react", test: /\/react(?:-dom)\// },
-              //{ name: "preact", test: /\/preact\// },
-              //{ name: "minista", test: /\/minista\/src|react-icons\// },
-            ],
-          },
-        },
       },
     },
     resolve: {
