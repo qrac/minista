@@ -34,7 +34,7 @@ function mkdirp(dir) {
   try {
     fs.mkdirSync(dir, { recursive: true })
   } catch (e) {
-    if (e.code === "EEXIST") return
+    if (e instanceof Error && 'code' in e && e.code === "EEXIST") return
     throw e
   }
 }
@@ -89,7 +89,7 @@ async function main(root, options) {
     console.log(`${pc.green(">")} ${pc.gray("Copying project files...")}`)
     await emitter.clone(cwd)
   } catch (err) {
-    console.error(pc.red(err && err.message ? err.message : err))
+    console.error(pc.red(err instanceof Error && err.message ? err.message : String(err)))
     process.exit(1)
   }
 
