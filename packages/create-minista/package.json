@@ -7,7 +7,8 @@
   },
   "files": [
     "bin",
-    "src"
+    "src",
+    "templates"
   ],
   "license": "MIT",
   "homepage": "https://minista.qranoko.jp",
@@ -31,7 +32,6 @@
   },
   "dependencies": {
     "cac": "^7.0.0",
-    "degit": "^2.8.4",
     "picocolors": "^1.1.1",
     "prompts": "^2.4.2"
   }

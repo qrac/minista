@@ -61,7 +61,7 @@
     "play:archive": "minista ./playground/archive",
     "play-build:archive": "minista build ./playground/archive",
     "play-preview:archive": "minista preview ./playground/archive",
-    "play:create": "cd ./playground/_create && create-minista",
+    "play:create": "cd ./playground/_create && create-minista dist",
     "test": "vitest run",
     "test:w": "vitest watch",
     "up": "npx npm-check-updates --deep --cooldown 1",
@@ -77,7 +77,6 @@
   "devDependencies": {
     "@types/archiver": "^7.0.0",
     "@types/cross-spawn": "^6.0.6",
-    "@types/degit": "^2.8.6",
     "@types/js-beautify": "^1.14.3",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^25.6.0",

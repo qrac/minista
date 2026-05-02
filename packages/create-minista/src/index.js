@@ -2,7 +2,6 @@
 /**
  * @typedef {Object} CliOptions
  * @property {string} [template]
- * @property {string} [tag]
  */
 
 import fs from "node:fs"
@@ -10,7 +9,6 @@ import path from "node:path"
 import pc from "picocolors"
 import { cac } from "cac"
 import prompts from "prompts"
-import degit from "degit"
 
 /** @type {{ title: string, value: string }[]} */
 const TEMPLATES = [
@@ -34,8 +32,36 @@ function mkdirp(dir) {
   try {
     fs.mkdirSync(dir, { recursive: true })
   } catch (e) {
-    if (e instanceof Error && 'code' in e && e.code === "EEXIST") return
+    if (e instanceof Error && "code" in e && e.code === "EEXIST") return
     throw e
+  }
+}
+
+/**
+ * @param {string} template
+ */
+function resolveTemplateDir(template) {
+  const templatesDir = new URL("../templates/", import.meta.url)
+  const templateDir = new URL(`${template}/`, templatesDir)
+  return templateDir
+}
+
+/**
+ * @param {string} template
+ * @returns {boolean}
+ */
+function hasTemplate(template) {
+  return TEMPLATES.some((item) => item.value === template)
+}
+
+/**
+ * @param {string} dir
+ */
+async function renameGitignore(dir) {
+  const from = path.resolve(dir, "_gitignore")
+  const to = path.resolve(dir, ".gitignore")
+  if (fs.existsSync(from)) {
+    await fs.promises.rename(from, to)
   }
 }
 
@@ -48,9 +74,7 @@ async function main(root, options) {
 
   const cwd = root || "."
   const current = cwd === "."
-  const repo = "qrac/minista/packages/create-minista/templates"
   const template = options.template || ""
-  const tag = options.tag ? "#" + options.tag : ""
 
   /** @type {{ [key: string]: PromptObject }} */
   const questions = {
@@ -82,14 +106,28 @@ async function main(root, options) {
     ? { template }
     : /** @type {{ template: string }} */ (await prompts(questions.template))
 
-  const target = `${repo}/${configs.template}${tag}`
-  const emitter = degit(target, { cache: false, force: true, verbose: false })
+  if (!hasTemplate(configs.template)) {
+    console.error(pc.red(`Unknown template: ${configs.template}`))
+    console.error(
+      pc.gray(`Available templates: ${TEMPLATES.map((item) => item.value).join(", ")}`),
+    )
+    process.exit(1)
+  }
+
+  const templateDir = resolveTemplateDir(configs.template)
 
   try {
     console.log(`${pc.green(">")} ${pc.gray("Copying project files...")}`)
-    await emitter.clone(cwd)
+    await fs.promises.cp(templateDir, cwd, {
+      recursive: true,
+      force: true,
+      errorOnExist: false,
+    })
+    await renameGitignore(cwd)
   } catch (err) {
-    console.error(pc.red(err instanceof Error && err.message ? err.message : String(err)))
+    console.error(
+      pc.red(err instanceof Error && err.message ? err.message : String(err)),
+    )
     process.exit(1)
   }
 
@@ -113,7 +151,6 @@ const cli = cac("create-minista")
 cli
   .command("[root]", "Scaffolding for minista projects")
   .option("--template <template>", "[string] template directory")
-  .option("--tag <tag>", "[string] branch | tag | hash")
   .action(async (root, options) => {
     try {
       await main(root, options)
