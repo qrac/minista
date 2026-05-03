@@ -31,12 +31,12 @@ $ npm create minista@latest
 
 ```sh
 $ npm install --save-dev minista vite react react-dom
-$ touch ./minista.config.js
+$ touch ./vite.config.js
 $ touch ./src/pages/index.jsx
 ```
 
 ```js
-// ./minista.config.js
+// ./vite.config.js
 import { pluginSsg } from "minista"
 
 export default {
@@ -65,24 +65,24 @@ export default function () {
 
 ## CLI
 
-|コマンド                 |内容                                           |
-| ------------------------ | ---------------------------------------------- |
-| `minista [root]`         |開発モード（`Ctrl + C` で停止）                |
-| `minista build [root]`   |静的書き出し（SSRビルド後に連続で通常ビルド）|
-| `minista preview [root]` |静的書き出し後の動作確認                       |
+| コマンド                 | 内容                                          |
+| ------------------------ | --------------------------------------------- |
+| `minista [root]`         | 開発モード（`Ctrl + C` で停止）               |
+| `minista build [root]`   | 静的書き出し（SSRビルド後に連続で通常ビルド） |
+| `minista preview [root]` | 静的書き出し後の動作確認                      |
 
 [ViteのCLIコマンドオプション](https://ja.vitejs.dev/guide/cli.html)がすべて使えるほか、以下の独自オプションがあります。
 
-|独自のオプション|内容                                              |
-| ---------------- | ------------------------------------------------- |
-| `--oneBuild`     | ministaのビルドを1回に制限（連続ビルドしない）|
+| 独自のオプション | 内容                                           |
+| ---------------- | ---------------------------------------------- |
+| `--oneBuild`     | ministaのビルドを1回に制限（連続ビルドしない） |
 
 ## Config
 
-[Viteのコンフィグ](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `minista.config.{ts,js}`・`vite.config.{ts,js}` のどちらでも動作し、`defineConfig` も使用できます。
+[Viteのコンフィグ](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `vite.config.{ts,js}`・`minista.config.{ts,js}` のどちらでも動作し、`defineConfig` も使用できます。
 
 ```ts
-// ./minista.config.ts
+// ./vite.config.ts
 import { defineConfig, pluginSsg } from "minista"
 
 export default defineConfig({
@@ -93,7 +93,7 @@ export default defineConfig({
 ministaはViteのSSRビルドと通常ビルドを連続で行うため、ビルドの一括設定がエラーに繋がる場合があります。これは設定をSSRビルド用・通常ビルド用に切り分けることで解消できます。
 
 ```ts
-// ./minista.config.ts
+// ./vite.config.ts
 import { defineConfig, pluginSsg } from "minista"
 
 export default defineConfig(({ command, isSsrBuild }) => {
