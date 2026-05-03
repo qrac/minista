@@ -11,7 +11,7 @@
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "minista": "^4.0.4",
+    "minista": "^4.0.5",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "typescript": "^6.0.3",

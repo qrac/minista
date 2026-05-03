@@ -8,7 +8,7 @@
     "preview": "minista preview"
   },
   "devDependencies": {
-    "minista": "^4.0.4",
+    "minista": "^4.0.5",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "vite": "^8.0.10"
