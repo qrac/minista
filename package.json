@@ -79,7 +79,7 @@
     "@types/cross-spawn": "^6.0.6",
     "@types/js-beautify": "^1.14.3",
     "@types/mime-types": "^3.0.1",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.2",
     "@types/picomatch": "^4.0.3",
     "@types/prompts": "^2.4.9",
     "@types/react": "^19.2.14",
@@ -87,10 +87,10 @@
     "@vitejs/plugin-react": "^6.0.1",
     "npm-run-all2": "^8.0.4",
     "preact": "^10.29.1",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "typescript": "^6.0.3",
-    "vite": "^8.0.10",
+    "vite": "^8.0.11",
     "vitest": "^4.1.5"
   }
 }

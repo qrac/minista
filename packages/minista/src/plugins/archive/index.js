@@ -4,7 +4,7 @@
 
 import fs from "node:fs"
 import path from "node:path"
-import archiver from "archiver"
+import { ZipArchive, TarArchive } from "archiver"
 import pc from "picocolors"
 import { normalizePath } from "vite"
 
@@ -67,7 +67,10 @@ export function pluginArchive(uOpts = {}) {
 
           try {
             await new Promise((resolve, reject) => {
-              const archive = archiver(format, archOpts)
+              const archive =
+                format === "zip"
+                  ? new ZipArchive(archOpts)
+                  : new TarArchive(archOpts)
               const output = fs.createWriteStream(archiveFile)
 
               output.on("error", reject)
