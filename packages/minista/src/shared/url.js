@@ -49,7 +49,7 @@ export function resolveParamUrl(url, paths) {
  * @returns {string[]}
  */
 export function extractUrls(html, tag, attr, start) {
-  const regex = new RegExp(`<${tag}[^>]*?\\b${attr}="([^"]*?)"`, "gs")
+  const regex = new RegExp(`<${tag}[^>]*?\\s${attr}="([^"]*?)"`, "gs")
   const rootPaths = new Set()
 
   let match
