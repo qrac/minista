@@ -17,6 +17,7 @@ import {
 } from "../../shared/url.js"
 import { regScript } from "../../shared/reg.js"
 import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
+import { createAssetEntryId } from "../../shared/asset.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {}
@@ -42,6 +43,10 @@ export function pluginEntry(uOpts = {}) {
   let ssgPages = []
   /** @type {{[pathId: string]: string}} */
   let entries = {}
+  /** @type {Set<string>} */
+  let entryIds = new Set()
+  /** @type {{[entryId: string]: string}} */
+  let entrySources = {}
   /** @type {{[before: string]: string}} */
   let entryChanges = {}
   /** @type {{[before: string]: string[]}} */
@@ -98,9 +103,10 @@ export function pluginEntry(uOpts = {}) {
       for (const assetName of assetNames) {
         const pathId = regScript.test(assetName)
           ? path.parse(assetName).name
-          : assetName
+          : createAssetEntryId(assetName, entryIds)
         const fullPath = path.resolve(rootDir, assetName)
         preEntries[pathId] = fullPath
+        entrySources[pathId] = assetName
       }
 
       const checks = await Promise.all(
@@ -140,9 +146,7 @@ export function pluginEntry(uOpts = {}) {
           if (!item.code.trim()) continue
           if (!item.facadeModuleId) continue
 
-          const before = normalizePath(
-            path.relative(rootDir, item.facadeModuleId),
-          )
+          const before = normalizePath(path.relative(rootDir, item.facadeModuleId))
           const newFileName = item.fileName
           entryChanges[before] = newFileName
 
@@ -156,9 +160,15 @@ export function pluginEntry(uOpts = {}) {
         }
 
         for (const item of Object.values(outputAssets)) {
-          if (!item.originalFileNames.includes(entryId)) continue
+          const source = entrySources[entryId]
+          const fullPath = entries[entryId]
+          if (
+            !item.originalFileNames.some((name) =>
+              [entryId, source, fullPath].includes(name),
+            )
+          ) continue
           const newFileName = item.fileName
-          entryChanges[entryId] = newFileName
+          entryChanges[entrySources[entryId]] = newFileName
           break
         }
       }

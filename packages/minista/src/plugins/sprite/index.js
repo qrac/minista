@@ -21,6 +21,7 @@ import {
   getBasedAssetUrl,
 } from "../../shared/url.js"
 import { mergeAlias, filterOutputAssets } from "../../shared/vite.js"
+import { createAssetEntryId } from "../../shared/asset.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
@@ -144,7 +145,7 @@ export function pluginSprite(uOpts = {}) {
             const sprite = await generateSprite(targetDir, opts.config)
             await fs.promises.writeFile(fullPath, sprite, "utf8")
             const pathId = normalizePath(path.relative(rootDir, fullPath))
-            entries[pathId] = fullPath
+            entries[createAssetEntryId(pathId, new Set(Object.keys(entries)))] = fullPath
           }),
         )
         return {
@@ -226,7 +227,10 @@ export function pluginSprite(uOpts = {}) {
 
       for (const item of Object.values(outputAssets)) {
         const matches = item.originalFileNames.filter((tag) =>
-          beforeSet.has(tag),
+          beforeSet.has(tag) ||
+          [...beforeSet].some((before) =>
+            tag.endsWith(`/${before}`) || tag === path.basename(before),
+          ),
         )
         if (matches.length > 0) {
           entryChanges[matches[0]] = item.fileName

@@ -20,6 +20,7 @@ import {
   filterOutputAssets,
   filterOutputChunks,
 } from "../../shared/vite.js"
+import { createAssetEntryId } from "../../shared/asset.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -134,7 +135,7 @@ export function pluginSearch(uOpts = {}) {
           build: {
             rolldownOptions: {
               input: {
-                [pathId]: searchFile,
+                [createAssetEntryId(pathId)]: searchFile,
               },
             },
           },
@@ -182,8 +183,11 @@ export function pluginSearch(uOpts = {}) {
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
 
+      const entryId = createAssetEntryId(before)
       const afterItem = Object.values(outputAssets).find((item) => {
-        return item.originalFileNames.some((name) => name === before)
+        return item.originalFileNames.some((name) =>
+          [before, entryId, searchFile].includes(name),
+        )
       })
       if (afterItem) {
         afterItem.fileName = afterItem.fileName.replace(/\.txt$/, ".json")
@@ -220,9 +224,12 @@ export function pluginSearch(uOpts = {}) {
     async writeBundle(options, bundle) {
       const outputAssets = filterOutputAssets(bundle)
 
-      const afterItem = Object.values(outputAssets).find((item) => {
-        return item.originalFileNames.some((name) => name === before)
-      })
+      const entryId = createAssetEntryId(before)
+      const afterItem = Object.values(outputAssets).find((item) =>
+        item.originalFileNames.some((name) =>
+          [before, entryId, searchFile].includes(name),
+        ),
+      )
       if (afterItem) {
         const oldPath = path.resolve(options.dir || "", afterItem.fileName)
         const newPath = oldPath.replace(/\.txt$/, ".json")
