@@ -64,6 +64,7 @@
     "play:create": "cd ./playground/_create && create-minista dist",
     "test": "vitest run",
     "test:w": "vitest watch",
+    "audit": "node scripts/audit-tree.ts",
     "up": "npx npm-check-updates --deep --cooldown 1",
     "up:u": "npx npm-check-updates --deep --cooldown 1 -u",
     "rev": "npx npm-replace-versions --deps minista --ignore node_modules",
