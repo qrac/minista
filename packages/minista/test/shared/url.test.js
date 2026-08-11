@@ -100,6 +100,22 @@ describe("extractUrls", () => {
     const result = extractUrls(html, "source", "srcset", "/no-match/")
     expect(result).toEqual([])
   })
+
+  it("data-minista-image-srcをsrcとして抽出しない", () => {
+    const dataAttrHtml = `
+      <img data-minista-image-src="/src/assets/images/photo.png" />
+    `
+    const result = extractUrls(dataAttrHtml, "img", "src", "/")
+    expect(result).toEqual([])
+  })
+
+  it("srcとdata-minista-image-srcが両方ある場合はsrcだけを抽出する", () => {
+    const mixedHtml = `
+      <img data-minista-image-src="/src/assets/images/photo.png" src="/assets/photo-1200x630.png" />
+    `
+    const result = extractUrls(mixedHtml, "img", "src", "/")
+    expect(result).toEqual(["/assets/photo-1200x630.png"])
+  })
 })
 
 describe("getServeBase", () => {
