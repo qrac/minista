@@ -71,6 +71,32 @@ describe("feature scheduler and lifecycle", () => {
     expect(diagnostics.byCode("MINISTA_FEATURE_CYCLE")).toHaveLength(1)
   })
 
+  test("orders an optional dependency only when it is present", () => {
+    const diagnostics = new DiagnosticCollector()
+    const formatterId = createNodeId("feature", "beautify")
+    const archive: MinistaFeature = {
+      id: createNodeId("feature", "archive"),
+      apiVersion: 1,
+      options: {},
+      optionalAfter: [formatterId],
+      hooks: {},
+    }
+    const formatter: MinistaFeature = {
+      id: formatterId,
+      apiVersion: 1,
+      options: {},
+      hooks: {},
+    }
+
+    expect(scheduleFeatures([archive], diagnostics).map(({ id }) => id)).toEqual([
+      archive.id,
+    ])
+    expect(
+      scheduleFeatures([archive, formatter], diagnostics).map(({ id }) => id),
+    ).toEqual([formatter.id, archive.id])
+    expect(diagnostics.hasErrors()).toBe(false)
+  })
+
   test("runs explicit phases and converts hook failures to diagnostics", async () => {
     const dependencies = createDependencies()
     const calls: string[] = []

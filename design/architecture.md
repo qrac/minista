@@ -59,9 +59,9 @@ type SsgPage = {
 }
 ```
 
-一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。Core、SSG feature、React/Vite adapterのruntime実装はJavaScript + JSDocへ移行済みで、型専用の隣接 `.d.ts` とともにsourceから直接実行します。`check` / `inspect` / `explain` に加え、legacy SSG build/devのroute discoveryと `getStaticData()` 解決もRoute/Page Graphを使用します。CommentとSvgのdomain featureは `HtmlDocumentStore` を受け取るcompose phaseへ移行しましたが、Vite build全体はまだ旧 `SsgPage` contractを使用しています。
+一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。Core、SSG feature、React/Vite adapterのruntime実装はJavaScript + JSDocへ移行済みで、型専用の隣接 `.d.ts` とともにsourceから直接実行します。`check` / `inspect` / `explain` に加え、legacy SSG build/devのroute discoveryと `getStaticData()` 解決もRoute/Page Graphを使用します。Comment、Svg、Beautify、Archiveのdomain featureは明示phaseへ移行しましたが、Vite build全体はまだ旧 `SsgPage` contractを使用しています。
 
-各公開pluginは `api.minista.feature` に `id`, `apiVersion`, `options`, `provides`, `requires` を持つmachine-readable metadataを公開し始めています。domain phase schedulerへの接続は未完了です。
+各公開pluginは `api.minista.feature` に `id`, `apiVersion`, `options`, `provides`, `requires` と必要な順序制約を持つmachine-readable metadataを公開し始めています。domain phase schedulerへの接続は未完了です。
 
 ### Current feature coupling
 
@@ -88,6 +88,8 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを実装し、markerとgraph node IDをbindできる
 - CommentとSvgのdomain featureは明示的なcompose phaseで共有documentを変更し、compatibility facadeも同じ変換を使用する
 - Svgのfilesystem読込、SVGO、fragment parseは `NodeSvgSourceResolver` adapterに閉じている
+- Beautifyはimage preload除去をcompose、既存出力の整形をfinalizeで行い、Emitterの明示的な `replace()` だけを使用する
+- Archiveはfinalizeでarchive出力を追加し、filesystemとarchive libraryは `NodeArchiveBuilder` adapterに閉じている
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
 ### Current v5 migration directories
@@ -97,8 +99,9 @@ module-level global variableはほぼ使われていませんが、plugin instan
 ```text
 packages/minista/src/
 ├─ core/                   # graph, lifecycle, diagnostics, artifacts, manifest, query, ports
-├─ features/               # SSGのroute/page解決とComment/Svgのcompose phase
+├─ features/               # SSGとComment/Svg/Beautify/Archiveのdomain phase
 └─ adapters/
+   ├─ archive/             # Node.js archive生成
    ├─ html/                # HtmlDocumentのnode-html-parser実装
    ├─ react/               # renderToString / prerenderToNodeStream
    └─ vite/                # project query serviceとlegacy SSG projection
@@ -243,6 +246,7 @@ interface MinistaFeature<Options = unknown> {
   requires?: readonly Capability[]
   provides?: readonly Capability[]
   after?: readonly FeatureId[]
+  optionalAfter?: readonly FeatureId[]
   hooks: Partial<FeatureHooks>
 }
 
@@ -258,7 +262,7 @@ interface FeatureHooks {
 }
 ```
 
-phase内のfeature順はuserのVite plugin配列ではなく、`requires`, `provides`, `after` のdependency graphをtopological sortして決めます。循環、capability不足、同じartifactの競合はdiagnosticにします。`after` は同一phaseのtie-breakerに限り、data dependencyはcapability / graph edgeで表現します。
+phase内のfeature順はuserのVite plugin配列ではなく、`requires`, `provides`, `after`, `optionalAfter` のdependency graphをtopological sortして決めます。循環、capability不足、同じartifactの競合はdiagnosticにします。`after` は必須の順序依存、`optionalAfter` は対象featureが登録されている場合だけ有効な順序依存です。data dependencyはcapability / graph edgeで表現します。
 
 ### Lifecycle
 
@@ -274,7 +278,7 @@ phase内のfeature順はuserのVite plugin配列ではなく、`requires`, `prov
 | `bundle` | Viteが返すoutput manifest | Vite adapterのみが実行 |
 | `compose` | hashed URLを反映したfinal document | HtmlDocumentを一度serialize |
 | `emit` | distと `.minista/manifest.json` | emitter portのみがfilesystem write |
-| `finalize` | beautify、archive、summary | declared artifactのみ変更可 |
+| `finalize` | beautify、archive、summary | 既存出力はEmitterの `replace()`、追加出力は `emit()` のみ許可 |
 
 Core runnerはphase、feature、node IDを含むtrace eventを発行します。同じinput/config/content hashに対するphaseは将来cache可能にしますが、初期実装では正しさを優先します。
 

@@ -4,6 +4,7 @@ import {
   ArtifactConflictError,
   MemoryArtifactStore,
   MemoryEmitter,
+  OutputNotFoundError,
   createNodeId,
 } from "../../../src/core/index.js"
 
@@ -38,6 +39,21 @@ describe("memory artifact ports", () => {
     ).rejects.toThrow("already emitted")
     expect(await emitter.list()).toEqual([
       { fileName: "index.html", content: "home" },
+    ])
+  })
+
+  test("replaces only an existing output", async () => {
+    const emitter = new MemoryEmitter()
+
+    await expect(
+      emitter.replace({ fileName: "index.html", content: "changed" }),
+    ).rejects.toBeInstanceOf(OutputNotFoundError)
+
+    await emitter.emit({ fileName: "index.html", content: "home" })
+    await emitter.replace({ fileName: "index.html", content: "formatted" })
+
+    expect(await emitter.list()).toEqual([
+      { fileName: "index.html", content: "formatted" },
     ])
   })
 })

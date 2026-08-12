@@ -1,6 +1,8 @@
 import react from "@vitejs/plugin-react"
 import {
   defineConfig,
+  pluginArchive,
+  pluginBeautify,
   pluginComment,
   pluginEntry,
   pluginImage,
@@ -19,6 +21,8 @@ export default defineConfig({
     pluginSearch(),
     pluginComment(),
     pluginSvg(),
+    pluginBeautify(),
+    pluginArchive(),
     react(),
   ],
   build: {

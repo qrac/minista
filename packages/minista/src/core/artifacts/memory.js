@@ -28,6 +28,14 @@ export class ArtifactConflictError extends Error {
     this.name = "ArtifactConflictError"
   }
 }
+export class OutputNotFoundError extends Error {
+  code = "MINISTA_OUTPUT_NOT_FOUND"
+  /** @param {string} fileName */
+  constructor(fileName) {
+    super(`Output ${fileName} cannot be replaced before it is emitted.`)
+    this.name = "OutputNotFoundError"
+  }
+}
 export class MemoryArtifactStore {
   /** @type {Map<ArtifactId, Readonly<ArtifactRecord>>} */
   #records = new Map()
@@ -70,6 +78,13 @@ export class MemoryEmitter {
   async emit(file) {
     if (this.#files.has(file.fileName)) {
       throw new Error(`Output ${file.fileName} is already emitted.`)
+    }
+    this.#files.set(file.fileName, Object.freeze({ ...file, content: copyContent(file.content) }))
+  }
+  /** @param {EmittedFile} file */
+  async replace(file) {
+    if (!this.#files.has(file.fileName)) {
+      throw new OutputNotFoundError(file.fileName)
     }
     this.#files.set(file.fileName, Object.freeze({ ...file, content: copyContent(file.content) }))
   }

@@ -23,5 +23,6 @@ export interface EmittedFile {
 }
 export interface Emitter {
   emit(file: EmittedFile): Promise<void>
+  replace(file: EmittedFile): Promise<void>
   list(): Promise<readonly EmittedFile[]>
 }

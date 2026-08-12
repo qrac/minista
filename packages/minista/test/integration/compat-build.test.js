@@ -62,8 +62,10 @@ describe.sequential("v4 compatibility build", () => {
     expect(html).not.toContain("data-minista-comment")
     expect(html).toContain("<h1>Compatibility fixture</h1>")
     expect(html).toContain('<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2">')
-    expect(html).toContain("<title>Pixel icon</title><path fill=\"#123456\"")
+    expect(html).toContain("<title>Pixel icon</title>")
+    expect(html).toContain('<path fill="#123456"')
     expect(html).not.toContain("data-minista-svg")
+    expect(html).not.toMatch(/<body[^>]*>\s*<link rel="preload" as="image"/)
   })
 
   test("emits image, entry, island, and search artifacts", async () => {
@@ -76,6 +78,7 @@ describe.sequential("v4 compatibility build", () => {
     expect(files).toContain("assets/site.css")
     expect(files).toContain("scripts/client.js")
     expect(files).toContain("scripts/island-1.js")
+    expect(files).toContain("dist.zip")
 
     const html = await fs.promises.readFile(path.resolve(distDir, "index.html"), "utf8")
     expect(html).toContain('src="/assets/pixel-2x2.png"')

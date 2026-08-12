@@ -4,11 +4,10 @@
 
 import fs from "node:fs"
 import path from "node:path"
-import { ZipArchive, TarArchive } from "archiver"
 import pc from "picocolors"
-import { normalizePath } from "vite"
 
-import { getRootDir, getTempDir } from "../../shared/path.js"
+import { NodeArchiveBuilder } from "../../adapters/archive/index.js"
+import { getRootDir } from "../../shared/path.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
@@ -34,12 +33,12 @@ export function pluginArchive(uOpts = {}) {
   let isBuild = false
 
   let rootDir = ""
-  let tempDir = ""
-  let archiveDir = ""
+  /** @type {NodeArchiveBuilder | undefined} */
+  let builder
 
   return {
     name: "vite-plugin:minista-archive",
-    api: { minista: { feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["artifacts"] } } },
+    api: { minista: { feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["output-files"], optionalAfter: ["beautify"] } } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -49,58 +48,30 @@ export function pluginArchive(uOpts = {}) {
     },
     config: (config) => {
       rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
-      archiveDir = path.resolve(tempDir, "archive")
+      builder = new NodeArchiveBuilder(rootDir)
     },
     async writeBundle(options) {
       const dist = options.dir
-      if (!dist) return
+      if (!dist || !builder) return
+      const archiveBuilder = builder
 
-      await fs.promises.mkdir(archiveDir, { recursive: true })
       await Promise.all(
         opts.archives.map(async (archive) => {
-          const { srcDir, outName } = archive
-          const ignore = archive.ignore || []
+          const { outName } = archive
           const format = archive.format || "zip"
           const outFile = `${outName}.${format}`
-          const archiveFile = path.resolve(archiveDir, outFile)
 
           try {
-            await new Promise((resolve, reject) => {
-              const archiveInstance =
-                archive.format === "tar"
-                  ? new TarArchive(archive.options)
-                  : new ZipArchive(
-                      archive.options || { zlib: { level: 9 } },
-                    )
-              const output = fs.createWriteStream(archiveFile)
-
-              output.on("error", reject)
-              archiveInstance.on("error", reject)
-              archiveInstance.on("warning", (err) => {
-                if (err.code === "ENOENT") {
-                  console.warn(pc.yellow(`Archive warning: ${err.message}`))
-                } else {
-                  reject(err)
-                }
-              })
-              output.on("close", () => resolve(undefined))
-
-              archiveInstance.pipe(output)
-              archiveInstance.glob(`${normalizePath(srcDir)}/**/*`, {
-                cwd: rootDir,
-                ignore,
-              })
-              archiveInstance.finalize()
-            })
-
             const finalPath = path.resolve(dist, outFile)
-            await fs.promises.copyFile(archiveFile, finalPath)
+            await fs.promises.writeFile(
+              finalPath,
+              await archiveBuilder.build(archive),
+            )
 
             const rel = path.relative(rootDir, path.dirname(finalPath))
             console.log(
               pc.gray(
-                normalizePath(rel + path.sep) +
+                (rel + path.sep).replaceAll("\\", "/") +
                   pc.green(path.basename(finalPath)),
               ),
             )

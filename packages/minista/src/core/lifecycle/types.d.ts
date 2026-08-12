@@ -26,6 +26,7 @@ export interface MinistaFeature<Options = unknown> {
   readonly requires?: readonly Capability[]
   readonly provides?: readonly Capability[]
   readonly after?: readonly FeatureId[]
+  readonly optionalAfter?: readonly FeatureId[]
   readonly hooks: FeatureHooks
 }
 export interface LifecycleRunOptions {

@@ -46,6 +46,11 @@ export function scheduleFeatures(features, diagnostics) {
         required.add(dependency)
       }
     }
+    for (const dependency of feature.optionalAfter ?? []) {
+      if (byId.has(dependency) && dependency !== feature.id) {
+        required.add(dependency)
+      }
+    }
     for (const capability of feature.requires ?? []) {
       const capabilityProviders = providers.get(capability) ?? []
       if (capabilityProviders.length === 0) {

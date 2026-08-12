@@ -14,8 +14,10 @@ versioned Project Graph、Artifact Store、structured Diagnosticをlifecycleの�
 - graph nodeは決定的なbranded IDを持つ
 - phaseごとにread modelと許可されたcommandを限定する
 - featureはcapabilityとdependencyを宣言しtopological sortする
+- optional feature間の順序は、対象が存在する場合だけ有効な `optionalAfter` で宣言する
 - HTMLはfinal outputかdocument representationであり、feature間の唯一のprotocolにしない
 - `.minista/work/<buildId>` はmetadata付きArtifactStoreとし、globで前回buildのexecutable fileを探さない
+- emit後のfinalizeはEmitterの明示的な `replace()` と追加 `emit()` だけで出力を変更する
 - public manifestはgraphの安全なprojectionとする
 
 ## Consequences

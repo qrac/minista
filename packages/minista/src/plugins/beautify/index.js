@@ -2,10 +2,13 @@
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
-import picomatch from "picomatch"
-import { parse as parseHtml } from "node-html-parser"
-import beautify from "js-beautify"
-
+import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { createNodeId } from "../../core/graph/index.js"
+import {
+  composeBeautifyDocument,
+  createOutputFormatter,
+  createOutputMatcher,
+} from "../../features/beautify/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
 
@@ -28,6 +31,7 @@ export const defaultOptions = {
   },
   removeImagePreload: true,
 }
+const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -36,6 +40,8 @@ export const defaultOptions = {
 export function pluginBeautify(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = mergeObj(defaultOptions, uOpts)
+  const format = createOutputFormatter(opts)
+  const isMatch = createOutputMatcher(opts)
 
   let isDev = false
   let isSsr = false
@@ -43,7 +49,7 @@ export function pluginBeautify(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-beautify",
-    api: { minista: { feature: { id: "beautify", apiVersion: 1, options: opts, provides: ["formatted-output"], requires: ["artifacts"] } } },
+    api: { minista: { feature: { id: "beautify", apiVersion: 1, options: opts, provides: ["formatted-output"], requires: ["html-documents", "output-files"] } } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -52,52 +58,32 @@ export function pluginBeautify(uOpts = {}) {
       return isBuild
     },
     generateBundle(options, bundle) {
-      const isMatch = picomatch(opts.src)
-      const parseOpts = [opts.removeImagePreload]
-      const hasParse = parseOpts.some((item) => item)
-      const regAssets = /\.(html|css)$/
-      const regChunks = /\.js$/
-
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
 
       for (const item of Object.values(outputAssets)) {
         if (!isMatch(item.fileName)) continue
-        if (!regAssets.test(item.fileName)) continue
-
-        const ext = item.fileName.split(".").pop()
-
-        let newSource = String(item.source)
-
-        if (ext === "html") {
-          if (hasParse) {
-            let parsedHtml = parseHtml(newSource)
-
-            if (opts.removeImagePreload) {
-              parsedHtml
-                .querySelectorAll("body > link[rel=preload][as=image]")
-                .forEach((el) => {
-                  el.remove()
-                })
-            }
-            newSource = parsedHtml.toString()
-          }
-          newSource = beautify.html(newSource, opts.htmlOptions)
-          item.source = newSource
-        } else if (ext === "css") {
-          newSource = beautify.css(newSource, opts.cssOptions)
-          item.source = newSource
+        if (!/\.(html|css)$/.test(item.fileName)) continue
+        let content = String(item.source)
+        if (item.fileName.endsWith(".html") && opts.removeImagePreload) {
+          const document = documents.parse({
+            pageId: createNodeId("page", "legacy-beautify", item.fileName),
+            html: content,
+          })
+          composeBeautifyDocument(document, opts)
+          content = document.serialize()
         }
+        const formatted = format({ fileName: item.fileName, content })
+        item.source = formatted.content
       }
 
       for (const item of Object.values(outputChunks)) {
-        if (!isMatch(item.fileName)) continue
-        if (!regChunks.test(item.fileName)) continue
-
-        let newSource = item.code
-
-        newSource = beautify.js(newSource, opts.jsOptions)
-        item.code = newSource
+        if (!isMatch(item.fileName) || !item.fileName.endsWith(".js")) continue
+        const formatted = format({
+          fileName: item.fileName,
+          content: item.code,
+        })
+        item.code = String(formatted.content)
       }
     },
   }
