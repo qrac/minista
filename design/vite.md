@@ -1,6 +1,6 @@
 # Vite boundary
 
-最終確認日: 2026-08-12
+最終確認日: 2026-08-13
 
 確認対象: repository lockfileのVite 8.2.1、およびVite / React公式資料
 
@@ -50,9 +50,9 @@ Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvir
 
 ### 移行中のcurrent adapter
 
-Stage 5の最初の変更として、通常の `minista build` はVite CLI processを二回spawnせず、同じNode.js processからViteのprogrammatic `build()` をrender/clientの順に呼ぶ `LegacyViteBuildAdapter` へ移行しました。任意のVite CLI flagを完全にはprogrammatic configへ変換できないため、未対応flagを指定した場合だけ従来のCLI fallbackを使用します。
+Stage 5の最初の変更として、通常の `minista build` はVite CLI processを二回spawnせず、同じNode.js processからBuilder APIをrender/clientの順に呼ぶ `LegacyViteBuilderAdapter` へ移行しました。このadapterは各buildで `createBuilder(config, true)` が作るbackward-compatible environmentを明示的にbuildします。任意のVite CLI flagを完全にはprogrammatic configへ変換できないため、未対応flagを指定した場合だけ従来のCLI fallbackを使用します。
 
-これは最終構造ではありません。EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。一方、App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを初回config解決へ直接渡せません。render完了後にclient environmentへplanを適用するadapter境界を実装し、以下の `createBuilder()` lifecycleへ切り替えます。
+これは最終構造ではありません。EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。また、一つの `createBuilder(config, false)` が持つrender/client environmentを `render → prepareClient → client` の順でbuildする `ViteAppBuilderAdapter` とunit testを追加しました。一方、App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを初回config解決へ直接渡せません。現行Vite pluginのenvironment別configと `prepareClient` へのplan接続を実装してから、以下の単一 `createBuilder()` lifecycleへdefaultを切り替えます。
 
 ### Environments
 
@@ -183,5 +183,5 @@ Headはrender中のside effectで収集されるため、page treeを二重rende
 - Vite peer rangeの引上げはcompatibility suiteと同時に行う
 - Environment/App Build adapterは最低・推奨・latest minorでintegration test
 - experimental APIのshape changeはadapterのminor releaseで吸収
-- fallbackは「旧二回CLI build」全体ではなく、可能な限り `LegacyViteBuildAdapter` として隔離
+- fallbackは「旧二回CLI build」全体ではなく、可能な限り `LegacyViteBuilderAdapter` として隔離
 - upstream APIがstableになった時点でstatusと再検討日をこの文書に更新する

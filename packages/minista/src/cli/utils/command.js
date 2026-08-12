@@ -1,8 +1,8 @@
 import { spawn } from "cross-spawn"
 import path from "node:path"
-import { build } from "vite"
 
 import { attachViteBuildSession } from "../../adapters/vite/build-session.js"
+import { LegacyViteBuilderAdapter } from "../../adapters/vite/legacy-builder.js"
 import { MemoryArtifactStore } from "../../core/artifacts/index.js"
 
 /** @typedef {import("../../adapters/vite/build-session.js").ViteBuildSession} ViteBuildSession */
@@ -102,7 +102,9 @@ export async function runProgrammaticBuild(args, isRender, session) {
         : clearScreenValue !== "false",
     build: { ssr: isRender },
   }
-  await build(session ? attachViteBuildSession(config, session) : config)
+  await new LegacyViteBuilderAdapter().build(
+    session ? attachViteBuildSession(config, session) : config,
+  )
 }
 
 /**

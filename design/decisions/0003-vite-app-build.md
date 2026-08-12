@@ -19,7 +19,7 @@ v5 build adapterは `render` と `client` environmentを一つのMinista applica
 - adapterのVite minor matrixと、移行期間中のisolated legacy adapterを持つ
 - Core phaseは `buildApp` hookの存在や順序を知らない
 
-移行中は `LegacyViteBuildAdapter` が同一Node.js processでVite programmatic `build()` をrender/clientの順に呼びます。未対応CLI flagのみ二process fallbackを使用します。App Buildの事前検証により、現行client pluginのconfig-time temp importは全environment configの先行解決と両立しないことが確認されました。これらのimportをgraph/artifact inputへ移した後に `createBuilder()` をdefaultにします。
+移行中は `LegacyViteBuilderAdapter` が同一Node.js processで `createBuilder(config, true)` をrender/clientごとに作り、それぞれのbackward-compatible environmentを順にbuildします。未対応CLI flagのみ二process fallbackを使用します。App Buildの事前検証により、現行client pluginのconfig-time temp importは全environment configの先行解決と両立しないことが確認されました。単一Builder内で `render → prepareClient → client` を実行する `ViteAppBuilderAdapter` は実装済みです。現行pluginをenvironment別configへ移し、late client input planを `prepareClient` に接続した後にこのadapterをdefaultにします。
 
 ## Consequences
 

@@ -1,0 +1,41 @@
+import type {
+  BuildEnvironment,
+  InlineConfig,
+  ViteBuilder,
+} from "vite"
+
+export type ViteBuildOutput = Awaited<ReturnType<ViteBuilder["build"]>>
+export interface ViteAppBuildPreparation {
+  readonly builder: ViteBuilder
+  readonly render: BuildEnvironment
+  readonly client: BuildEnvironment
+  readonly renderOutput: ViteBuildOutput
+}
+export interface ViteAppBuildOptions {
+  readonly renderName?: string
+  readonly clientName?: string
+  readonly prepareClient?: (
+    preparation: ViteAppBuildPreparation,
+  ) => void | Promise<void>
+}
+export interface ViteAppBuildResult {
+  readonly builder: ViteBuilder
+  readonly renderOutput: ViteBuildOutput
+  readonly clientOutput: ViteBuildOutput
+}
+export declare class ViteAppEnvironmentNotFoundError extends Error {
+  readonly code: "MINISTA_VITE_APP_ENVIRONMENT_NOT_FOUND"
+  constructor(environmentName: string)
+}
+export declare class ViteAppBuilderAdapter {
+  constructor(
+    factory?: (
+      config: InlineConfig,
+      useLegacyBuilder: false,
+    ) => Promise<ViteBuilder>,
+  )
+  build(
+    config: InlineConfig,
+    options?: ViteAppBuildOptions,
+  ): Promise<ViteAppBuildResult>
+}

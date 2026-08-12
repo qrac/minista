@@ -20,24 +20,26 @@ package runtime entryは `src/node.js` です。CLI、test、workspace package�
 
 ### Current build lifecycle
 
-通常の `minista build` は同じNode.js processからViteのprogrammatic `build()` をrender/clientの順に呼びます。programmatic adapterがまだ変換できないVite CLI flagを指定した場合だけ、compatibility fallbackとして `cross-spawn` でVite CLIを二度起動します。
+通常の `minista build` は同じNode.js processからViteのBuilder APIをrender/clientの順に呼びます。現在は各buildに対して `createBuilder(config, true)` でbackward-compatible environmentを一つ作る `LegacyViteBuilderAdapter` を使用します。programmatic adapterがまだ変換できないVite CLI flagを指定した場合だけ、compatibility fallbackとして `cross-spawn` でVite CLIを二度起動します。
 
 ```text
 minista build (current programmatic path)
-  ├─ build({ build: { ssr: true } })
-  │    └─ page/layout glob entryをbundle
-  │         -> node_modules/.minista/ssr/__minista-ssg.mjs
-  └─ build({ build: { ssr: false } })
-       ├─ SSR bundleをnative import
-       ├─ getStaticDataとReact renderToStringを実行
-       ├─ node_modules/.minista/ssg/__minista-ssg.mjsへHTML配列を書き出す
-       ├─ compatibility fallbackだけがそのファイルをnative import
-       └─ Vite bundleを直接変更してHTML / assetを出力
+  ├─ createBuilder({ build: { ssr: true } }, true)
+  │    └─ builder.build(render-compatible environment)
+  │         └─ page/layout glob entryをbundle
+  │              -> node_modules/.minista/ssr/__minista-ssg.mjs
+  └─ createBuilder({ build: { ssr: false } }, true)
+       └─ builder.build(client-compatible environment)
+            ├─ SSR bundleをnative import
+            ├─ getStaticDataとReact renderToStringを実行
+            ├─ node_modules/.minista/ssg/__minista-ssg.mjsへHTML配列を書き出す
+            ├─ compatibility fallbackだけがそのファイルをnative import
+            └─ Vite bundleを直接変更してHTML / assetを出力
 ```
 
 CLI processは一つになり、render/client buildには同じbuild-session `MemoryArtifactStore` を渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。未対応CLI flagで別processのVite CLIへfallbackした場合だけ、従来の `.minista` 内の実行可能な `.mjs` を読みます。`--oneBuild` は前半を省略するescape hatchです。
 
-App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。通常buildのconfig-time temp importはbuild-session ArtifactStoreへ移行済みですが、現在のadapterはrender/clientのprogrammatic `build()` を順次呼ぶ構造です。`createBuilder()` への切替では、render environment完了後にclient input planを適用するadapter境界が必要です。この条件は `vite.md` とroadmapに記録しています。
+App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。通常buildのconfig-time temp importはbuild-session ArtifactStoreへ移行済みですが、default adapterはrender/clientごとにbackward-compatible Builderを作る構造です。単一の `createBuilder()` でrender、clientを順にbuildし、その間にclient planを適用する `ViteAppBuilderAdapter` は実装済みです。Vite pluginのenvironment別configとlate client input planの接続後にdefaultを切り替えます。この条件は `vite.md` とroadmapに記録しています。
 
 ### Current dev lifecycle
 
@@ -67,7 +69,7 @@ type SsgPage = {
 
 | Producer / consumer | 実際のcontract | 問題 |
 | --- | --- | --- |
-| CLI → SSG | 二回のVite processと `--ssr` | 一つのlifecycleとして失敗・cleanupを扱えない |
+| CLI → SSG | 二つのbackward-compatible Vite Builderと `build.ssr` | config解決とVite lifecycleがrender/clientで分かれる |
 | SSG → fallback時のEntry／Island | `.minista/ssg/*.mjs` の `ssgPages` | 型なし、実行可能temp file、前回buildの残存を区別できない |
 | Page → feature | HTML marker attributeと文字列snippet | source identityとdependencyが失われる |
 | Island SSR → client build | encoded JSX snippet fileとHTML内のencoded snippet | 置換衝突、順序、生成sourceに依存する |
@@ -120,7 +122,7 @@ packages/minista/src/
    ├─ image/               # Node.js画像読込・Sharp変換・cache
    ├─ react/               # renderToString / prerenderToNodeStream
    ├─ sprite/              # Node.js SVG sprite生成
-   └─ vite/                # project query serviceとlegacy SSG projection
+   └─ vite/                # project query、legacy SSG projection、Vite Builder adapter
 ```
 
 Core用 `tsconfig.core.json` はJavaScript + JSDocと隣接 `.d.ts` をstrict modeで直接型検査します。repository全体の `tsc --noEmit` でも同じsourceを検査します。

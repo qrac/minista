@@ -100,11 +100,11 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 
 ## Stage 5: Vite app build adapter
 
-進捗: 最初の移行として、通常buildは二つのVite CLI processではなく、同一processのprogrammatic `build()` を順次呼ぶ `LegacyViteBuildAdapter` へ変更済みです。render/client buildには同じbuild-session `MemoryArtifactStore` を明示的に渡し、EntryとIslandはconfig-time inputをrendered page／snippet Artifactから解決します。未対応CLI flagのみ従来fallbackを使用します。通常pathのconfig-time temp importは除去できたため、次に `createBuilder()` adapterを実装します。
+進捗: 通常buildは二つのVite CLI processではなく、同一processの `LegacyViteBuilderAdapter` が `createBuilder(config, true)` でrender/clientごとのbackward-compatible environmentを順次buildします。render/client buildには同じbuild-session `MemoryArtifactStore` を明示的に渡し、EntryとIslandはconfig-time inputをrendered page／snippet Artifactから解決します。未対応CLI flagのみ従来fallbackを使用します。さらに、単一 `createBuilder(config, false)` で `render → prepareClient → client` を実行する `ViteAppBuilderAdapter` とunit testを追加しました。default切替にはVite pluginのenvironment別configとlate client input planの接続が必要です。
 
 - CLIを `spawn("vite")` 二回からprogrammatic Minista application runnerへ変更
 - Vite configに `render` / `client` environmentを構成
-- `createBuilder()` + `buildApp()` で一つのlifecycleを開始
+- 単一の `createBuilder()` で一つのlifecycleを開始し、environmentを明示的に順次build
 - render environmentを先にbuildし、native importでbuild-time moduleを評価
 - graph / generated entry planを明示ArtifactStoreに保存
 - client environmentは安定したvirtual entryをinputとし、graph planからisland / asset entryを解決
