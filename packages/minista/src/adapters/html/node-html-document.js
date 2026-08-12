@@ -15,6 +15,9 @@ const nativeElements = new WeakMap()
 /** @type {WeakMap<NodeHtmlElement, NodeHtmlDocument>} */
 const documentOwners = new WeakMap()
 
+/** @type {WeakMap<NodeHtmlDocument, import("node-html-parser").HTMLElement>} */
+const nativeDocuments = new WeakMap()
+
 export class NodeHtmlElement {
   /**
    * @param {HTMLElement} element
@@ -98,6 +101,7 @@ export class NodeHtmlDocument {
   constructor(input) {
     this.pageId = input.pageId
     this.#root = parse(input.html, { comment: true })
+    nativeDocuments.set(this, this.#root)
   }
 
   /** @param {string} selector */
@@ -139,6 +143,20 @@ export class NodeHtmlDocument {
     this.#elements.set(element, wrapped)
     return wrapped
   }
+}
+
+/**
+ * Adapter内部の追加解析で、同じparse treeを再利用する。
+ *
+ * @param {import("../../core/document/index.js").HtmlDocument} document
+ */
+export function getNativeNodeHtmlDocumentRoot(document) {
+  if (!(document instanceof NodeHtmlDocument)) {
+    throw new TypeError("HTML document is not backed by the Node adapter.")
+  }
+  const root = nativeDocuments.get(document)
+  if (!root) throw new TypeError("Unknown Node HTML document.")
+  return root
 }
 
 export class NodeHtmlDocumentFactory {

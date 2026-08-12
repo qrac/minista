@@ -37,3 +37,6 @@ export declare class NodeHtmlDocument implements HtmlDocument {
 export declare class NodeHtmlDocumentFactory implements HtmlDocumentFactory {
   parse(input: HtmlDocumentInput): NodeHtmlDocument
 }
+export declare function getNativeNodeHtmlDocumentRoot(
+  document: HtmlDocument,
+): import("node-html-parser").HTMLElement

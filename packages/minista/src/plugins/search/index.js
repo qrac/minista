@@ -4,23 +4,28 @@
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('../ssg/types').SsgPage} SsgPage */
 
-import fs from "node:fs"
 import path from "node:path"
-import { pathToFileURL, fileURLToPath } from "node:url"
-import { glob } from "tinyglobby"
+import { fileURLToPath } from "node:url"
 import { normalizePath } from "vite"
-import { parse as parseHtml } from "node-html-parser"
 
 import { getSearchData } from "./utils/data.js"
+import {
+  NodeHtmlDocumentFactory,
+  NodeSearchDocumentAnalyzer,
+} from "../../adapters/html/index.js"
+import { createNodeId } from "../../core/graph/index.js"
+import {
+  analyzeRenderedSearchPages,
+  composeSearchOutputDocument,
+  getSearchPageUrl,
+} from "../../features/search/index.js"
 import { mergeObj } from "../../shared/obj.js"
-import { getRootDir, getTempDir } from "../../shared/path.js"
-import { getServeBase, getBuildBase } from "../../shared/url.js"
+import { getServeBase } from "../../shared/url.js"
 import {
   mergeSsrNoExternal,
   filterOutputAssets,
   filterOutputChunks,
 } from "../../shared/vite.js"
-import { createAssetEntryId } from "../../shared/asset.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -44,6 +49,8 @@ export const defaultOptions = {
     kanji: true,
   },
 }
+const documents = new NodeHtmlDocumentFactory()
+const analyzer = new NodeSearchDocumentAnalyzer()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -52,7 +59,6 @@ export const defaultOptions = {
 export function pluginSearch(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = mergeObj(defaultOptions, uOpts)
-  const cwd = process.cwd()
   const cpSearchPath = normalizePath(
     path.resolve(__dirname, "components/search.js"),
   )
@@ -62,19 +68,11 @@ export function pluginSearch(uOpts = {}) {
   let isBuild = false
 
   let base = "/"
-  let rootDir = ""
-  let tempDir = ""
-  let ssgDir = ""
-  /** @type {SsgPage[]} */
-  let ssgPages = []
-  let searchDir = ""
-  let searchFile = ""
-  let before = ""
   let after = ""
 
   return {
     name: "vite-plugin:minista-search",
-    api: { minista: { feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html"] } } },
+    api: { minista: { feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -83,9 +81,6 @@ export function pluginSearch(uOpts = {}) {
       return isDev || isBuild
     },
     config: async (config) => {
-      rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
-
       if (isDev) {
         base = getServeBase(config.base || base)
         return {
@@ -101,47 +96,6 @@ export function pluginSearch(uOpts = {}) {
           },
         }
       }
-      if (isBuild) {
-        base = getBuildBase(config.base || base)
-        ssgDir = path.resolve(tempDir, "ssg")
-        searchDir = path.resolve(tempDir, "search")
-        searchFile = path.resolve(searchDir, `${opts.outName}.txt`)
-
-        const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-        if (!ssgFiles.length) return
-
-        ssgPages = (
-          await Promise.all(
-            ssgFiles.map(async (file) => {
-              const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-              const { ssgPages } = await import(ssgFileUrl)
-              return ssgPages
-            }),
-          )
-        ).flat()
-
-        if (!ssgPages.length) return
-
-        const fullPath = path.resolve(searchDir, searchFile)
-        const pathId = normalizePath(path.relative(rootDir, fullPath))
-        const searchData = getSearchData(ssgPages, opts)
-        await fs.promises.mkdir(searchDir, { recursive: true })
-        await fs.promises.writeFile(
-          fullPath,
-          JSON.stringify(searchData),
-          "utf8",
-        )
-
-        return {
-          build: {
-            rolldownOptions: {
-              input: {
-                [createAssetEntryId(pathId)]: searchFile,
-              },
-            },
-          },
-        }
-      }
     },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
@@ -149,7 +103,7 @@ export function pluginSearch(uOpts = {}) {
           const mod = await server.ssrLoadModule("virtual:ssg-pages")
           /** @type {SsgPage[]} */
           const ssgPages = mod.default ?? mod
-          const searchData = getSearchData(ssgPages, opts)
+          const searchData = await getSearchData(ssgPages, opts)
 
           res.setHeader("Content-Type", "application/json")
           res.end(JSON.stringify(searchData))
@@ -178,22 +132,36 @@ export function pluginSearch(uOpts = {}) {
       newCode = newCode.replace(regInputAttr, `$1"${opts.inputAttr}"`)
       return newCode
     },
-    generateBundle(options, bundle) {
-      before = normalizePath(path.relative(rootDir, searchFile))
-
+    async generateBundle(options, bundle) {
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
 
-      const entryId = createAssetEntryId(before)
-      const afterItem = Object.values(outputAssets).find((item) => {
-        return item.originalFileNames.some((name) =>
-          [before, entryId, searchFile].includes(name),
-        )
+      const htmlItems = Object.values(outputAssets).filter((item) =>
+        item.fileName.endsWith(".html"),
+      )
+      const renderedPages = htmlItems.map((item) => {
+        const url = getSearchPageUrl(item.fileName)
+        return {
+          url,
+          fileName: item.fileName,
+          item,
+          document: documents.parse({
+            pageId: createNodeId("page", "legacy-search", url),
+            html: String(item.source),
+          }),
+        }
       })
-      if (afterItem) {
-        afterItem.fileName = afterItem.fileName.replace(/\.txt$/, ".json")
-        after = afterItem.fileName
-      }
+      const searchData = await analyzeRenderedSearchPages(
+        renderedPages,
+        opts,
+        analyzer,
+      )
+      const referenceId = this.emitFile({
+        type: "asset",
+        name: `${opts.outName}.json`,
+        source: JSON.stringify(searchData),
+      })
+      after = this.getFileName(referenceId)
 
       const fetchItems = Object.values(outputChunks).filter((item) => {
         return item.moduleIds.includes(cpSearchPath)
@@ -203,38 +171,10 @@ export function pluginSearch(uOpts = {}) {
         item.code = item.code.replace(beforeFetch, after)
       }
 
-      const htmlItems = Object.values(outputAssets).filter((item) => {
-        return item.fileName.endsWith(".html")
-      })
-      for (const item of htmlItems) {
-        const htmlName = item.fileName
-        const html = String(item.source)
-
-        let parsedHtml = parseHtml(html)
-        const inputEl = parsedHtml.querySelector(`[${opts.inputAttr}]`)
-        if (!inputEl) continue
-
-        const isIndex = htmlName.split("/").pop() === "index.html"
-        const level = (htmlName.match(/\//g) || []).length + (isIndex ? 0 : 1)
-        const bodyEl = parsedHtml.querySelector("body")
-        bodyEl?.setAttribute(opts.relativeAttr, String(level))
-
-        item.source = parsedHtml.toString()
-      }
-    },
-    async writeBundle(options, bundle) {
-      const outputAssets = filterOutputAssets(bundle)
-
-      const entryId = createAssetEntryId(before)
-      const afterItem = Object.values(outputAssets).find((item) =>
-        item.originalFileNames.some((name) =>
-          [before, entryId, searchFile].includes(name),
-        ),
-      )
-      if (afterItem) {
-        const oldPath = path.resolve(options.dir || "", afterItem.fileName)
-        const newPath = oldPath.replace(/\.txt$/, ".json")
-        await fs.promises.rename(oldPath, newPath)
+      for (const page of renderedPages) {
+        if (composeSearchOutputDocument(page.document, page.url, opts) > 0) {
+          page.item.source = page.document.serialize()
+        }
       }
     },
   }

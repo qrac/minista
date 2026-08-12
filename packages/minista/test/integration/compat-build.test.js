@@ -84,6 +84,14 @@ describe.sequential("v4 compatibility build", () => {
     expect(html).toContain('src="/assets/pixel-2x2.png"')
     expect(html).toContain('src="/scripts/client.js"')
     expect(html).toContain('src="/scripts/island-1.js"')
+
+    const search = JSON.parse(
+      await fs.promises.readFile(path.resolve(distDir, "assets/search.json"), "utf8"),
+    )
+    expect(search.words).toEqual(
+      expect.arrayContaining(["Compatibility", "fixture"]),
+    )
+    expect(search.pages).toMatchObject([{ url: "/" }])
   })
 
   test("records the current executable temp handoff", async () => {
