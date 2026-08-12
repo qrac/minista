@@ -2,6 +2,11 @@ import { spawn } from "cross-spawn"
 import path from "node:path"
 import { build } from "vite"
 
+import { attachViteBuildSession } from "../../adapters/vite/build-session.js"
+import { MemoryArtifactStore } from "../../core/artifacts/index.js"
+
+/** @typedef {import("../../adapters/vite/build-session.js").ViteBuildSession} ViteBuildSession */
+
 /**
  * @param {string[]} args
  * @returns {Promise<number>}
@@ -73,8 +78,9 @@ function readRoot(args) {
 /**
  * @param {string[]} args
  * @param {boolean} isRender
+ * @param {ViteBuildSession} [session]
  */
-export async function runProgrammaticBuild(args, isRender) {
+export async function runProgrammaticBuild(args, isRender, session) {
   const root = readRoot(args)
   const configFile = readOption(args, "--config", "-c")
   const mode = readOption(args, "--mode", "-m")
@@ -82,7 +88,7 @@ export async function runProgrammaticBuild(args, isRender) {
   const logLevel = readOption(args, "--logLevel")
   const clearScreenValue = readOption(args, "--clearScreen")
 
-  await build({
+  const config = {
     root: root ? path.resolve(process.cwd(), root) : process.cwd(),
     configFile: configFile ? path.resolve(process.cwd(), configFile) : undefined,
     mode,
@@ -95,7 +101,8 @@ export async function runProgrammaticBuild(args, isRender) {
         ? undefined
         : clearScreenValue !== "false",
     build: { ssr: isRender },
-  })
+  }
+  await build(session ? attachViteBuildSession(config, session) : config)
 }
 
 /**
@@ -108,8 +115,9 @@ export async function runMinista(args, isOneBuild) {
 
   try {
     if (isBuild && !isOneBuild && canRunProgrammaticBuild(args)) {
-      await runProgrammaticBuild(args, true)
-      await runProgrammaticBuild(args, false)
+      const session = { artifacts: new MemoryArtifactStore() }
+      await runProgrammaticBuild(args, true, session)
+      await runProgrammaticBuild(args, false, session)
       return
     }
     if (isBuild && !isOneBuild) {

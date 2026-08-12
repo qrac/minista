@@ -13,6 +13,9 @@ import pc from "picocolors"
 
 import { resolveLegacySsgProject } from "../../adapters/vite/legacy-ssg-project.js"
 import { createViteReactRenderer } from "../../adapters/vite/react-renderer.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { createNodeId } from "../../core/graph/index.js"
+import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { getGlobImportCode, getSsgExportCode } from "./utils/code.js"
 import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { transformHtml } from "./utils/html.js"
@@ -168,6 +171,17 @@ export function pluginSsg(uOpts = {}) {
         }
 
         await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
+
+        const session = getViteBuildSession(config)
+        if (session) {
+          await session.artifacts.put({
+            schemaVersion: "1",
+            id: createRenderedPagesArtifactId(),
+            owner: createNodeId("feature", "ssg"),
+            mediaType: "application/vnd.minista.rendered-pages+json",
+            content: JSON.stringify(ssgPages),
+          })
+        }
 
         const code = getSsgExportCode(ssgPages)
         await fs.promises.mkdir(ssgDir, { recursive: true })

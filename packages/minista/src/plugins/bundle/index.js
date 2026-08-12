@@ -6,6 +6,9 @@ import fs from "node:fs"
 import path from "node:path"
 import { normalizePath } from "vite"
 
+import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { createNodeId } from "../../core/graph/index.js"
+import { composeBundleDocument } from "../../features/bundle/index.js"
 import { getGlobImportCode } from "./utils/code.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
@@ -26,6 +29,7 @@ export const defaultOptions = {
   outName: "bundle",
   useExportCss: true,
 }
+const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -53,7 +57,7 @@ export function pluginBundle(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-bundle",
-    api: { minista: { feature: { id: "bundle", apiVersion: 1, options: opts, provides: ["client-bundle"], requires: ["html"] } } },
+    api: { minista: { feature: { id: "bundle", apiVersion: 1, options: opts, provides: ["client-bundle"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -155,26 +159,23 @@ export function pluginBundle(uOpts = {}) {
       })
 
       for (const item of htmlItems) {
-        const htmlName = item.fileName
-        let newHtml = String(item.source)
-
-        for (const file of cssFiles) {
-          const basedAssetUrl = getBasedAssetUrl(base, htmlName, file)
-          const linkTag = `<link rel="stylesheet" href="${basedAssetUrl}">`
-          newHtml = newHtml.replace("</head>", `${linkTag}</head>`)
-        }
-
-        if (base === "./" || base === "") {
-          for (const file of imageFiles) {
-            const basedAssetUrl = getBasedAssetUrl(base, htmlName, file)
-            const regExp = new RegExp(
-              `(<[^>]*?)(?<!\\.)/${file}([^>]*?>)`,
-              "gs",
-            )
-            newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
-          }
-        }
-        item.source = newHtml
+        const document = documents.parse({
+          pageId: createNodeId("page", "legacy-bundle-compose", item.fileName),
+          html: String(item.source),
+        })
+        composeBundleDocument(
+          document,
+          {
+            cssFiles,
+            imageFiles,
+            rewriteRootImages: base === "./" || base === "",
+          },
+          {
+            resolve: (fileName) =>
+              getBasedAssetUrl(base, item.fileName, fileName),
+          },
+        )
+        item.source = document.serialize()
       }
     },
   }

@@ -76,7 +76,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 
 ## Stage 4: featureを明示phaseへ移す
 
-進捗: 全公開pluginにmachine-readable feature metadata (`id`, `apiVersion`, `options`, `provides`, `requires`、必要な場合は `optionalAfter`) を追加しました。CommentとSvgは明示的な `compose` hookへ移し、Beautifyはimage preload除去を `compose`、出力整形を `finalize` へ分離しました。Archiveは `finalize` hookへ移し、Beautifyが存在する場合だけ後続する `optionalAfter` を宣言します。Search、Sprite、Imageはpage単位の参照解析を `analyze`、SearchData／sprite／image Artifact生成を `generate`、確定URLや相対階層属性の反映を `compose` へ分離しました。各compatibility facadeも参照収集・document変換のdomain処理を使用します。Svg、Search、Spriteのparser／filesystem固有処理とArchive生成はNode adapterへ分離し、ImageにはSharp、remote download、内容hashで無効化するfilesystem cacheを実装する `NodeImageGenerator` を追加しました。Search、Sprite、Imageのfacadeは `.minista/ssg/*.mjs` や一時Vite entryを使用せず、build済みdocumentから成果物を直接emitします。Imageのdev／build経路は同じgeneratorとdocument composeを使用し、facadeからmutable recipe/cache stateを除去しました。Vite build全体のdomain lifecycle接続と、その他のfeature移設は未完了です。
+進捗: 全公開pluginにmachine-readable feature metadata (`id`, `apiVersion`, `options`, `provides`, `requires`、必要な場合は `optionalAfter`) を追加しました。CommentとSvgは明示的な `compose` hookへ移し、Beautifyはimage preload除去を `compose`、出力整形を `finalize` へ分離しました。Archiveは `finalize` hookへ移し、Beautifyが存在する場合だけ後続する `optionalAfter` を宣言します。Search、Sprite、Imageはpage単位の参照解析を `analyze`、SearchData／sprite／image Artifact生成を `generate`、確定URLや相対階層属性の反映を `compose` へ分離しました。Entryはasset参照を `analyze`、bundler portの結果を `bundle`、確定URLとimported CSSの反映を `compose` へ分離しました。Bundleも対象pageを `analyze`、client bundle planを `bundle`、CSSと相対画像URLの反映を `compose` へ分離しました。各compatibility facadeも参照収集・document変換のdomain処理を使用します。Svg、Search、Spriteのparser／filesystem固有処理とArchive生成はNode adapterへ分離し、ImageにはSharp、remote download、内容hashで無効化するfilesystem cacheを実装する `NodeImageGenerator` を追加しました。Search、Sprite、Imageのfacadeは `.minista/ssg/*.mjs` や一時Vite entryを使用せず、build済みdocumentから成果物を直接emitします。Imageのdev／build経路は同じgeneratorとdocument composeを使用し、facadeからmutable recipe/cache stateを除去しました。Entryの通常のprogrammatic buildはrendered page Artifactをbuild-session `MemoryArtifactStore` から読み、参照解析とcomposeをdomainへ委譲します。別processのVite CLI fallbackだけは従来のSSG temp handoffを維持します。fallbackの廃止、Vite build全体のdomain lifecycle接続、Islandのfeature移設は未完了です。
 
 移行順はdependencyが少ないものから進めます。
 
@@ -100,7 +100,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 
 ## Stage 5: Vite app build adapter
 
-進捗: 最初の移行として、通常buildは二つのVite CLI processではなく、同一processのprogrammatic `build()` を順次呼ぶ `LegacyViteBuildAdapter` へ変更済みです。未対応CLI flagのみ従来fallbackを使用します。`createBuilder()` への切替は、client pluginのconfig-time temp importを除去した後に行います。
+進捗: 最初の移行として、通常buildは二つのVite CLI processではなく、同一processのprogrammatic `build()` を順次呼ぶ `LegacyViteBuildAdapter` へ変更済みです。render/client buildには同じbuild-session `MemoryArtifactStore` を明示的に渡し、Entryはconfig-time inputをrendered page Artifactから解決します。未対応CLI flagのみ従来fallbackを使用します。`createBuilder()` への切替は、Islandのconfig-time temp importを除去した後に行います。
 
 - CLIを `spawn("vite")` 二回からprogrammatic Minista application runnerへ変更
 - Vite configに `render` / `client` environmentを構成

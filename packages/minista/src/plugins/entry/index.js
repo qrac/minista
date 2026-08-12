@@ -9,18 +9,23 @@ import { pathToFileURL } from "url"
 import { glob } from "tinyglobby"
 import { normalizePath } from "vite"
 
-import { getRootDir, getTempDir } from "../../shared/path.js"
+import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { createNodeId } from "../../core/graph/index.js"
 import {
-  extractUrls,
-  getBuildBase,
-  getBasedAssetUrl,
-} from "../../shared/url.js"
+  collectEntryReferences,
+  composeEntryDocument,
+} from "../../features/entry/index.js"
+import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
+import { getRootDir, getTempDir } from "../../shared/path.js"
+import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
 import { regScript } from "../../shared/reg.js"
 import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
 import { createAssetEntryId } from "../../shared/asset.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {}
+const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -47,14 +52,9 @@ export function pluginEntry(uOpts = {}) {
   let entryIds = new Set()
   /** @type {{[entryId: string]: string}} */
   let entrySources = {}
-  /** @type {{[before: string]: string}} */
-  let entryChanges = {}
-  /** @type {{[before: string]: string[]}} */
-  let importedCssMap = {}
-
   return {
     name: "vite-plugin:minista-entry",
-    api: { minista: { feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html"] } } },
+    api: { minista: { feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -68,19 +68,25 @@ export function pluginEntry(uOpts = {}) {
       tempDir = getTempDir(cwd, rootDir)
       ssgDir = path.resolve(tempDir, "ssg")
 
-      const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-
-      if (!ssgFiles.length) return
-
-      ssgPages = (
-        await Promise.all(
-          ssgFiles.map(async (file) => {
-            const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-            const { ssgPages } = await import(ssgFileUrl)
-            return ssgPages
-          }),
-        )
-      ).flat()
+      const session = getViteBuildSession(config)
+      const renderedPages = session
+        ? await session.artifacts.get(createRenderedPagesArtifactId())
+        : undefined
+      if (renderedPages) {
+        ssgPages = JSON.parse(String(renderedPages.content))
+      } else {
+        const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
+        if (!ssgFiles.length) return
+        ssgPages = (
+          await Promise.all(
+            ssgFiles.map(async (file) => {
+              const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
+              const { ssgPages } = await import(ssgFileUrl)
+              return ssgPages
+            }),
+          )
+        ).flat()
+      }
 
       /** @type {string[]} */
       let assetNames = []
@@ -88,18 +94,15 @@ export function pluginEntry(uOpts = {}) {
       let preEntries = {}
 
       for (const ssgPage of ssgPages) {
-        const { html } = ssgPage
-        assetNames = [
-          ...assetNames,
-          ...extractUrls(html, "link", "href", "/"),
-          ...extractUrls(html, "script", "src", "/"),
-          ...extractUrls(html, "img", "src", "/"),
-          ...extractUrls(html, "img", "srcset", "/"),
-          ...extractUrls(html, "source", "srcset", "/"),
-          ...extractUrls(html, "use", "href", "/"),
-        ]
+        const document = documents.parse({
+          pageId: createNodeId("page", "legacy-entry-analysis", ssgPage.fileName),
+          html: ssgPage.html,
+        })
+        assetNames.push(
+          ...collectEntryReferences(document).map(({ source }) => source),
+        )
       }
-      assetNames = [...new Set(assetNames)].map((url) => url.replace(/^\//, ""))
+      assetNames = [...new Set(assetNames)]
 
       for (const assetName of assetNames) {
         const pathId = regScript.test(assetName)
@@ -141,6 +144,9 @@ export function pluginEntry(uOpts = {}) {
 
       if (entryIds.length === 0) return
 
+      /** @type {Map<string, import("../../features/entry/index.js").EntryBundleOutput>} */
+      const bundleOutputs = new Map()
+
       for (const entryId of entryIds) {
         for (const item of Object.values(outputChunks)) {
           if (item.name !== entryId) continue
@@ -148,15 +154,14 @@ export function pluginEntry(uOpts = {}) {
           if (!item.facadeModuleId) continue
 
           const before = normalizePath(path.relative(rootDir, item.facadeModuleId))
-          const newFileName = item.fileName
-          entryChanges[before] = newFileName
-
-          let importedCssFiles = item.viteMetadata?.importedCss
+          const importedCssFiles = item.viteMetadata?.importedCss
             ? [...item.viteMetadata?.importedCss]
             : []
-          if (importedCssFiles.length > 0) {
-            importedCssMap[before] = importedCssFiles
-          }
+          bundleOutputs.set(before, {
+            source: before,
+            fileName: item.fileName,
+            cssFiles: importedCssFiles,
+          })
           break
         }
 
@@ -168,8 +173,11 @@ export function pluginEntry(uOpts = {}) {
               [entryId, source, fullPath].includes(name),
             )
           ) continue
-          const newFileName = item.fileName
-          entryChanges[entrySources[entryId]] = newFileName
+          bundleOutputs.set(source, {
+            source,
+            fileName: item.fileName,
+            cssFiles: [],
+          })
           break
         }
       }
@@ -179,26 +187,15 @@ export function pluginEntry(uOpts = {}) {
       })
 
       for (const item of htmlItems) {
-        const htmlName = item.fileName
-        let newHtml = String(item.source)
-
-        for (const [before, after] of Object.entries(entryChanges)) {
-          const basedAssetUrl = getBasedAssetUrl(base, htmlName, after)
-          const regExp = new RegExp(
-            `(<[^>]*?)(?<!\\.)/${before}([^>]*?>)`,
-            "gs",
-          )
-          newHtml = newHtml.replace(regExp, `$1${basedAssetUrl}$2`)
-
-          if (!Object.hasOwn(importedCssMap, before)) continue
-
-          for (const file of importedCssMap[before]) {
-            const cssBasedAssetUrl = getBasedAssetUrl(base, htmlName, file)
-            const linkTag = `<link rel="stylesheet" href="${cssBasedAssetUrl}">`
-            newHtml = newHtml.replace("</head>", `${linkTag}</head>`)
-          }
-        }
-        item.source = newHtml
+        const document = documents.parse({
+          pageId: createNodeId("page", "legacy-entry-compose", item.fileName),
+          html: String(item.source),
+        })
+        composeEntryDocument(document, [...bundleOutputs.values()], {
+          resolve: (fileName) =>
+            getBasedAssetUrl(base, item.fileName, fileName),
+        })
+        item.source = document.serialize()
       }
     },
   }
