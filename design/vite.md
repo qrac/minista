@@ -52,7 +52,7 @@ Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvir
 
 Stage 5の最初の変更として、通常の `minista build` はVite CLI processを二回spawnせず、同じNode.js processからViteのprogrammatic `build()` をrender/clientの順に呼ぶ `LegacyViteBuildAdapter` へ移行しました。任意のVite CLI flagを完全にはprogrammatic configへ変換できないため、未対応flagを指定した場合だけ従来のCLI fallbackを使用します。
 
-これは最終構造ではありません。現行pluginはclient environmentのconfig解決時にrender temp moduleを即座にimportするため、App Buildが全environment configを先に解決するとhandoff fileがまだ存在せず失敗します。featureをgraph/artifact inputへ移行した後に、以下の `createBuilder()` lifecycleへ切り替えます。
+これは最終構造ではありません。EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。一方、App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを初回config解決へ直接渡せません。render完了後にclient environmentへplanを適用するadapter境界を実装し、以下の `createBuilder()` lifecycleへ切り替えます。
 
 ### Environments
 

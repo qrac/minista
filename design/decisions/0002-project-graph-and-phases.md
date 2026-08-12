@@ -20,7 +20,7 @@ versioned Project Graph、Artifact Store、structured Diagnosticをlifecycleの�
 - emit後のfinalizeはEmitterの明示的な `replace()` と追加 `emit()` だけで出力を変更する
 - public manifestはgraphの安全なprojectionとする
 
-compatibility facadeを段階移行する間も、参照解析、成果物生成、document反映は同じdomain contractとadapterを使用します。Imageではdev／buildを一つの `ImageGenerator` portへ接続し、facade closureにrecipe、remote index、出力entryのmutable mapを保持しません。cache invalidationはsource contentと生成patternのhashをadapterが管理します。EntryとBundleではbundlerをportとして扱い、Vite outputから得たplanをdomain composeへ渡します。Vite hookが所有するbundle object自体はCoreやfeatureへ渡しません。programmatic build間で必要なrendered pageはCLIが所有するbuild-session ArtifactStoreへ保存し、inline Vite configに明示的なsessionとして渡します。
+compatibility facadeを段階移行する間も、参照解析、成果物生成、document反映は同じdomain contractとadapterを使用します。Imageではdev／buildを一つの `ImageGenerator` portへ接続し、facade closureにrecipe、remote index、出力entryのmutable mapを保持しません。cache invalidationはsource contentと生成patternのhashをadapterが管理します。Entry、Bundle、Islandではbundlerをportとして扱い、Vite outputから得たplanをdomain composeへ渡します。Vite hookが所有するbundle object自体はCoreやfeatureへ渡しません。programmatic build間で必要なrendered pageとIsland snippetはCLIが所有するbuild-session ArtifactStoreへ保存し、inline Vite configに明示的なsessionとして渡します。
 
 ## Consequences
 

@@ -10,9 +10,22 @@ import { pathToFileURL } from "url"
 import { glob } from "tinyglobby"
 import { normalizePath } from "vite"
 
-import { transformDirectives } from "./utils/directive.js"
+import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import {
+  NodeIslandEntryGenerator,
+  SwcIslandSourceTransformer,
+} from "../../adapters/island/index.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { createNodeId } from "../../core/graph/index.js"
+import {
+  collectIslandReferences,
+  composeIslandDocument,
+  createIslandSnippetsArtifactId,
+  createIslandSourcePlan,
+} from "../../features/island/index.js"
+import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { decodeSnippet } from "./utils/snippet.js"
-import { getIslandServeCode, getIslandBuildCode } from "./utils/code.js"
+import { getIslandServeCode } from "./utils/code.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
   getServeBase,
@@ -33,6 +46,9 @@ export const defaultOptions = {
   rootDOMElement: "div",
   rootStyle: { display: "contents" },
 }
+const documents = new NodeHtmlDocumentFactory()
+const entryGenerator = new NodeIslandEntryGenerator()
+const sourceTransformer = new SwcIslandSourceTransformer()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -64,21 +80,26 @@ export function pluginIsland(uOpts = {}) {
   let ssgDir = ""
   /** @type {SsgPage[]} */
   let ssgPages = []
-  let patternIndex = 0
-  /** @type {{[patternId: string]: number}} */
-  let patternIndexMap = {}
-  /** @type {{[htmlFileName: string]: string}} */
-  let pagePatternMap = {}
   /** @type {{[pathId: string]: string}} */
   let entries = {}
-  /** @type {{[patternIndex: string]: string}} */
-  let entryChanges = {}
-  /** @type {{[patternIndex: string]: string[]}} */
-  let importedCssMap = {}
+  /** @type {import("../../features/island/index.js").IslandSourcePlan | undefined} */
+  let sourcePlan
+  /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
+  let buildSession
 
   return {
     name: "vite-plugin:minista-island",
-    api: { minista: { feature: { id: "island", apiVersion: 1, options: opts, provides: ["island-entries"], requires: ["html"] } } },
+    api: {
+      minista: {
+        feature: {
+          id: "island",
+          apiVersion: 1,
+          options: opts,
+          provides: ["island-entries"],
+          requires: ["html-documents"],
+        },
+      },
+    },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -87,6 +108,7 @@ export function pluginIsland(uOpts = {}) {
       return isDev || isSsr || isBuild
     },
     config: async (config) => {
+      buildSession = getViteBuildSession(config)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
 
@@ -119,90 +141,75 @@ export function pluginIsland(uOpts = {}) {
         await fs.promises.mkdir(snippetsDir, { recursive: true })
 
         if (isSsr) return
-        if (!fs.existsSync(snippetsFile)) return
-
-        const snippetsFileUrl = pathToFileURL(snippetsFile).href
-
-        /** @type {{ssrSnippetList: string[]}} */
-        const { ssrSnippetList } = await import(snippetsFileUrl)
-
-        snippetList = ssrSnippetList
+        const session = buildSession
+        const snippetArtifact = session
+          ? await session.artifacts.get(createIslandSnippetsArtifactId())
+          : undefined
+        if (snippetArtifact) {
+          snippetList = JSON.parse(String(snippetArtifact.content))
+        } else {
+          if (!fs.existsSync(snippetsFile)) return
+          const snippetsFileUrl = pathToFileURL(snippetsFile).href
+          /** @type {{ssrSnippetList: string[]}} */
+          const { ssrSnippetList } = await import(snippetsFileUrl)
+          snippetList = ssrSnippetList
+        }
         if (!snippetList || snippetList.length === 0) return
 
-        const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-        if (!ssgFiles.length) return
-
-        ssgPages = (
-          await Promise.all(
-            ssgFiles.map(async (file) => {
-              const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-              const { ssgPages } = await import(ssgFileUrl)
-              return ssgPages
-            }),
-          )
-        ).flat()
+        const renderedPages = session
+          ? await session.artifacts.get(createRenderedPagesArtifactId())
+          : undefined
+        if (renderedPages) {
+          ssgPages = JSON.parse(String(renderedPages.content))
+        } else {
+          const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
+          if (!ssgFiles.length) return
+          ssgPages = (
+            await Promise.all(
+              ssgFiles.map(async (file) => {
+                const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
+                const { ssgPages } = await import(ssgFileUrl)
+                return ssgPages
+              }),
+            )
+          ).flat()
+        }
 
         if (!ssgPages.length) return
-
-        for (const ssgPage of ssgPages) {
-          const { html, fileName: htmlFileName } = ssgPage
-
-          /** @type {number[]} */
-          let pattern = []
-
-          if (opts.useSplitPages) {
-            snippetList.forEach((snippet, index) => {
-              const snippetIndex = index + 1
-              if (html.includes(snippet)) pattern.push(snippetIndex)
-            })
-          } else {
-            const hasIsland = snippetList.some((snippet) =>
-              html.includes(snippet),
-            )
-            if (hasIsland) {
-              snippetList.forEach((_, index) => {
-                const snippetIndex = index + 1
-                return pattern.push(snippetIndex)
-              })
-            }
-          }
-          const patternId = pattern.join(",")
-
-          if (!patternIndexMap[patternId] && patternId) {
-            patternIndex = patternIndex + 1
-            patternIndexMap[patternId] = patternIndex
-          }
-          if (patternId) {
-            pagePatternMap[htmlFileName] = patternId
-          }
-        }
-        for (const [page, pattern] of Object.entries(pagePatternMap)) {
-          const patternIndex = patternIndexMap[pattern]
-          pagePatternMap[page] = String(patternIndex)
-        }
-
+        const references = ssgPages.flatMap((page) =>
+          collectIslandReferences(
+            documents.parse({
+              pageId: createNodeId("page", "legacy-island", page.fileName),
+              html: page.html,
+            }),
+            opts,
+          ),
+        )
+        references.sort(
+          (left, right) =>
+            snippetList.indexOf(left.snippet) -
+            snippetList.indexOf(right.snippet),
+        )
+        sourcePlan = await createIslandSourcePlan(
+          references,
+          opts,
+          entryGenerator,
+        )
         await Promise.all(
-          snippetList.map(async (snippet, index) => {
-            const snippetIndex = index + 1
-            const fileName = `snippet-${snippetIndex}.tsx`
-            const fullPath = path.resolve(snippetsDir, fileName)
-            const code = decodeSnippet(snippet)
-            await fs.promises.writeFile(fullPath, code, "utf8")
+          sourcePlan.snippets.map(async (snippet) => {
+            const fullPath = path.resolve(
+              snippetsDir,
+              `snippet-${snippet.index}.tsx`,
+            )
+            await fs.promises.writeFile(fullPath, snippet.code, "utf8")
           }),
         )
-
         await Promise.all(
-          Object.entries(patternIndexMap).map(async ([patternId, index]) => {
-            const fileName = `${opts.outName}.tsx`.replace(
-              /\[index\]/g,
-              String(index),
-            )
+          sourcePlan.entries.map(async (entry) => {
+            const fileName = `${entry.fileName}.tsx`
             const fullPath = path.resolve(islandDir, fileName)
-            const pattern = patternId.split(",").map((i) => Number(i))
-            const code = getIslandBuildCode(pattern, opts)
-            await fs.promises.writeFile(fullPath, code, "utf8")
-            const pathId = path.parse(fileName).name
-            entries[pathId] = fullPath
+            await fs.promises.writeFile(fullPath, entry.code, "utf8")
+            entries[path.parse(fileName).name] = fullPath
           }),
         )
 
@@ -264,7 +271,7 @@ export function pluginIsland(uOpts = {}) {
       let newCode = code
 
       if (code.includes("client:")) {
-        const { code: transformdCode, snippets } = transformDirectives(
+        const { code: transformdCode, snippets } = sourceTransformer.transform(
           code,
           id,
           opts,
@@ -281,14 +288,17 @@ export function pluginIsland(uOpts = {}) {
         map: null,
       }
     },
-    generateBundle(options, bundle) {
+    generateBundle(_options, bundle) {
       if (isSsr) return
 
       const outputChunks = filterOutputChunks(bundle)
       const outputAssets = filterOutputAssets(bundle)
       const entryIds = Object.keys(entries)
 
-      if (entryIds.length === 0) return
+      if (entryIds.length === 0 || !sourcePlan) return
+
+      /** @type {import("../../features/island/index.js").IslandBundleOutput[]} */
+      const bundleOutputs = []
 
       for (const entryId of entryIds) {
         for (const item of Object.values(outputChunks)) {
@@ -298,14 +308,14 @@ export function pluginIsland(uOpts = {}) {
 
           const patternIndex = entryId.match(/(\d+)(?!.*\d)/)?.[0] || "1"
           const newFileName = item.fileName
-          entryChanges[patternIndex] = newFileName
-
-          let importedCssFiles = item.viteMetadata?.importedCss
+          const importedCssFiles = item.viteMetadata?.importedCss
             ? [...item.viteMetadata?.importedCss]
             : []
-          if (importedCssFiles.length > 0) {
-            importedCssMap[patternIndex] = importedCssFiles
-          }
+          bundleOutputs.push({
+            patternIndex: Number(patternIndex),
+            fileName: newFileName,
+            cssFiles: importedCssFiles,
+          })
           break
         }
       }
@@ -315,43 +325,45 @@ export function pluginIsland(uOpts = {}) {
       })
 
       for (const item of htmlItems) {
-        if (!Object.hasOwn(pagePatternMap, item.fileName)) continue
-
-        const htmlName = item.fileName
-        let newHtml = String(item.source)
-
-        snippetList.forEach((snippet, index) => {
-          const snippetIndex = index + 1
-          newHtml = newHtml.replaceAll(snippet, `${snippetIndex}`)
+        const document = documents.parse({
+          pageId: createNodeId("page", "legacy-island", item.fileName),
+          html: String(item.source),
         })
-
-        const pagePattern = pagePatternMap[item.fileName]
-        const assetName = entryChanges[pagePattern]
-        const importedCssFiles = importedCssMap[pagePattern] ?? []
-
-        importedCssFiles.forEach((cssFile) => {
-          const basedAssetUrl = getBasedAssetUrl(base, htmlName, cssFile)
-          const linkTag = `<link rel="stylesheet" href="${basedAssetUrl}">`
-          newHtml = newHtml.replace("</head>", `${linkTag}</head>`)
-        })
-        const basedAssetUrl = getBasedAssetUrl(base, htmlName, assetName)
-        const scriptTag = `<script type="module" src="${basedAssetUrl}"></script>`
-        newHtml = newHtml.replace("</head>", `${scriptTag}</head>`)
-
-        item.source = newHtml
+        composeIslandDocument(
+          document,
+          sourcePlan,
+          bundleOutputs,
+          opts,
+          {
+            resolve: (fileName) =>
+              getBasedAssetUrl(base, item.fileName, fileName),
+          },
+        )
+        item.source = document.serialize()
       }
     },
-    async writeBundle(options, bundle) {
+    async writeBundle() {
       if (isBuild) return
 
       snippetList = [...uniqueSnippets]
 
       if (snippetList.length === 0) return
 
-      const code = `export const ssrSnippetList = ${JSON.stringify(
-        snippetList.map((snippet) => snippet),
-      )}`
-      await fs.promises.writeFile(snippetsFile, code, "utf8")
+      if (buildSession) {
+        await buildSession.artifacts.put({
+          schemaVersion: "1",
+          id: createIslandSnippetsArtifactId(),
+          owner: createNodeId("feature", "island"),
+          mediaType: "application/vnd.minista.island-snippets+json",
+          content: JSON.stringify(snippetList),
+        })
+      }
+      if (!buildSession) {
+        const code = `export const ssrSnippetList = ${JSON.stringify(
+          snippetList,
+        )}`
+        await fs.promises.writeFile(snippetsFile, code, "utf8")
+      }
     },
   }
 }

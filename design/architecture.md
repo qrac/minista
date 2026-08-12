@@ -31,13 +31,13 @@ minista build (current programmatic path)
        ├─ SSR bundleをnative import
        ├─ getStaticDataとReact renderToStringを実行
        ├─ node_modules/.minista/ssg/__minista-ssg.mjsへHTML配列を書き出す
-       ├─ Islandとcompatibility fallbackがそのファイルをnative import
+       ├─ compatibility fallbackだけがそのファイルをnative import
        └─ Vite bundleを直接変更してHTML / assetを出力
 ```
 
-CLI processは一つになり、render/client buildには同じbuild-session `MemoryArtifactStore` を渡します。Entryはrendered page Artifactをこのstoreから読みますが、Islandは引き続き `.minista` 内の実行可能な `.mjs` と生成sourceを引き継ぎprotocolにしています。未対応CLI flagで別processのVite CLIへfallbackした場合、Entryも従来のtemp moduleを読みます。`--oneBuild` は前半を省略するescape hatchです。
+CLI processは一つになり、render/client buildには同じbuild-session `MemoryArtifactStore` を渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。未対応CLI flagで別processのVite CLIへfallbackした場合だけ、従来の `.minista` 内の実行可能な `.mjs` を読みます。`--oneBuild` は前半を省略するescape hatchです。
 
-App Buildも検証しましたが、Viteは全environmentのconfigをbuild前に解決する一方、現行client pluginはconfig hook内でrender temp moduleを即時importします。このため、featureのconfig-time temp importをgraph/artifact inputに移すまでは `createBuilder()` へ切り替えられません。この制約は `vite.md` とroadmapに記録しています。
+App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。通常buildのconfig-time temp importはbuild-session ArtifactStoreへ移行済みですが、現在のadapterはrender/clientのprogrammatic `build()` を順次呼ぶ構造です。`createBuilder()` への切替では、render environment完了後にclient input planを適用するadapter境界が必要です。この条件は `vite.md` とroadmapに記録しています。
 
 ### Current dev lifecycle
 
@@ -59,7 +59,7 @@ type SsgPage = {
 }
 ```
 
-一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。Core、SSG feature、React/Vite adapterのruntime実装はJavaScript + JSDocへ移行済みで、型専用の隣接 `.d.ts` とともにsourceから直接実行します。`check` / `inspect` / `explain` に加え、legacy SSG build/devのroute discoveryと `getStaticData()` 解決もRoute/Page Graphを使用します。Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、Bundleのdomain featureは明示phaseへ移行しましたが、Vite build全体はまだ旧 `SsgPage` contractを使用しています。
+一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。Core、SSG feature、React/Vite adapterのruntime実装はJavaScript + JSDocへ移行済みで、型専用の隣接 `.d.ts` とともにsourceから直接実行します。`check` / `inspect` / `explain` に加え、legacy SSG build/devのroute discoveryと `getStaticData()` 解決もRoute/Page Graphを使用します。Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、Bundle、Islandのdomain featureは明示phaseへ移行しましたが、Vite build全体はまだ旧 `SsgPage` contractを使用しています。
 
 各公開pluginは `api.minista.feature` に `id`, `apiVersion`, `options`, `provides`, `requires` と必要な順序制約を持つmachine-readable metadataを公開し始めています。domain phase schedulerへの接続は未完了です。
 
@@ -68,7 +68,7 @@ type SsgPage = {
 | Producer / consumer | 実際のcontract | 問題 |
 | --- | --- | --- |
 | CLI → SSG | 二回のVite processと `--ssr` | 一つのlifecycleとして失敗・cleanupを扱えない |
-| SSG → Island／fallback時のEntry | `.minista/ssg/*.mjs` の `ssgPages` | 型なし、実行可能temp file、前回buildの残存を区別できない |
+| SSG → fallback時のEntry／Island | `.minista/ssg/*.mjs` の `ssgPages` | 型なし、実行可能temp file、前回buildの残存を区別できない |
 | Page → feature | HTML marker attributeと文字列snippet | source identityとdependencyが失われる |
 | Island SSR → client build | encoded JSX snippet fileとHTML内のencoded snippet | 置換衝突、順序、生成sourceに依存する |
 | Vite output → feature | `generateBundle` でoutput bundleを探索・直接変更 | 複数pluginが同じHTMLを順番に再parseする |
@@ -102,6 +102,8 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - Entry compatibility facadeはdomainの参照収集とcomposeを再利用し、通常buildのconfig-time inputはbuild-session ArtifactStoreのrendered page Artifactから確定する。別process fallbackだけはSSGのexecutable temp moduleを読む
 - Bundleはanalyzeで対象page Artifact、bundleでclient bundle plan、composeでCSSと相対画像URLを共有documentへ反映する
 - Bundle compatibility facadeはVite固有のglob entryとoutput探索を維持し、document変更だけをdomain composeへ委譲する
+- Islandはanalyzeでsnippet参照Artifact、generateでsnippet／entry source plan、bundleでclient output plan、composeでmarkerとCSS／script URLを共有documentへ反映する
+- IslandのSWC source transformとNode用entry code生成はadapterへ分離し、通常buildのrendered page／snippet連携はbuild-session ArtifactStoreを使用する
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
 ### Current v5 migration directories
@@ -111,7 +113,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 ```text
 packages/minista/src/
 ├─ core/                   # graph, lifecycle, diagnostics, artifacts, manifest, query, ports
-├─ features/               # SSGとComment/Svg/Beautify/Archive/Search/Sprite/Image/Entry/Bundleのdomain phase
+├─ features/               # SSGとComment/Svg/Beautify/Archive/Search/Sprite/Image/Entry/Bundle/Islandのdomain phase
 └─ adapters/
    ├─ archive/             # Node.js archive生成
    ├─ html/                # HtmlDocumentのnode-html-parser実装
