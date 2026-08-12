@@ -100,7 +100,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 
 ## Stage 5: Vite app build adapter
 
-進捗: 通常buildは二つのVite CLI processではなく、同一processの `LegacyViteBuilderAdapter` が `createBuilder(config, true)` でrender/clientごとのbackward-compatible environmentを順次buildします。render/client buildには同じbuild-session `MemoryArtifactStore` を明示的に渡し、EntryとIslandはconfig-time inputをrendered page／snippet Artifactから解決します。未対応CLI flagのみ従来fallbackを使用します。さらに、単一 `createBuilder(config, false)` で `render → prepareClient → client` を実行する `ViteAppBuilderAdapter`、render/client environmentを明示する `createViteAppConfig()`、解決済みclient configにlate inputを適用する `ViteEnvironmentInputAdapter` を追加しました。late inputの実Vite compatibility testも通過しています。default切替には現行Vite pluginのenvironment別configとlate preparationへの分離が必要です。
+進捗: 通常buildは二つのVite CLI processではなく、同一processの `LegacyViteBuilderAdapter` が `createBuilder(config, true)` でrender/clientごとのbackward-compatible environmentを順次buildします。render/client buildには同じbuild-session `MemoryArtifactStore` を明示的に渡し、EntryとIslandはconfig-time inputをrendered page／snippet Artifactから解決します。未対応CLI flagのみ従来fallbackを使用します。さらに、単一 `createBuilder(config, false)` で `render → prepareClient → client` を実行する `ViteAppBuilderAdapter`、render/client environmentを明示する `createViteAppConfig()`、解決済みclient configにlate inputを適用する `ViteEnvironmentInputAdapter` を追加しました。feature descriptorの依存に従って明示hookを実行する `prepareViteClientEnvironment()` も追加し、SSGはApp Build用の `configEnvironment` とlate preparationへ移行済みです。SSGだけの単一Builder fixtureでrendered page ArtifactとHTML出力を確認しています。default切替にはEntry、Islandなど残るclient pluginの移行が必要です。
 
 - CLIを `spawn("vite")` 二回からprogrammatic Minista application runnerへ変更
 - Vite configに `render` / `client` environmentを構成

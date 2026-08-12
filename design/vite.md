@@ -54,7 +54,7 @@ Stage 5の最初の変更として、通常の `minista build` はVite CLI proce
 
 これは最終構造ではありません。EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。また、一つの `createBuilder(config, false)` が持つrender/client environmentを `render → prepareClient → client` の順でbuildする `ViteAppBuilderAdapter` を追加しました。`createViteAppConfig()` はrenderをserver consumerかつSSR build、clientをclient consumerかつnon-SSR buildとして構成します。`ViteEnvironmentInputAdapter` は `prepareClient` 時に解決済みRolldown optionを保ったままinputを差し替えます。このlate inputが実際のVite 8.2.1 client buildに反映されることはintegration testで確認済みです。
 
-一方、App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。現行Vite pluginをenvironment名に基づくconfigとlate preparationへ分離し、`prepareClient` からinput adapterへplanを接続してから、以下の単一 `createBuilder()` lifecycleへdefaultを切り替えます。
+一方、App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。そのため `prepareViteClientEnvironment()` が `api.minista.prepareClient` をfeature descriptorのcapability / `after` でscheduleし、late preparationをconfig hookから分離します。SSG pluginは `configEnvironment()` でrender/clientの静的設定を返し、`prepareClient` でrender bundle評価、page render、Artifact生成、client input適用を行う形へ移行済みです。Minista専用config markerかenvironment名も伝播するため、通常のVite `builder` optionをApp Buildと誤認しません。EntryとIslandなど残るclient pluginを同じ境界へ移してから、以下の単一 `createBuilder()` lifecycleへdefaultを切り替えます。
 
 ### Environments
 

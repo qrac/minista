@@ -39,7 +39,7 @@ minista build (current programmatic path)
 
 CLI processは一つになり、render/client buildには同じbuild-session `MemoryArtifactStore` を渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。未対応CLI flagで別processのVite CLIへfallbackした場合だけ、従来の `.minista` 内の実行可能な `.mjs` を読みます。`--oneBuild` は前半を省略するescape hatchです。
 
-App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。通常buildのconfig-time temp importはbuild-session ArtifactStoreへ移行済みですが、default adapterはrender/clientごとにbackward-compatible Builderを作る構造です。単一の `createBuilder()` でrender、clientを順にbuildし、その間にclient planを適用する `ViteAppBuilderAdapter` は実装済みです。`createViteAppConfig()` はrender/clientのconsumerとSSR設定を明示し、`ViteEnvironmentInputAdapter` は解決済みclient environmentへlate input planを適用します。実際のVite 8.2.1 buildでlate inputが採用されることもintegration testで固定済みです。現行Vite pluginのenvironment別configとこのinput adapterの接続後にdefaultを切り替えます。
+App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。通常buildのconfig-time temp importはbuild-session ArtifactStoreへ移行済みですが、default adapterはrender/clientごとにbackward-compatible Builderを作る構造です。単一の `createBuilder()` でrender、clientを順にbuildし、その間にclient planを適用する `ViteAppBuilderAdapter` は実装済みです。`createViteAppConfig()` はrender/clientのconsumerとSSR設定を明示し、`ViteEnvironmentInputAdapter` は解決済みclient environmentへlate input planを適用します。`prepareViteClientEnvironment()` は明示的な `api.minista.prepareClient` だけを、feature descriptorのcapabilityと順序制約でscheduleして実行します。不正な依存はstructured diagnosticを持つstable errorになります。SSG pluginはこのprotocolへ移行済みで、実際のVite 8.2.1でrender bundle評価、rendered page Artifact生成、client HTML emitを行うApp Build fixtureも成功します。EntryとIslandなど残るclient pluginの移行後にdefaultを切り替えます。
 
 ### Current dev lifecycle
 

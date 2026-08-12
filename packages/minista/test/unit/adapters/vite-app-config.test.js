@@ -1,6 +1,9 @@
 import { describe, expect, test } from "vitest"
 
-import { createViteAppConfig } from "../../../src/adapters/vite/app-config.js"
+import {
+  createViteAppConfig,
+  getViteAppEnvironmentNames,
+} from "../../../src/adapters/vite/app-config.js"
 
 describe("Vite App Build config", () => {
   test("adds named render and client environments", () => {
@@ -8,6 +11,7 @@ describe("Vite App Build config", () => {
 
     expect(config).toMatchObject({
       root: "/project",
+      __ministaAppBuild: { renderName: "render", clientName: "client" },
       builder: {},
       environments: {
         render: { consumer: "server", build: { ssr: true } },
@@ -52,5 +56,13 @@ describe("Vite App Build config", () => {
       "server",
       "browser",
     ])
+    expect(getViteAppEnvironmentNames(config)).toEqual({
+      renderName: "server",
+      clientName: "browser",
+    })
+  })
+
+  test("does not infer App Build from Vite builder options alone", () => {
+    expect(getViteAppEnvironmentNames({ builder: {} })).toBeUndefined()
   })
 })

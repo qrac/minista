@@ -29,6 +29,10 @@ describe("Vite App Builder adapter", () => {
 
     expect(factory).toHaveBeenCalledWith(
       {
+        __ministaAppBuild: {
+          renderName: "render",
+          clientName: "client",
+        },
         builder: {},
         environments: {
           render: { consumer: "server", build: { ssr: true } },

@@ -4,6 +4,24 @@
 /** @typedef {import("vite").InlineConfig} InlineConfig */
 /** @typedef {import("./app-config.js").ViteAppEnvironmentNames} ViteAppEnvironmentNames */
 
+export const MINISTA_APP_BUILD_KEY = "__ministaAppBuild"
+
+/** @param {unknown} config */
+export function getViteAppEnvironmentNames(config) {
+  if (!config || typeof config !== "object") return undefined
+  const value = Reflect.get(config, MINISTA_APP_BUILD_KEY)
+  if (!value || typeof value !== "object") return undefined
+  const renderName = Reflect.get(value, "renderName")
+  const clientName = Reflect.get(value, "clientName")
+  if (typeof renderName !== "string" || typeof clientName !== "string") {
+    return undefined
+  }
+  return /** @type {Required<ViteAppEnvironmentNames>} */ ({
+    renderName,
+    clientName,
+  })
+}
+
 /**
  * @param {EnvironmentOptions | undefined} current
  * @param {"client" | "server"} consumer
@@ -35,7 +53,7 @@ export function createViteAppConfig(config, names = {}) {
   const clientName = names.clientName ?? "client"
   const environments = config.environments ?? {}
 
-  return {
+  const appConfig = {
     ...config,
     builder: config.builder ?? {},
     environments: {
@@ -52,4 +70,6 @@ export function createViteAppConfig(config, names = {}) {
       ),
     },
   }
+  Reflect.set(appConfig, MINISTA_APP_BUILD_KEY, { renderName, clientName })
+  return appConfig
 }

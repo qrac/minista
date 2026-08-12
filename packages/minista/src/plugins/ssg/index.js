@@ -5,6 +5,7 @@
 /** @typedef {import('./types').SsgPage} SsgPage */
 /** @typedef {import('./types').ResolvedLayout} ResolvedLayout */
 /** @typedef {import('./types').ResolvedPage} ResolvedPage */
+/** @typedef {import('../../adapters/vite/environment-preparation.js').ViteEnvironmentPreparation} ViteEnvironmentPreparation */
 
 import fs from "node:fs"
 import path from "node:path"
@@ -14,6 +15,8 @@ import pc from "picocolors"
 import { resolveLegacySsgProject } from "../../adapters/vite/legacy-ssg-project.js"
 import { createViteReactRenderer } from "../../adapters/vite/react-renderer.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
+import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { getGlobImportCode, getSsgExportCode } from "./utils/code.js"
@@ -45,6 +48,9 @@ export function pluginSsg(uOpts = {}) {
   let isDev = false
   let isSsr = false
   let isBuild = false
+  let isAppBuild = false
+  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
+  let appEnvironmentNames
 
   let rootDir = ""
   let tempDir = ""
@@ -60,6 +66,9 @@ export function pluginSsg(uOpts = {}) {
   let throughFile = ""
   /** @type {import("../../core/ports/index.js").StaticRenderer<import("react").ReactNode> | undefined} */
   let renderer
+  /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
+  let buildSession
+  const environmentInput = new ViteEnvironmentInputAdapter()
 
   /**
    * @param {ResolvedLayout} resolvedLayout
@@ -87,10 +96,55 @@ export function pluginSsg(uOpts = {}) {
       )
   }
 
+  /** Render the production pages after the render bundle is available. */
+  async function prepareClientPages() {
+    const importUrl = pathToFileURL(ssrFile).href
+    const { LAYOUTS = {}, PAGES = {} } = await import(importUrl)
+    const formatedLayout = formatLayout(LAYOUTS)
+    const resolvedLayout = await resolveLayout(formatedLayout)
+    const project = await resolveLegacySsgProject(PAGES, opts)
+    const resolvedPages = project.pages
+
+    const errors = project.diagnostics.filter(
+      ({ severity }) => severity === "error",
+    )
+    if (errors.length > 0) {
+      throw new Error(
+        errors.map(({ code, message }) => `[${code}] ${message}`).join("\n"),
+      )
+    }
+
+    await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
+
+    if (buildSession) {
+      await buildSession.artifacts.put({
+        schemaVersion: "1",
+        id: createRenderedPagesArtifactId(),
+        owner: createNodeId("feature", "ssg"),
+        mediaType: "application/vnd.minista.rendered-pages+json",
+        content: JSON.stringify(ssgPages),
+      })
+    }
+
+    const code = getSsgExportCode(ssgPages)
+    await fs.promises.mkdir(ssgDir, { recursive: true })
+    await fs.promises.writeFile(ssgFile, code, "utf8")
+    await fs.promises.mkdir(throughDir, { recursive: true })
+    await fs.promises.writeFile(throughFile, `console.log("")`, "utf8")
+  }
+
+  /** @param {ViteEnvironmentPreparation} preparation */
+  async function prepareAppClient(preparation) {
+    if (!isAppBuild) return
+    await prepareClientPages()
+    environmentInput.apply(preparation.client, { [tempName]: throughFile })
+  }
+
   return {
     name: "vite-plugin:minista-ssg",
     api: {
       minista: {
+        prepareClient: prepareAppClient,
         feature: {
           id: "ssg",
           apiVersion: 1,
@@ -101,13 +155,16 @@ export function pluginSsg(uOpts = {}) {
       },
     },
     enforce: "pre",
-    apply(_, { command, isSsrBuild }) {
+    apply(config, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isSsr || isBuild
+      appEnvironmentNames = getViteAppEnvironmentNames(config)
+      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
+      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
+      isBuild = command === "build" && !isAppBuild && !isSsrBuild
+      return isDev || isAppBuild || isSsr || isBuild
     },
     config: async (config) => {
+      buildSession = getViteBuildSession(config)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")
@@ -119,13 +176,20 @@ export function pluginSsg(uOpts = {}) {
       throughDir = path.resolve(tempDir, "through")
       throughFile = path.resolve(throughDir, `${tempName}.js`)
 
-      if (isDev || isSsr) {
+      if (isDev || isSsr || isAppBuild) {
         const code = getGlobImportCode(opts)
         await fs.promises.mkdir(globDir, { recursive: true })
         await fs.promises.writeFile(globFile, code, "utf8")
       }
-      if (isDev || isBuild) {
+      if (isDev || isBuild || isAppBuild) {
         renderer = await createViteReactRenderer(config)
+      }
+      if (isAppBuild) {
+        return {
+          ssr: {
+            external: mergeSsrExternal(config, ["minista/context"]),
+          },
+        }
       }
       if (isDev) {
         return {
@@ -154,40 +218,7 @@ export function pluginSsg(uOpts = {}) {
         }
       }
       if (isBuild) {
-        const importUrl = pathToFileURL(ssrFile).href
-        const { LAYOUTS = {}, PAGES = {} } = await import(importUrl)
-        const formatedLayout = formatLayout(LAYOUTS)
-        const resolvedLayout = await resolveLayout(formatedLayout)
-        const project = await resolveLegacySsgProject(PAGES, opts)
-        const resolvedPages = project.pages
-
-        const errors = project.diagnostics.filter(
-          ({ severity }) => severity === "error",
-        )
-        if (errors.length > 0) {
-          throw new Error(
-            errors.map(({ code, message }) => `[${code}] ${message}`).join("\n"),
-          )
-        }
-
-        await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
-
-        const session = getViteBuildSession(config)
-        if (session) {
-          await session.artifacts.put({
-            schemaVersion: "1",
-            id: createRenderedPagesArtifactId(),
-            owner: createNodeId("feature", "ssg"),
-            mediaType: "application/vnd.minista.rendered-pages+json",
-            content: JSON.stringify(ssgPages),
-          })
-        }
-
-        const code = getSsgExportCode(ssgPages)
-        await fs.promises.mkdir(ssgDir, { recursive: true })
-        await fs.promises.writeFile(ssgFile, code, "utf8")
-        await fs.promises.mkdir(throughDir, { recursive: true })
-        await fs.promises.writeFile(throughFile, `console.log("")`, "utf8")
+        await prepareClientPages()
 
         return {
           build: {
@@ -195,6 +226,32 @@ export function pluginSsg(uOpts = {}) {
               input: {
                 [tempName]: throughFile,
               },
+            },
+          },
+        }
+      }
+    },
+    configEnvironment(name) {
+      if (!isAppBuild) return
+      if (name === appEnvironmentNames?.renderName) {
+        return {
+          build: {
+            rolldownOptions: {
+              input: { [tempName]: globFile },
+              output: {
+                chunkFileNames: "[name].mjs",
+                entryFileNames: "[name].mjs",
+              },
+            },
+            outDir: ssrDir,
+          },
+        }
+      }
+      if (name === appEnvironmentNames?.clientName) {
+        return {
+          build: {
+            rolldownOptions: {
+              input: { [tempName]: throughFile },
             },
           },
         }
@@ -387,7 +444,9 @@ export function pluginSsg(uOpts = {}) {
       },
     },
     async buildStart() {
-      if (isSsr) return
+      if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
+        return
+      }
       if (!ssgPages.length) return
 
       await Promise.all(
@@ -401,7 +460,9 @@ export function pluginSsg(uOpts = {}) {
       )
     },
     generateBundle(options, bundle) {
-      if (isSsr) return
+      if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
+        return
+      }
 
       for (const [key, item] of Object.entries(bundle)) {
         if (item.name === tempName && item.type === "chunk") {
