@@ -3,6 +3,7 @@
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('../ssg/types').SsgPage} SsgPage */
+/** @typedef {import('../../adapters/vite/environment-preparation.js').ViteEnvironmentPreparation} ViteEnvironmentPreparation */
 
 import fs from "node:fs"
 import path from "node:path"
@@ -16,6 +17,8 @@ import {
   SwcIslandSourceTransformer,
 } from "../../adapters/island/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectIslandReferences,
@@ -64,6 +67,9 @@ export function pluginIsland(uOpts = {}) {
   let isDev = false
   let isSsr = false
   let isBuild = false
+  let isAppBuild = false
+  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
+  let appEnvironmentNames
 
   let base = "/"
   let rootDir = ""
@@ -86,11 +92,90 @@ export function pluginIsland(uOpts = {}) {
   let sourcePlan
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
+  const environmentInput = new ViteEnvironmentInputAdapter()
+
+  async function prepareIslandEntries() {
+    entries = {}
+    sourcePlan = undefined
+    const snippetArtifact = buildSession
+      ? await buildSession.artifacts.get(createIslandSnippetsArtifactId())
+      : undefined
+    if (snippetArtifact) {
+      snippetList = JSON.parse(String(snippetArtifact.content))
+    } else {
+      if (!fs.existsSync(snippetsFile)) return
+      const snippetsFileUrl = pathToFileURL(snippetsFile).href
+      /** @type {{ssrSnippetList: string[]}} */
+      const { ssrSnippetList } = await import(snippetsFileUrl)
+      snippetList = ssrSnippetList
+    }
+    if (!snippetList || snippetList.length === 0) return
+
+    const renderedPages = buildSession
+      ? await buildSession.artifacts.get(createRenderedPagesArtifactId())
+      : undefined
+    if (renderedPages) {
+      ssgPages = JSON.parse(String(renderedPages.content))
+    } else {
+      const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
+      if (!ssgFiles.length) return
+      ssgPages = (
+        await Promise.all(
+          ssgFiles.map(async (file) => {
+            const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
+            const { ssgPages } = await import(ssgFileUrl)
+            return ssgPages
+          }),
+        )
+      ).flat()
+    }
+
+    if (!ssgPages.length) return
+    const references = ssgPages.flatMap((page) =>
+      collectIslandReferences(
+        documents.parse({
+          pageId: createNodeId("page", "legacy-island", page.fileName),
+          html: page.html,
+        }),
+        opts,
+      ),
+    )
+    references.sort(
+      (left, right) =>
+        snippetList.indexOf(left.snippet) - snippetList.indexOf(right.snippet),
+    )
+    sourcePlan = await createIslandSourcePlan(references, opts, entryGenerator)
+    await Promise.all(
+      sourcePlan.snippets.map(async (snippet) => {
+        const fullPath = path.resolve(
+          snippetsDir,
+          `snippet-${snippet.index}.tsx`,
+        )
+        await fs.promises.writeFile(fullPath, snippet.code, "utf8")
+      }),
+    )
+    await Promise.all(
+      sourcePlan.entries.map(async (entry) => {
+        const fileName = `${entry.fileName}.tsx`
+        const fullPath = path.resolve(islandDir, fileName)
+        await fs.promises.writeFile(fullPath, entry.code, "utf8")
+        entries[path.parse(fileName).name] = fullPath
+      }),
+    )
+  }
+
+  /** @param {ViteEnvironmentPreparation} preparation */
+  async function prepareAppClient(preparation) {
+    if (!isAppBuild) return
+    await prepareIslandEntries()
+    environmentInput.merge(preparation.client, entries)
+  }
 
   return {
     name: "vite-plugin:minista-island",
     api: {
       minista: {
+        prepareClient: prepareAppClient,
         feature: {
           id: "island",
           apiVersion: 1,
@@ -101,11 +186,13 @@ export function pluginIsland(uOpts = {}) {
       },
     },
     enforce: "pre",
-    apply(_, { command, isSsrBuild }) {
+    apply(config, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isSsr || isBuild
+      appEnvironmentNames = getViteAppEnvironmentNames(config)
+      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
+      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
+      isBuild = command === "build" && !isAppBuild && !isSsrBuild
+      return isDev || isAppBuild || isSsr || isBuild
     },
     config: async (config) => {
       buildSession = getViteBuildSession(config)
@@ -130,7 +217,7 @@ export function pluginIsland(uOpts = {}) {
           },
         }
       }
-      if (isSsr || isBuild) {
+      if (isSsr || isBuild || isAppBuild) {
         base = getBuildBase(config.base || base)
         islandDir = path.resolve(tempDir, "island/build")
         snippetsDir = path.resolve(tempDir, "island/build/snippets")
@@ -140,78 +227,8 @@ export function pluginIsland(uOpts = {}) {
         await fs.promises.mkdir(islandDir, { recursive: true })
         await fs.promises.mkdir(snippetsDir, { recursive: true })
 
-        if (isSsr) return
-        const session = buildSession
-        const snippetArtifact = session
-          ? await session.artifacts.get(createIslandSnippetsArtifactId())
-          : undefined
-        if (snippetArtifact) {
-          snippetList = JSON.parse(String(snippetArtifact.content))
-        } else {
-          if (!fs.existsSync(snippetsFile)) return
-          const snippetsFileUrl = pathToFileURL(snippetsFile).href
-          /** @type {{ssrSnippetList: string[]}} */
-          const { ssrSnippetList } = await import(snippetsFileUrl)
-          snippetList = ssrSnippetList
-        }
-        if (!snippetList || snippetList.length === 0) return
-
-        const renderedPages = session
-          ? await session.artifacts.get(createRenderedPagesArtifactId())
-          : undefined
-        if (renderedPages) {
-          ssgPages = JSON.parse(String(renderedPages.content))
-        } else {
-          const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-          if (!ssgFiles.length) return
-          ssgPages = (
-            await Promise.all(
-              ssgFiles.map(async (file) => {
-                const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-                const { ssgPages } = await import(ssgFileUrl)
-                return ssgPages
-              }),
-            )
-          ).flat()
-        }
-
-        if (!ssgPages.length) return
-        const references = ssgPages.flatMap((page) =>
-          collectIslandReferences(
-            documents.parse({
-              pageId: createNodeId("page", "legacy-island", page.fileName),
-              html: page.html,
-            }),
-            opts,
-          ),
-        )
-        references.sort(
-          (left, right) =>
-            snippetList.indexOf(left.snippet) -
-            snippetList.indexOf(right.snippet),
-        )
-        sourcePlan = await createIslandSourcePlan(
-          references,
-          opts,
-          entryGenerator,
-        )
-        await Promise.all(
-          sourcePlan.snippets.map(async (snippet) => {
-            const fullPath = path.resolve(
-              snippetsDir,
-              `snippet-${snippet.index}.tsx`,
-            )
-            await fs.promises.writeFile(fullPath, snippet.code, "utf8")
-          }),
-        )
-        await Promise.all(
-          sourcePlan.entries.map(async (entry) => {
-            const fileName = `${entry.fileName}.tsx`
-            const fullPath = path.resolve(islandDir, fileName)
-            await fs.promises.writeFile(fullPath, entry.code, "utf8")
-            entries[path.parse(fileName).name] = fullPath
-          }),
-        )
+        if (isSsr || isAppBuild) return
+        await prepareIslandEntries()
 
         return {
           build: {
@@ -289,7 +306,9 @@ export function pluginIsland(uOpts = {}) {
       }
     },
     generateBundle(_options, bundle) {
-      if (isSsr) return
+      if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
+        return
+      }
 
       const outputChunks = filterOutputChunks(bundle)
       const outputAssets = filterOutputAssets(bundle)
@@ -344,6 +363,12 @@ export function pluginIsland(uOpts = {}) {
     },
     async writeBundle() {
       if (isBuild) return
+      if (
+        isAppBuild &&
+        this.environment.name !== appEnvironmentNames?.renderName
+      ) {
+        return
+      }
 
       snippetList = [...uniqueSnippets]
 

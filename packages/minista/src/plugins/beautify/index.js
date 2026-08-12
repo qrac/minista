@@ -3,6 +3,7 @@
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   composeBeautifyDocument,
@@ -57,6 +58,7 @@ export function pluginBeautify(uOpts = {}) {
       isBuild = command === "build" && !isSsrBuild
       return isBuild
     },
+    applyToEnvironment: isViteAppClientEnvironment,
     generateBundle(options, bundle) {
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)

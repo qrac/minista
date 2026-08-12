@@ -7,6 +7,7 @@ import path from "node:path"
 import pc from "picocolors"
 
 import { NodeArchiveBuilder } from "../../adapters/archive/index.js"
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { getRootDir } from "../../shared/path.js"
 
 /** @type {PluginOptions} */
@@ -46,6 +47,7 @@ export function pluginArchive(uOpts = {}) {
       isBuild = command === "build" && !isSsrBuild
       return isBuild
     },
+    applyToEnvironment: isViteAppClientEnvironment,
     config: (config) => {
       rootDir = getRootDir(cwd, config.root || "")
       builder = new NodeArchiveBuilder(rootDir)

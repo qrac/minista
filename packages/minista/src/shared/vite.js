@@ -4,6 +4,7 @@
 /** @typedef {import('rolldown').OutputBundle} OutputBundle */
 /** @typedef {import('rolldown').OutputAsset} OutputAsset */
 /** @typedef {import('rolldown').OutputChunk} OutputChunk */
+/** @typedef {NonNullable<import('vite').BuildOptions['rolldownOptions']>['external']} RolldownExternal */
 /** @typedef {{ssr?: {external?: SSROptions['external'], noExternal?: SSROptions['noExternal'] | false}, resolve?: UserConfig['resolve']}} ViteConfigLike */
 
 /**
@@ -44,6 +45,30 @@ export function mergeSsrNoExternal(config, modules = []) {
     return Array.from(new Set([...noExternal, ...modules]))
   }
   return /** @type {SSROptions['noExternal']} */ (noExternal)
+}
+
+/**
+ * @param {RolldownExternal} external
+ * @param {string[]} modules
+ * @returns {RolldownExternal}
+ */
+export function mergeRolldownExternal(external, modules = []) {
+  if (typeof external === "function") {
+    return (source, importer, isResolved) =>
+      modules.includes(source) || external(source, importer, isResolved)
+  }
+  const current = external === undefined
+    ? []
+    : Array.isArray(external)
+      ? external
+      : [external]
+  const strings = new Set(
+    current.filter((item) => typeof item === "string"),
+  )
+  return [
+    ...current,
+    ...modules.filter((module) => !strings.has(module)),
+  ]
 }
 
 /**

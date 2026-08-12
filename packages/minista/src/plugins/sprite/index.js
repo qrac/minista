@@ -9,6 +9,7 @@ import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeSpriteBuilder } from "../../adapters/sprite/index.js"
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectSpriteReferences,
@@ -73,6 +74,7 @@ export function pluginSprite(uOpts = {}) {
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
+    applyToEnvironment: isViteAppClientEnvironment,
     async config(config) {
       rootDir = getRootDir(cwd, config.root || "")
       builder = new NodeSpriteBuilder(rootDir, opts.config)

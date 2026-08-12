@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest"
 import {
   createViteAppConfig,
   getViteAppEnvironmentNames,
+  isViteAppClientEnvironment,
 } from "../../../src/adapters/vite/app-config.js"
 
 describe("Vite App Build config", () => {
@@ -64,5 +65,19 @@ describe("Vite App Build config", () => {
 
   test("does not infer App Build from Vite builder options alone", () => {
     expect(getViteAppEnvironmentNames({ builder: {} })).toBeUndefined()
+  })
+
+  test("identifies only the configured App Build client environment", () => {
+    const config = createViteAppConfig({})
+    /** @param {string} name */
+    const environment = (name) => ({
+      name,
+      getTopLevelConfig: () => config,
+    })
+
+    expect(isViteAppClientEnvironment(/** @type {any} */ (environment("client"))))
+      .toBe(true)
+    expect(isViteAppClientEnvironment(/** @type {any} */ (environment("render"))))
+      .toBe(false)
   })
 })

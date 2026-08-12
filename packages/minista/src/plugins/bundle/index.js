@@ -7,6 +7,7 @@ import path from "node:path"
 import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { composeBundleDocument } from "../../features/bundle/index.js"
 import { getGlobImportCode } from "./utils/code.js"
@@ -65,6 +66,7 @@ export function pluginBundle(uOpts = {}) {
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
+    applyToEnvironment: isViteAppClientEnvironment,
     config: async (config) => {
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)

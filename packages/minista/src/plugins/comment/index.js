@@ -3,6 +3,7 @@
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { composeCommentDocument } from "../../features/comment/index.js"
 import { filterOutputAssets } from "../../shared/vite.js"
@@ -45,6 +46,7 @@ export function pluginComment(uOpts = {}) {
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
+    applyToEnvironment: isViteAppClientEnvironment,
     async transformIndexHtml(html, context) {
       return transformCommentHtml(html, context.path)
     },

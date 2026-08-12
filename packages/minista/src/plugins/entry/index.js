@@ -2,6 +2,7 @@
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('../ssg/types.js').SsgPage} SsgPage */
+/** @typedef {import('../../adapters/vite/environment-preparation.js').ViteEnvironmentPreparation} ViteEnvironmentPreparation */
 
 import fs from "node:fs"
 import path from "node:path"
@@ -11,6 +12,8 @@ import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectEntryReferences,
@@ -39,6 +42,9 @@ export function pluginEntry(uOpts = {}) {
   let isDev = false
   let isSsr = false
   let isBuild = false
+  let isAppBuild = false
+  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
+  let appEnvironmentNames
 
   let base = "/"
   let rootDir = ""
@@ -52,80 +58,104 @@ export function pluginEntry(uOpts = {}) {
   let entryIds = new Set()
   /** @type {{[entryId: string]: string}} */
   let entrySources = {}
+  /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
+  let buildSession
+  const environmentInput = new ViteEnvironmentInputAdapter()
+
+  async function prepareEntries() {
+    entries = {}
+    entryIds = new Set()
+    entrySources = {}
+    const renderedPages = buildSession
+      ? await buildSession.artifacts.get(createRenderedPagesArtifactId())
+      : undefined
+    if (renderedPages) {
+      ssgPages = JSON.parse(String(renderedPages.content))
+    } else {
+      const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
+      if (!ssgFiles.length) return
+      ssgPages = (
+        await Promise.all(
+          ssgFiles.map(async (file) => {
+            const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
+            const { ssgPages } = await import(ssgFileUrl)
+            return ssgPages
+          }),
+        )
+      ).flat()
+    }
+
+    /** @type {string[]} */
+    let assetNames = []
+    /** @type {{ [pathId: string]: string }} */
+    const preEntries = {}
+
+    for (const ssgPage of ssgPages) {
+      const document = documents.parse({
+        pageId: createNodeId("page", "legacy-entry-analysis", ssgPage.fileName),
+        html: ssgPage.html,
+      })
+      assetNames.push(
+        ...collectEntryReferences(document).map(({ source }) => source),
+      )
+    }
+    assetNames = [...new Set(assetNames)]
+
+    for (const assetName of assetNames) {
+      const pathId = regScript.test(assetName)
+        ? path.parse(assetName).name
+        : createAssetEntryId(assetName, entryIds)
+      const fullPath = path.resolve(rootDir, assetName)
+      preEntries[pathId] = fullPath
+      entrySources[pathId] = assetName
+    }
+
+    const checks = await Promise.all(
+      Object.entries(preEntries).map(async ([key, value]) => {
+        try {
+          await fs.promises.access(value)
+          return [key, value]
+        } catch {
+          return null
+        }
+      }),
+    )
+    for (const pair of checks) {
+      if (pair) entries[pair[0]] = pair[1]
+    }
+  }
+
+  /** @param {ViteEnvironmentPreparation} preparation */
+  async function prepareAppClient(preparation) {
+    if (!isAppBuild) return
+    await prepareEntries()
+    environmentInput.merge(preparation.client, entries)
+  }
+
   return {
     name: "vite-plugin:minista-entry",
-    api: { minista: { feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
+    api: { minista: { prepareClient: prepareAppClient, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
     enforce: "pre",
-    apply(_, { command, isSsrBuild }) {
+    apply(config, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isBuild
+      appEnvironmentNames = getViteAppEnvironmentNames(config)
+      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
+      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
+      isBuild = command === "build" && !isAppBuild && !isSsrBuild
+      return isBuild || isAppBuild
+    },
+    applyToEnvironment(environment) {
+      return !isAppBuild || environment.name === appEnvironmentNames?.clientName
     },
     config: async (config) => {
       base = getBuildBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       ssgDir = path.resolve(tempDir, "ssg")
+      buildSession = getViteBuildSession(config)
+      if (isAppBuild) return
 
-      const session = getViteBuildSession(config)
-      const renderedPages = session
-        ? await session.artifacts.get(createRenderedPagesArtifactId())
-        : undefined
-      if (renderedPages) {
-        ssgPages = JSON.parse(String(renderedPages.content))
-      } else {
-        const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-        if (!ssgFiles.length) return
-        ssgPages = (
-          await Promise.all(
-            ssgFiles.map(async (file) => {
-              const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-              const { ssgPages } = await import(ssgFileUrl)
-              return ssgPages
-            }),
-          )
-        ).flat()
-      }
-
-      /** @type {string[]} */
-      let assetNames = []
-      /** @type {{ [pathId: string]: string }} */
-      let preEntries = {}
-
-      for (const ssgPage of ssgPages) {
-        const document = documents.parse({
-          pageId: createNodeId("page", "legacy-entry-analysis", ssgPage.fileName),
-          html: ssgPage.html,
-        })
-        assetNames.push(
-          ...collectEntryReferences(document).map(({ source }) => source),
-        )
-      }
-      assetNames = [...new Set(assetNames)]
-
-      for (const assetName of assetNames) {
-        const pathId = regScript.test(assetName)
-          ? path.parse(assetName).name
-          : createAssetEntryId(assetName, entryIds)
-        const fullPath = path.resolve(rootDir, assetName)
-        preEntries[pathId] = fullPath
-        entrySources[pathId] = assetName
-      }
-
-      const checks = await Promise.all(
-        Object.entries(preEntries).map(async ([key, value]) => {
-          try {
-            await fs.promises.access(value)
-            return [key, value]
-          } catch {
-            return null
-          }
-        }),
-      )
-      for (const pair of checks) {
-        if (pair) entries[pair[0]] = pair[1]
-      }
+      await prepareEntries()
 
       return {
         build: {

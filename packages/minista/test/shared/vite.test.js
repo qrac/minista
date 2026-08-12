@@ -2,9 +2,30 @@ import { describe, it, expect } from "vitest"
 
 import {
   mergeSsrExternal,
+  mergeRolldownExternal,
   mergeSsrNoExternal,
   mergeAlias,
 } from "../../src/shared/vite.js"
+
+describe("mergeRolldownExternal", () => {
+  it("adds modules without discarding existing entries", () => {
+    expect(mergeRolldownExternal(["react", /legacy/], ["minista/head", "react"]))
+      .toEqual(["react", /legacy/, "minista/head"])
+  })
+
+  it("composes an external predicate", async () => {
+    const external = mergeRolldownExternal(
+      (source) => source === "react",
+      ["minista/head"],
+    )
+
+    expect(typeof external).toBe("function")
+    if (typeof external !== "function") return
+    expect(await external("react", undefined, false)).toBe(true)
+    expect(await external("minista/head", undefined, false)).toBe(true)
+    expect(await external("other", undefined, false)).toBe(false)
+  })
+})
 
 describe("mergeSsrExternal", () => {
   it("ssr.externalが未定義の場合は渡したモジュールを返す", () => {

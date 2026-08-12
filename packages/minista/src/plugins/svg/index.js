@@ -6,6 +6,7 @@ import {
   NodeHtmlDocumentFactory,
   NodeSvgSourceResolver,
 } from "../../adapters/html/index.js"
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { composeSvgDocument } from "../../features/svg/index.js"
 import { mergeObj } from "../../shared/obj.js"
@@ -58,6 +59,7 @@ export function pluginSvg(uOpts = {}) {
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
+    applyToEnvironment: isViteAppClientEnvironment,
     config: async (config) => {
       rootDir = getRootDir(cwd, config.root || "")
       sources = new NodeSvgSourceResolver(rootDir, opts.config)

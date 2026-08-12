@@ -22,6 +22,12 @@ export function getViteAppEnvironmentNames(config) {
   })
 }
 
+/** @param {Parameters<NonNullable<import("vite").Plugin["applyToEnvironment"]>>[0]} environment */
+export function isViteAppClientEnvironment(environment) {
+  const names = getViteAppEnvironmentNames(environment.getTopLevelConfig())
+  return !names || environment.name === names.clientName
+}
+
 /**
  * @param {EnvironmentOptions | undefined} current
  * @param {"client" | "server"} consumer

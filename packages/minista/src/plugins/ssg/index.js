@@ -24,7 +24,10 @@ import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { transformHtml } from "./utils/html.js"
 import { getHtmlFileName } from "../../shared/filename.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
-import { mergeSsrExternal } from "../../shared/vite.js"
+import {
+  mergeRolldownExternal,
+  mergeSsrExternal,
+} from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
@@ -137,7 +140,7 @@ export function pluginSsg(uOpts = {}) {
   async function prepareAppClient(preparation) {
     if (!isAppBuild) return
     await prepareClientPages()
-    environmentInput.apply(preparation.client, { [tempName]: throughFile })
+    environmentInput.merge(preparation.client, { [tempName]: throughFile })
   }
 
   return {
@@ -187,14 +190,20 @@ export function pluginSsg(uOpts = {}) {
       if (isAppBuild) {
         return {
           ssr: {
-            external: mergeSsrExternal(config, ["minista/context"]),
+            external: mergeSsrExternal(config, [
+              "minista/context",
+              "minista/head",
+            ]),
           },
         }
       }
       if (isDev) {
         return {
           ssr: {
-            external: mergeSsrExternal(config, ["minista/context"]),
+            external: mergeSsrExternal(config, [
+              "minista/context",
+              "minista/head",
+            ]),
           },
         }
       }
@@ -213,7 +222,10 @@ export function pluginSsg(uOpts = {}) {
             outDir: ssrDir,
           },
           ssr: {
-            external: mergeSsrExternal(config, ["minista/context"]),
+            external: mergeSsrExternal(config, [
+              "minista/context",
+              "minista/head",
+            ]),
           },
         }
       }
@@ -231,12 +243,16 @@ export function pluginSsg(uOpts = {}) {
         }
       }
     },
-    configEnvironment(name) {
+    configEnvironment(name, config) {
       if (!isAppBuild) return
       if (name === appEnvironmentNames?.renderName) {
         return {
           build: {
             rolldownOptions: {
+              external: mergeRolldownExternal(
+                config.build?.rolldownOptions?.external,
+                ["minista/context", "minista/head"],
+              ),
               input: { [tempName]: globFile },
               output: {
                 chunkFileNames: "[name].mjs",
