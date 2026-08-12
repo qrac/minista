@@ -29,14 +29,14 @@
 
 ## Stage 1: Core skeletonとJavaScript + JSDoc移行
 
-進捗: diagnostics、graph、lifecycle scheduler/runner、memory ArtifactStore/Emitter、manifest projection、query service、port interfaceとpure unit testのinitial prototypeは完了しました。初期prototypeはTypeScriptですが、runtime entryとtestの `dist/` 依存は撤去済みです。以後はJavaScript + JSDocを標準とし、既存prototypeもfeature接続に合わせて段階移行します。
+進捗: 完了。diagnostics、graph、lifecycle scheduler/runner、memory ArtifactStore/Emitter、manifest projection、query service、port interfaceをJavaScript + JSDocで実装しました。Core、SSG feature、React/Vite adapterのruntime `.ts` は残っておらず、事前buildなしでCLIとunit/integration testを実行できます。
 
 - `core/diagnostics`, `core/graph`, `core/lifecycle`, `core/artifacts` を追加
 - branded ID、ProjectPath、JsonValue、Diagnostic、phase eventを実装
 - graph invariantとphase schedulerのpure unit testを追加
 - `MemoryArtifactStore` とtest用 `MemoryEmitter` を先に作る
 - runtime sourceを直接実行し、JSDocと隣接 `.d.ts` を `tsc --noEmit` で検査する方針を確立
-- 初期TypeScript prototypeをJavaScript + JSDocへ段階移行
+- 初期TypeScript prototypeをJavaScript + JSDocへ移行
 
 この段階では現行pluginのoutputを変更しません。Coreをside-by-sideで構築します。
 
@@ -44,7 +44,7 @@
 
 ## Stage 2: discovery / route / page graph
 
-進捗: route discovery、param parser、PageNode resolution、`getStaticData()` error/missing param diagnostics、ModuleEvaluator portを実装しました。CLIの `check`, `inspect`, `explain` はVite ModuleRunner adapterを通じて実際のpage moduleを評価します。legacy buildの `SsgPage` projectionへの接続は未完了です。
+進捗: 完了。route discovery、param parser、PageNode resolution、`getStaticData()` error/missing param diagnostics、ModuleEvaluator portを実装しました。CLIの `check`, `inspect`, `explain` はVite ModuleRunner adapterを通じて実際のpage moduleを評価します。legacy SSG build/devもcompatibility adapterを通じてRoute/Page Graphから現行renderer用pageへ投影します。
 
 - SSGのglob code generationをroute discovery serviceへ移す
 - route pattern parserとparam validationをpure function化

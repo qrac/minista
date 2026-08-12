@@ -15,11 +15,8 @@ import { glob } from "tinyglobby"
 /** @typedef {{code: string, severity: "error"|"warning"|"info", message: string, hint?: string}} ProjectDiagnostic */
 /** @typedef {{command: ProjectCommand, ok: boolean, data: {summary?: string, relatedNodeIds?: string[], counts?: Record<string, number>}, diagnostics: ProjectDiagnostic[]}} ProjectCommandResult */
 
-// Transitional TypeScript module. Vite's ModuleRunner loads it directly, so
-// development never depends on a generated dist tree. It will be migrated to
-// JavaScript + JSDoc with the rest of the v5 internals.
 const serviceFile = fileURLToPath(
-  new URL("../../adapters/vite/project-service.ts", import.meta.url),
+  new URL("../../adapters/vite/project-service.js", import.meta.url),
 )
 
 const projectCommands = new Set(["check", "inspect", "explain"])

@@ -4,15 +4,21 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true,
+    "allowJs": true,
+    "checkJs": true,
     "noEmit": true,
     "types": ["node", "react", "react-dom"],
     "skipLibCheck": true,
     "noUncheckedIndexedAccess": true
   },
   "include": [
-    "src/core/**/*.ts",
-    "src/features/**/*.ts",
-    "src/adapters/react/**/*.ts",
-    "src/adapters/vite/**/*.ts"
+    "src/core/**/*.js",
+    "src/core/**/*.d.ts",
+    "src/features/**/*.js",
+    "src/features/**/*.d.ts",
+    "src/adapters/react/**/*.js",
+    "src/adapters/react/**/*.d.ts",
+    "src/adapters/vite/**/*.js",
+    "src/adapters/vite/**/*.d.ts"
   ]
 }

@@ -11,9 +11,9 @@ import path from "node:path"
 import { pathToFileURL } from "url"
 import pc from "picocolors"
 
+import { resolveLegacySsgProject } from "../../adapters/vite/legacy-ssg-project.js"
 import { getGlobImportCode, getSsgExportCode } from "./utils/code.js"
 import { formatLayout, resolveLayout } from "./utils/layout.js"
-import { formatPages, resolvePages } from "./utils/page.js"
 import { transformHtml } from "./utils/html.js"
 import { getHtmlFileName } from "../../shared/filename.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
@@ -57,7 +57,7 @@ export function pluginSsg(uOpts = {}) {
 
   /**
    * @param {ResolvedLayout} resolvedLayout
-   * @param {ResolvedPage[]} resolvedPages
+   * @param {readonly ResolvedPage[]} resolvedPages
    */
   function selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages) {
     ssgPages = resolvedPages
@@ -148,8 +148,17 @@ export function pluginSsg(uOpts = {}) {
         const { LAYOUTS = {}, PAGES = {} } = await import(importUrl)
         const formatedLayout = formatLayout(LAYOUTS)
         const resolvedLayout = await resolveLayout(formatedLayout)
-        const formatedPages = formatPages(PAGES, opts)
-        const resolvedPages = await resolvePages(formatedPages)
+        const project = await resolveLegacySsgProject(PAGES, opts)
+        const resolvedPages = project.pages
+
+        const errors = project.diagnostics.filter(
+          ({ severity }) => severity === "error",
+        )
+        if (errors.length > 0) {
+          throw new Error(
+            errors.map(({ code, message }) => `[${code}] ${message}`).join("\n"),
+          )
+        }
 
         selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
 
@@ -198,8 +207,19 @@ export function pluginSsg(uOpts = {}) {
             const { LAYOUTS = {}, PAGES = {} } = await ssr(globFile)
             const formatedLayout = formatLayout(LAYOUTS)
             const resolvedLayout = await resolveLayout(formatedLayout)
-            const formatedPages = formatPages(PAGES, opts)
-            const resolvedPages = await resolvePages(formatedPages)
+            const project = await resolveLegacySsgProject(PAGES, opts)
+            const resolvedPages = project.pages
+
+            const errors = project.diagnostics.filter(
+              ({ severity }) => severity === "error",
+            )
+            if (errors.length > 0) {
+              throw new Error(
+                errors
+                  .map(({ code, message }) => `[${code}] ${message}`)
+                  .join("\n"),
+              )
+            }
             const resolvedPage = resolvedPages.find((page) => page.url === url)
 
             selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)

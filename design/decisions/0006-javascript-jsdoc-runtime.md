@@ -15,7 +15,7 @@ v5の初期Core prototypeはTypeScript sourceとして追加し、package runtim
 - package entry、CLI、testは `src/` を直接参照する
 - `npm test` と通常のCLI実行にcompile stepを要求しない
 - `tsc --noEmit` はsource-level typecheckとして維持する
-- 初期TypeScript prototypeは一括変換せず、feature接続の変更単位でJavaScript + JSDocへ移す
+- 初期TypeScript prototypeをJavaScript + JSDocへ移し、以後のruntime実装も同じ形式で追加する
 
 ## Consequences
 
@@ -32,7 +32,7 @@ v5の初期Core prototypeはTypeScript sourceとして追加し、package runtim
 
 ### 開発時だけTypeScript loaderを必須にする
 
-実行環境とpublish artifactの経路が分かれ、loader固有の挙動を追加で検証する必要があるため採用しません。移行中のprototypeはVite ModuleRunnerまたはVitestが直接扱いますが、最終形にはしません。
+実行環境とpublish artifactの経路が分かれ、loader固有の挙動を追加で検証する必要があるため採用しません。
 
 ## Reconsider when
 

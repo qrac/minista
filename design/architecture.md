@@ -59,7 +59,7 @@ type SsgPage = {
 }
 ```
 
-一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。初期prototypeはTypeScript sourceですが、ADR-0006に従ってJavaScript + JSDocへ移行します。現在は `check` / `inspect` / `explain` がRoute/Page graphを使用し、build pluginはまだ旧 `SsgPage` contractを使用しています。
+一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。Core、SSG feature、React/Vite adapterのruntime実装はJavaScript + JSDocへ移行済みで、型専用の隣接 `.d.ts` とともにsourceから直接実行します。`check` / `inspect` / `explain` に加え、legacy SSG build/devのroute discoveryと `getStaticData()` 解決もRoute/Page Graphを使用します。renderer以降のfeature連携はまだ旧 `SsgPage` contractを使用しています。
 
 各公開pluginは `api.minista.feature` に `id`, `apiVersion`, `options`, `provides`, `requires` を持つmachine-readable metadataを公開し始めています。domain phase schedulerへの接続は未完了です。
 
@@ -96,10 +96,10 @@ packages/minista/src/
 ├─ features/ssg/           # route discoveryとpage resolution
 └─ adapters/
    ├─ react/               # renderToString / prerenderToNodeStream
-   └─ vite/                # project query service
+   └─ vite/                # project query serviceとlegacy SSG projection
 ```
 
-Core用 `tsconfig.core.json` は移行中のTypeScript prototypeを直接型検査します。新規・移行後のruntime sourceはJavaScript + JSDocとし、repository全体の `tsc --noEmit` で検査します。
+Core用 `tsconfig.core.json` はJavaScript + JSDocと隣接 `.d.ts` をstrict modeで直接型検査します。repository全体の `tsc --noEmit` でも同じsourceを検査します。
 
 package entry、CLI、testは `src/` を直接参照します。`prepare`、`prepack`、test前のruntime buildは行わず、編集直後のsourceをそのまま検証できます。
 
