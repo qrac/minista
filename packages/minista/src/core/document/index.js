@@ -1,3 +1,3 @@
 // @ts-check
 
-export {}
+export { MemoryHtmlDocumentStore } from "./memory.js"

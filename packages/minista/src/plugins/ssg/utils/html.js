@@ -99,9 +99,10 @@ export async function renderHtmlDocument(
  * 現行plugin向けにdocumentを一度だけserializeするcompatibility wrapper。
  *
  * @param {{ resolvedLayout: ResolvedLayout, resolvedPage: ResolvedPage }} params
+ * @param {import("../../../core/ports/index.js").StaticRenderer<import("react").ReactNode>} [renderer]
  * @returns {Promise<string>}
  */
-export async function transformHtml(params) {
-  const document = await renderHtmlDocument(params)
+export async function transformHtml(params, renderer) {
+  const document = await renderHtmlDocument(params, renderer)
   return document.serialize()
 }

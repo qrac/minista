@@ -1,5 +1,6 @@
 import type { ArtifactStore, Emitter } from "../artifacts/index.js"
 import type { DiagnosticCollector } from "../diagnostics/index.js"
+import type { HtmlDocumentStore } from "../document/index.js"
 import type { FeatureId, ProjectGraph } from "../graph/index.js"
 import type { Awaitable, BuildPhase, Capability } from "../types.js"
 export interface PhaseTraceEvent {
@@ -11,6 +12,7 @@ export interface PhaseContext {
   readonly phase: BuildPhase
   readonly graph: ProjectGraph
   readonly diagnostics: DiagnosticCollector
+  readonly documents: HtmlDocumentStore
   readonly artifacts: ArtifactStore
   readonly emitter: Emitter
   trace(event: PhaseTraceEvent): void

@@ -5,6 +5,7 @@ import {
   LifecycleRunner,
   MemoryArtifactStore,
   MemoryEmitter,
+  MemoryHtmlDocumentStore,
   ProjectGraph,
   createNodeId,
   scheduleFeatures,
@@ -17,6 +18,7 @@ function createDependencies() {
   const diagnostics = new DiagnosticCollector()
   return {
     diagnostics,
+    documents: new MemoryHtmlDocumentStore(),
     graph: new ProjectGraph(
       {
         id: createNodeId("project", "fixture"),

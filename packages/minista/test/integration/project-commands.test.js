@@ -31,7 +31,7 @@ function run(args) {
 afterAll(async () => {
   await Promise.all(
     [fixtureDir, invalidFixtureDir].flatMap((root) =>
-      [".minista", ".vite"].map((directory) =>
+      [".minista", ".vite", ".vite-temp"].map((directory) =>
         fs.promises.rm(path.resolve(root, "node_modules", directory), {
           recursive: true,
           force: true,

@@ -12,6 +12,7 @@ const binFile = path.resolve(packageDir, "bin/minista.js")
 const distDir = path.resolve(fixtureDir, "dist")
 const tempDir = path.resolve(fixtureDir, "node_modules/.minista")
 const viteCacheDir = path.resolve(fixtureDir, "node_modules/.vite")
+const viteConfigCacheDir = path.resolve(fixtureDir, "node_modules/.vite-temp")
 
 function runBuild() {
   return new Promise((resolve, reject) => {
@@ -38,6 +39,7 @@ async function removeGenerated() {
     fs.promises.rm(distDir, { recursive: true, force: true }),
     fs.promises.rm(tempDir, { recursive: true, force: true }),
     fs.promises.rm(viteCacheDir, { recursive: true, force: true }),
+    fs.promises.rm(viteConfigCacheDir, { recursive: true, force: true }),
   ])
 }
 
@@ -56,6 +58,8 @@ describe.sequential("v4 compatibility build", () => {
     expect(html).toContain('<html lang="en">')
     expect(html).toContain('<body class="fixture" data-search-relative="0">')
     expect(html).toContain("<title>Compatibility fixture</title>")
+    expect(html).toContain("<!-- fixture comment -->")
+    expect(html).not.toContain("data-minista-comment")
     expect(html).toContain("<h1>Compatibility fixture</h1>")
   })
 

@@ -2,12 +2,27 @@
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
 
-import { parse as parseHtml } from "node-html-parser"
-
+import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { createNodeId } from "../../core/graph/index.js"
+import { composeCommentDocument } from "../../features/comment/index.js"
 import { filterOutputAssets } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
+const documents = new NodeHtmlDocumentFactory()
+
+/**
+ * @param {string} html
+ * @param {string} pageIdentity
+ */
+function transformCommentHtml(html, pageIdentity) {
+  const document = documents.parse({
+    pageId: createNodeId("page", "legacy-comment", pageIdentity),
+    html,
+  })
+  const count = composeCommentDocument(document)
+  return count > 0 ? document.serialize() : html
+}
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -16,8 +31,6 @@ const defaultOptions = {}
 export function pluginComment(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = { ...defaultOptions, ...uOpts }
-  const targetAttr = "data-minista-comment"
-
   let isDev = false
   let isSsr = false
   let isBuild = false
@@ -32,18 +45,8 @@ export function pluginComment(uOpts = {}) {
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
-    async transformIndexHtml(html) {
-      let parsedHtml = parseHtml(html)
-
-      const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-      if (!targetEls.length) return html
-
-      for (const el of targetEls) {
-        const text = el.innerText
-        const commentNode = `<!-- ${text} -->`
-        el.replaceWith(commentNode)
-      }
-      return parsedHtml.toString()
+    async transformIndexHtml(html, context) {
+      return transformCommentHtml(html, context.path)
     },
     async generateBundle(options, bundle) {
       const outputAssets = filterOutputAssets(bundle)
@@ -52,17 +55,7 @@ export function pluginComment(uOpts = {}) {
       )
 
       for (const item of htmlItems) {
-        let parsedHtml = parseHtml(String(item.source))
-
-        const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-        if (targetEls.length === 0) continue
-
-        for (const el of targetEls) {
-          const text = el.innerText
-          const commentNode = `<!-- ${text} -->`
-          el.replaceWith(commentNode)
-        }
-        item.source = parsedHtml.toString()
+        item.source = transformCommentHtml(String(item.source), item.fileName)
       }
     },
   }

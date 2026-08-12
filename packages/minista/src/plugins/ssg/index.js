@@ -12,6 +12,7 @@ import { pathToFileURL } from "url"
 import pc from "picocolors"
 
 import { resolveLegacySsgProject } from "../../adapters/vite/legacy-ssg-project.js"
+import { createViteReactRenderer } from "../../adapters/vite/react-renderer.js"
 import { getGlobImportCode, getSsgExportCode } from "./utils/code.js"
 import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { transformHtml } from "./utils/html.js"
@@ -54,6 +55,8 @@ export function pluginSsg(uOpts = {}) {
   let ssgPages = []
   let throughDir = ""
   let throughFile = ""
+  /** @type {import("../../core/ports/index.js").StaticRenderer<import("react").ReactNode> | undefined} */
+  let renderer
 
   /**
    * @param {ResolvedLayout} resolvedLayout
@@ -67,7 +70,7 @@ export function pluginSsg(uOpts = {}) {
         }
         const url = resolvedPage.url
         const fileName = getHtmlFileName(url)
-        const html = await transformHtml({ resolvedLayout, resolvedPage })
+        const html = await transformHtml({ resolvedLayout, resolvedPage }, renderer)
         return {
           url,
           fileName,
@@ -117,6 +120,9 @@ export function pluginSsg(uOpts = {}) {
         const code = getGlobImportCode(opts)
         await fs.promises.mkdir(globDir, { recursive: true })
         await fs.promises.writeFile(globFile, code, "utf8")
+      }
+      if (isDev || isBuild) {
+        renderer = await createViteReactRenderer(config)
       }
       if (isDev) {
         return {
@@ -233,7 +239,7 @@ export function pluginSsg(uOpts = {}) {
             if (resolvedPage) {
               html =
                 ssgPages.find((page) => page.url === resolvedPage.url)?.html ??
-                (await transformHtml({ resolvedLayout, resolvedPage }))
+                (await transformHtml({ resolvedLayout, resolvedPage }, renderer))
               html = await server.transformIndexHtml(originalUrl, html)
               res.statusCode = 200
               res.setHeader("Content-Type", "text/html")

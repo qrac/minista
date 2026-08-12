@@ -42,3 +42,10 @@ export interface HtmlDocumentInput {
 export interface HtmlDocumentFactory {
   parse(input: HtmlDocumentInput): HtmlDocument
 }
+
+export interface HtmlDocumentStore {
+  put(document: HtmlDocument): void
+  get(pageId: PageId): HtmlDocument | undefined
+  list(): readonly HtmlDocument[]
+  clear(): void
+}

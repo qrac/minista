@@ -17,14 +17,14 @@ Coreはframework非依存のasync `StaticRenderer` portのみを知ります。R
 
 Web/edge runtime adapterが必要になった場合は `prerender()` を使用できます。partial prerender / resume APIは初期採用しません。内部名称はrequest-time SSRと区別して `render` / `static renderer` とします。
 
-移行中の現行SSGは `ReactRenderToStringRenderer` adapterを直接importして使用し、render結果を `HtmlDocument` factoryへ渡します。static adapterのbarrelを経由しないため、Preact aliasやReact 18を使うcompatibility経路で `react-dom/static` は読みません。これによりHeadのside effectを含むpage treeを1回だけrenderし、feature compose前のdocumentを共有できます。
+Vite adapterはReact 19で `ReactStaticRenderer` をdefaultとします。Preact aliasを検出した場合は `ReactRenderToStringRenderer` を選択し、React 18で `react-dom/static` を読み込めない場合も同じcompatibility rendererへ戻します。compatibility adapterをstatic adapterのbarrelから分離することで、Preact経路では `react-dom/static` を読みません。どちらの経路もHeadのside effectを含むpage treeを1回だけrenderし、結果を `HtmlDocument` factoryへ渡します。
 
 ## Consequences
 
 - React以外のrendererとstatic APIの変更をCoreから隔離できる
 - rendererはasync contractになる
-- current Head side effectを安全に移行する設計とtestが必要
-- React static APIをv5最初のCore実装のblockerにしない
+- Head side effectとPreact compatibilityを継続してfixtureで保護する必要がある
+- renderer選択はVite adapterに閉じ、CoreはReact versionやaliasを知らない
 
 ## Rejected alternatives
 

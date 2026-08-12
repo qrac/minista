@@ -51,6 +51,7 @@ export class LifecycleRunner {
             phase,
             graph: this.#dependencies.graph,
             diagnostics: this.#dependencies.diagnostics,
+            documents: this.#dependencies.documents,
             artifacts: this.#dependencies.artifacts,
             emitter: this.#dependencies.emitter,
             trace,

@@ -57,7 +57,7 @@
 
 ## Stage 3: rendererとdocument composition
 
-進捗: async `StaticRenderer` port、compatibility用 `ReactRenderToStringRenderer`、React 19 `prerenderToNodeStream()` を使う `ReactStaticRenderer` を追加しました。Suspense、`useId`、画像preload、render error、Head、doctypeのfixtureを実装済みです。legacy SSGはcompatibility renderer adapterを直接importし、Headを含むpage treeを1回だけrenderします。これによりPreact aliasやReact 18の経路で `react-dom/static` を読みません。parser非依存の `HtmlDocument` contractと `node-html-parser` adapterを追加し、markerとgraph node IDをbindしてから1回serializeできるcomposition入口を実装しました。React static rendererのdefault切替と実projectでのPreact matrixは未完了です。
+進捗: 完了。async `StaticRenderer` port、compatibility用 `ReactRenderToStringRenderer`、React 19 `prerenderToNodeStream()` を使う `ReactStaticRenderer` を追加しました。React 19ではstatic rendererをdefaultとし、Preact aliasを検出した場合とReact 18で `react-dom/static` を読み込めない場合はcompatibility rendererへ戻します。Suspense、`useId`、画像preload、render error、Head、doctype、実際のPreact aliasとIsland buildのfixtureを実装済みです。parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを追加し、markerとgraph node IDをbindしてから1回serializeできるcomposition入口を実装しました。
 
 - `StaticRenderer` portを追加し、まずcurrent `renderToString` adapterを移設
 - Head / html / body attributeのcompatibility testを拡充
@@ -76,7 +76,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 
 ## Stage 4: featureを明示phaseへ移す
 
-進捗: 全公開pluginにmachine-readable feature metadata (`id`, `apiVersion`, `options`, `provides`, `requires`) を追加しました。既存Vite hookのfeature phaseへの移設は未完了です。
+進捗: 全公開pluginにmachine-readable feature metadata (`id`, `apiVersion`, `options`, `provides`, `requires`) を追加しました。最初の移行としてCommentのdomain featureと明示的な `compose` hookを追加し、compatibility facadeも同じdocument変換を使用します。Vite build全体をdomain lifecycleへ接続する作業と、その他のfeature移設は未完了です。
 
 移行順はdependencyが少ないものから進めます。
 

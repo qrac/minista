@@ -163,12 +163,12 @@ interface StaticRenderer {
 }
 ```
 
-- Node default candidate: `react-dom/static` の `prerenderToNodeStream()`
+- Node default: `react-dom/static` の `prerenderToNodeStream()`
 - Web/edge adapter candidate: `prerender()`
 - compatibility fallback: current `renderToString()` adapter
 - partial prerender / resume API: experimentalのため初期不採用
 
-Headはrender中のside effectで収集されるため、full document一回renderへの単純置換はできません。`Head` semantics、Suspense、preload、doctypeをintegration testで固定し、二重renderを導入せずにdocument compositionできるadapterが確認されるまでcurrent adapterをfallbackとします。
+Headはrender中のside effectで収集されるため、page treeを二重renderしません。`Head` semantics、Suspense、preload、doctypeはfixtureで固定し、Preact aliasを検出した場合とReact 18でstatic APIを読み込めない場合はcurrent adapterへfallbackします。
 
 ## Rolldown boundary
 
