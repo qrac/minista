@@ -86,9 +86,11 @@ export type SsgPage = {
 
 export type CustomHtmlAttributes = React.HTMLAttributes<HTMLHtmlElement> & {
   class?: string
+  [key: string]: unknown
 }
 export type CustomBodyAttributes = React.HTMLAttributes<HTMLBodyElement> & {
   class?: string
+  [key: string]: unknown
 }
 
 export type HeadData = {

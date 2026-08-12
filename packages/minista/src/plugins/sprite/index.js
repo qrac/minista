@@ -81,6 +81,7 @@ export function pluginSprite(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-sprite",
+    api: { minista: { feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"

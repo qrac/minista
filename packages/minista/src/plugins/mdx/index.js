@@ -25,6 +25,7 @@ export function pluginMdx(uOpts = {}) {
     {
       ...mdxjsRollup(mdxOptions),
       name: "vite-plugin:minista-mdx",
+      api: { minista: { feature: { id: "mdx", apiVersion: 1, options: opts, provides: ["mdx-modules"], requires: [] } } },
       enforce: "pre",
     },
   ]

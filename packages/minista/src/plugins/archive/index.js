@@ -39,6 +39,7 @@ export function pluginArchive(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-archive",
+    api: { minista: { feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["artifacts"] } } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -61,21 +62,22 @@ export function pluginArchive(uOpts = {}) {
           const { srcDir, outName } = archive
           const ignore = archive.ignore || []
           const format = archive.format || "zip"
-          const archOpts = archive.options || { zlib: { level: 9 } }
           const outFile = `${outName}.${format}`
           const archiveFile = path.resolve(archiveDir, outFile)
 
           try {
             await new Promise((resolve, reject) => {
-              const archive =
-                format === "zip"
-                  ? new ZipArchive(archOpts)
-                  : new TarArchive(archOpts)
+              const archiveInstance =
+                archive.format === "tar"
+                  ? new TarArchive(archive.options)
+                  : new ZipArchive(
+                      archive.options || { zlib: { level: 9 } },
+                    )
               const output = fs.createWriteStream(archiveFile)
 
               output.on("error", reject)
-              archive.on("error", reject)
-              archive.on("warning", (err) => {
+              archiveInstance.on("error", reject)
+              archiveInstance.on("warning", (err) => {
                 if (err.code === "ENOENT") {
                   console.warn(pc.yellow(`Archive warning: ${err.message}`))
                 } else {
@@ -84,12 +86,12 @@ export function pluginArchive(uOpts = {}) {
               })
               output.on("close", () => resolve(undefined))
 
-              archive.pipe(output)
-              archive.glob(`${normalizePath(srcDir)}/**/*`, {
+              archiveInstance.pipe(output)
+              archiveInstance.glob(`${normalizePath(srcDir)}/**/*`, {
                 cwd: rootDir,
                 ignore,
               })
-              archive.finalize()
+              archiveInstance.finalize()
             })
 
             const finalPath = path.resolve(dist, outFile)

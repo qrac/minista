@@ -6,10 +6,10 @@
  * @returns {string}
  */
 export function createAssetEntryId(sourcePath, usedIds = new Set()) {
-  const name = sourcePath
+  const name = (sourcePath
     .replace(/\\/g, "/")
     .split("/")
-    .pop()
+    .pop() ?? "")
     .replace(/\.[^.]*$/, "")
     .replace(/[^a-zA-Z0-9_-]+/g, "_")
     .replace(/^_+|_+$/g, "") || "asset"

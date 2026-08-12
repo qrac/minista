@@ -4,9 +4,10 @@
 /** @typedef {import('rolldown').OutputBundle} OutputBundle */
 /** @typedef {import('rolldown').OutputAsset} OutputAsset */
 /** @typedef {import('rolldown').OutputChunk} OutputChunk */
+/** @typedef {{ssr?: {external?: SSROptions['external'], noExternal?: SSROptions['noExternal'] | false}, resolve?: UserConfig['resolve']}} ViteConfigLike */
 
 /**
- * @param {UserConfig} config
+ * @param {ViteConfigLike} config
  * @param {string[]} modules
  * @returns {SSROptions['external']}
  */
@@ -26,7 +27,7 @@ export function mergeSsrExternal(config, modules = []) {
 }
 
 /**
- * @param {UserConfig} config
+ * @param {ViteConfigLike} config
  * @param {string[]} modules
  * @returns {SSROptions['noExternal']}
  */
@@ -42,11 +43,11 @@ export function mergeSsrNoExternal(config, modules = []) {
   if (Array.isArray(noExternal)) {
     return Array.from(new Set([...noExternal, ...modules]))
   }
-  return noExternal
+  return /** @type {SSROptions['noExternal']} */ (noExternal)
 }
 
 /**
- * @param {UserConfig} config
+ * @param {ViteConfigLike} config
  * @param {Alias[]} aliases
  * @returns {Alias[]}
  */

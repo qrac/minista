@@ -1,8 +1,5 @@
-/** @typedef {import('../types').CustomHtmlAttributes} CustomHtmlAttributes */
-/** @typedef {import('../types').CustomBodyAttributes} CustomBodyAttributes */
-
 /**
- * @param {CustomHtmlAttributes | CustomBodyAttributes} attrs
+ * @param {Record<string, unknown>} attrs
  * @returns {string}
  */
 export function headAttrsToStr(attrs) {

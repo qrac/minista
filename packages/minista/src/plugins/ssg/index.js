@@ -82,6 +82,17 @@ export function pluginSsg(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-ssg",
+    api: {
+      minista: {
+        feature: {
+          id: "ssg",
+          apiVersion: 1,
+          options: opts,
+          provides: ["routes", "pages", "html"],
+          requires: [],
+        },
+      },
+    },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"

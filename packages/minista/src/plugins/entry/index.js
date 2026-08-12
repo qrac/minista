@@ -54,6 +54,7 @@ export function pluginEntry(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-entry",
+    api: { minista: { feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"

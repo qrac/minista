@@ -18,7 +18,7 @@ export declare const defineConfig: typeof defineViteConfig
 export declare function pluginSsg(options?: PluginSsgOptions): Plugin
 export declare function pluginBundle(options?: PluginBundleOptions): Plugin
 export declare function pluginEntry(options?: PluginEntryOptions): Plugin
-export declare function pluginMdx(options?: PluginMdxOptions): Plugin
+export declare function pluginMdx(options?: PluginMdxOptions): Plugin[]
 export declare function pluginImage(options?: PluginImageOptions): Plugin
 export declare function pluginSvg(options?: PluginSvgOptions): Plugin
 export declare function pluginSprite(options?: PluginSpriteOptions): Plugin

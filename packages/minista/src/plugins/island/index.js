@@ -78,6 +78,7 @@ export function pluginIsland(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-island",
+    api: { minista: { feature: { id: "island", apiVersion: 1, options: opts, provides: ["island-entries"], requires: ["html"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"

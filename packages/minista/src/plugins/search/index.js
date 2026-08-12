@@ -74,6 +74,7 @@ export function pluginSearch(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-search",
+    api: { minista: { feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"

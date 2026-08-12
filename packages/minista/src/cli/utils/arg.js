@@ -6,7 +6,7 @@ export function findRootArg(args) {
   if (!args.length) {
     return ""
   }
-  const commands = /^(dev|build|optimize|preview)$/
+  const commands = /^(dev|build|optimize|preview|check|inspect|explain)$/
 
   if (!args[0].startsWith("-") && !args[0].match(commands)) {
     return args[0]

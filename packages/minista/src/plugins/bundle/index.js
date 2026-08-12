@@ -53,6 +53,7 @@ export function pluginBundle(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-bundle",
+    api: { minista: { feature: { id: "bundle", apiVersion: 1, options: opts, provides: ["client-bundle"], requires: ["html"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"

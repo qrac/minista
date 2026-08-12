@@ -83,6 +83,7 @@ export function pluginSvg(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-svg",
+    api: { minista: { feature: { id: "svg", apiVersion: 1, options: opts, provides: ["inline-svg"], requires: ["html"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"

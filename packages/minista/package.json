@@ -39,6 +39,9 @@
     "src",
     "types"
   ],
+  "scripts": {
+    "typecheck:core": "tsc -p tsconfig.core.json --noEmit"
+  },
   "license": "MIT",
   "homepage": "https://minista.qranoko.jp",
   "repository": {

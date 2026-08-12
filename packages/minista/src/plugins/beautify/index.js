@@ -43,6 +43,7 @@ export function pluginBeautify(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-beautify",
+    api: { minista: { feature: { id: "beautify", apiVersion: 1, options: opts, provides: ["formatted-output"], requires: ["artifacts"] } } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"

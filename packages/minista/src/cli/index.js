@@ -7,9 +7,22 @@ import {
 } from "./utils/arg.js"
 import { findConfigFile } from "./utils/file.js"
 import { runMinista } from "./utils/command.js"
+import {
+  isProjectCommand,
+  parseProjectCommandArgs,
+  runProjectCommand,
+} from "./utils/project.js"
 
 async function main() {
   let args = process.argv.slice(2)
+
+  if (isProjectCommand(args[0])) {
+    const parsed = parseProjectCommandArgs(args)
+    if (!parsed) return
+    const configFile = findConfigFile(parsed.root)
+    await runProjectCommand(parsed, configFile)
+    return
+  }
 
   const rootArg = findRootArg(args)
   const isOneBuild = checkOneBuildArg(args)

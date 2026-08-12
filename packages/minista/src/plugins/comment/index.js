@@ -24,6 +24,7 @@ export function pluginComment(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-comment",
+    api: { minista: { feature: { id: "comment", apiVersion: 1, options: opts, provides: ["html-comments"], requires: ["html"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"

@@ -2,7 +2,7 @@
 /** @typedef {import('../types').ResolvedImageOptimize} ResolvedImageOptimize */
 
 /**
- * @param {ImageOptimize["breakpoints"]} breakpoints
+ * @param {ImageOptimize["breakpoints"] | undefined} breakpoints
  * @param {number} width
  * @returns {ResolvedImageOptimize["breakpoints"]}
  */

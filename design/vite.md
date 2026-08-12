@@ -2,38 +2,38 @@
 
 最終確認日: 2026-08-12
 
-確認対象: repository lockfile の Vite 8.2.1、および Vite / React 公式資料
+確認対象: repository lockfileのVite 8.2.1、およびVite / React公式資料
 
 ## Boundary rule
 
-Vite は Minista Core ではなく adapter です。
+ViteはMinista Coreではなくadapterです。
 
-Core が要求する port:
+Coreが要求するport:
 
-- `ModuleEvaluator`: user page/layout/static data module を評価する
-- `Bundler`: client / render entry と asset plan を bundle する
-- `DevModuleGraph`: file change と graph node の invalidation を結び付ける
-- `OutputManifest`: logical artifact ID と hashed output URL を対応付ける
-- `HtmlDevTransform`: Vite / third-party plugin の HTML transform が必要な場合に適用する
+- `ModuleEvaluator`: user page/layout/static data moduleを評価する
+- `Bundler`: client / render entryとasset planをbundleする
+- `DevModuleGraph`: file changeとgraph nodeのinvalidationを結び付ける
+- `OutputManifest`: logical artifact IDとhashed output URLを対応付ける
+- `HtmlDevTransform`: Vite / third-party pluginのHTML transformが必要な場合に適用する
 
-Vite adapter だけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvironment`, plugin hook、Rolldown output type を参照します。Core の public schema に Vite module ID、Rollup/Rolldown chunk object、`ResolvedConfig` を保存しません。
+Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvironment`, plugin hook、Rolldown output typeを参照します。Coreのpublic schemaにVite module ID、Rollup/Rolldown chunk object、`ResolvedConfig` を保存しません。
 
-## 2026-08-12 時点の API status
+## 2026-08-12時点のAPI status
 
-| API / 機能 | 公式 status | v5 の扱い |
+| API / 機能 | 公式status | v5の扱い |
 | --- | --- | --- |
-| Vite 8 / Rolldown | stable major。Vite 8 は production bundler を Rolldown に統一 | production adapter の前提。Rollup 固有名称を新 Core API に使わない |
-| Environment API | Release Candidate。major 間の安定を目指すが一部 API は experimental | render/client model に採用。adapter に隔離し version matrix を持つ |
-| `RunnableDevEnvironment.runner.import()` / ModuleRunner | Environment API の modern SSR evaluation path。server module runner factory 自体には experimental 表記あり | default dev evaluation 候補。`isRunnableDevEnvironment` guard を必須にする |
-| App Build (`builder: {}`, `vite build --app`) | Environment API framework API。将来 default 予定 | Minista CLI は programmatic path を所有する |
-| `createBuilder()` | Vite 8.2.1 type declaration で `@experimental` | v5 adapter で採用するが minor version test と fallback を持つ |
-| `buildApp` hook | Vite 8.2.1 type declaration で `@experimental` | orchestration 補助。Core lifecycle 自体を hook semantics に依存させない |
+| Vite 8 / Rolldown | stable major。Vite 8はproduction bundlerをRolldownに統一 | production adapterの前提。Rollup固有名称を新Core APIに使わない |
+| Environment API | Release Candidate。major間の安定を目指すが一部APIはexperimental | render/client modelに採用。adapterに隔離しversion matrixを持つ |
+| `RunnableDevEnvironment.runner.import()` / ModuleRunner | Environment APIのmodern SSR evaluation path。server module runner factory自体にはexperimental表記あり | default dev evaluation候補。`isRunnableDevEnvironment` guardを必須にする |
+| App Build (`builder: {}`, `vite build --app`) | Environment API framework API。将来default予定 | Minista CLIはprogrammatic pathを所有する |
+| `createBuilder()` | Vite 8.2.1 type declarationで `@experimental` | v5 adapterで採用するがminor version testとfallbackを持つ |
+| `buildApp` hook | Vite 8.2.1 type declarationで `@experimental` | orchestration補助。Core lifecycle自体をhook semanticsに依存させない |
 | `builder.sharedConfigBuild`, `sharedPlugins` | experimental | 初期不採用 |
-| `this.environment`, environment module graph, `hotUpdate` | Environment API migration path | adapter 内で採用。state は environment 単位に分離 |
-| `server.ssrLoadModule()` | backward-compatible legacy API。Environment API は runner を replacement と説明 | 新規 code では avoid。migration fallback のみ |
-| top-level `ssr` config | Environment API stable 後に deprecated 予定 | 新 adapter は `environments.render` を使用。public config compatibility の入力だけ変換 |
-| `server.moduleGraph`, `handleHotUpdate`, `server.ws` | client/ssr mixed backward-compatible view | 新規 code では avoid。per-environment graph / hot channel を使う |
-| `experimental.bundledDev` | Vite 8.1 で experimental、8.2.1 type では highly experimental | user opt-in experiment のみ。Core 依存禁止 |
+| `this.environment`, environment module graph, `hotUpdate` | Environment API migration path | adapter内で採用。stateはenvironment単位に分離 |
+| `server.ssrLoadModule()` | backward-compatible legacy API。Environment APIはrunnerをreplacementと説明 | 新規codeではavoid。migration fallbackのみ |
+| top-level `ssr` config | Environment API stable後にdeprecated予定 | 新adapterは `environments.render` を使用。public config compatibilityの入力だけ変換 |
+| `server.moduleGraph`, `handleHotUpdate`, `server.ws` | client/ssr mixed backward-compatible view | 新規codeではavoid。per-environment graph / hot channelを使う |
+| `experimental.bundledDev` | Vite 8.1でexperimental、8.2.1 typeではhighly experimental | user opt-in experimentのみ。Core依存禁止 |
 
 公式資料:
 
@@ -48,16 +48,22 @@ Vite adapter だけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvi
 
 ## Target build
 
+### 移行中のcurrent adapter
+
+Stage 5の最初の変更として、通常の `minista build` はVite CLI processを二回spawnせず、同じNode.js processからViteのprogrammatic `build()` をrender/clientの順に呼ぶ `LegacyViteBuildAdapter` へ移行しました。任意のVite CLI flagを完全にはprogrammatic configへ変換できないため、未対応flagを指定した場合だけ従来のCLI fallbackを使用します。
+
+これは最終構造ではありません。現行pluginはclient environmentのconfig解決時にrender temp moduleを即座にimportするため、App Buildが全environment configを先に解決するとhandoff fileがまだ存在せず失敗します。featureをgraph/artifact inputへ移行した後に、以下の `createBuilder()` lifecycleへ切り替えます。
+
 ### Environments
 
 ```ts
 type MinistaEnvironmentName = "render" | "client"
 ```
 
-- `render`: Node consumer。page/layout/getStaticData と React static renderer を実行する entry を bundle
-- `client`: browser consumer。Island、bundle entry、CSS、generated asset を bundle
+- `render`: Node consumer。page/layout/getStaticDataとReact static rendererを実行するentryをbundle
+- `client`: browser consumer。Island、bundle entry、CSS、generated assetをbundle
 
-公開概念として `ssr` ではなく `render` を使用します。Minista は request-time SSR server を生成しないためです。Vite の backward compatibility field を扱う adapter 内部だけ `ssr` という語が残る場合があります。
+公開概念として `ssr` ではなく `render` を使用します。Ministaはrequest-time SSR serverを生成しないためです。Viteのbackward compatibility fieldを扱うadapter内部だけ `ssr` という語が残る場合があります。
 
 ### One application lifecycle
 
@@ -77,28 +83,28 @@ minista build
   -> one BuildResult
 ```
 
-これは二つの environment bundle を物理的に一つへ結合する設計ではありません。目的は一 process、一 configuration boundary、一 diagnostic collection、一 cleanup policy を持つ Minista build lifecycle にすることです。
+これは二つのenvironment bundleを物理的に一つへ結合する設計ではありません。目的は一process、一configuration boundary、一diagnostic collection、一cleanup policyを持つMinista build lifecycleにすることです。
 
-render environment の build は user module を production 相当の Node runtime で評価するための adapter 準備で、Core の domain `bundle` phase とは区別します。Core の `resolve` はこの evaluator が利用可能になった後に `getStaticData` を実行します。domain `bundle` phase は generate 済み client entry / asset を client environment へ渡す段階です。
+render environmentのbuildはuser moduleをproduction相当のNode runtimeで評価するためのadapter準備で、Coreのdomain `bundle` phaseとは区別します。Coreの `resolve` はこのevaluatorが利用可能になった後に `getStaticData` を実行します。domain `bundle` phaseはgenerate済みclient entry / assetをclient environmentへ渡す段階です。
 
-Vite は environment record 順に build できますが、Minista は render 結果から client entry plan を作るため、adapter が明示的に `builder.build(render)` と `builder.build(client)` を順に呼びます。parallel build は採用しません。
+Viteはenvironment record順にbuildできますが、Ministaはrender結果からclient entry planを作るため、adapterが明示的に `builder.build(render)` と `builder.build(client)` を順に呼びます。parallel buildは採用しません。
 
 ### Inter-environment handoff
 
-初期実装は Vite の experimental shared plugin state に依存しません。
+初期実装はViteのexperimental shared plugin stateに依存しません。
 
-- orchestration state: Minista の `ProjectContext`
-- 大きい/generated data: `ArtifactStore` の buildId namespace
-- client input: 解決時点で graph を読む stable virtual entry
-- bundle result: Vite/Rolldown object から Core `OutputManifest` へ即座に変換
+- orchestration state: Ministaの `ProjectContext`
+- 大きい/generated data: `ArtifactStore` のbuildId namespace
+- client input: 解決時点でgraphを読むstable virtual entry
+- bundle result: Vite/Rolldown objectからCore `OutputManifest` へ即座に変換
 
-`.minista/work/<buildId>` を使う場合も producer / schema / hash がある data artifact に限定し、native import する handoff module や前回 build の glob search は禁止します。render bundle 自体は executable output なので native import しますが、その location は current build result から直接取得し、directory glob で探索しません。
+`.minista/work/<buildId>` を使う場合もproducer / schema / hashがあるdata artifactに限定し、native importするhandoff moduleや前回buildのglob searchは禁止します。render bundle自体はexecutable outputなのでnative importしますが、そのlocationはcurrent build resultから直接取得し、directory globで探索しません。
 
 ### User config compatibility
 
-`defineConfig(({ command, isSsrBuild }) => ...)` を利用する既存 project が存在します。v5 は一移行期間、render environment 解決時に compatibility config env を提供します。ただし新 documentation は environment-aware helper を案内し、`isSsrBuild` 分岐を推奨しません。
+`defineConfig(({ command, isSsrBuild }) => ...)` を利用する既存projectが存在します。v5は一移行期間、render environment解決時にcompatibility config envを提供します。ただし新documentationはenvironment-aware helperを案内し、`isSsrBuild` 分岐を推奨しません。
 
-注意点として、現在 `isBuild` 時だけ Preact alias を設定する例があります。render と client で alias 意図が異なるため、fixture で current behavior を固定し、必要なら `minista.environment === "client"` の typed helper を追加します。
+注意点として、現在 `isBuild` 時だけPreact aliasを設定する例があります。renderとclientでalias意図が異なるため、fixtureでcurrent behaviorを固定し、必要なら `minista.environment === "client"` のtyped helperを追加します。
 
 ## Target dev
 
@@ -113,43 +119,43 @@ HTTP request
   -> response
 ```
 
-- `createServer({ appType: "custom" })` で Minista が middleware order を所有する
-- `server.environments.render` が `RunnableDevEnvironment` であることを guard する
-- `runner.import()` を使用し、build 用 render bundle は作らない
-- module exports は in-process live value として取得する
-- request ごとに全 route を再評価せず、discovery graph と module invalidation を分ける
-- file change は render environment の module graph → RouteNode/PageNode/Artifact edge へ伝播する
-- HTML document が変わる場合は full reload、独立 client module は通常 HMR を優先する
-- error は Vite stacktrace を location に正規化し、Core Diagnostic に変換する
+- `createServer({ appType: "custom" })` でMinistaがmiddleware orderを所有する
+- `server.environments.render` が `RunnableDevEnvironment` であることをguardする
+- `runner.import()` を使用し、build用render bundleは作らない
+- module exportsはin-process live valueとして取得する
+- requestごとに全routeを再評価せず、discovery graphとmodule invalidationを分ける
+- file changeはrender environmentのmodule graph → RouteNode/PageNode/Artifact edgeへ伝播する
+- HTML documentが変わる場合はfull reload、独立client moduleは通常HMRを優先する
+- errorはVite stacktraceをlocationに正規化し、Core Diagnosticに変換する
 
 ## Bundled Dev policy
 
 ### 現時点で採用する部分
 
-- adapter interface に bundled/unbundled を露出しない
-- user の明示 opt-in config を壊さず client environment へ渡す
-- Vite plugin が `isBundled` に依存せず logical virtual entry を解決できるようにする
+- adapter interfaceにbundled/unbundledを露出しない
+- userの明示opt-in configを壊さずclient environmentへ渡す
+- Vite pluginが `isBundled` に依存せずlogical virtual entryを解決できるようにする
 
-### Experimental として試す部分
+### Experimentalとして試す部分
 
-- client environment のみ `experimental.bundledDev: true`
-- Island client entry、CSS injection、virtual module、HMR、third-party React plugin の integration matrix
-- 大規模 fixture で cold start / full reload / HMR latency を測る
+- client environmentのみ `experimental.bundledDev: true`
+- Island client entry、CSS injection、virtual module、HMR、third-party React pluginのintegration matrix
+- 大規模fixtureでcold start / full reload / HMR latencyを測る
 
 ### 安定化待ち
 
-- v5 default の Bundled Dev 化
-- render environment の bundled dev
-- Bundled Dev 固有 API を利用した Core cache / graph semantics
-- third-party plugin compatibility を前提とする最適化
+- v5 defaultのBundled Dev化
+- render environmentのbundled dev
+- Bundled Dev固有APIを利用したCore cache / graph semantics
+- third-party plugin compatibilityを前提とする最適化
 
-Vite 8.1 の公式告知では browser side と basic plugin / main feature が中心で、third-party plugin と minor feature は未対応の可能性が明記されています。このため、minista の多段 HTML / virtual entry feature の default にする根拠はまだありません。
+Vite 8.1の公式告知ではbrowser sideとbasic plugin / main featureが中心で、third-party pluginとminor featureは未対応の可能性が明記されています。このため、ministaの多段HTML / virtual entry featureのdefaultにする根拠はまだありません。
 
 ## React static rendering boundary
 
-現在は `react-dom/server` の同期 `renderToString()` で body markup を作り、mutable `HeadContext` から収集した head を外側で連結しています。
+現在は `react-dom/server` の同期 `renderToString()` でbody markupを作り、mutable `HeadContext` から収集したheadを外側で連結しています。
 
-React 19.2 の公式資料では static API は SSG 用で、`prerender()` は Suspense data の完了を待ちます。一方 Node.js では Web Stream 版より `prerenderToNodeStream()` が推奨されています。したがって target は次です。
+React 19.2の公式資料ではstatic APIはSSG用で、`prerender()` はSuspense dataの完了を待ちます。一方Node.jsではWeb Stream版より `prerenderToNodeStream()` が推奨されています。したがってtargetは次です。
 
 ```ts
 interface StaticRenderer {
@@ -160,22 +166,22 @@ interface StaticRenderer {
 - Node default candidate: `react-dom/static` の `prerenderToNodeStream()`
 - Web/edge adapter candidate: `prerender()`
 - compatibility fallback: current `renderToString()` adapter
-- partial prerender / resume API: experimental のため初期不採用
+- partial prerender / resume API: experimentalのため初期不採用
 
-Head は render 中の side effect で収集されるため、full document 一回 render への単純置換はできません。`Head` semantics、Suspense、preload、doctype を integration test で固定し、二重 render を導入せずに document composition できる adapter が確認されるまで current adapter を fallback とします。
+Headはrender中のside effectで収集されるため、full document一回renderへの単純置換はできません。`Head` semantics、Suspense、preload、doctypeをintegration testで固定し、二重renderを導入せずにdocument compositionできるadapterが確認されるまでcurrent adapterをfallbackとします。
 
 ## Rolldown boundary
 
-- Vite 8 の production output は Rolldown だが、feature は Rolldown `OutputBundle` を直接変更しない
-- adapter が chunk/asset metadata を normalized `OutputManifest` に変換する
-- asset entry は logical ArtifactId で宣言し、file name matching や `originalFileNames` scan は adapter 内に限定
-- `generateBundle` で複数 feature が HTML を順番に変更する current pattern を廃止
-- user の `build.rolldownOptions` は可能な限り透過的に維持し、Minista reserved input/output との衝突を diagnostic にする
+- Vite 8のproduction outputはRolldownだが、featureはRolldown `OutputBundle` を直接変更しない
+- adapterがchunk/asset metadataをnormalized `OutputManifest` に変換する
+- asset entryはlogical ArtifactIdで宣言し、file name matchingや `originalFileNames` scanはadapter内に限定
+- `generateBundle` で複数featureがHTMLを順番に変更するcurrent patternを廃止
+- userの `build.rolldownOptions` は可能な限り透過的に維持し、Minista reserved input/outputとの衝突をdiagnosticにする
 
 ## Version and fallback policy
 
-- Vite peer range の引上げは compatibility suite と同時に行う
-- Environment/App Build adapter は最低・推奨・latest minor で integration test
-- experimental API の shape change は adapter の minor release で吸収
-- fallback は「旧二回 CLI build」全体ではなく、可能な限り `LegacyViteBuildAdapter` として隔離
-- upstream API が stable になった時点で status と再検討日をこの文書に更新する
+- Vite peer rangeの引上げはcompatibility suiteと同時に行う
+- Environment/App Build adapterは最低・推奨・latest minorでintegration test
+- experimental APIのshape changeはadapterのminor releaseで吸収
+- fallbackは「旧二回CLI build」全体ではなく、可能な限り `LegacyViteBuildAdapter` として隔離
+- upstream APIがstableになった時点でstatusと再検討日をこの文書に更新する

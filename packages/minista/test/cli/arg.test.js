@@ -20,6 +20,11 @@ describe("findRootArg", () => {
     expect(findRootArg(["build", "--some-flag"])).toBe("")
     expect(findRootArg([])).toBe("")
   })
+
+  it("v5 project query commandsをrootとして扱わない", () => {
+    expect(findRootArg(["check", "my-site", "--json"])).toBe("my-site")
+    expect(findRootArg(["inspect", "my-site"])).toBe("my-site")
+  })
 })
 
 describe("resolveConfigArg", () => {

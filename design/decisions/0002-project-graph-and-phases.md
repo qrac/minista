@@ -1,44 +1,44 @@
-# ADR-0002: Project Graph と明示的 Build Phase
+# ADR-0002: Project Graphと明示的Build Phase
 
 - Status: Accepted
 - Date: 2026-08-12
 
 ## Context
 
-現行 feature の共有値は主に `{ url, fileName, html }` で、asset / island / image / client entry は HTML を再解析して推測します。feature 間の順序は Vite plugin 配列、`enforce`、hook timing、temp file の存在に埋め込まれています。
+現行featureの共有値は主に `{ url, fileName, html }` で、asset / island / image / client entryはHTMLを再解析して推測します。feature間の順序はVite plugin配列、`enforce`、hook timing、temp fileの存在に埋め込まれています。
 
 ## Decision
 
-versioned Project Graph、Artifact Store、structured Diagnostic を lifecycle の中心にします。phase は `discover`, `resolve`, `render`, `analyze`, `generate`, `bundle`, `compose`, `emit`, `finalize` とします。
+versioned Project Graph、Artifact Store、structured Diagnosticをlifecycleの中心にします。phaseは `discover`, `resolve`, `render`, `analyze`, `generate`, `bundle`, `compose`, `emit`, `finalize` とします。
 
-- graph node は決定的な branded ID を持つ
-- phase ごとに read model と許可された command を限定する
-- feature は capability と dependency を宣言し topological sort する
-- HTML は final output か document representation であり、feature 間の唯一の protocol にしない
-- `.minista/work/<buildId>` は metadata 付き ArtifactStore とし、glob で前回 build の executable file を探さない
-- public manifest は graph の安全な projection とする
+- graph nodeは決定的なbranded IDを持つ
+- phaseごとにread modelと許可されたcommandを限定する
+- featureはcapabilityとdependencyを宣言しtopological sortする
+- HTMLはfinal outputかdocument representationであり、feature間の唯一のprotocolにしない
+- `.minista/work/<buildId>` はmetadata付きArtifactStoreとし、globで前回buildのexecutable fileを探さない
+- public manifestはgraphの安全なprojectionとする
 
 ## Consequences
 
-- route から output artifact まで機械的に追跡できる
-- order cycle、missing capability、artifact conflict を build 前に診断できる
-- model/schema design と migration policy が必要になる
-- HTML parser だけで完結していた小機能も node ownership を意識する必要がある
+- routeからoutput artifactまで機械的に追跡できる
+- order cycle、missing capability、artifact conflictをbuild前に診断できる
+- model/schema designとmigration policyが必要になる
+- HTML parserだけで完結していた小機能もnode ownershipを意識する必要がある
 
 ## Rejected alternatives
 
-### Event bus のみを導入する
+### Event busのみを導入する
 
-producer/consumer の時間的結合は弱まりますが、最終状態と dependency edge を query できず、replay / inspect / explain に不十分です。
+producer/consumerの時間的結合は弱まりますが、最終状態とdependency edgeをqueryできず、replay / inspect / explainに不十分です。
 
-### すべて immutable snapshot として複製する
+### すべてimmutable snapshotとして複製する
 
-安全ですが、page/asset 数が多い project で memory cost が高くなります。外部には readonly view を渡し、内部 command handler が検証付きで更新する方式を採用します。
+安全ですが、page/asset数が多いprojectでmemory costが高くなります。外部にはreadonly viewを渡し、内部command handlerが検証付きで更新する方式を採用します。
 
-### HTML AST を Project Graph 全体として永続化する
+### HTML ASTをProject Graph全体として永続化する
 
-parser implementation と schema が強く結合し、manifest が巨大になります。HTML document は build session 内 artifact とし、public manifest には reference と要約だけを残します。
+parser implementationとschemaが強く結合し、manifestが巨大になります。HTML documentはbuild session内artifactとし、public manifestにはreferenceと要約だけを残します。
 
 ## Reconsider when
 
-phase の間に必須 data dependency が表現できない実例が出た場合、phase 追加より先に既存 phase の input/output または capability model を再検討します。
+phaseの間に必須data dependencyが表現できない実例が出た場合、phase追加より先に既存phaseのinput/outputまたはcapability modelを再検討します。

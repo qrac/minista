@@ -1,12 +1,20 @@
-import type { Format as ArchiverFormat, ArchiverOptions } from "archiver"
+import type { TarOptions, ZipOptions } from "archiver"
 
-export type ArchiveOptions = {
+type ArchiveBaseOptions = {
   srcDir: string
   outName: string
   ignore?: string | string[]
-  format?: ArchiverFormat
-  options?: ArchiverOptions
 }
+
+export type ArchiveOptions =
+  | (ArchiveBaseOptions & {
+      format?: "zip"
+      options?: ZipOptions
+    })
+  | (ArchiveBaseOptions & {
+      format: "tar"
+      options?: TarOptions
+    })
 
 export type PluginOptions = {
   archives: ArchiveOptions[]

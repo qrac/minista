@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "types": ["node", "react", "react-dom"],
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "include": [
+    "src/core/**/*.ts",
+    "src/features/**/*.ts",
+    "src/adapters/react/**/*.ts",
+    "src/adapters/vite/**/*.ts"
+  ]
+}

@@ -1,4 +1,6 @@
 import { spawn } from "cross-spawn"
+import path from "node:path"
+import { build } from "vite"
 
 /**
  * @param {string[]} args
@@ -18,6 +20,84 @@ async function runVite(args) {
   })
 }
 
+const supportedBuildFlags = new Set([
+  "--config",
+  "-c",
+  "--mode",
+  "-m",
+  "--base",
+  "--logLevel",
+  "--clearScreen",
+])
+
+/**
+ * @param {string[]} args
+ * @returns {boolean}
+ */
+export function canRunProgrammaticBuild(args) {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index]
+    if (!arg?.startsWith("-")) continue
+    const [flag] = arg.split("=", 1)
+    if (!supportedBuildFlags.has(flag)) return false
+    if (!arg.includes("=") && flag !== "--clearScreen") index += 1
+  }
+  return true
+}
+
+/**
+ * @param {string[]} args
+ * @param {string} long
+ * @param {string} [short]
+ * @returns {string|undefined}
+ */
+function readOption(args, long, short) {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index]
+    if (arg === long || (short && arg === short)) return args[index + 1]
+    if (arg?.startsWith(`${long}=`)) return arg.slice(long.length + 1)
+    if (short && arg?.startsWith(`${short}=`)) return arg.slice(short.length + 1)
+  }
+}
+
+/**
+ * @param {string[]} args
+ * @returns {string}
+ */
+function readRoot(args) {
+  const buildIndex = args.indexOf("build")
+  const candidate = args[buildIndex + 1]
+  return candidate && !candidate.startsWith("-") ? candidate : ""
+}
+
+/**
+ * @param {string[]} args
+ * @param {boolean} isRender
+ */
+export async function runProgrammaticBuild(args, isRender) {
+  const root = readRoot(args)
+  const configFile = readOption(args, "--config", "-c")
+  const mode = readOption(args, "--mode", "-m")
+  const base = readOption(args, "--base")
+  const logLevel = readOption(args, "--logLevel")
+  const clearScreenValue = readOption(args, "--clearScreen")
+
+  await build({
+    root: root ? path.resolve(process.cwd(), root) : process.cwd(),
+    configFile: configFile ? path.resolve(process.cwd(), configFile) : undefined,
+    mode,
+    base,
+    logLevel: ["info", "warn", "error", "silent"].includes(logLevel || "")
+      ? /** @type {import("vite").LogLevel} */ (logLevel)
+      : undefined,
+    clearScreen:
+      clearScreenValue === undefined
+        ? undefined
+        : clearScreenValue !== "false",
+    build: { ssr: isRender },
+  })
+}
+
 /**
  * @param {string[]} args
  * @param {boolean} [isOneBuild]
@@ -27,6 +107,11 @@ export async function runMinista(args, isOneBuild) {
   const isBuild = args.includes("build")
 
   try {
+    if (isBuild && !isOneBuild && canRunProgrammaticBuild(args)) {
+      await runProgrammaticBuild(args, true)
+      await runProgrammaticBuild(args, false)
+      return
+    }
     if (isBuild && !isOneBuild) {
       await runVite([...args, "--ssr"])
     }
