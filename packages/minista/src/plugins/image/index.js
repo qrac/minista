@@ -7,16 +7,20 @@
 /** @typedef {import('./types').bufferHashMap} bufferHashMap */
 /** @typedef {import('./types').ImageRecipeMap} ImageRecipeMap */
 /** @typedef {import('./types').ImageCache} ImageCache */
-/** @typedef {import('../ssg/types').SsgPage} SsgPage */
 
 import fs from "node:fs"
 import path from "node:path"
-import { fileURLToPath, pathToFileURL } from "node:url"
-import { glob } from "tinyglobby"
+import { fileURLToPath } from "node:url"
 import pc from "picocolors"
 import { normalizePath } from "vite"
 import { parse as parseHtml } from "node-html-parser"
 
+import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { createNodeId } from "../../core/graph/index.js"
+import {
+  applyImageComposition,
+  collectImageReferences,
+} from "../../features/image/index.js"
 import { getRemote } from "./utils/remote.js"
 import { resolveOptimizeOption } from "./utils/option.js"
 import { generateHash } from "./utils/hash.js"
@@ -28,7 +32,6 @@ import { runSharp } from "./utils/sharp.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
-  extractUrls,
   getServeBase,
   getBuildBase,
   getBasedAssetUrl,
@@ -62,6 +65,7 @@ export const defaultOptions = {
   decoding: "async",
   loading: "eager",
 }
+const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -90,9 +94,6 @@ export function pluginImage(uOpts = {}) {
   let base = "/"
   let rootDir = ""
   let tempDir = ""
-  let ssgDir = ""
-  /** @type {SsgPage[]} */
-  let ssgPages = []
   let remoteDir = ""
   let imageDir = ""
   let imageDirStr = ""
@@ -148,18 +149,26 @@ export function pluginImage(uOpts = {}) {
    * @param {string[]} htmlArray
    */
   function selfUpdateUrlIndexMap(htmlArray) {
-    for (const html of htmlArray) {
-      remoteUrls = [
-        ...remoteUrls,
-        ...extractUrls(html, "img", srcAttr, "http"),
-        ...extractUrls(html, "source", srcAttr, "http"),
-      ]
-      imageNames = [
-        ...imageNames,
-        ...extractUrls(html, "img", srcAttr, "/"),
-        ...extractUrls(html, "source", srcAttr, "/"),
-      ]
-    }
+    const references = htmlArray.flatMap((html, index) =>
+      collectImageReferences(
+        documents.parse({
+          pageId: createNodeId("page", "legacy-image-analysis", String(index)),
+          html,
+        }),
+      ),
+    )
+    remoteUrls = [
+      ...remoteUrls,
+      ...references
+        .map(({ source }) => source)
+        .filter((source) => source.startsWith("http")),
+    ]
+    imageNames = [
+      ...imageNames,
+      ...references
+        .map(({ source }) => source)
+        .filter((source) => source.startsWith("/")),
+    ]
     remoteUrls = [...new Set(remoteUrls)].sort()
     imageNames = [...new Set(imageNames), ...remoteUrls]
       .sort()
@@ -289,7 +298,7 @@ export function pluginImage(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-image",
-    api: { minista: { feature: { id: "image", apiVersion: 1, options: opts, provides: ["image-assets"], requires: ["html"] } } },
+    api: { minista: { feature: { id: "image", apiVersion: 1, options: opts, provides: ["image-assets"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -300,7 +309,6 @@ export function pluginImage(uOpts = {}) {
     config: async (config) => {
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
-      ssgDir = path.resolve(tempDir, "ssg")
       remoteDir = path.resolve(tempDir, "remote")
       imageDir = path.resolve(tempDir, "image")
       imageDirStr = normalizePath(path.relative(rootDir, imageDir))
@@ -334,60 +342,6 @@ export function pluginImage(uOpts = {}) {
       }
       if (isBuild) {
         base = getBuildBase(config.base || base)
-
-        if (isSsr) return
-
-        const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-        if (!ssgFiles.length) return
-
-        ssgPages = (
-          await Promise.all(
-            ssgFiles.map(async (file) => {
-              const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-              const { ssgPages } = await import(ssgFileUrl)
-              return ssgPages
-            }),
-          )
-        ).flat()
-
-        if (!ssgPages.length) return
-
-        await selfLoadCache()
-
-        const htmlArray = ssgPages.map((page) => page.html)
-        selfUpdateUrlIndexMap(htmlArray)
-
-        await selfDownloadRemoteImages()
-        await selfUpdateRecipeMap()
-
-        for (const html of htmlArray) {
-          let parsedHtml = parseHtml(html)
-
-          const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-          if (!targetEls.length) continue
-
-          for (const el of targetEls) {
-            const { optimize, recipe, view } = selfGetElData(el)
-            if (!optimize || !recipe || !view) continue
-            const patternMap = getPatternMap(optimize, recipe, view, false)
-
-            for (const [patternHash, pattern] of Object.entries(patternMap)) {
-              recipe.patternMap[patternHash] = pattern
-            }
-          }
-        }
-        await selfCreateImages()
-
-        imageCache = { urlIndexMap, urlNameMap, recipeMap }
-        await selfSaveCache()
-
-        return {
-          build: {
-            rolldownOptions: {
-              input: entries,
-            },
-          },
-        }
       }
     },
     async transformIndexHtml(html) {
@@ -415,17 +369,16 @@ export function pluginImage(uOpts = {}) {
         const attrs = getPatternAttrs(optimize, recipe, view, true)
         const prefixBase = base.replace(/\/$/, "")
 
-        el.setAttribute("srcset", prefixBase + imageAlias + "/" + attrs.src)
-        el.setAttribute("sizes", view.sizes)
-        el.setAttribute("width", view.width.toString())
-        el.setAttribute("height", view.height.toString())
-        el.removeAttribute(targetAttr)
-        el.removeAttribute(srcAttr)
-        el.removeAttribute(optimizeAttr)
-
-        if (tagName === "img") {
-          el.setAttribute("src", prefixBase + imageAlias + "/" + attrs.src)
-        }
+        applyImageComposition(el, {
+          src:
+            tagName === "img"
+              ? prefixBase + imageAlias + "/" + attrs.src
+              : undefined,
+          srcset: prefixBase + imageAlias + "/" + attrs.src,
+          sizes: view.sizes,
+          width: view.width,
+          height: view.height,
+        })
       }
       await selfCreateImages()
 
@@ -452,22 +405,48 @@ export function pluginImage(uOpts = {}) {
 
       return newCode
     },
-    generateBundle(options, bundle) {
+    async generateBundle(options, bundle) {
       if (isSsr) return
       const outputAssets = filterOutputAssets(bundle)
+      const htmlItems = Object.values(outputAssets).filter((item) => {
+        return item.fileName.endsWith(".html")
+      })
+
+      if (isBuild && htmlItems.length > 0) {
+        await selfLoadCache()
+        const htmlArray = htmlItems.map((item) => String(item.source))
+        selfUpdateUrlIndexMap(htmlArray)
+        await selfDownloadRemoteImages()
+        await selfUpdateRecipeMap()
+
+        for (const html of htmlArray) {
+          const parsedHtml = parseHtml(html)
+          for (const el of parsedHtml.querySelectorAll(`[${targetAttr}]`)) {
+            const { optimize, recipe, view } = selfGetElData(el)
+            if (!optimize || !recipe || !view) continue
+            const patternMap = getPatternMap(optimize, recipe, view, false)
+            for (const [patternHash, pattern] of Object.entries(patternMap)) {
+              recipe.patternMap[patternHash] = pattern
+            }
+          }
+        }
+        await selfCreateImages()
+        imageCache = { urlIndexMap, urlNameMap, recipeMap }
+        await selfSaveCache()
+      }
 
       const beforeImages = Object.values(entries).map((item) => {
         return normalizePath(path.relative(rootDir, item))
       })
       for (const before of beforeImages) {
-        const afterImage = Object.values(outputAssets).find((item) => {
-          return item.originalFileNames.some((name) => name === before)
+        const fullPath = path.resolve(rootDir, before)
+        const referenceId = this.emitFile({
+          type: "asset",
+          name: path.basename(fullPath),
+          source: await fs.promises.readFile(fullPath),
         })
-        if (afterImage) entryChangeMap[before] = afterImage.fileName
+        entryChangeMap[before] = this.getFileName(referenceId)
       }
-      const htmlItems = Object.values(outputAssets).filter((item) => {
-        return item.fileName.endsWith(".html")
-      })
 
       for (const item of htmlItems) {
         const htmlName = item.fileName
@@ -489,19 +468,18 @@ export function pluginImage(uOpts = {}) {
               return `${basedAssetUrl} ${size}`
             })
             .join(", ")
-          el.setAttribute("srcset", srcset)
-          el.setAttribute("sizes", view.sizes)
-          el.setAttribute("width", view.width.toString())
-          el.setAttribute("height", view.height.toString())
-          el.removeAttribute(targetAttr)
-          el.removeAttribute(srcAttr)
-          el.removeAttribute(optimizeAttr)
-
+          let src
           if (tagName === "img") {
             const after = entryChangeMap[imageDirStr + "/" + attrs.src]
-            const assetUrl = getBasedAssetUrl(base, htmlName, after)
-            el.setAttribute("src", assetUrl)
+            src = getBasedAssetUrl(base, htmlName, after)
           }
+          applyImageComposition(el, {
+            src,
+            srcset,
+            sizes: view.sizes,
+            width: view.width,
+            height: view.height,
+          })
           item.source = parsedHtml.toString()
         }
       }

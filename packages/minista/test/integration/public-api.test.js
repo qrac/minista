@@ -81,6 +81,7 @@ describe("public API compatibility", () => {
       requires: [],
     })
     expect(plugins[5].api.minista.feature.requires).toEqual(["html-documents"])
+    expect(plugins[1].api.minista.feature.requires).toEqual(["html-documents"])
     expect(plugins[6].api.minista.feature.requires).toEqual(["html-documents"])
     expect(plugins[4].api.minista.feature.requires).toEqual(["html-documents"])
     expect(plugins[7].api.minista.feature.requires).toEqual([
