@@ -9,6 +9,7 @@ import {
   pluginIsland,
   pluginSearch,
   pluginSsg,
+  pluginSprite,
   pluginSvg,
 } from "minista"
 
@@ -18,6 +19,7 @@ export default defineConfig({
     pluginImage({ useCache: false, optimize: { format: "png" } }),
     pluginEntry(),
     pluginIsland(),
+    pluginSprite(),
     pluginSearch(),
     pluginComment(),
     pluginSvg(),

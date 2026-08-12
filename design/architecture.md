@@ -59,7 +59,7 @@ type SsgPage = {
 }
 ```
 
-一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。Core、SSG feature、React/Vite adapterのruntime実装はJavaScript + JSDocへ移行済みで、型専用の隣接 `.d.ts` とともにsourceから直接実行します。`check` / `inspect` / `explain` に加え、legacy SSG build/devのroute discoveryと `getStaticData()` 解決もRoute/Page Graphを使用します。Comment、Svg、Beautify、Archive、Searchのdomain featureは明示phaseへ移行しましたが、Vite build全体はまだ旧 `SsgPage` contractを使用しています。
+一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。Core、SSG feature、React/Vite adapterのruntime実装はJavaScript + JSDocへ移行済みで、型専用の隣接 `.d.ts` とともにsourceから直接実行します。`check` / `inspect` / `explain` に加え、legacy SSG build/devのroute discoveryと `getStaticData()` 解決もRoute/Page Graphを使用します。Comment、Svg、Beautify、Archive、Search、Spriteのdomain featureは明示phaseへ移行しましたが、Vite build全体はまだ旧 `SsgPage` contractを使用しています。
 
 各公開pluginは `api.minista.feature` に `id`, `apiVersion`, `options`, `provides`, `requires` と必要な順序制約を持つmachine-readable metadataを公開し始めています。domain phase schedulerへの接続は未完了です。
 
@@ -93,6 +93,8 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - Searchはanalyzeでpage解析Artifact、generateでSearchData Artifactを作り、composeで相対階層属性を共有documentへ反映する
 - SearchのDOM tree走査は `NodeSearchDocumentAnalyzer` adapterへ閉じ、同じparse treeを再利用する
 - Search compatibility facadeはbuild済みdocumentからJSON assetを直接生成し、SSGのexecutable temp moduleを読まない
+- Spriteはanalyzeで参照Artifact、generateでSVG sprite ArtifactとAssetNodeを作り、composeで確定URLを共有documentへ反映する
+- Spriteのfilesystem読込、SVGO、symbol生成は `NodeSpriteBuilder` adapterへ閉じ、compatibility facadeはbuild済みdocumentからSVG assetを直接emitする
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
 ### Current v5 migration directories
@@ -102,11 +104,12 @@ module-level global variableはほぼ使われていませんが、plugin instan
 ```text
 packages/minista/src/
 ├─ core/                   # graph, lifecycle, diagnostics, artifacts, manifest, query, ports
-├─ features/               # SSGとComment/Svg/Beautify/Archive/Searchのdomain phase
+├─ features/               # SSGとComment/Svg/Beautify/Archive/Search/Spriteのdomain phase
 └─ adapters/
    ├─ archive/             # Node.js archive生成
    ├─ html/                # HtmlDocumentのnode-html-parser実装
    ├─ react/               # renderToString / prerenderToNodeStream
+   ├─ sprite/              # Node.js SVG sprite生成
    └─ vite/                # project query serviceとlegacy SSG projection
 ```
 

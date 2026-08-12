@@ -2,29 +2,31 @@
 /** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
-/** @typedef {import('../ssg/types').SsgPage} SsgPage */
 
 import fs from "node:fs"
 import path from "node:path"
-import { pathToFileURL } from "url"
-import { glob } from "tinyglobby"
 import { normalizePath } from "vite"
-import { parse as parseHtml } from "node-html-parser"
 
-import { generateSprite } from "./utils/sprite.js"
+import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { NodeSpriteBuilder } from "../../adapters/sprite/index.js"
+import { createNodeId } from "../../core/graph/index.js"
+import {
+  collectSpriteReferences,
+  composeSpriteDocument,
+  createSpriteArtifactId,
+} from "../../features/sprite/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
-  extractUrls,
-  getServeBase,
-  getBuildBase,
   getBasedAssetUrl,
+  getBuildBase,
+  getServeBase,
 } from "../../shared/url.js"
-import { mergeAlias, filterOutputAssets } from "../../shared/vite.js"
-import { createAssetEntryId } from "../../shared/asset.js"
+import { filterOutputAssets, mergeAlias } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
+const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -34,54 +36,36 @@ export function pluginSprite(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = mergeObj(defaultOptions, uOpts)
   const cwd = process.cwd()
-  const spriteAlias = `/@__minista-sprite`
-  const targetAttr = "data-minista-sprite"
-  const srcAttr = "data-minista-sprite-src"
-  const symbolIdAttr = "data-minista-sprite-symbol-id"
+  const spriteAlias = "/@__minista-sprite"
 
   let isDev = false
   let isSsr = false
   let isBuild = false
-
   let base = "/"
   let rootDir = ""
-  let tempDir = ""
-  let ssgDir = ""
-  /** @type {SsgPage[]} */
-  let ssgPages = []
   let spriteDir = ""
-  /** @type {string[]} */
-  let assetNames = []
-  /** @type {string[]} */
-  let assetDirNames = []
-  /** @type {{[assetName: string]: string}} */
-  let assetMap = {}
+  /** @type {NodeSpriteBuilder | undefined} */
+  let builder
   /** @type {Set<string>} */
-  let watchDirs = new Set()
-  /** @type {ViteDevServer} */
+  const watchDirectories = new Set()
+  /** @type {ViteDevServer | undefined} */
   let viteServer
-  /** @type {{[assetName: string]: string}} */
-  let spriteMap = {}
-  /** @type {{[pathId: string]: string}} */
-  let entries = {}
-  /** @type {{[before: string]: string}} */
-  let entryChanges = {}
 
-  /**
-   * @param {string[]} htmlArray
-   */
-  function selfUpdateAssetDirNames(htmlArray) {
-    for (const html of htmlArray) {
-      assetNames = [...assetNames, ...extractUrls(html, "use", srcAttr, "/")]
-    }
-    assetNames = [...new Set(assetNames)].map((url) => url.replace(/^\//, ""))
-    assetDirNames = assetNames.map((assetName) => path.dirname(assetName))
-    assetDirNames = [...new Set(assetDirNames)]
+  /** @param {string} sourceDirectory */
+  async function writeDevSprite(sourceDirectory) {
+    if (!builder) return
+    const name = path.basename(sourceDirectory)
+    const sprite = await builder.build(sourceDirectory)
+    await fs.promises.writeFile(
+      path.resolve(spriteDir, `${name}.svg`),
+      sprite,
+      "utf8",
+    )
   }
 
   return {
     name: "vite-plugin:minista-sprite",
-    api: { minista: { feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html"] } } },
+    api: { minista: { feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -89,14 +73,14 @@ export function pluginSprite(uOpts = {}) {
       isBuild = command === "build" && !isSsrBuild
       return isDev || isBuild
     },
-    config: async (config) => {
+    async config(config) {
       rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
-      spriteDir = path.resolve(tempDir, "sprite")
-      await fs.promises.mkdir(spriteDir, { recursive: true })
+      builder = new NodeSpriteBuilder(rootDir, opts.config)
 
       if (isDev) {
         base = getServeBase(config.base || base)
+        spriteDir = path.resolve(getTempDir(cwd, rootDir), "sprite")
+        await fs.promises.mkdir(spriteDir, { recursive: true })
         return {
           resolve: {
             alias: mergeAlias(config, [
@@ -108,163 +92,95 @@ export function pluginSprite(uOpts = {}) {
           },
         }
       }
-      if (isBuild) {
-        base = getBuildBase(config.base || base)
-        ssgDir = path.resolve(tempDir, "ssg")
-
-        const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-        if (!ssgFiles.length) return
-
-        ssgPages = (
-          await Promise.all(
-            ssgFiles.map(async (file) => {
-              const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-              const { ssgPages } = await import(ssgFileUrl)
-              return ssgPages
-            }),
-          )
-        ).flat()
-
-        if (!ssgPages.length) return
-
-        const htmlArray = ssgPages.map((page) => page.html)
-
-        selfUpdateAssetDirNames(htmlArray)
-        if (!assetDirNames.length) return
-
-        for (const assetName of assetNames) {
-          const name = path.basename(path.dirname(assetName))
-          const fullPath = path.resolve(spriteDir, `${name}.svg`)
-          spriteMap[assetName] = normalizePath(path.relative(rootDir, fullPath))
-        }
-
-        await Promise.all(
-          assetDirNames.map(async (assetDirName) => {
-            const targetDir = path.resolve(rootDir, assetDirName)
-            const name = path.basename(targetDir)
-            const fullPath = path.resolve(spriteDir, `${name}.svg`)
-            const sprite = await generateSprite(targetDir, opts.config)
-            await fs.promises.writeFile(fullPath, sprite, "utf8")
-            const pathId = normalizePath(path.relative(rootDir, fullPath))
-            entries[createAssetEntryId(pathId, new Set(Object.keys(entries)))] = fullPath
-          }),
-        )
-        return {
-          build: {
-            rolldownOptions: {
-              input: entries,
-            },
-          },
-        }
-      }
+      if (isBuild) base = getBuildBase(config.base || base)
     },
     configureServer(server) {
       viteServer = server
-
       server.watcher.on("all", async (event, filePath) => {
         if (!filePath.endsWith(".svg")) return
-
-        const triggers = ["add", "change", "unlink"]
-        const targetDir = path.dirname(filePath)
-
-        if (triggers.includes(event) && watchDirs.has(targetDir)) {
-          const name = path.basename(targetDir)
-          const fullPath = path.resolve(spriteDir, `${name}.svg`)
-          const sprite = await generateSprite(targetDir, opts.config)
-          await fs.promises.writeFile(fullPath, sprite, "utf8")
-          server.ws.send({ type: "full-reload" })
-        }
-      })
-    },
-    async transformIndexHtml(html) {
-      selfUpdateAssetDirNames([html])
-      if (!assetDirNames.length) return html
-
-      for (const assetName of assetNames) {
-        const name = path.basename(path.dirname(assetName))
-        const aliasUrl = normalizePath(`${spriteAlias}/${name}.svg`)
-        assetMap[assetName] = aliasUrl
-      }
-
-      await Promise.all(
-        assetDirNames.map(async (assetDirName) => {
-          const watchDir = path.resolve(rootDir, assetDirName)
-          if (!watchDirs.has(watchDir)) {
-            const name = path.basename(assetDirName)
-            const fullPath = path.resolve(spriteDir, `${name}.svg`)
-            const sprite = await generateSprite(watchDir, opts.config)
-            await fs.promises.writeFile(fullPath, sprite, "utf8")
-            watchDirs.add(watchDir)
-            if (viteServer) {
-              viteServer.watcher.add(spriteDir)
-            }
-          }
-        }),
-      )
-
-      let parsedHtml = parseHtml(html)
-      const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-
-      if (!targetEls.length) return html
-
-      for (const el of targetEls) {
-        const assetName = el?.getAttribute(srcAttr)?.replace(/^\//, "") || ""
-        const symbolId =
-          el.getAttribute(symbolIdAttr) || path.parse(assetName).name
-        const assetUrl = assetMap[assetName]
-        const timestamp = Date.now()
-        const prefixBase = base.replace(/\/$/, "")
-        const href = `${prefixBase}${assetUrl}?t=${timestamp}#${symbolId}`
-        el.setAttribute("href", href)
-        el.removeAttribute(targetAttr)
-        el.removeAttribute(srcAttr)
-        el.removeAttribute(symbolIdAttr)
-      }
-      return parsedHtml.toString()
-    },
-    generateBundle(options, bundle) {
-      const outputAssets = filterOutputAssets(bundle)
-      const beforeSet = new Set(Object.values(spriteMap))
-
-      for (const item of Object.values(outputAssets)) {
-        const matches = item.originalFileNames.filter((tag) =>
-          beforeSet.has(tag) ||
-          [...beforeSet].some((before) =>
-            tag.endsWith(`/${before}`) || tag === path.basename(before),
-          ),
+        if (!["add", "change", "unlink"].includes(event)) return
+        const targetDirectory = path.dirname(filePath)
+        if (!watchDirectories.has(targetDirectory)) return
+        await writeDevSprite(
+          normalizePath(path.relative(rootDir, targetDirectory)),
         )
-        if (matches.length > 0) {
-          entryChanges[matches[0]] = item.fileName
+        server.ws.send({ type: "full-reload" })
+      })
+    },
+    async transformIndexHtml(html, context) {
+      if (!builder) return html
+      const document = documents.parse({
+        pageId: createNodeId("page", "legacy-sprite", context.path),
+        html,
+      })
+      const references = collectSpriteReferences(document)
+      if (references.length === 0) return html
+      const sourceDirectories = [
+        ...new Set(references.map(({ sourceDirectory }) => sourceDirectory)),
+      ]
+      for (const sourceDirectory of sourceDirectories) {
+        const watchDirectory = path.resolve(rootDir, sourceDirectory)
+        if (!watchDirectories.has(watchDirectory)) {
+          await writeDevSprite(sourceDirectory)
+          watchDirectories.add(watchDirectory)
+          viteServer?.watcher.add(watchDirectory)
         }
       }
-
-      const htmlItems = Object.values(outputAssets).filter((item) => {
-        return item.fileName.endsWith(".html")
+      const timestamp = Date.now()
+      const prefixBase = base.replace(/\/$/, "")
+      const outputByArtifact = new Map(
+        sourceDirectories.map((sourceDirectory) => [
+          createSpriteArtifactId(sourceDirectory),
+          `${prefixBase}${spriteAlias}/${path.basename(sourceDirectory)}.svg?t=${timestamp}`,
+        ]),
+      )
+      composeSpriteDocument(document, {
+        resolve: (artifactId) => outputByArtifact.get(artifactId),
       })
-
-      for (const item of htmlItems) {
-        const htmlName = item.fileName
-        const html = String(item.source)
-
-        let parsedHtml = parseHtml(html)
-        const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-
-        if (!targetEls.length) continue
-
-        for (const el of targetEls) {
-          const assetName = el?.getAttribute(srcAttr)?.replace(/^\//, "") || ""
-          const symbolId =
-            el.getAttribute(symbolIdAttr) || path.parse(assetName).name
-          const before = spriteMap[assetName]
-          const after = entryChanges[before]
-          const assetUrl = getBasedAssetUrl(base, htmlName, after)
-          const href = `${assetUrl}#${symbolId}`
-          el.setAttribute("href", href)
-          el.removeAttribute(targetAttr)
-          el.removeAttribute(srcAttr)
-          el.removeAttribute(symbolIdAttr)
-        }
-        item.source = parsedHtml.toString()
+      return document.serialize()
+    },
+    async generateBundle(options, bundle) {
+      if (!builder) return
+      const htmlItems = Object.values(filterOutputAssets(bundle)).filter((item) =>
+        item.fileName.endsWith(".html"),
+      )
+      const pages = htmlItems.map((item) => {
+        const document = documents.parse({
+          pageId: createNodeId("page", "legacy-sprite", item.fileName),
+          html: String(item.source),
+        })
+        return { item, document, references: collectSpriteReferences(document) }
+      })
+      const sourceDirectories = [
+        ...new Set(
+          pages.flatMap(({ references }) =>
+            references.map(({ sourceDirectory }) => sourceDirectory),
+          ),
+        ),
+      ].sort()
+      const outputByArtifact = new Map()
+      for (const sourceDirectory of sourceDirectories) {
+        const referenceId = this.emitFile({
+          type: "asset",
+          name: `${path.basename(sourceDirectory)}.svg`,
+          source: await builder.build(sourceDirectory),
+        })
+        outputByArtifact.set(
+          createSpriteArtifactId(sourceDirectory),
+          this.getFileName(referenceId),
+        )
+      }
+      for (const { item, document, references } of pages) {
+        if (references.length === 0) continue
+        composeSpriteDocument(document, {
+          resolve: (artifactId) => {
+            const fileName = outputByArtifact.get(artifactId)
+            return fileName
+              ? getBasedAssetUrl(base, item.fileName, fileName)
+              : undefined
+          },
+        })
+        item.source = document.serialize()
       }
     },
   }

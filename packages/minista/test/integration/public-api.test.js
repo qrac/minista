@@ -58,6 +58,7 @@ describe("public API compatibility", () => {
       pluginSvg(),
       pluginBeautify(),
       pluginArchive(),
+      pluginSprite(),
     ]
 
     expect(
@@ -72,6 +73,7 @@ describe("public API compatibility", () => {
       "svg",
       "beautify",
       "archive",
+      "sprite",
     ])
     expect(plugins[0].api.minista.feature).toMatchObject({
       apiVersion: 1,
@@ -87,5 +89,6 @@ describe("public API compatibility", () => {
     ])
     expect(plugins[8].api.minista.feature.requires).toEqual(["output-files"])
     expect(plugins[8].api.minista.feature.optionalAfter).toEqual(["beautify"])
+    expect(plugins[9].api.minista.feature.requires).toEqual(["html-documents"])
   })
 })

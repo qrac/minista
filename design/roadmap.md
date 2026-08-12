@@ -76,7 +76,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 
 ## Stage 4: featureを明示phaseへ移す
 
-進捗: 全公開pluginにmachine-readable feature metadata (`id`, `apiVersion`, `options`, `provides`, `requires`、必要な場合は `optionalAfter`) を追加しました。CommentとSvgは明示的な `compose` hookへ移し、Beautifyはimage preload除去を `compose`、出力整形を `finalize` へ分離しました。Archiveは `finalize` hookへ移し、Beautifyが存在する場合だけ後続する `optionalAfter` を宣言します。Searchはpage単位の解析を `analyze`、SearchData Artifact生成を `generate`、相対階層属性の反映を `compose` へ分離しました。各compatibility facadeも同じdomain処理を使用します。SvgとSearchのparser固有処理、Archive生成はNode adapterへ分離しました。Search facadeは `.minista/ssg/*.mjs` と一時 `.txt` を使用せず、build済みdocumentから直接JSON assetを生成します。Vite build全体をdomain lifecycleへ接続する作業と、その他のfeature移設は未完了です。
+進捗: 全公開pluginにmachine-readable feature metadata (`id`, `apiVersion`, `options`, `provides`, `requires`、必要な場合は `optionalAfter`) を追加しました。CommentとSvgは明示的な `compose` hookへ移し、Beautifyはimage preload除去を `compose`、出力整形を `finalize` へ分離しました。Archiveは `finalize` hookへ移し、Beautifyが存在する場合だけ後続する `optionalAfter` を宣言します。SearchとSpriteはpage単位の参照解析を `analyze`、SearchData／sprite Artifact生成を `generate`、確定URLや相対階層属性の反映を `compose` へ分離しました。各compatibility facadeも同じdomain処理を使用します。Svg、Search、Spriteのparser／filesystem固有処理とArchive生成はNode adapterへ分離しました。SearchとSpriteのfacadeは `.minista/ssg/*.mjs` や一時asset entryを使用せず、build済みdocumentから成果物を直接emitします。ImageとVite build全体のdomain lifecycle接続、その他のfeature移設は未完了です。
 
 移行順はdependencyが少ないものから進めます。
 

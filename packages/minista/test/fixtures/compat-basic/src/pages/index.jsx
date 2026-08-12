@@ -1,4 +1,4 @@
-import { Comment, Image, Search, Svg } from "minista/assets"
+import { Comment, Image, Search, Sprite, Svg } from "minista/assets"
 import { Head } from "minista/head"
 
 import { Counter } from "../components/counter.jsx"
@@ -15,6 +15,7 @@ export default function Index() {
         <Comment text="fixture comment" />
         <h1>Compatibility fixture</h1>
         <Svg src="/src/assets/pixel.svg" title="Pixel icon" className="icon" />
+        <Sprite src="/src/assets/pixel.svg" title="Pixel sprite" />
         <Image src="/src/assets/pixel.svg" alt="Pixel" width={2} height={2} />
         <Counter initial={2} client:load />
         <Search client:load />

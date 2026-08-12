@@ -65,6 +65,8 @@ describe.sequential("v4 compatibility build", () => {
     expect(html).toContain("<title>Pixel icon</title>")
     expect(html).toContain('<path fill="#123456"')
     expect(html).not.toContain("data-minista-svg")
+    expect(html).toContain('href="/assets/assets.svg#pixel"')
+    expect(html).not.toContain("data-minista-sprite")
     expect(html).not.toMatch(/<body[^>]*>\s*<link rel="preload" as="image"/)
   })
 
@@ -75,6 +77,7 @@ describe.sequential("v4 compatibility build", () => {
 
     expect(files).toContain("assets/pixel-2x2.png")
     expect(files).toContain("assets/search.json")
+    expect(files).toContain("assets/assets.svg")
     expect(files).toContain("assets/site.css")
     expect(files).toContain("scripts/client.js")
     expect(files).toContain("scripts/island-1.js")
