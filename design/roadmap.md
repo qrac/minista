@@ -76,7 +76,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 
 ## Stage 4: featureを明示phaseへ移す
 
-進捗: 全公開pluginにmachine-readable feature metadata (`id`, `apiVersion`, `options`, `provides`, `requires`) を追加しました。最初の移行としてCommentのdomain featureと明示的な `compose` hookを追加し、compatibility facadeも同じdocument変換を使用します。Vite build全体をdomain lifecycleへ接続する作業と、その他のfeature移設は未完了です。
+進捗: 全公開pluginにmachine-readable feature metadata (`id`, `apiVersion`, `options`, `provides`, `requires`) を追加しました。CommentとSvgのdomain featureを明示的な `compose` hookへ移し、compatibility facadeも同じdocument変換を使用します。Svgのfilesystem読込、SVGO、fragment parseはNode adapterへ分離しました。Vite build全体をdomain lifecycleへ接続する作業と、その他のfeature移設は未完了です。
 
 移行順はdependencyが少ないものから進めます。
 

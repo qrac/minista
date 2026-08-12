@@ -2,17 +2,19 @@
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
-import fs from "node:fs"
-import path from "node:path"
-import { parse as parseHtml } from "node-html-parser"
-import { optimize } from "svgo"
-
+import {
+  NodeHtmlDocumentFactory,
+  NodeSvgSourceResolver,
+} from "../../adapters/html/index.js"
+import { createNodeId } from "../../core/graph/index.js"
+import { composeSvgDocument } from "../../features/svg/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir } from "../../shared/path.js"
 import { filterOutputAssets } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
+const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -22,68 +24,33 @@ export function pluginSvg(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = mergeObj(defaultOptions, uOpts)
   const cwd = process.cwd()
-  const targetAttr = "data-minista-svg"
-  const srcAttr = "data-minista-svg-src"
 
   let isDev = false
   let isSsr = false
   let isBuild = false
 
   let rootDir = ""
-  /** @type {{[svgName: string]: string}} */
-  let svgObj = {}
+  /** @type {NodeSvgSourceResolver | undefined} */
+  let sources
 
   /**
    * @param {string} html
+   * @param {string} pageIdentity
    * @returns {Promise<string>}
    */
-  async function selfOptimizeSvgHtml(html) {
-    let parsedHtml = parseHtml(html)
-
-    const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-    if (!targetEls.length) return html
-
-    for (const el of targetEls) {
-      const svgName = el?.getAttribute(srcAttr)?.replace(/^\//, "") ?? ""
-      if (!svgName) continue
-
-      let svgData = svgObj[svgName]
-
-      if (!svgData) {
-        const fullPath = path.resolve(rootDir, svgName)
-        try {
-          const rawSvg = await fs.promises.readFile(fullPath, "utf8")
-          const result = optimize(rawSvg, opts.config)
-          svgData = result.data
-          svgObj[svgName] = svgData
-        } catch {
-          continue
-        }
-      }
-      if (!svgData) continue
-
-      const parsedSvg = parseHtml(svgData).querySelector("svg")
-      if (!parsedSvg) continue
-
-      const viewBox =
-        el.getAttribute("viewBox") ??
-        parsedSvg.getAttribute("viewBox") ??
-        "0 0 0 0"
-
-      el.setAttribute("viewBox", viewBox)
-      el.removeAttribute(targetAttr)
-      el.removeAttribute(srcAttr)
-
-      parsedSvg.childNodes.forEach((child) => {
-        el.appendChild(child)
-      })
-    }
-    return parsedHtml.toString()
+  async function transformSvgHtml(html, pageIdentity) {
+    if (!sources) return html
+    const document = documents.parse({
+      pageId: createNodeId("page", "legacy-svg", pageIdentity),
+      html,
+    })
+    const count = await composeSvgDocument(document, sources)
+    return count > 0 ? document.serialize() : html
   }
 
   return {
     name: "vite-plugin:minista-svg",
-    api: { minista: { feature: { id: "svg", apiVersion: 1, options: opts, provides: ["inline-svg"], requires: ["html"] } } },
+    api: { minista: { feature: { id: "svg", apiVersion: 1, options: opts, provides: ["inline-svg"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -93,9 +60,10 @@ export function pluginSvg(uOpts = {}) {
     },
     config: async (config) => {
       rootDir = getRootDir(cwd, config.root || "")
+      sources = new NodeSvgSourceResolver(rootDir, opts.config)
     },
-    async transformIndexHtml(html) {
-      return await selfOptimizeSvgHtml(html)
+    async transformIndexHtml(html, context) {
+      return transformSvgHtml(html, context.path)
     },
     async generateBundle(options, bundle) {
       const outputAssets = filterOutputAssets(bundle)
@@ -103,7 +71,7 @@ export function pluginSvg(uOpts = {}) {
         item.fileName.endsWith(".html"),
       )
       for (const item of htmlItems) {
-        item.source = await selfOptimizeSvgHtml(String(item.source))
+        item.source = await transformSvgHtml(String(item.source), item.fileName)
       }
     },
   }

@@ -54,15 +54,19 @@ describe("public API compatibility", () => {
       pluginIsland(),
       pluginEntry(),
       pluginSearch(),
+      pluginComment(),
+      pluginSvg(),
     ]
 
     expect(
       plugins.map((plugin) => plugin.api.minista.feature.id),
-    ).toEqual(["ssg", "image", "island", "entry", "search"])
+    ).toEqual(["ssg", "image", "island", "entry", "search", "comment", "svg"])
     expect(plugins[0].api.minista.feature).toMatchObject({
       apiVersion: 1,
-      provides: ["routes", "pages", "html"],
+      provides: ["routes", "pages", "html", "html-documents"],
       requires: [],
     })
+    expect(plugins[5].api.minista.feature.requires).toEqual(["html-documents"])
+    expect(plugins[6].api.minista.feature.requires).toEqual(["html-documents"])
   })
 })

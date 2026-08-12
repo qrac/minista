@@ -7,6 +7,7 @@ import {
   pluginIsland,
   pluginSearch,
   pluginSsg,
+  pluginSvg,
 } from "minista"
 
 export default defineConfig({
@@ -17,6 +18,7 @@ export default defineConfig({
     pluginIsland(),
     pluginSearch(),
     pluginComment(),
+    pluginSvg(),
     react(),
   ],
   build: {

@@ -92,7 +92,7 @@ export function pluginSsg(uOpts = {}) {
           id: "ssg",
           apiVersion: 1,
           options: opts,
-          provides: ["routes", "pages", "html"],
+          provides: ["routes", "pages", "html", "html-documents"],
           requires: [],
         },
       },

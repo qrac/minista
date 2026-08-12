@@ -59,7 +59,7 @@ type SsgPage = {
 }
 ```
 
-一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。Core、SSG feature、React/Vite adapterのruntime実装はJavaScript + JSDocへ移行済みで、型専用の隣接 `.d.ts` とともにsourceから直接実行します。`check` / `inspect` / `explain` に加え、legacy SSG build/devのroute discoveryと `getStaticData()` 解決もRoute/Page Graphを使用します。Commentのdomain featureは `HtmlDocumentStore` を受け取るcompose phaseへ移行しましたが、Vite build全体はまだ旧 `SsgPage` contractを使用しています。
+一方、v5のside-by-side基盤として `ProjectGraph`、branded node ID、RouteNode、PageNode、AssetNode、IslandNode、ImageNode、BuildArtifactは実装済みです。Core、SSG feature、React/Vite adapterのruntime実装はJavaScript + JSDocへ移行済みで、型専用の隣接 `.d.ts` とともにsourceから直接実行します。`check` / `inspect` / `explain` に加え、legacy SSG build/devのroute discoveryと `getStaticData()` 解決もRoute/Page Graphを使用します。CommentとSvgのdomain featureは `HtmlDocumentStore` を受け取るcompose phaseへ移行しましたが、Vite build全体はまだ旧 `SsgPage` contractを使用しています。
 
 各公開pluginは `api.minista.feature` に `id`, `apiVersion`, `options`, `provides`, `requires` を持つmachine-readable metadataを公開し始めています。domain phase schedulerへの接続は未完了です。
 
@@ -86,7 +86,8 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - representative fixture build、project command、Core/feature/adapterのunit testを追加済み
 - legacy SSGはReact 19で `ReactStaticRenderer`、Preact aliasまたはReact 18で `ReactRenderToStringRenderer` を選択し、Headを含むpage treeを1回だけrenderする
 - parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを実装し、markerとgraph node IDをbindできる
-- Commentのdomain featureは明示的なcompose phaseで共有documentを変更し、compatibility facadeも同じ変換を使用する
+- CommentとSvgのdomain featureは明示的なcompose phaseで共有documentを変更し、compatibility facadeも同じ変換を使用する
+- Svgのfilesystem読込、SVGO、fragment parseは `NodeSvgSourceResolver` adapterに閉じている
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
 ### Current v5 migration directories
@@ -96,7 +97,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 ```text
 packages/minista/src/
 ├─ core/                   # graph, lifecycle, diagnostics, artifacts, manifest, query, ports
-├─ features/               # SSGのroute/page解決とCommentのcompose phase
+├─ features/               # SSGのroute/page解決とComment/Svgのcompose phase
 └─ adapters/
    ├─ html/                # HtmlDocumentのnode-html-parser実装
    ├─ react/               # renderToString / prerenderToNodeStream

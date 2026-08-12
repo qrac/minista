@@ -61,6 +61,9 @@ describe.sequential("v4 compatibility build", () => {
     expect(html).toContain("<!-- fixture comment -->")
     expect(html).not.toContain("data-minista-comment")
     expect(html).toContain("<h1>Compatibility fixture</h1>")
+    expect(html).toContain('<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2">')
+    expect(html).toContain("<title>Pixel icon</title><path fill=\"#123456\"")
+    expect(html).not.toContain("data-minista-svg")
   })
 
   test("emits image, entry, island, and search artifacts", async () => {
