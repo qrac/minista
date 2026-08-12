@@ -28,7 +28,13 @@ describe("Vite App Builder adapter", () => {
     )
 
     expect(factory).toHaveBeenCalledWith(
-      { builder: {}, environments: { render: {}, client: {} } },
+      {
+        builder: {},
+        environments: {
+          render: { consumer: "server", build: { ssr: true } },
+          client: { consumer: "client", build: { ssr: false } },
+        },
+      },
       false,
     )
     expect(calls).toEqual(["build:render", "prepare:render", "build:client"])

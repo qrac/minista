@@ -52,7 +52,9 @@ Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvir
 
 Stage 5の最初の変更として、通常の `minista build` はVite CLI processを二回spawnせず、同じNode.js processからBuilder APIをrender/clientの順に呼ぶ `LegacyViteBuilderAdapter` へ移行しました。このadapterは各buildで `createBuilder(config, true)` が作るbackward-compatible environmentを明示的にbuildします。任意のVite CLI flagを完全にはprogrammatic configへ変換できないため、未対応flagを指定した場合だけ従来のCLI fallbackを使用します。
 
-これは最終構造ではありません。EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。また、一つの `createBuilder(config, false)` が持つrender/client environmentを `render → prepareClient → client` の順でbuildする `ViteAppBuilderAdapter` とunit testを追加しました。一方、App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを初回config解決へ直接渡せません。現行Vite pluginのenvironment別configと `prepareClient` へのplan接続を実装してから、以下の単一 `createBuilder()` lifecycleへdefaultを切り替えます。
+これは最終構造ではありません。EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。また、一つの `createBuilder(config, false)` が持つrender/client environmentを `render → prepareClient → client` の順でbuildする `ViteAppBuilderAdapter` を追加しました。`createViteAppConfig()` はrenderをserver consumerかつSSR build、clientをclient consumerかつnon-SSR buildとして構成します。`ViteEnvironmentInputAdapter` は `prepareClient` 時に解決済みRolldown optionを保ったままinputを差し替えます。このlate inputが実際のVite 8.2.1 client buildに反映されることはintegration testで確認済みです。
+
+一方、App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。現行Vite pluginをenvironment名に基づくconfigとlate preparationへ分離し、`prepareClient` からinput adapterへplanを接続してから、以下の単一 `createBuilder()` lifecycleへdefaultを切り替えます。
 
 ### Environments
 
