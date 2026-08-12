@@ -1,34 +1,19 @@
 /** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import ('node-html-parser').HTMLElement} HTMLElement */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
-/** @typedef {import('./types').UrlIndexMap} UrlIndexMap */
-/** @typedef {import('./types').UrlNameMap} UrlNameMap */
-/** @typedef {import('./types').bufferHashMap} bufferHashMap */
-/** @typedef {import('./types').ImageRecipeMap} ImageRecipeMap */
-/** @typedef {import('./types').ImageCache} ImageCache */
 
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import pc from "picocolors"
 import { normalizePath } from "vite"
-import { parse as parseHtml } from "node-html-parser"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
+import { NodeImageGenerator } from "../../adapters/image/index.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
-  applyImageComposition,
   collectImageReferences,
+  composeImageDocument,
 } from "../../features/image/index.js"
-import { getRemote } from "./utils/remote.js"
-import { resolveOptimizeOption } from "./utils/option.js"
-import { generateHash } from "./utils/hash.js"
-import { getSize } from "./utils/size.js"
-import { getRatio } from "./utils/ratio.js"
-import { getView } from "./utils/view.js"
-import { getPatternMap, getPatternAttrs } from "./utils/pattern.js"
-import { runSharp } from "./utils/sharp.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
@@ -65,7 +50,15 @@ export const defaultOptions = {
   decoding: "async",
   loading: "eager",
 }
+
 const documents = new NodeHtmlDocumentFactory()
+
+/**
+ * @param {string} value
+ */
+function trimEndSlash(value) {
+  return value.replace(/\/$/, "")
+}
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -74,15 +67,9 @@ const documents = new NodeHtmlDocumentFactory()
 export function pluginImage(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = mergeObj(defaultOptions, uOpts)
-  const { useCache } = opts
   const cwd = process.cwd()
-  const imageAlias = `/@__minista-image`
-  const targetAttr = "data-minista-image"
-  const srcAttr = "data-minista-image-src"
-  const optimizeAttr = "data-minista-image-optimize"
-  const cpImagePath = normalizePath(
-    path.resolve(__dirname, "components/image.js"),
-  )
+  const imageAlias = "/@__minista-image"
+  const cpImagePath = normalizePath(path.resolve(__dirname, "components/image.js"))
   const cpPicturePath = normalizePath(
     path.resolve(__dirname, "components/picture.js"),
   )
@@ -90,215 +77,24 @@ export function pluginImage(uOpts = {}) {
   let isDev = false
   let isSsr = false
   let isBuild = false
-
   let base = "/"
-  let rootDir = ""
-  let tempDir = ""
-  let remoteDir = ""
   let imageDir = ""
-  let imageDirStr = ""
-  let imageCacheFile = ""
-  /** @type {ImageCache} */
-  let imageCache = {
-    urlIndexMap: {},
-    urlNameMap: {},
-    recipeMap: {},
-  }
-  /** @type {string[]} */
-  let remoteUrls = []
-  /** @type {string[]} */
-  let imageNames = []
-  let urlIndex = 0
-  /** @type {UrlIndexMap} */
-  let urlIndexMap = {}
-  /** @type {UrlNameMap} */
-  let urlNameMap = {}
-  /** @type {bufferHashMap} */
-  let bufferHashMaps = {}
-  /** @type {ImageRecipeMap} */
-  let recipeMap = {}
-  /** @type {{[pathId: string]: string}} */
-  let entries = {}
-  /** @type {{[before: string]: string}} */
-  let entryChangeMap = {}
-
-  async function selfLoadCache() {
-    if (useCache && fs.existsSync(imageCacheFile)) {
-      imageCache = JSON.parse(
-        await fs.promises.readFile(imageCacheFile, "utf8"),
-      )
-    }
-    if (useCache) {
-      const indexes = Object.values(imageCache.urlIndexMap) || []
-      urlIndex = indexes.length ? Math.max(...indexes) : 0
-      urlIndexMap = { ...imageCache.urlIndexMap }
-      urlNameMap = { ...imageCache.urlNameMap }
-      recipeMap = { ...imageCache.recipeMap }
-    }
-  }
-
-  async function selfSaveCache() {
-    await fs.promises.writeFile(
-      imageCacheFile,
-      JSON.stringify(imageCache, null, 2),
-      "utf8",
-    )
-  }
-
-  /**
-   * @param {string[]} htmlArray
-   */
-  function selfUpdateUrlIndexMap(htmlArray) {
-    const references = htmlArray.flatMap((html, index) =>
-      collectImageReferences(
-        documents.parse({
-          pageId: createNodeId("page", "legacy-image-analysis", String(index)),
-          html,
-        }),
-      ),
-    )
-    remoteUrls = [
-      ...remoteUrls,
-      ...references
-        .map(({ source }) => source)
-        .filter((source) => source.startsWith("http")),
-    ]
-    imageNames = [
-      ...imageNames,
-      ...references
-        .map(({ source }) => source)
-        .filter((source) => source.startsWith("/")),
-    ]
-    remoteUrls = [...new Set(remoteUrls)].sort()
-    imageNames = [...new Set(imageNames), ...remoteUrls]
-      .sort()
-      .map((url) => url.replace(/^\//, ""))
-
-    for (const remoteUrl of remoteUrls) {
-      if (!urlIndexMap[remoteUrl]) {
-        urlIndex = urlIndex + 1
-        urlIndexMap[remoteUrl] = urlIndex
-      }
-    }
-  }
-
-  async function selfDownloadRemoteImages() {
-    await Promise.all(
-      Object.entries(urlIndexMap).map(async ([remoteUrl, index]) => {
-        if (useCache && imageCache.urlIndexMap[remoteUrl]) return
-
-        console.log(pc.gray(`[download] ${remoteUrl}`))
-        const remoteItem = await getRemote(remoteUrl, "__r", index)
-
-        if (!remoteItem) return
-
-        const { fileName, data } = remoteItem
-        const fullPath = path.resolve(remoteDir, fileName)
-        await fs.promises.writeFile(fullPath, data, "utf8")
-
-        urlNameMap[remoteUrl] = normalizePath(path.relative(rootDir, fullPath))
-      }),
-    )
-  }
-
-  async function selfUpdateRecipeMap() {
-    await Promise.all(
-      imageNames.map(async (imageName) => {
-        if (imageName.startsWith("http")) {
-          imageName = urlNameMap[imageName]
-        }
-        if (!imageName) return
-
-        const fullPath = path.resolve(rootDir, imageName)
-        if (!fs.existsSync(fullPath)) return
-
-        const buffer = await fs.promises.readFile(fullPath)
-        const bufferHash = generateHash(buffer)
-        bufferHashMaps[imageName] = bufferHash
-
-        if (Object.hasOwn(recipeMap, bufferHash)) {
-          recipeMap[bufferHash].fileName = imageName
-          return
-        }
-        const { width, height } = await getSize(fullPath)
-
-        recipeMap[bufferHash] = {
-          fileName: imageName,
-          width,
-          height,
-          ratioWidth: getRatio(width, height),
-          ratioHeight: getRatio(height, width),
-          patternMap: {},
-          usedPatternMap: {
-            ...(recipeMap[bufferHash]?.usedPatternMap || {}),
-          },
-        }
-      }),
-    )
-  }
-
-  /**
-   * @param {HTMLElement} el
-   */
-  function selfGetElData(el) {
-    const tagName = el.tagName.toLowerCase()
-    const isTarget = ["img", "source"].includes(tagName)
-
-    let imageName = el.getAttribute(srcAttr)?.replace(/^\//, "")
-
-    if (!isTarget || !imageName) return {}
-
-    if (imageName.startsWith("http")) {
-      imageName = urlNameMap[imageName]
-    }
-    const bufferHash = bufferHashMaps[imageName]
-    const recipe = recipeMap[bufferHash]
-    const sizes = el.getAttribute("sizes") || ""
-    const width = el.getAttribute("width") || ""
-    const height = el.getAttribute("height") || ""
-    const elAttrs = { sizes, width, height }
-    const elOptimize = el.getAttribute(optimizeAttr) || "{}"
-    const parsedOptimize = JSON.parse(elOptimize)
-    const optimize = resolveOptimizeOption(parsedOptimize, recipe)
-    const view = getView(optimize, recipe, elAttrs)
-    return { tagName, optimize, recipe, view }
-  }
-
-  async function selfCreateImages() {
-    await Promise.all(
-      Object.values(recipeMap).map(async (recipe) => {
-        await Promise.all(
-          Object.entries(recipe.patternMap).map(
-            async ([patternHash, pattern]) => {
-              const inFullPath = path.resolve(rootDir, recipe.fileName)
-              const outFullPath = path.resolve(imageDir, pattern.fileName)
-              const outDir = path.dirname(outFullPath)
-              const pathId = path.relative(rootDir, outFullPath)
-
-              if (Object.hasOwn(recipe.usedPatternMap, patternHash)) {
-                if (isBuild) entries[pathId] = outFullPath
-                delete recipe.patternMap[patternHash]
-                return
-              }
-              console.log(pc.gray(`[generate] ${normalizePath(pathId)}`))
-
-              const buffer = await runSharp(inFullPath, pattern)
-              await fs.promises.mkdir(outDir, { recursive: true })
-              await fs.promises.writeFile(outFullPath, buffer, "utf8")
-
-              if (isBuild) entries[pathId] = outFullPath
-              recipe.usedPatternMap[patternHash] = pattern
-              delete recipe.patternMap[patternHash]
-            },
-          ),
-        )
-      }),
-    )
-  }
+  /** @type {NodeImageGenerator | undefined} */
+  let generator
 
   return {
     name: "vite-plugin:minista-image",
-    api: { minista: { feature: { id: "image", apiVersion: 1, options: opts, provides: ["image-assets"], requires: ["html-documents"] } } },
+    api: {
+      minista: {
+        feature: {
+          id: "image",
+          apiVersion: 1,
+          options: opts,
+          provides: ["image-assets"],
+          requires: ["html-documents"],
+        },
+      },
+    },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -306,15 +102,11 @@ export function pluginImage(uOpts = {}) {
       isBuild = command === "build" && !isSsrBuild
       return isDev || isSsr || isBuild
     },
-    config: async (config) => {
-      rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
-      remoteDir = path.resolve(tempDir, "remote")
+    async config(config) {
+      const rootDir = getRootDir(cwd, config.root || "")
+      const tempDir = getTempDir(cwd, rootDir)
       imageDir = path.resolve(tempDir, "image")
-      imageDirStr = normalizePath(path.relative(rootDir, imageDir))
-      imageCacheFile = path.resolve(imageDir, "cache.json")
-
-      await fs.promises.mkdir(remoteDir, { recursive: true })
+      generator = new NodeImageGenerator(rootDir, imageDir, isDev)
       await fs.promises.mkdir(imageDir, { recursive: true })
 
       if (isDev) {
@@ -340,148 +132,84 @@ export function pluginImage(uOpts = {}) {
           },
         }
       }
-      if (isBuild) {
-        base = getBuildBase(config.base || base)
-      }
+      if (isBuild) base = getBuildBase(config.base || base)
     },
-    async transformIndexHtml(html) {
-      await selfLoadCache()
+    async transformIndexHtml(html, context) {
+      if (!generator) return html
+      const pageId = createNodeId(
+        "page",
+        "legacy-image-dev",
+        context?.path || "/",
+      )
+      const document = documents.parse({ pageId, html })
+      const references = collectImageReferences(document)
+      if (references.length === 0) return html
+      const generated = await generator.generate(references, opts)
 
-      const htmlArray = [html]
-      selfUpdateUrlIndexMap(htmlArray)
-
-      await selfDownloadRemoteImages()
-      await selfUpdateRecipeMap()
-
-      let parsedHtml = parseHtml(html)
-
-      const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-      if (!targetEls.length) return html
-
-      for (const el of targetEls) {
-        const { tagName, optimize, recipe, view } = selfGetElData(el)
-        if (!optimize || !recipe || !view) continue
-        const patternMap = getPatternMap(optimize, recipe, view, true)
-
-        for (const [patternHash, pattern] of Object.entries(patternMap)) {
-          recipe.patternMap[patternHash] = pattern
-        }
-        const attrs = getPatternAttrs(optimize, recipe, view, true)
-        const prefixBase = base.replace(/\/$/, "")
-
-        applyImageComposition(el, {
-          src:
-            tagName === "img"
-              ? prefixBase + imageAlias + "/" + attrs.src
-              : undefined,
-          srcset: prefixBase + imageAlias + "/" + attrs.src,
-          sizes: view.sizes,
-          width: view.width,
-          height: view.height,
-        })
+      /** @type {Map<string, string>} */
+      const outputUrls = new Map()
+      for (const artifact of generated.artifacts) {
+        const outputFile = path.resolve(imageDir, artifact.fileName)
+        await fs.promises.mkdir(path.dirname(outputFile), { recursive: true })
+        await fs.promises.writeFile(outputFile, artifact.content)
+        outputUrls.set(
+          artifact.id,
+          `${trimEndSlash(base)}${imageAlias}/${normalizePath(artifact.fileName)}`,
+        )
       }
-      await selfCreateImages()
-
-      imageCache = { urlIndexMap, urlNameMap, recipeMap }
-      await selfSaveCache()
-
-      return parsedHtml.toString()
+      composeImageDocument(document, generated.plans, {
+        resolve: (artifactId) => outputUrls.get(artifactId),
+      })
+      return document.serialize()
     },
     transform(code, id) {
-      if (isBuild) return
-      if (![cpImagePath, cpPicturePath].includes(id)) return
-
-      let newCode = code
+      if (isBuild || ![cpImagePath, cpPicturePath].includes(id)) return
 
       const { decoding, loading, optimize } = opts
-      const regDecoding = /(const defaultDecoding = )"async"/
-      const regLoading = /(const defaultLoading = )"eager"/
-      const regOptimize = /(const defaultOptimize = )\{\}/
-      const optimizeStr = "JSON.parse(`" + JSON.stringify(optimize) + "`)"
-
-      newCode = newCode.replace(regDecoding, `$1"${decoding}"`)
-      newCode = newCode.replace(regLoading, `$1"${loading}"`)
-      newCode = newCode.replace(regOptimize, `$1${optimizeStr}`)
-
-      return newCode
+      const optimizeStr = `JSON.parse(\`${JSON.stringify(optimize)}\`)`
+      return code
+        .replace(/(const defaultDecoding = )"async"/, `$1"${decoding}"`)
+        .replace(/(const defaultLoading = )"eager"/, `$1"${loading}"`)
+        .replace(/(const defaultOptimize = )\{\}/, `$1${optimizeStr}`)
     },
-    async generateBundle(options, bundle) {
-      if (isSsr) return
-      const outputAssets = filterOutputAssets(bundle)
-      const htmlItems = Object.values(outputAssets).filter((item) => {
-        return item.fileName.endsWith(".html")
-      })
+    async generateBundle(_options, bundle) {
+      if (isSsr || !generator) return
+      const htmlItems = Object.values(filterOutputAssets(bundle)).filter(
+        (item) => item.fileName.endsWith(".html"),
+      )
+      const pages = htmlItems.map((item) => ({
+        item,
+        document: documents.parse({
+          pageId: createNodeId("page", "legacy-image-build", item.fileName),
+          html: String(item.source),
+        }),
+      }))
+      const references = pages.flatMap(({ document }) =>
+        collectImageReferences(document),
+      )
+      if (references.length === 0) return
+      const generated = await generator.generate(references, opts)
 
-      if (isBuild && htmlItems.length > 0) {
-        await selfLoadCache()
-        const htmlArray = htmlItems.map((item) => String(item.source))
-        selfUpdateUrlIndexMap(htmlArray)
-        await selfDownloadRemoteImages()
-        await selfUpdateRecipeMap()
-
-        for (const html of htmlArray) {
-          const parsedHtml = parseHtml(html)
-          for (const el of parsedHtml.querySelectorAll(`[${targetAttr}]`)) {
-            const { optimize, recipe, view } = selfGetElData(el)
-            if (!optimize || !recipe || !view) continue
-            const patternMap = getPatternMap(optimize, recipe, view, false)
-            for (const [patternHash, pattern] of Object.entries(patternMap)) {
-              recipe.patternMap[patternHash] = pattern
-            }
-          }
-        }
-        await selfCreateImages()
-        imageCache = { urlIndexMap, urlNameMap, recipeMap }
-        await selfSaveCache()
-      }
-
-      const beforeImages = Object.values(entries).map((item) => {
-        return normalizePath(path.relative(rootDir, item))
-      })
-      for (const before of beforeImages) {
-        const fullPath = path.resolve(rootDir, before)
+      /** @type {Map<string, string>} */
+      const outputFiles = new Map()
+      for (const artifact of generated.artifacts) {
         const referenceId = this.emitFile({
           type: "asset",
-          name: path.basename(fullPath),
-          source: await fs.promises.readFile(fullPath),
+          name: path.basename(artifact.fileName),
+          source: artifact.content,
         })
-        entryChangeMap[before] = this.getFileName(referenceId)
+        outputFiles.set(artifact.id, this.getFileName(referenceId))
       }
-
-      for (const item of htmlItems) {
-        const htmlName = item.fileName
-        const html = String(item.source)
-
-        let parsedHtml = parseHtml(html)
-        const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-
-        if (!targetEls.length) continue
-
-        for (const el of targetEls) {
-          const { tagName, optimize, recipe, view } = selfGetElData(el)
-          if (!optimize || !recipe || !view) continue
-          const attrs = getPatternAttrs(optimize, recipe, view, false)
-          const srcset = Object.entries(attrs.srcset)
-            .map(([size, before]) => {
-              const after = entryChangeMap[imageDirStr + "/" + before]
-              const basedAssetUrl = getBasedAssetUrl(base, htmlName, after)
-              return `${basedAssetUrl} ${size}`
-            })
-            .join(", ")
-          let src
-          if (tagName === "img") {
-            const after = entryChangeMap[imageDirStr + "/" + attrs.src]
-            src = getBasedAssetUrl(base, htmlName, after)
-          }
-          applyImageComposition(el, {
-            src,
-            srcset,
-            sizes: view.sizes,
-            width: view.width,
-            height: view.height,
-          })
-          item.source = parsedHtml.toString()
-        }
+      for (const { item, document } of pages) {
+        composeImageDocument(document, generated.plans, {
+          resolve: (artifactId) => {
+            const outputFile = outputFiles.get(artifactId)
+            return outputFile
+              ? getBasedAssetUrl(base, item.fileName, outputFile)
+              : undefined
+          },
+        })
+        item.source = document.serialize()
       }
     },
   }

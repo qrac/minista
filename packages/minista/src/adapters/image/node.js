@@ -2,8 +2,10 @@
 
 import fs from "node:fs"
 import path from "node:path"
+import { randomUUID } from "node:crypto"
 
 import { createNodeId } from "../../core/graph/index.js"
+import { generateHash } from "../../plugins/image/utils/hash.js"
 import { getPatternAttrs, getPatternMap } from "../../plugins/image/utils/pattern.js"
 import { getRatio } from "../../plugins/image/utils/ratio.js"
 import { getRemote } from "../../plugins/image/utils/remote.js"
@@ -28,14 +30,17 @@ function mediaType(format) {
 export class NodeImageGenerator {
   #rootDir
   #cacheDir
+  #resizeOnly
 
   /**
    * @param {string} rootDir
    * @param {string} cacheDir
+   * @param {boolean} [resizeOnly]
    */
-  constructor(rootDir, cacheDir) {
+  constructor(rootDir, cacheDir, resizeOnly = false) {
     this.#rootDir = rootDir
     this.#cacheDir = cacheDir
+    this.#resizeOnly = resizeOnly
   }
 
   /**
@@ -44,6 +49,19 @@ export class NodeImageGenerator {
    */
   async generate(references, options) {
     await fs.promises.mkdir(this.#cacheDir, { recursive: true })
+    const cacheManifestFile = path.resolve(this.#cacheDir, "cache.json")
+    /** @type {{ version: 1, artifacts: Record<string, string> }} */
+    let cacheManifest = { version: 1, artifacts: {} }
+    if (options.useCache && fs.existsSync(cacheManifestFile)) {
+      try {
+        const parsed = JSON.parse(
+          await fs.promises.readFile(cacheManifestFile, "utf8"),
+        )
+        if (parsed?.version === 1 && parsed.artifacts) cacheManifest = parsed
+      } catch {
+        // An unreadable or legacy cache is treated as empty.
+      }
+    }
     const remoteSources = [
       ...new Set(
         references
@@ -72,8 +90,11 @@ export class NodeImageGenerator {
 
     /** @type {Map<string, ImageRecipe>} */
     const recipes = new Map()
+    /** @type {Map<string, string>} */
+    const sourceHashes = new Map()
     for (const [source, fileName] of sourceFiles) {
       if (!fs.existsSync(fileName)) continue
+      sourceHashes.set(source, generateHash(await fs.promises.readFile(fileName)))
       const { width, height } = await getSize(fileName)
       recipes.set(source, {
         fileName: source.startsWith("http")
@@ -105,15 +126,32 @@ export class NodeImageGenerator {
         recipe,
       )
       const view = getView(optimize, recipe, reference)
-      const patternMap = getPatternMap(optimize, recipe, view, false)
-      const attrs = getPatternAttrs(optimize, recipe, view, false)
+      const patternMap = getPatternMap(
+        optimize,
+        recipe,
+        view,
+        this.#resizeOnly,
+      )
+      const attrs = getPatternAttrs(
+        optimize,
+        recipe,
+        view,
+        this.#resizeOnly,
+      )
 
       for (const pattern of Object.values(patternMap)) {
         const id = createNodeId("artifact", `image/${pattern.fileName}`)
         if (artifacts.has(id)) continue
         const cacheFile = path.resolve(this.#cacheDir, pattern.fileName)
+        const cacheKey = generateHash(
+          `${sourceHashes.get(reference.source)}:${JSON.stringify(pattern)}`,
+        )
         let content
-        if (options.useCache && fs.existsSync(cacheFile)) {
+        if (
+          options.useCache &&
+          cacheManifest.artifacts[pattern.fileName] === cacheKey &&
+          fs.existsSync(cacheFile)
+        ) {
           content = await fs.promises.readFile(cacheFile)
         } else {
           content = await runSharp(inputFile, /** @type {ImagePattern} */ (pattern))
@@ -121,6 +159,9 @@ export class NodeImageGenerator {
             await fs.promises.mkdir(path.dirname(cacheFile), { recursive: true })
             await fs.promises.writeFile(cacheFile, content)
           }
+        }
+        if (options.useCache) {
+          cacheManifest.artifacts[pattern.fileName] = cacheKey
         }
         artifacts.set(
           id,
@@ -157,6 +198,16 @@ export class NodeImageGenerator {
           height: view.height,
         }),
       )
+    }
+
+    if (options.useCache) {
+      const pendingFile = `${cacheManifestFile}.${process.pid}.${randomUUID()}.tmp`
+      await fs.promises.writeFile(
+        pendingFile,
+        JSON.stringify(cacheManifest, null, 2),
+        "utf8",
+      )
+      await fs.promises.rename(pendingFile, cacheManifestFile)
     }
 
     return Object.freeze({

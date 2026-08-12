@@ -20,6 +20,8 @@ versioned Project Graph、Artifact Store、structured Diagnosticをlifecycleの�
 - emit後のfinalizeはEmitterの明示的な `replace()` と追加 `emit()` だけで出力を変更する
 - public manifestはgraphの安全なprojectionとする
 
+compatibility facadeを段階移行する間も、参照解析、成果物生成、document反映は同じdomain contractとadapterを使用します。Imageではdev／buildを一つの `ImageGenerator` portへ接続し、facade closureにrecipe、remote index、出力entryのmutable mapを保持しません。cache invalidationはsource contentと生成patternのhashをadapterが管理します。
+
 ## Consequences
 
 - routeからoutput artifactまで機械的に追跡できる

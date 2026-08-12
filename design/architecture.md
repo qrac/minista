@@ -1,8 +1,8 @@
 # Architecture
 
-最終確認日: 2026-08-12
+最終確認日: 2026-08-13
 
-> この文書は移行期間中です。「Current」は現在の `v5` branch (`4e06452`) に実装されているv4由来構造、「Target」はv5で採用するが未実装の構造です。移行完了後はTargetをCurrentに統合し、未実装事項を `roadmap.md` のみに残します。
+> この文書は移行期間中です。「Current」は現在の `v5` branchに実装されている事実、「Target」はv5で採用するが未実装の構造です。移行完了後はTargetをCurrentに統合し、未実装事項を `roadmap.md` のみに残します。
 
 ## Current: 現在実装されている構造
 
@@ -43,7 +43,7 @@ App Buildも検証しましたが、Viteは全environmentのconfigをbuild前に
 
 `pluginSsg()` がVite middlewareを登録し、requestごとに `server.ssrLoadModule(globFile)` で全page/layout moduleを評価します。その後にrouteと一致するpageを `renderToString()` し、`server.transformIndexHtml()` へ渡します。
 
-Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置換し、開発用sourceやassetを `.minista` に生成します。IslandとSearchは `virtual:ssg-pages` を `ssrLoadModule()` して、SSG pluginのclosure内にあるHTML配列を取得します。
+Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置換し、開発用sourceやassetを `.minista` に生成します。Imageはdomainの参照収集とdocument composeを使い、Node adapterが生成した画像assetだけを `.minista` に保存します。Islandは `virtual:ssg-pages` を `ssrLoadModule()` して、SSG pluginのclosure内にあるHTML配列を取得します。
 
 `pluginSsg()` のHMRは既に `this.environment`, environment module graph, `hotUpdate` を一部使用しますが、module evaluationは旧 `ssrLoadModule()`、reloadは多くの場合full reloadです。
 
@@ -68,7 +68,7 @@ type SsgPage = {
 | Producer / consumer | 実際のcontract | 問題 |
 | --- | --- | --- |
 | CLI → SSG | 二回のVite processと `--ssr` | 一つのlifecycleとして失敗・cleanupを扱えない |
-| SSG → Entry/Image/Island/Search/Sprite | `.minista/ssg/*.mjs` の `ssgPages` | 型なし、実行可能temp file、前回buildの残存を区別できない |
+| SSG → Entry/Island | `.minista/ssg/*.mjs` の `ssgPages` | 型なし、実行可能temp file、前回buildの残存を区別できない |
 | Page → feature | HTML marker attributeと文字列snippet | source identityとdependencyが失われる |
 | Island SSR → client build | encoded JSX snippet fileとHTML内のencoded snippet | 置換衝突、順序、生成sourceに依存する |
 | Vite output → feature | `generateBundle` でoutput bundleを探索・直接変更 | 複数pluginが同じHTMLを順番に再parseする |
@@ -96,8 +96,8 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - Spriteはanalyzeで参照Artifact、generateでSVG sprite ArtifactとAssetNodeを作り、composeで確定URLを共有documentへ反映する
 - Spriteのfilesystem読込、SVGO、symbol生成は `NodeSpriteBuilder` adapterへ閉じ、compatibility facadeはbuild済みdocumentからSVG assetを直接emitする
 - Imageはanalyzeでmarker参照Artifact、generateで画像Artifact・plan・ImageNode、composeで `src` / `srcset` / sizeを共有documentへ反映する
-- Image compatibility facadeはdomainの参照収集と属性反映を再利用し、build済みdocumentから画像assetを直接emitしてSSGのexecutable temp moduleを読まない
-- `NodeImageGenerator` はlocal／remote source、Sharp変換、filesystem cacheをImageGenerator portへ適合させる
+- Image compatibility facadeはdev／buildの両方でdomainの参照収集と属性反映を再利用し、SSGのexecutable temp moduleやfacade固有のrecipe mapを使用しない
+- `NodeImageGenerator` はlocal／remote source、Sharp変換、source contentと生成patternのhashで無効化するfilesystem cacheをImageGenerator portへ適合させる
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
 ### Current v5 migration directories

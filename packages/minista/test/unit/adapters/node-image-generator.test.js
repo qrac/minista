@@ -70,4 +70,63 @@ describe("Node image generator", () => {
       },
     ])
   })
+
+  test("invalidates a cached artifact when source content changes", async () => {
+    const rootDir = await fs.promises.mkdtemp(
+      path.join(os.tmpdir(), "minista-image-source-"),
+    )
+    const sourceFile = path.resolve(rootDir, "pixel.svg")
+    const generator = new NodeImageGenerator(rootDir, cacheDir)
+    const reference = {
+      key: "page:index:0",
+      pageId: createNodeId("page", "index"),
+      tagName: /** @type {const} */ ("img"),
+      source: "/pixel.svg",
+      optimize: {},
+      sizes: "__minista_image_auto_size",
+      width: "__minista_image_auto_size",
+      height: "__minista_image_auto_size",
+    }
+    const options = {
+      useCache: true,
+      decoding: /** @type {const} */ ("async"),
+      loading: /** @type {const} */ ("eager"),
+      optimize: {
+        outName: "[name]-[width]x[height]",
+        remoteName: "remote-[index]",
+        layout: /** @type {const} */ ("constrained"),
+        breakpoints: [2],
+        resolutions: [1],
+        format: /** @type {const} */ ("png"),
+        formatOptions: {},
+        fit: /** @type {const} */ ("cover"),
+        position: "centre",
+      },
+    }
+
+    try {
+      await fs.promises.writeFile(
+        sourceFile,
+        '<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"><path fill="#000" d="M0 0h2v2H0z"/></svg>',
+      )
+      await generator.generate([reference], options)
+      const beforeManifest = JSON.parse(
+        await fs.promises.readFile(path.resolve(cacheDir, "cache.json"), "utf8"),
+      )
+      await fs.promises.writeFile(
+        sourceFile,
+        '<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"><path fill="#fff" d="M0 0h2v2H0z"/></svg>',
+      )
+      await generator.generate([reference], options)
+      const afterManifest = JSON.parse(
+        await fs.promises.readFile(path.resolve(cacheDir, "cache.json"), "utf8"),
+      )
+
+      expect(afterManifest.artifacts["pixel-2x2.png"]).not.toBe(
+        beforeManifest.artifacts["pixel-2x2.png"],
+      )
+    } finally {
+      await fs.promises.rm(rootDir, { recursive: true, force: true })
+    }
+  })
 })
