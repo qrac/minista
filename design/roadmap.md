@@ -57,7 +57,7 @@
 
 ## Stage 3: rendererとdocument composition
 
-進捗: async `StaticRenderer` port、compatibility用 `ReactRenderToStringRenderer`、React 19 `prerenderToNodeStream()` を使う `ReactStaticRenderer` とSuspense testを追加しました。Head/document compositionとlegacy SSGへの接続は未完了です。
+進捗: async `StaticRenderer` port、compatibility用 `ReactRenderToStringRenderer`、React 19 `prerenderToNodeStream()` を使う `ReactStaticRenderer` を追加しました。Suspense、`useId`、画像preload、render error、Head、doctypeのfixtureを実装済みです。legacy SSGはcompatibility renderer adapterを直接importし、Headを含むpage treeを1回だけrenderします。これによりPreact aliasやReact 18の経路で `react-dom/static` を読みません。parser非依存の `HtmlDocument` contractと `node-html-parser` adapterを追加し、markerとgraph node IDをbindしてから1回serializeできるcomposition入口を実装しました。React static rendererのdefault切替と実projectでのPreact matrixは未完了です。
 
 - `StaticRenderer` portを追加し、まずcurrent `renderToString` adapterを移設
 - Head / html / body attributeのcompatibility testを拡充

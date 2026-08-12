@@ -63,6 +63,7 @@ export async function resolveLegacySsgProject(importedPages, options) {
     for (const page of pageNodes) {
       graph.addPage(page)
       pages.push({
+        pageId: page.id,
         url: page.url,
         component: pageModule.default,
         staticData: {

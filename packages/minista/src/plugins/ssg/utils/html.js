@@ -3,19 +3,28 @@
 /** @typedef {import('../types').HeadData} HeadData */
 
 import { createElement } from "react"
-import { renderToString } from "react-dom/server"
 
+import { NodeHtmlDocumentFactory } from "../../../adapters/html/index.js"
+import { ReactRenderToStringRenderer } from "../../../adapters/react/render-to-string.js"
+import { createNodeId } from "../../../core/graph/index.js"
 import { HeadProvider } from "../components/head.js"
 import { headAttrsToStr } from "./attr.js"
 import { checkCharset } from "./charset.js"
 import { checkViewport } from "./viewport.js"
 import { getDefaultHeadTags, filterHeadTags, headTagsToStr } from "./tag.js"
 
+const compatibilityRenderer = new ReactRenderToStringRenderer()
+const documents = new NodeHtmlDocumentFactory()
+
 /**
  * @param {{ resolvedLayout: ResolvedLayout, resolvedPage: ResolvedPage }} params
- * @returns {string}
+ * @param {import("../../../core/ports/index.js").StaticRenderer<import("react").ReactNode>} [renderer]
+ * @returns {Promise<import("../../../core/document/index.js").HtmlDocument>}
  */
-export function transformHtml({ resolvedLayout, resolvedPage }) {
+export async function renderHtmlDocument(
+  { resolvedLayout, resolvedPage },
+  renderer = compatibilityRenderer,
+) {
   const layout = resolvedLayout
   const page = resolvedPage
   const Layout = layout.component
@@ -33,16 +42,22 @@ export function transformHtml({ resolvedLayout, resolvedPage }) {
 
   /** @type {HeadData} */
   let headData = {}
+  const pageId =
+    resolvedPage.pageId ??
+    createNodeId("page", "legacy-ssg", resolvedPage.url)
 
-  let markup = renderToString(
-    createElement(
+  const rendered = await renderer.render({
+    pageId,
+    url: page.url,
+    tree: createElement(
       HeadProvider,
       { headData },
       Layout
         ? createElement(Layout, props, createElement(Page, props))
-        : createElement(Page, props)
-    )
-  )
+        : createElement(Page, props),
+    ),
+  })
+  let markup = rendered.html
   markup = markup.replace(/(?<=\<[img|source].+?)(srcSet=)/g, "srcset=")
 
   const htmlAttrs = headData.htmlAttributes || {}
@@ -64,7 +79,7 @@ export function transformHtml({ resolvedLayout, resolvedPage }) {
   const filterdHeadTags = filterHeadTags(mergedHeadTags)
   const tagsStr = headTagsToStr(filterdHeadTags)
 
-  return (
+  const html =
     `<!doctype html>` +
     `<html${htmlAttrsStr ? " " + htmlAttrsStr : ""}>` +
     `<head>` +
@@ -73,5 +88,20 @@ export function transformHtml({ resolvedLayout, resolvedPage }) {
     `<body${bodyAttrsStr ? " " + bodyAttrsStr : ""}>` +
     markup +
     `</body></html>`
-  )
+
+  return documents.parse({
+    pageId,
+    html,
+  })
+}
+
+/**
+ * 現行plugin向けにdocumentを一度だけserializeするcompatibility wrapper。
+ *
+ * @param {{ resolvedLayout: ResolvedLayout, resolvedPage: ResolvedPage }} params
+ * @returns {Promise<string>}
+ */
+export async function transformHtml(params) {
+  const document = await renderHtmlDocument(params)
+  return document.serialize()
 }

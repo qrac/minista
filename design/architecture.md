@@ -84,6 +84,8 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - `check [--json]`, `inspect [--json]`, `explain [--json]` は実装済みで、Vite ModuleRunnerによりpage moduleと `getStaticData()` を評価する
 - public manifestの型と安全なprojectionは実装済みだが、filesystem writerとbuildからの出力は未実装
 - representative fixture build、project command、Core/feature/adapterのunit testを追加済み
+- legacy SSG rendererは `ReactRenderToStringRenderer` adapterを使用し、Headを含むpage treeを1回だけrenderする
+- parser非依存の `HtmlDocument` contractと `node-html-parser` adapterを実装し、markerとgraph node IDをbuild session内でbindできる
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
 ### Current v5 migration directories
@@ -95,6 +97,7 @@ packages/minista/src/
 ├─ core/                   # graph, lifecycle, diagnostics, artifacts, manifest, query, ports
 ├─ features/ssg/           # route discoveryとpage resolution
 └─ adapters/
+   ├─ html/                # HtmlDocumentのnode-html-parser実装
    ├─ react/               # renderToString / prerenderToNodeStream
    └─ vite/                # project query serviceとlegacy SSG projection
 ```

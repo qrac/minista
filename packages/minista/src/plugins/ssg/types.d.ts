@@ -1,3 +1,5 @@
+import type { PageId } from "../../core/graph/index.js"
+
 export type PluginOptions = {
   layout: string
   src: string[]
@@ -72,6 +74,7 @@ export type FormatedPage = {
 }
 
 export type ResolvedPage = {
+  pageId?: PageId
   url: string
   component: PageComponent
   staticData: StaticData

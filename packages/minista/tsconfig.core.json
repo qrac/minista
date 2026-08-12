@@ -16,6 +16,8 @@
     "src/core/**/*.d.ts",
     "src/features/**/*.js",
     "src/features/**/*.d.ts",
+    "src/adapters/html/**/*.js",
+    "src/adapters/html/**/*.d.ts",
     "src/adapters/react/**/*.js",
     "src/adapters/react/**/*.d.ts",
     "src/adapters/vite/**/*.js",

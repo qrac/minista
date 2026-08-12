@@ -17,6 +17,8 @@ Coreはframework非依存のasync `StaticRenderer` portのみを知ります。R
 
 Web/edge runtime adapterが必要になった場合は `prerender()` を使用できます。partial prerender / resume APIは初期採用しません。内部名称はrequest-time SSRと区別して `render` / `static renderer` とします。
 
+移行中の現行SSGは `ReactRenderToStringRenderer` adapterを直接importして使用し、render結果を `HtmlDocument` factoryへ渡します。static adapterのbarrelを経由しないため、Preact aliasやReact 18を使うcompatibility経路で `react-dom/static` は読みません。これによりHeadのside effectを含むpage treeを1回だけrenderし、feature compose前のdocumentを共有できます。
+
 ## Consequences
 
 - React以外のrendererとstatic APIの変更をCoreから隔離できる

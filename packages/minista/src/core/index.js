@@ -2,6 +2,7 @@
 
 export * from "./artifacts/index.js"
 export * from "./diagnostics/index.js"
+export * from "./document/index.js"
 export * from "./graph/index.js"
 export * from "./lifecycle/index.js"
 export * from "./manifest/index.js"

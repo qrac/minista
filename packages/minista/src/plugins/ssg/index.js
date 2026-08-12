@@ -59,22 +59,23 @@ export function pluginSsg(uOpts = {}) {
    * @param {ResolvedLayout} resolvedLayout
    * @param {readonly ResolvedPage[]} resolvedPages
    */
-  function selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages) {
-    ssgPages = resolvedPages
-      .map((resolvedPage) => {
+  async function selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages) {
+    const pages = await Promise.all(
+      resolvedPages.map(async (resolvedPage) => {
         if (resolvedPage.metadata?.draft === true) {
           return null
         }
         const url = resolvedPage.url
         const fileName = getHtmlFileName(url)
-        const html = transformHtml({ resolvedLayout, resolvedPage })
+        const html = await transformHtml({ resolvedLayout, resolvedPage })
         return {
           url,
           fileName,
           html,
         }
-      })
-      .filter(
+      }),
+    )
+    ssgPages = pages.filter(
         /** @type {(page: SsgPage | null) => page is SsgPage} */
         (page) => page !== null,
       )
@@ -160,7 +161,7 @@ export function pluginSsg(uOpts = {}) {
           )
         }
 
-        selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
+        await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
 
         const code = getSsgExportCode(ssgPages)
         await fs.promises.mkdir(ssgDir, { recursive: true })
@@ -222,7 +223,7 @@ export function pluginSsg(uOpts = {}) {
             }
             const resolvedPage = resolvedPages.find((page) => page.url === url)
 
-            selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
+            await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
 
             const mod = server.moduleGraph.getModuleById(SSG_PAGES_VIRTUAL)
             if (mod) server.moduleGraph.invalidateModule(mod)
@@ -230,7 +231,9 @@ export function pluginSsg(uOpts = {}) {
             let html = ""
 
             if (resolvedPage) {
-              html = transformHtml({ resolvedLayout, resolvedPage })
+              html =
+                ssgPages.find((page) => page.url === resolvedPage.url)?.html ??
+                (await transformHtml({ resolvedLayout, resolvedPage }))
               html = await server.transformIndexHtml(originalUrl, html)
               res.statusCode = 200
               res.setHeader("Content-Type", "text/html")
