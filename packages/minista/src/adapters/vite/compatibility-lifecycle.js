@@ -64,11 +64,19 @@ export function createViteCompatibilityTraceHooks(
 async function createLifecycle(features, hooks = {}) {
   const session = hooks.session
   const diagnostics = session?.diagnostics ?? new DiagnosticCollector()
-  const graph = new ProjectGraph({
-    id: createNodeId("project", "vite-compatibility"),
-    name: "vite-compatibility",
-    root: toProjectPath("."),
-  }, diagnostics)
+  const graph = session?.state
+    ? session.state.compatibilityGraph ??= new ProjectGraph({
+      id: createNodeId("project", "vite-compatibility"),
+      name: "vite-compatibility",
+      root: toProjectPath("."),
+    }, diagnostics)
+    : new ProjectGraph({
+      id: createNodeId("project", "vite-compatibility"),
+      name: "vite-compatibility",
+      root: toProjectPath("."),
+    }, diagnostics)
+  const owners = new Set(features.map(({ id }) => id))
+  graph.removeArtifactsByOwner(owners)
   graph.addFeature({
     id: createNodeId("feature", "vite-compatibility-input"),
     apiVersion: 1,
@@ -88,12 +96,13 @@ async function createLifecycle(features, hooks = {}) {
     : new MemoryHtmlDocumentStore()
   const artifacts = session?.artifacts ?? new MemoryArtifactStore()
   if (session) {
-    const owners = new Set(features.map(({ id }) => id))
     for (const artifact of await artifacts.list()) {
       if (owners.has(artifact.owner)) await artifacts.delete(artifact.id)
     }
   }
-  const emitter = new MemoryEmitter()
+  const emitter = session?.state
+    ? session.state.compatibilityEmitter ??= new MemoryEmitter()
+    : new MemoryEmitter()
   const inputCapabilities = /** @type {readonly import("../../core/types.js").Capability[]} */ (
     /** @type {unknown} */ (["html-documents", "output-files"])
   )
@@ -147,89 +156,15 @@ function getDocument(lifecycle, hooks, identity, pageId, html) {
   return document
 }
 
-/** @template {string} Id @template {{readonly id: Id}} Node @param {ReadonlyMap<Id, Node>} current @param {ReadonlyMap<Id, Node>} incoming @returns {Map<Id, Node>} */
-function mergeNodes(current, incoming) {
-  return new Map([...current, ...incoming])
-}
-
 /**
- * @param {import("../../core/graph/index.js").ProjectGraphSnapshot | undefined} current
- * @param {import("../../core/graph/index.js").ProjectGraphSnapshot} incoming
- */
-function mergeGraph(current, incoming) {
-  if (!current) return incoming
-  const assets = mergeNodes(current.assets, incoming.assets)
-  for (const [id, node] of incoming.assets) {
-    const previous = current.assets.get(id)
-    if (!previous) continue
-    assets.set(id, Object.freeze({
-      ...previous,
-      ...node,
-      consumers: Object.freeze([
-        ...new Set([...previous.consumers, ...node.consumers]),
-      ]),
-      output: node.output ?? previous.output,
-    }))
-  }
-  const islands = mergeNodes(current.islands, incoming.islands)
-  for (const [id, node] of incoming.islands) {
-    const previous = current.islands.get(id)
-    if (!previous) continue
-    islands.set(id, Object.freeze({
-      ...previous,
-      ...node,
-      pages: Object.freeze([...new Set([...previous.pages, ...node.pages])]),
-    }))
-  }
-  const images = mergeNodes(current.images, incoming.images)
-  for (const [id, node] of incoming.images) {
-    const previous = current.images.get(id)
-    if (!previous) continue
-    images.set(id, Object.freeze({
-      ...previous,
-      ...node,
-      pages: Object.freeze([...new Set([...previous.pages, ...node.pages])]),
-      generatedAssets: Object.freeze([
-        ...new Set([...previous.generatedAssets, ...node.generatedAssets]),
-      ]),
-    }))
-  }
-  return Object.freeze({
-    schemaVersion: /** @type {const} */ ("1"),
-    project: current.project,
-    features: mergeNodes(current.features, incoming.features),
-    routes: mergeNodes(current.routes, incoming.routes),
-    pages: mergeNodes(current.pages, incoming.pages),
-    assets,
-    islands,
-    images,
-    artifacts: mergeNodes(current.artifacts, incoming.artifacts),
-  })
-}
-
-/**
- * @param {{graph: ProjectGraph, emitter: MemoryEmitter}} lifecycle
+ * @param {{graph: ProjectGraph, emitter: import("../../core/artifacts/index.js").Emitter}} lifecycle
  * @param {import("./compatibility-lifecycle.js").ViteCompatibilityRunHooks} hooks
  */
 async function commitLifecycle(lifecycle, hooks) {
   const state = hooks.session?.state
   if (!state) return
-  state.compatibilityGraph = mergeGraph(
-    state.compatibilityGraph,
-    lifecycle.graph.snapshot(),
-  )
-  state.compatibilityEmitter ??= new MemoryEmitter()
-  const current = new Set(
-    (await state.compatibilityEmitter.list()).map(({ fileName }) => fileName),
-  )
-  for (const file of await lifecycle.emitter.list()) {
-    if (current.has(file.fileName)) {
-      await state.compatibilityEmitter.replace(file)
-    } else {
-      await state.compatibilityEmitter.emit(file)
-      current.add(file.fileName)
-    }
-  }
+  state.compatibilityGraph = lifecycle.graph
+  state.compatibilityEmitter = lifecycle.emitter
 }
 
 /**
@@ -353,10 +288,18 @@ export async function composeViteHtml(html, pageIdentity, features, hooks = {}) 
  */
 export async function processViteOutputs(files, features, hooks = {}) {
   const lifecycle = await createLifecycle(features, hooks)
+  const beforeFiles = new Map(
+    (await lifecycle.emitter.list()).map((file) => [file.fileName, file]),
+  )
+  const inputNames = new Set(files.map(({ fileName }) => fileName))
   /** @type {Map<string, {document: import("../../core/document/index.js").HtmlDocument, before: string}>} */
   const htmlDocuments = new Map()
   for (const file of files) {
-    await lifecycle.emitter.emit(file)
+    if (beforeFiles.has(file.fileName)) {
+      await lifecycle.emitter.replace(file)
+    } else {
+      await lifecycle.emitter.emit(file)
+    }
     if (!file.fileName.endsWith(".html") || typeof file.content !== "string") {
       continue
     }
@@ -382,7 +325,16 @@ export async function processViteOutputs(files, features, hooks = {}) {
     }
   }
   await run(lifecycle, ["finalize"], hooks.onTrace)
-  const outputs = await lifecycle.emitter.list()
+  const outputs = (await lifecycle.emitter.list()).filter((file) => {
+    if (inputNames.has(file.fileName)) return true
+    const before = beforeFiles.get(file.fileName)
+    if (!before) return true
+    if (typeof before.content !== typeof file.content) return true
+    if (typeof file.content === "string") return file.content !== before.content
+    const content = /** @type {Uint8Array} */ (before.content)
+    return file.content.byteLength !== content.byteLength ||
+      file.content.some((value, index) => value !== content[index])
+  })
   await commitLifecycle(lifecycle, hooks)
   return outputs
 }

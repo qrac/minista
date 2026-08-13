@@ -25,6 +25,17 @@ export function createViteBuildSession(options = {}) {
 /** @param {ViteBuildSession} session */
 export async function disposeViteBuildSession(session) {
   await session.artifacts.clear()
+  const state = session.state
+  if (!state) return
+  state.compatibilityDocuments?.clear()
+  state.compatibilityDocumentIds?.clear()
+  state.compatibilityTraces?.splice(0)
+  delete state.compatibilityDocuments
+  delete state.compatibilityDocumentIds
+  delete state.compatibilityTraces
+  delete state.compatibilityGraph
+  delete state.compatibilityEmitter
+  delete state.projectGraph
 }
 
 /**

@@ -92,14 +92,47 @@ export class ProjectGraph {
   }
   /** @param {AssetNode} node */
   addAsset(node) {
+    const current = this.#assets.get(node.id)
+    if (current) {
+      this.#assets.set(node.id, Object.freeze({
+        ...current,
+        ...node,
+        consumers: Object.freeze([
+          ...new Set([...current.consumers, ...node.consumers]),
+        ]),
+        output: node.output ?? current.output,
+      }))
+      return undefined
+    }
     return this.#insert(this.#assets, node, "MINISTA_ASSET_DUPLICATE")
   }
   /** @param {IslandNode} node */
   addIsland(node) {
+    const current = this.#islands.get(node.id)
+    if (current) {
+      this.#islands.set(node.id, Object.freeze({
+        ...current,
+        ...node,
+        pages: Object.freeze([...new Set([...current.pages, ...node.pages])]),
+      }))
+      return undefined
+    }
     return this.#insert(this.#islands, node, "MINISTA_ISLAND_DUPLICATE")
   }
   /** @param {ImageNode} node */
   addImage(node) {
+    const current = this.#images.get(node.id)
+    if (current) {
+      this.#images.set(node.id, Object.freeze({
+        ...current,
+        ...node,
+        pages: Object.freeze([...new Set([...current.pages, ...node.pages])]),
+        generatedAssets: Object.freeze([
+          ...new Set([...current.generatedAssets, ...node.generatedAssets]),
+        ]),
+      }))
+      return undefined
+    }
     return this.#insert(this.#images, node, "MINISTA_IMAGE_DUPLICATE")
   }
   /** @param {BuildArtifact} node */
@@ -112,6 +145,12 @@ export class ProjectGraph {
       })
     }
     return this.#insert(this.#artifacts, node, "MINISTA_ARTIFACT_DUPLICATE")
+  }
+  /** @param {ReadonlySet<import("./ids.js").FeatureId>} owners */
+  removeArtifactsByOwner(owners) {
+    for (const [id, artifact] of this.#artifacts) {
+      if (owners.has(artifact.owner)) this.#artifacts.delete(id)
+    }
   }
   /** @returns {ProjectGraphSnapshot} */
   snapshot() {
@@ -135,7 +174,9 @@ export class ProjectGraph {
    * @param {DiagnosticCode} code
    */
   #insert(map, node, code) {
-    if (map.has(node.id)) {
+    const current = map.get(node.id)
+    if (current) {
+      if (JSON.stringify(current) === JSON.stringify(node)) return undefined
       return this.#diagnostics.error({
         code,
         message: `Graph node ${node.id} is already registered.`,

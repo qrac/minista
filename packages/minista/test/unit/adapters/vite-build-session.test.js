@@ -7,7 +7,11 @@ import {
   disposeViteBuildSession,
   getViteBuildSession,
 } from "../../../src/adapters/vite/build-session.js"
-import { MemoryArtifactStore } from "../../../src/core/index.js"
+import {
+  MemoryArtifactStore,
+  MemoryEmitter,
+  MemoryHtmlDocumentStore,
+} from "../../../src/core/index.js"
 
 describe("Vite build session", () => {
   test("preserves an explicit artifact store through Vite config resolution", async () => {
@@ -38,7 +42,12 @@ test("creates one build identity and clears artifacts during disposal", async ()
   expect(session.buildId).toBe("build:test")
   expect(session.diagnostics.snapshot()).toEqual([])
   expect(await session.artifacts.list()).toHaveLength(1)
+  session.state.compatibilityDocuments = new MemoryHtmlDocumentStore()
+  session.state.compatibilityDocumentIds = new Map()
+  session.state.compatibilityTraces = []
+  session.state.compatibilityEmitter = new MemoryEmitter()
 
   await disposeViteBuildSession(session)
   expect(await session.artifacts.list()).toEqual([])
+  expect(session.state).toEqual({})
 })

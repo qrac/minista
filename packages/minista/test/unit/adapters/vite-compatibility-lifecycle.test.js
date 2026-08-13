@@ -29,6 +29,10 @@ describe("Vite compatibility lifecycle", () => {
     const artifactId = createNodeId("artifact", "producer", "fixture")
     let producedDocument
     let consumedDocument
+    /** @type {import("../../../src/core/graph/index.js").ProjectGraph | undefined} */
+    let producedGraph
+    /** @type {import("../../../src/core/graph/index.js").ProjectGraph | undefined} */
+    let consumedGraph
     /** @type {import("../../../src/core/lifecycle/index.js").MinistaFeature} */
     const producer = Object.freeze({
       id: producerId,
@@ -39,6 +43,7 @@ describe("Vite compatibility lifecycle", () => {
           /** @type {import("../../../src/core/lifecycle/index.js").PhaseContext} */
           { artifacts, graph },
         ) {
+          producedGraph = graph
           await artifacts.put({
             schemaVersion: "1",
             id: artifactId,
@@ -70,8 +75,9 @@ describe("Vite compatibility lifecycle", () => {
       hooks: Object.freeze({
         async compose(
           /** @type {import("../../../src/core/lifecycle/index.js").PhaseContext} */
-          { artifacts, documents },
+          { artifacts, documents, graph },
         ) {
+          consumedGraph = graph
           consumedDocument = documents.list()[0]
           expect(await artifacts.get(artifactId)).toMatchObject({
             content: "fixture",
@@ -99,16 +105,20 @@ describe("Vite compatibility lifecycle", () => {
     )
 
     expect(consumedDocument).toBe(producedDocument)
+    expect(consumedGraph).toBe(producedGraph)
     expect(session.state.compatibilityDocuments?.list()).toHaveLength(1)
-    expect(session.state.compatibilityGraph?.features.has(producerId)).toBe(true)
-    expect(session.state.compatibilityGraph?.features.has(consumerId)).toBe(true)
-    expect(session.state.compatibilityGraph?.artifacts.get(artifactId))
+    const graph = session.state.compatibilityGraph?.snapshot()
+    expect(graph?.features.has(producerId)).toBe(true)
+    expect(graph?.features.has(consumerId)).toBe(true)
+    expect(graph?.artifacts.get(artifactId))
       .toMatchObject({ owner: producerId })
-    expect(session.state.compatibilityGraph?.pages.size).toBe(1)
+    expect(graph?.pages.size).toBe(1)
   })
 
   test("accumulates finalized outputs in the build-session emitter", async () => {
     const session = createViteBuildSession({ buildId: "emitter-fixture" })
+    /** @type {import("../../../src/core/artifacts/index.js").Emitter[]} */
+    const emitters = []
     /** @param {string} name @param {string} fileName */
     const feature = (name, fileName) => /** @type {import("../../../src/core/lifecycle/index.js").MinistaFeature} */ ({
       id: createNodeId("feature", name),
@@ -119,6 +129,7 @@ describe("Vite compatibility lifecycle", () => {
           /** @type {import("../../../src/core/lifecycle/index.js").PhaseContext} */
           { emitter },
         ) {
+          emitters.push(emitter)
           await emitter.emit({ fileName, content: name })
         },
       }),
@@ -138,6 +149,7 @@ describe("Vite compatibility lifecycle", () => {
     expect(second.map(({ fileName }) => fileName)).toEqual(["second.txt"])
     expect((await session.state.compatibilityEmitter?.list())
       ?.map(({ fileName }) => fileName)).toEqual(["first.txt", "second.txt"])
+    expect(emitters[1]).toBe(emitters[0])
   })
 
   test("merges consumers when features contribute the same session asset", async () => {
@@ -172,7 +184,8 @@ describe("Vite compatibility lifecycle", () => {
     await run("first-asset", "first.html", "/first/")
     await run("second-asset", "second.html", "/second/")
 
-    expect(session.state.compatibilityGraph?.assets.get(assetId)?.consumers)
+    expect(session.state.compatibilityGraph?.snapshot().assets.get(assetId)
+      ?.consumers)
       .toHaveLength(2)
   })
 
