@@ -115,6 +115,67 @@ describe("Vite compatibility lifecycle", () => {
     expect(graph?.pages.size).toBe(1)
   })
 
+  test("replaces input-page artifacts without dropping other dev pages", async () => {
+    const session = createViteBuildSession({ buildId: "dev-pages" })
+    const feature = createSpriteFeature({}, {
+      async build(sourceDirectory) {
+        return `<svg data-source="${sourceDirectory}"></svg>`
+      },
+    }, {
+      resolve(artifactId) {
+        return `/assets/${artifactId}.svg`
+      },
+    })
+    /** @param {string} fileName @param {string} url @param {string} html */
+    const run = (fileName, url, html) => processViteDocuments(
+      [{ fileName, url, html }],
+      [feature],
+      undefined,
+      createViteCompatibilityTraceHooks(session, `sprite:dev:${url}`, {
+        artifactUpdate: "input-pages",
+      }),
+    )
+
+    await run(
+      "first.html",
+      "/first/",
+      '<svg data-minista-sprite data-minista-sprite-src="icons/first.svg"></svg>',
+    )
+    await run(
+      "second.html",
+      "/second/",
+      '<svg data-minista-sprite data-minista-sprite-src="logos/second.svg"></svg>',
+    )
+
+    const beforeRemoval = await session.artifacts.list()
+    expect(beforeRemoval.filter(({ mediaType }) =>
+      mediaType === "application/vnd.minista.sprite-references+json"
+    )).toHaveLength(2)
+    expect(beforeRemoval.some(({ id }) =>
+      id === createSpriteArtifactId("icons")
+    )).toBe(true)
+    expect(beforeRemoval.some(({ id }) =>
+      id === createSpriteArtifactId("logos")
+    )).toBe(true)
+
+    await run("first.html", "/first/", "<main>No sprite</main>")
+
+    const afterRemoval = await session.artifacts.list()
+    expect(afterRemoval.filter(({ mediaType }) =>
+      mediaType === "application/vnd.minista.sprite-references+json"
+    )).toHaveLength(1)
+    expect(afterRemoval.some(({ id }) =>
+      id === createSpriteArtifactId("icons")
+    )).toBe(false)
+    expect(afterRemoval.some(({ id }) =>
+      id === createSpriteArtifactId("logos")
+    )).toBe(true)
+    const graph = session.state.compatibilityGraph?.snapshot()
+    expect([...graph?.artifacts.values() ?? []].filter(({ scope }) =>
+      scope?.kind === "page"
+    )).toHaveLength(1)
+  })
+
   test("accumulates finalized outputs in the build-session emitter", async () => {
     const session = createViteBuildSession({ buildId: "emitter-fixture" })
     /** @type {import("../../../src/core/artifacts/index.js").Emitter[]} */

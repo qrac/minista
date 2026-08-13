@@ -144,6 +144,7 @@ export function createImageFeature(options, generator, outputs) {
             owner: IMAGE_FEATURE_ID,
             mediaType: "application/vnd.minista.image-references+json",
             content: JSON.stringify(references),
+            scope: { kind: "page", pageId: document.pageId },
           })
           if (context.graph.snapshot().features.has(IMAGE_FEATURE_ID)) {
             context.graph.addArtifact({
@@ -152,6 +153,7 @@ export function createImageFeature(options, generator, outputs) {
               owner: IMAGE_FEATURE_ID,
               source: `page:${document.pageId}`,
               dependencies: [],
+              scope: { kind: "page", pageId: document.pageId },
             })
           }
         }

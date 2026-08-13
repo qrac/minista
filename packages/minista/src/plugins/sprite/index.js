@@ -6,7 +6,6 @@ import fs from "node:fs"
 import path from "node:path"
 import { normalizePath } from "vite"
 
-import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeSpriteBuilder } from "../../adapters/sprite/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
@@ -17,11 +16,7 @@ import {
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
-import { createNodeId } from "../../core/graph/index.js"
 import {
-  collectSpriteReferences,
-  composeSpriteDocument,
-  createSpriteArtifactId,
   createSpriteFeature,
   DevSpritePageIndex,
 } from "../../features/sprite/index.js"
@@ -37,8 +32,6 @@ import { filterOutputAssets, mergeAlias } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
-const documents = new NodeHtmlDocumentFactory()
-
 /**
  * @param {UserPluginOptions} uOpts
  * @returns {Plugin}
@@ -135,36 +128,73 @@ export function pluginSprite(uOpts = {}) {
       const server = devServers.resolve(context)
       if (!server) return html
       const state = getDevState(server)
-      const document = documents.parse({
-        pageId: createNodeId("page", "legacy-sprite", context.path),
-        html,
-      })
-      const references = collectSpriteReferences(document)
-      const sourceDirectories = [
-        ...new Set(references.map(({ sourceDirectory }) => sourceDirectory)),
-      ]
-      state.pageIndex.replacePage(context.path, sourceDirectories)
-      if (references.length === 0) return html
-      for (const sourceDirectory of sourceDirectories) {
-        const watchDirectory = path.resolve(state.rootDir, sourceDirectory)
-        if (!state.watchDirectories.has(watchDirectory)) {
-          await writeDevSprite(state, sourceDirectory)
-          state.watchDirectories.add(watchDirectory)
-          server.watcher.add(watchDirectory)
-        }
-      }
+      if (!state.builder) return html
       const timestamp = Date.now()
       const prefixBase = state.base.replace(/\/$/, "")
-      const outputByArtifact = new Map(
-        sourceDirectories.map((sourceDirectory) => [
-          createSpriteArtifactId(sourceDirectory),
-          `${prefixBase}${spriteAlias}/${path.basename(sourceDirectory)}.svg?t=${timestamp}`,
-        ]),
-      )
-      composeSpriteDocument(document, {
+      /** @type {Map<import("../../core/graph/index.js").ArtifactId, string>} */
+      const outputByArtifact = new Map()
+      const feature = createSpriteFeature(opts, state.builder, {
         resolve: (artifactId) => outputByArtifact.get(artifactId),
       })
-      return document.serialize()
+      const result = await processViteDocuments(
+        [{ fileName: context.path, url: context.path, html }],
+        [feature],
+        undefined,
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(server.config),
+          "sprite:dev",
+          {
+            artifactUpdate: "input-pages",
+            async beforeCompose({ artifacts, graph }) {
+              const page = [...graph.pages.values()].find((item) => {
+                const route = graph.routes.get(item.routeId)
+                return item.url === context.path &&
+                  route?.pageModuleId === context.path
+              })
+              /** @type {import("../../features/sprite/index.js").SpriteReference[]} */
+              const references = artifacts
+                .filter((record) =>
+                  record.owner === feature.id &&
+                  record.mediaType ===
+                    "application/vnd.minista.sprite-references+json"
+                )
+                .flatMap((record) => JSON.parse(String(record.content)))
+              const sourceDirectories = [...new Set(references
+                .filter((reference) => reference.pageId === page?.id)
+                .map(({ sourceDirectory }) => sourceDirectory))]
+              state.pageIndex.replacePage(context.path, sourceDirectories)
+              for (const sourceDirectory of sourceDirectories) {
+                const watchDirectory = path.resolve(
+                  state.rootDir,
+                  sourceDirectory,
+                )
+                if (!state.watchDirectories.has(watchDirectory)) {
+                  state.watchDirectories.add(watchDirectory)
+                  server.watcher.add(watchDirectory)
+                }
+              }
+              for (const artifact of artifacts) {
+                if (artifact.owner !== feature.id ||
+                  artifact.mediaType !== "image/svg+xml") continue
+                const sourceDirectory = graph.artifacts.get(artifact.id)?.source
+                if (!sourceDirectory) continue
+                await fs.promises.writeFile(
+                  path.resolve(
+                    state.spriteDir,
+                    `${path.basename(sourceDirectory)}.svg`,
+                  ),
+                  artifact.content,
+                )
+                outputByArtifact.set(
+                  artifact.id,
+                  `${prefixBase}${spriteAlias}/${path.basename(sourceDirectory)}.svg?t=${timestamp}`,
+                )
+              }
+            },
+          },
+        ),
+      )
+      return result.documents[0]?.html ?? html
     },
     async generateBundle(options, bundle) {
       const rootDir = getRootDir(cwd, this.environment.config.root || "")

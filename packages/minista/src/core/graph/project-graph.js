@@ -152,6 +152,10 @@ export class ProjectGraph {
       if (owners.has(artifact.owner)) this.#artifacts.delete(id)
     }
   }
+  /** @param {ReadonlySet<import("./ids.js").ArtifactId>} ids */
+  removeArtifacts(ids) {
+    for (const id of ids) this.#artifacts.delete(id)
+  }
   /** @returns {ProjectGraphSnapshot} */
   snapshot() {
     return Object.freeze({

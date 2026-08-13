@@ -76,7 +76,6 @@ async function createLifecycle(features, hooks = {}) {
       root: toProjectPath("."),
     }, diagnostics)
   const owners = new Set(features.map(({ id }) => id))
-  graph.removeArtifactsByOwner(owners)
   graph.addFeature({
     id: createNodeId("feature", "vite-compatibility-input"),
     apiVersion: 1,
@@ -95,11 +94,6 @@ async function createLifecycle(features, hooks = {}) {
     ? session.state.compatibilityDocuments ??= new MemoryHtmlDocumentStore()
     : new MemoryHtmlDocumentStore()
   const artifacts = session?.artifacts ?? new MemoryArtifactStore()
-  if (session) {
-    for (const artifact of await artifacts.list()) {
-      if (owners.has(artifact.owner)) await artifacts.delete(artifact.id)
-    }
-  }
   const emitter = session?.state
     ? session.state.compatibilityEmitter ??= new MemoryEmitter()
     : new MemoryEmitter()
@@ -112,6 +106,7 @@ async function createLifecycle(features, hooks = {}) {
     artifacts,
     emitter,
     graph,
+    owners,
     runner: new LifecycleRunner([
       Object.freeze({
         id: createNodeId("feature", "vite-compatibility-input"),
@@ -128,6 +123,42 @@ async function createLifecycle(features, hooks = {}) {
       artifacts,
       emitter,
     }),
+  }
+}
+
+/**
+ * Replace all artifacts owned by the active features, or retain page-scoped
+ * input artifacts belonging to pages outside the current incremental run.
+ *
+ * @param {ReturnType<typeof createLifecycle> extends Promise<infer T> ? T : never} lifecycle
+ * @param {import("./compatibility-lifecycle.js").ViteCompatibilityRunHooks} hooks
+ * @param {ReadonlySet<import("../../core/graph/index.js").PageId>} [pageIds]
+ */
+async function resetFeatureArtifacts(lifecycle, hooks, pageIds) {
+  const removeIds = new Set()
+  for (const artifact of await lifecycle.artifacts.list()) {
+    if (!lifecycle.owners.has(artifact.owner)) continue
+    const retain = hooks.artifactUpdate === "input-pages" &&
+      artifact.scope?.kind === "page" &&
+      pageIds &&
+      !pageIds.has(artifact.scope.pageId)
+    if (!retain) {
+      removeIds.add(artifact.id)
+      await lifecycle.artifacts.delete(artifact.id)
+    }
+  }
+  if (hooks.artifactUpdate === "input-pages") {
+    const graph = lifecycle.graph.snapshot()
+    for (const artifact of graph.artifacts.values()) {
+      if (!lifecycle.owners.has(artifact.owner)) continue
+      const retain = artifact.scope?.kind === "page" &&
+        pageIds &&
+        !pageIds.has(artifact.scope.pageId)
+      if (!retain) removeIds.add(artifact.id)
+    }
+    lifecycle.graph.removeArtifacts(removeIds)
+  } else {
+    lifecycle.graph.removeArtifactsByOwner(lifecycle.owners)
   }
 }
 
@@ -186,10 +217,6 @@ export async function processViteDocuments(
   /** @type {{input: import("./compatibility-lifecycle.js").ViteCompatibilityDocumentInput, document: import("../../core/document/index.js").HtmlDocument, before: string}[]} */
   const states = []
 
-  for (const artifact of hooks.inputArtifacts ?? []) {
-    await lifecycle.artifacts.put(artifact)
-  }
-
   for (const page of pages) {
     const routeId = createNodeId("route", "vite-output", page.fileName)
     const pageId = createNodeId("page", routeId, page.url)
@@ -217,6 +244,15 @@ export async function processViteDocuments(
       page.html,
     )
     states.push({ input: page, document, before: document.serialize() })
+  }
+
+  await resetFeatureArtifacts(
+    lifecycle,
+    hooks,
+    new Set(states.map(({ document }) => document.pageId)),
+  )
+  for (const artifact of hooks.inputArtifacts ?? []) {
+    await lifecycle.artifacts.put(artifact)
   }
 
   const composeIndex = phases.indexOf("compose")
@@ -274,6 +310,7 @@ export async function composeViteHtml(html, pageIdentity, features, hooks = {}) 
     createNodeId("page", "vite-compatibility", pageIdentity),
     html,
   )
+  await resetFeatureArtifacts(lifecycle, hooks, new Set([document.pageId]))
   const before = document.serialize()
   await run(lifecycle, ["compose"], hooks.onTrace)
   const after = document.serialize()
@@ -288,6 +325,7 @@ export async function composeViteHtml(html, pageIdentity, features, hooks = {}) 
  */
 export async function processViteOutputs(files, features, hooks = {}) {
   const lifecycle = await createLifecycle(features, hooks)
+  await resetFeatureArtifacts(lifecycle, hooks)
   const beforeFiles = new Map(
     (await lifecycle.emitter.list()).map((file) => [file.fileName, file]),
   )

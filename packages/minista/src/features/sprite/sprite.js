@@ -128,6 +128,7 @@ export function createSpriteFeature(options, builder, outputs) {
             owner: SPRITE_FEATURE_ID,
             mediaType: "application/vnd.minista.sprite-references+json",
             content: JSON.stringify(references),
+            scope: { kind: "page", pageId: document.pageId },
           })
           if (context.graph.snapshot().features.has(SPRITE_FEATURE_ID)) {
             context.graph.addArtifact({
@@ -136,6 +137,7 @@ export function createSpriteFeature(options, builder, outputs) {
               owner: SPRITE_FEATURE_ID,
               source: `page:${document.pageId}`,
               dependencies: [],
+              scope: { kind: "page", pageId: document.pageId },
             })
           }
         }

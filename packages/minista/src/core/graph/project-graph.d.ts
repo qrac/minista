@@ -1,7 +1,7 @@
 import type { Diagnostic } from "../diagnostics/index.js"
 import type { DiagnosticCollector } from "../diagnostics/index.js"
 import type { AssetNode, BuildArtifact, FeatureNode, ImageNode, IslandNode, PageNode, ProjectGraphSnapshot, ProjectNode, RouteNode } from "./types.js"
-import type { FeatureId } from "./ids.js"
+import type { ArtifactId, FeatureId } from "./ids.js"
 export declare class ProjectGraph {
   #private
   static fromSnapshot(
@@ -17,5 +17,6 @@ export declare class ProjectGraph {
   addImage(node: ImageNode): Diagnostic | undefined
   addArtifact(node: BuildArtifact): Diagnostic | undefined
   removeArtifactsByOwner(owners: ReadonlySet<FeatureId>): void
+  removeArtifacts(ids: ReadonlySet<ArtifactId>): void
   snapshot(): ProjectGraphSnapshot
 }

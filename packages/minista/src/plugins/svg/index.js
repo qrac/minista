@@ -73,6 +73,10 @@ export function pluginSvg(uOpts = {}) {
         html,
         context.path,
         getSources(server, rootDir),
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(server.config),
+          "svg:dev",
+        ),
       )
     },
     async generateBundle(options, bundle) {

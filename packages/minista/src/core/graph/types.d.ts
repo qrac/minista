@@ -65,6 +65,9 @@ export interface BuildArtifact {
   readonly source: string
   readonly output?: OutputLocation
   readonly dependencies: readonly ArtifactId[]
+  readonly scope?:
+    | { readonly kind: "build" }
+    | { readonly kind: "page", readonly pageId: PageId }
 }
 export interface ProjectGraphSnapshot {
   readonly schemaVersion: "1"

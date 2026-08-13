@@ -2,6 +2,13 @@
 
 import { createServer } from "vite"
 
+import {
+  attachViteBuildSession,
+  createViteBuildSession,
+  disposeViteBuildSession,
+  getViteBuildSession,
+} from "./build-session.js"
+
 /** @typedef {import("vite").InlineConfig} InlineConfig */
 /** @typedef {import("vite").ViteDevServer} ViteDevServer */
 
@@ -58,10 +65,13 @@ export class ViteDevServerAdapter {
    * @param {{printUrls?: boolean, bindShortcuts?: boolean}} [options]
    */
   async start(config, options = {}) {
+    const session = getViteBuildSession(config) ?? createViteBuildSession()
+    const serverConfig = attachViteBuildSession(config, session)
     let server
     try {
-      server = await this.#createServer({ ...config, appType: "custom" })
+      server = await this.#createServer({ ...serverConfig, appType: "custom" })
     } catch (error) {
+      await disposeViteBuildSession(session)
       throw normalizeViteDevServerError(error, "create")
     }
     try {
@@ -72,6 +82,7 @@ export class ViteDevServerAdapter {
       } catch {
         // Preserve the listen failure as the actionable root cause.
       }
+      await disposeViteBuildSession(session)
       throw normalizeViteDevServerError(error, "listen")
     }
 
@@ -86,6 +97,7 @@ export class ViteDevServerAdapter {
       } catch {
         // Preserve the configuration failure as the actionable root cause.
       }
+      await disposeViteBuildSession(session)
       throw normalizeViteDevServerError(error, "configure")
     }
 
@@ -99,6 +111,8 @@ export class ViteDevServerAdapter {
           await server.close()
         } catch (error) {
           throw normalizeViteDevServerError(error, "close")
+        } finally {
+          await disposeViteBuildSession(session)
         }
       },
     })

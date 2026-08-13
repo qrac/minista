@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url"
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest"
 
 import { ViteDevServerAdapter } from "../../src/adapters/vite/dev-server.js"
+import { getViteBuildSession } from "../../src/adapters/vite/build-session.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const packageDir = path.resolve(here, "../..")
@@ -139,6 +140,18 @@ export default function Other() {
     expect(cachedHtml).toContain("/@vite/client")
     expect(search.words).toEqual(
       expect.arrayContaining(["Compatibility", "fixture"]),
+    )
+    const session = running
+      ? getViteBuildSession(running.server.config)
+      : undefined
+    const scopes = session?.state?.compatibilityTraces?.map(({ scope }) => scope)
+    expect(scopes).toEqual(expect.arrayContaining([
+      "comment:dev",
+      "sprite:dev",
+      "svg:dev",
+    ]))
+    expect(session?.state?.compatibilityDocuments?.list().length).toBeGreaterThan(
+      0,
     )
   })
 

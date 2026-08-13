@@ -8,6 +8,7 @@ import {
   composeViteHtml,
   createViteCompatibilityTraceHooks,
 } from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { createCommentFeature } from "../../features/comment/index.js"
 import { filterOutputAssets } from "../../shared/vite.js"
 
@@ -21,6 +22,7 @@ export function pluginComment(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = { ...defaultOptions, ...uOpts }
   const feature = createCommentFeature(opts)
+  const devServers = new ViteDevServerRegistry()
 
   return {
     name: "vite-plugin:minista-comment",
@@ -30,8 +32,23 @@ export function pluginComment(uOpts = {}) {
       return command === "serve" || (command === "build" && !isSsrBuild)
     },
     applyToEnvironment: isViteAppClientEnvironment,
+    configureServer(server) {
+      devServers.add(server)
+      server.httpServer?.once("close", () => devServers.delete(server))
+    },
     async transformIndexHtml(html, context) {
-      return composeViteHtml(html, context.path, [feature])
+      const server = devServers.resolve(context)
+      return composeViteHtml(
+        html,
+        context.path,
+        [feature],
+        server
+          ? createViteCompatibilityTraceHooks(
+            getViteBuildSession(server.config),
+            "comment:dev",
+          )
+          : undefined,
+      )
     },
     async generateBundle(options, bundle) {
       const traceHooks = createViteCompatibilityTraceHooks(

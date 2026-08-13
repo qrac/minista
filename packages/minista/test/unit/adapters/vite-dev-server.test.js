@@ -4,6 +4,7 @@ import {
   ViteDevServerAdapter,
   ViteDevServerError,
 } from "../../../src/adapters/vite/dev-server.js"
+import { getViteBuildSession } from "../../../src/adapters/vite/build-session.js"
 
 describe("Vite dev server adapter", () => {
   test("owns a custom app server lifecycle", async () => {
@@ -12,7 +13,9 @@ describe("Vite dev server adapter", () => {
     const printUrls = vi.fn()
     const bindCLIShortcuts = vi.fn()
     const server = { listen, close, printUrls, bindCLIShortcuts }
-    const factory = vi.fn(async () => server)
+    const factory = vi.fn(async (
+      /** @type {import("vite").InlineConfig} */ _config,
+    ) => server)
     const adapter = new ViteDevServerAdapter(/** @type {any} */ (factory))
 
     const running = await adapter.start(
@@ -20,17 +23,25 @@ describe("Vite dev server adapter", () => {
       { printUrls: false, bindShortcuts: false },
     )
 
-    expect(factory).toHaveBeenCalledWith({
+    expect(factory).toHaveBeenCalledWith(expect.objectContaining({
       root: "/project",
       appType: "custom",
-    })
+      __ministaBuildSession: expect.objectContaining({
+        artifacts: expect.any(Object),
+      }),
+    }))
     expect(listen).toHaveBeenCalledOnce()
     expect(printUrls).not.toHaveBeenCalled()
     expect(bindCLIShortcuts).not.toHaveBeenCalled()
 
+    const session = getViteBuildSession(factory.mock.calls[0]?.[0])
+    expect(session).toBeDefined()
+    if (session?.state) session.state.compatibilityTraces = []
+
     await running.close()
     await running.close()
     expect(close).toHaveBeenCalledOnce()
+    expect(session?.state).toEqual({})
   })
 
   test("closes a partially created server when listen fails", async () => {

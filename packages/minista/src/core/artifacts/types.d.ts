@@ -1,5 +1,8 @@
-import type { ArtifactId, FeatureId } from "../graph/index.js"
+import type { ArtifactId, FeatureId, PageId } from "../graph/index.js"
 export type ArtifactContent = string | Uint8Array
+export type ArtifactScope =
+  | { readonly kind: "build" }
+  | { readonly kind: "page", readonly pageId: PageId }
 export interface ArtifactRecord {
   readonly schemaVersion: "1"
   readonly id: ArtifactId
@@ -7,6 +10,7 @@ export interface ArtifactRecord {
   readonly mediaType: string
   readonly content: ArtifactContent
   readonly contentHash?: string
+  readonly scope?: ArtifactScope
 }
 export interface ArtifactStore {
   put(record: ArtifactRecord): Promise<void>

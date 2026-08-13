@@ -20,6 +20,7 @@ export interface ViteCompatibilityDocumentResult {
 export interface ViteCompatibilityRunHooks {
   readonly onTrace?: (event: PhaseTraceEvent) => void
   readonly session?: ViteBuildSession
+  readonly artifactUpdate?: "feature" | "input-pages"
 }
 export interface ViteCompatibilityDocumentHooks extends ViteCompatibilityRunHooks {
   readonly inputArtifacts?: readonly ArtifactRecord[]
