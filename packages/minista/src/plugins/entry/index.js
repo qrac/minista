@@ -1,7 +1,7 @@
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
-/** @typedef {import('../ssg/types.js').SsgPage} SsgPage */
+/** @typedef {import('../../features/ssg/index.js').RenderedPage} RenderedPage */
 /** @typedef {import('../../adapters/vite/environment-preparation.js').ViteEnvironmentPreparation} ViteEnvironmentPreparation */
 
 import fs from "node:fs"
@@ -10,7 +10,7 @@ import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
-import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
+import { ViteBuildDataReader } from "../../adapters/vite/build-data-reader.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -18,7 +18,6 @@ import {
   collectEntryReferences,
   composeEntryDocument,
 } from "../../features/entry/index.js"
-import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { getRootDir } from "../../shared/path.js"
 import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
 import { regScript } from "../../shared/reg.js"
@@ -47,7 +46,7 @@ export function pluginEntry(uOpts = {}) {
 
   let base = "/"
   let rootDir = ""
-  /** @type {SsgPage[]} */
+  /** @type {readonly RenderedPage[]} */
   let ssgPages = []
   /** @type {{[pathId: string]: string}} */
   let entries = {}
@@ -70,21 +69,11 @@ export function pluginEntry(uOpts = {}) {
     entrySources = {}
     entryPageUrls = new Map()
     outputClaims = []
-    const renderedPages = buildSession
-      ? await buildSession.artifacts.get(createRenderedPagesArtifactId())
-      : undefined
-    if (renderedPages) {
-      ssgPages = JSON.parse(String(renderedPages.content))
-    } else if (externalBuildId) {
-      ssgPages = [...(
-        await new NodeExternalBuildHandoff().readRenderedPages(
-          rootDir,
-          externalBuildId,
-        ) ?? []
-      )]
-    } else {
-      return
-    }
+    ssgPages = await new ViteBuildDataReader({
+      root: rootDir,
+      session: buildSession,
+      externalBuildId,
+    }).readRenderedPages()
 
     /** @type {string[]} */
     let assetNames = []

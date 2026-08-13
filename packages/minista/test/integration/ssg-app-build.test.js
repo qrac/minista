@@ -58,7 +58,7 @@ describe.sequential("SSG App Build", () => {
 
   test("hands rendered pages to the client through the artifact store", async () => {
     const artifact = await artifacts.get(createRenderedPagesArtifactId())
-    /** @type {import("../../src/plugins/ssg/types.js").SsgPage[]} */
+    /** @type {import("../../src/features/ssg/index.js").RenderedPage[]} */
     const pages = JSON.parse(String(artifact?.content))
 
     expect(pages).toHaveLength(3)

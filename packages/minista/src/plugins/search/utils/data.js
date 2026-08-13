@@ -1,5 +1,5 @@
 /** @typedef {import('../types').PluginOptions} PluginOptions */
-/** @typedef {import('../../ssg/types').SsgPage} SsgPage */
+/** @typedef {import('../../../features/ssg/index.js').RenderedPage} RenderedPage */
 
 import {
   NodeHtmlDocumentFactory,
@@ -12,7 +12,7 @@ const documents = new NodeHtmlDocumentFactory()
 const analyzer = new NodeSearchDocumentAnalyzer()
 
 /**
- * @param {SsgPage[]} ssgPages
+ * @param {readonly RenderedPage[]} ssgPages
  * @param {PluginOptions} options
  */
 export async function getSearchData(ssgPages, options) {

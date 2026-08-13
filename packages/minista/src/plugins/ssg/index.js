@@ -2,7 +2,7 @@
 /** @typedef {import('vite').EnvironmentModuleNode} EnvModuleNode */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
-/** @typedef {import('./types').SsgPage} SsgPage */
+/** @typedef {import('../../features/ssg/index.js').RenderedPage} RenderedPage */
 /** @typedef {import('./types').ResolvedLayout} ResolvedLayout */
 /** @typedef {import('./types').ResolvedPage} ResolvedPage */
 /** @typedef {import('./types').ImportedLayouts} ImportedLayouts */
@@ -85,7 +85,7 @@ export function pluginSsg(uOpts = {}) {
   let globFile = ""
   let ssrDir = ""
   let ssrFile = ""
-  /** @type {SsgPage[]} */
+  /** @type {RenderedPage[]} */
   let ssgPages = []
   let throughDir = ""
   let throughFile = ""
@@ -101,16 +101,16 @@ export function pluginSsg(uOpts = {}) {
   const environmentInput = new ViteEnvironmentInputAdapter()
   /** @type {DevPageCache<{graph: import("../../core/graph/index.js").ProjectGraphSnapshot, layoutSourceFiles: readonly string[], resolvedLayout: ResolvedLayout, resolvedPages: readonly ResolvedPage[]}>} */
   const devPageCache = new DevPageCache()
-  /** @type {DevRenderCache<SsgPage>} */
+  /** @type {DevRenderCache<RenderedPage>} */
   const devRenderCache = new DevRenderCache()
   const devRouteCache = new LegacySsgRouteCache()
 
   /**
    * @param {ResolvedLayout} resolvedLayout
    * @param {readonly ResolvedPage[]} resolvedPages
-   * @param {DevRenderCache<SsgPage>} [renderCache]
+   * @param {DevRenderCache<RenderedPage>} [renderCache]
    */
-  async function selfUpdateResolvedToSsgPages(
+  async function updateRenderedPages(
     resolvedLayout,
     resolvedPages,
     renderCache,
@@ -138,7 +138,7 @@ export function pluginSsg(uOpts = {}) {
       }),
     )
     ssgPages = pages.filter(
-        /** @type {(page: SsgPage | null) => page is SsgPage} */
+        /** @type {(page: RenderedPage | null) => page is RenderedPage} */
         (page) => page !== null,
       )
   }
@@ -164,7 +164,7 @@ export function pluginSsg(uOpts = {}) {
       )
     }
 
-    await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
+    await updateRenderedPages(resolvedLayout, resolvedPages)
 
     if (buildSession) {
       await buildSession.artifacts.put({
@@ -426,7 +426,7 @@ export function pluginSsg(uOpts = {}) {
             )
           }
 
-          await selfUpdateResolvedToSsgPages(
+          await updateRenderedPages(
             resolvedLayout,
             resolvedPages,
             devRenderCache,

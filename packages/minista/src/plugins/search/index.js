@@ -1,7 +1,7 @@
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
-/** @typedef {import('../ssg/types').SsgPage} SsgPage */
+/** @typedef {import('../../features/ssg/index.js').RenderedPage} RenderedPage */
 
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -125,7 +125,7 @@ export function pluginSearch(uOpts = {}) {
       server.middlewares.use(async (req, res, next) => {
         if (req.url === "/@__minista_search_json") {
           evaluator ??= new ViteDevModuleEvaluator(server)
-          /** @type {{default?: SsgPage[]}} */
+          /** @type {{default?: RenderedPage[]}} */
           const mod = await evaluator.importModule("virtual:ssg-pages")
           const ssgPages = mod.default ?? []
           const searchData = await getSearchData(ssgPages, opts)

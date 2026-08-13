@@ -9,6 +9,8 @@ import {
   serializeProjectManifest,
 } from "../../core/manifest/index.js"
 import { serializeStableJson } from "../../core/serialization/index.js"
+import { parseIslandSnippets } from "../../features/island/index.js"
+import { parseRenderedPages } from "../../features/ssg/index.js"
 
 export class ExternalBuildHandoffInvalidError extends Error {
   code = "MINISTA_EXTERNAL_HANDOFF_INVALID"
@@ -78,7 +80,7 @@ async function readJson(file) {
 }
 
 /** @param {unknown} value */
-function parseRenderedPages(value) {
+function parseRenderedPagesSnapshot(value) {
   if (!value || typeof value !== "object") {
     throw new ExternalBuildHandoffInvalidError(
       "Rendered pages handoff must be an object.",
@@ -96,15 +98,11 @@ function parseRenderedPages(value) {
       "Rendered pages handoff does not match schema version 1.",
     )
   }
-  return Object.freeze(record.pages.map((page) => Object.freeze({
-    url: String(Reflect.get(page, "url")),
-    fileName: String(Reflect.get(page, "fileName")),
-    html: String(Reflect.get(page, "html")),
-  })))
+  return parseRenderedPages(record.pages)
 }
 
 /** @param {unknown} value */
-function parseIslandSnippets(value) {
+function parseIslandSnippetsSnapshot(value) {
   if (!value || typeof value !== "object") {
     throw new ExternalBuildHandoffInvalidError(
       "Island snippets handoff must be an object.",
@@ -118,7 +116,7 @@ function parseIslandSnippets(value) {
       "Island snippets handoff does not match schema version 1.",
     )
   }
-  return Object.freeze([...record.snippets])
+  return parseIslandSnippets(record.snippets)
 }
 
 export class NodeExternalBuildHandoff {
@@ -138,7 +136,7 @@ export class NodeExternalBuildHandoff {
     const value = await readJson(
       resolveSnapshotFile(root, buildId, "rendered-pages"),
     )
-    return value === undefined ? undefined : parseRenderedPages(value)
+    return value === undefined ? undefined : parseRenderedPagesSnapshot(value)
   }
 
   /** @param {string} root @param {string} buildId @param {readonly string[]} snippets */
@@ -157,7 +155,7 @@ export class NodeExternalBuildHandoff {
     const value = await readJson(
       resolveSnapshotFile(root, buildId, "island-snippets"),
     )
-    return value === undefined ? undefined : parseIslandSnippets(value)
+    return value === undefined ? undefined : parseIslandSnippetsSnapshot(value)
   }
 
   /**

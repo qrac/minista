@@ -56,6 +56,18 @@ export function createIslandBundleArtifactId() {
 }
 
 /**
+ * @param {unknown} value
+ * @returns {readonly string[]}
+ */
+export function parseIslandSnippets(value) {
+  if (!Array.isArray(value) ||
+    !value.every((snippet) => typeof snippet === "string")) {
+    throw new TypeError("Island snippets must be an array of strings.")
+  }
+  return Object.freeze([...value])
+}
+
+/**
  * @param {HtmlDocument} document
  * @param {IslandFeatureOptions} options
  * @returns {readonly IslandReference[]}

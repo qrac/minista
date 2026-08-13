@@ -64,6 +64,7 @@ export declare const ISLAND_FEATURE_ID: FeatureId
 export declare function createIslandSnippetsArtifactId(): import("../../core/graph/index.js").ArtifactId
 export declare function createIslandSourcePlanArtifactId(): import("../../core/graph/index.js").ArtifactId
 export declare function createIslandBundleArtifactId(): import("../../core/graph/index.js").ArtifactId
+export declare function parseIslandSnippets(value: unknown): readonly string[]
 export declare function collectIslandReferences(
   document: HtmlDocument,
   options: IslandFeatureOptions,

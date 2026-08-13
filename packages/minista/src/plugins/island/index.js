@@ -1,7 +1,7 @@
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
-/** @typedef {import('../ssg/types').SsgPage} SsgPage */
+/** @typedef {import('../../features/ssg/index.js').RenderedPage} RenderedPage */
 /** @typedef {import('../../adapters/vite/environment-preparation.js').ViteEnvironmentPreparation} ViteEnvironmentPreparation */
 
 import fs from "node:fs"
@@ -14,6 +14,7 @@ import {
   SwcIslandSourceTransformer,
 } from "../../adapters/island/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { ViteBuildDataReader } from "../../adapters/vite/build-data-reader.js"
 import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
@@ -25,7 +26,6 @@ import {
   createIslandSnippetsArtifactId,
   createIslandSourcePlan,
 } from "../../features/island/index.js"
-import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { decodeSnippet } from "./utils/snippet.js"
 import { getIslandServeCode } from "./utils/code.js"
 import { getHtmlPageUrl } from "../../shared/filename.js"
@@ -82,7 +82,7 @@ export function pluginIsland(uOpts = {}) {
   let uniqueSnippets = new Set()
   /** @type {ViteDevModuleEvaluator | undefined} */
   let moduleEvaluator
-  /** @type {SsgPage[]} */
+  /** @type {readonly RenderedPage[]} */
   let ssgPages = []
   /** @type {{[pathId: string]: string}} */
   let entries = {}
@@ -99,38 +99,15 @@ export function pluginIsland(uOpts = {}) {
     entries = {}
     sourcePlan = undefined
     outputClaims = []
-    const snippetArtifact = buildSession
-      ? await buildSession.artifacts.get(createIslandSnippetsArtifactId())
-      : undefined
-    if (snippetArtifact) {
-      snippetList = JSON.parse(String(snippetArtifact.content))
-    } else if (externalBuildId) {
-      snippetList = [...(
-        await new NodeExternalBuildHandoff().readIslandSnippets(
-          rootDir,
-          externalBuildId,
-        ) ?? []
-      )]
-    } else {
-      return
-    }
+    const dataReader = new ViteBuildDataReader({
+      root: rootDir,
+      session: buildSession,
+      externalBuildId,
+    })
+    snippetList = [...await dataReader.readIslandSnippets()]
     if (!snippetList || snippetList.length === 0) return
 
-    const renderedPages = buildSession
-      ? await buildSession.artifacts.get(createRenderedPagesArtifactId())
-      : undefined
-    if (renderedPages) {
-      ssgPages = JSON.parse(String(renderedPages.content))
-    } else if (externalBuildId) {
-      ssgPages = [...(
-        await new NodeExternalBuildHandoff().readRenderedPages(
-          rootDir,
-          externalBuildId,
-        ) ?? []
-      )]
-    } else {
-      return
-    }
+    ssgPages = await dataReader.readRenderedPages()
 
     if (!ssgPages.length) return
     const references = ssgPages.flatMap((page) =>
@@ -247,7 +224,7 @@ export function pluginIsland(uOpts = {}) {
     },
     async transformIndexHtml(html) {
       if (moduleEvaluator) {
-        /** @type {{default?: SsgPage[]}} */
+        /** @type {{default?: RenderedPage[]}} */
         const mod = await moduleEvaluator.importModule("virtual:ssg-pages")
         ssgPages = mod.default ?? []
 

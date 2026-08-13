@@ -49,7 +49,7 @@
 - SSGのglob code generationをroute discovery serviceへ移す
 - route pattern parserとparam validationをpure function化
 - `getStaticData` の実行を `ModuleEvaluator` portへ分離
-- RouteNodeとPageNodeを生成し、現行 `SsgPage` へcompatibility projectionする
+- RouteNodeとPageNodeを生成し、最小の`RenderedPage`へcompatibility projectionする
 - `minista check` と `check --json` をdiscovery / resolve範囲で追加
 - duplicate route、missing param、invalid static dataをstructured diagnostic化
 
@@ -96,7 +96,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 - capabilityとartifact ownershipを宣言
 - current output比較testとfeature unit testを追加
 
-完了条件: SSG以外のfeatureが `SsgPage[]` temp moduleをimportしない。
+完了条件: featureがrendered page dataを実行可能temp moduleからimportしない。
 
 ## Stage 5: Vite app build adapter
 
@@ -151,7 +151,7 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 8: compatibility facade cleanup
 
-進捗: 進行中。runtime implementationのJavaScript + JSDoc移行と隣接`.d.ts`は完了済みです。`--oneBuild`と専用分岐を削除し、旧option指定時はstable diagnosticで拒否します。外部Vite CLI fallbackのrendered pages／Island snippetsをbuildId scopeのschema付きJSONへ移行し、Entry／Islandによるexecutable data module importも削除しました。compatibility plugin facade、公開docsとCurrent／Target整理は継続します。
+進捗: 進行中。runtime implementationのJavaScript + JSDoc移行と隣接`.d.ts`は完了済みです。`--oneBuild`と専用分岐を削除し、旧option指定時はstable diagnosticで拒否します。外部Vite CLI fallbackのrendered pages／Island snippetsをbuildId scopeのschema付きJSONへ移行し、Entry／Islandによるexecutable data module importも削除しました。`ViteBuildDataReader`へArtifactStore／外部JSONの選択とdomain parserを集約し、全compatibility pluginから旧`SsgPage`型を除去してdomainの`RenderedPage`へ統一しました。compatibility plugin hookのlifecycle接続、公開docsとCurrent／Target整理は継続します。
 
 - runtime implementationを `.js` / `.jsx` + JSDocに統一
 - public APIの隣接 `.d.ts` とinternal JSDoc typeを整理

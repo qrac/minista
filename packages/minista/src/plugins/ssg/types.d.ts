@@ -81,11 +81,6 @@ export type ResolvedPage = {
   metadata: Metadata
 }
 
-export type SsgPage = {
-  url: string
-  fileName: string
-  html: string
-}
 
 export type CustomHtmlAttributes = React.HTMLAttributes<HTMLHtmlElement> & {
   class?: string
