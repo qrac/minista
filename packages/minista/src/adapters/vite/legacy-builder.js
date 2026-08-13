@@ -7,6 +7,10 @@ import { NodeDiagnosticsWriter } from "../filesystem/diagnostics-writer.js"
 import { NodeProjectManifestWriter } from "../filesystem/project-manifest-writer.js"
 import { createDiagnosticsReport } from "../../core/diagnostics/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
+import {
+  createViteOutputManifest,
+  reconcileViteOutputManifest,
+} from "./output-manifest.js"
 import { getViteBuildSession } from "./build-session.js"
 import { ViteOutputTransaction } from "./output-transaction.js"
 
@@ -57,8 +61,21 @@ export class LegacyViteBuilderAdapter {
       : undefined
     await transaction?.begin()
     let result
+    let outputManifest
     try {
       result = await builder.build(environment)
+      if (writesClientOutput) {
+        outputManifest = createViteOutputManifest(result, {
+          environment: environment.name,
+          base: environment.config.base,
+        })
+        if (transaction) {
+          outputManifest = await reconcileViteOutputManifest(outputManifest, {
+            outDir: transaction.outDir,
+            base: environment.config.base,
+          })
+        }
+      }
     } catch (error) {
       await transaction?.rollback()
       throw error
@@ -79,6 +96,7 @@ export class LegacyViteBuilderAdapter {
               warnings: 0,
               info: 0,
             },
+            ...(outputManifest ? { outputManifest } : {}),
           }),
         )
       }

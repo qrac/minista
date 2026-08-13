@@ -95,6 +95,21 @@ export function parseProjectManifest(value) {
       "Project manifest contains an invalid page.",
     )
   }
+  if (manifest.outputs !== undefined) {
+    if (!Array.isArray(manifest.outputs) || manifest.outputs.some((output) => {
+      if (!isRecord(output)) return true
+      const item = /** @type {Record<string, unknown>} */ (output)
+      return typeof item.logicalId !== "string" ||
+        !["chunk", "asset"].includes(String(item.kind)) ||
+        typeof item.fileName !== "string" ||
+        typeof item.url !== "string" ||
+        typeof item.byteSize !== "number"
+    })) {
+      throw new ProjectManifestInvalidError(
+        "Project manifest contains an invalid output.",
+      )
+    }
+  }
   if (
     !isRecord(manifest.diagnosticSummary) ||
     typeof manifest.createdAt !== "string"

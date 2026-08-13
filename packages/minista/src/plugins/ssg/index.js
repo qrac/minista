@@ -26,6 +26,7 @@ import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-inp
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
+import { createViteOutputManifest } from "../../adapters/vite/output-manifest.js"
 import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { DevPageCache } from "../../features/ssg/dev-page-cache.js"
 import { DevRenderCache } from "../../features/ssg/dev-render-cache.js"
@@ -639,7 +640,7 @@ export function pluginSsg(uOpts = {}) {
         }
       }
     },
-    async writeBundle() {
+    async writeBundle(_options, bundle) {
       if (
         !isBuild ||
         buildSession ||
@@ -655,6 +656,15 @@ export function pluginSsg(uOpts = {}) {
           version: ministaVersion,
           createdAt: new Date().toISOString(),
           diagnostics: { errors: 0, warnings: 0, info: 0 },
+          outputManifest: createViteOutputManifest(
+            /** @type {import("../../adapters/vite/app-builder.js").ViteBuildOutput} */ ({
+              output: Object.values(bundle),
+            }),
+            {
+              environment: this.environment.name,
+              base: this.environment.config.base,
+            },
+          ),
         }),
       )
     },

@@ -149,6 +149,7 @@ async function inspectManifest(rootDir) {
         islands: 0,
         images: 0,
         artifacts: 0,
+        outputs: 0,
       }),
       routes: Object.freeze([]),
     })

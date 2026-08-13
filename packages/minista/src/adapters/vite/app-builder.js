@@ -107,6 +107,7 @@ export class ViteAppBuilderAdapter {
           warnings: 0,
           info: 0,
         },
+        outputManifest,
       })
       await new NodeProjectManifestWriter().write(
         client.config.root,

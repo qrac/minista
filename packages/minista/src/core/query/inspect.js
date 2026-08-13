@@ -29,6 +29,7 @@ export function inspectProject(graph) {
       islands: graph.islands.size,
       images: graph.images.size,
       artifacts: graph.artifacts.size,
+      outputs: 0,
     }),
     routes: Object.freeze([...graph.routes.values()]
       .sort((left, right) => left.id.localeCompare(right.id))
@@ -68,6 +69,7 @@ export function inspectProjectManifest(manifest) {
       islands: manifest.assets.filter(({ kind }) => kind === "island").length,
       images: manifest.assets.filter(({ kind }) => kind === "image").length,
       artifacts: manifest.artifacts.length,
+      outputs: manifest.outputs?.length ?? 0,
     }),
     routes: Object.freeze(manifest.routes.map((route) => Object.freeze({
       id: route.id,

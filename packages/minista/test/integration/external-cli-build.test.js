@@ -96,6 +96,14 @@ describe.sequential("external Vite CLI build fallback", () => {
       schemaVersion: "1",
       project: { name: "minista-v5-check-basic" },
     })
+    expect(manifest.pages.find(
+      (/** @type {{url: string}} */ page) => page.url === "/",
+    )).toMatchObject({ output: { fileName: "index.html" } })
+    expect(manifest.outputs.map(
+      (/** @type {{fileName: string}} */ { fileName }) => fileName,
+    )).toContain(
+      "index.html",
+    )
     expect(diagnostics).toMatchObject({
       schemaVersion: "1",
       command: "build",

@@ -4,6 +4,7 @@ import {
   DiagnosticCollector,
   ProjectGraph,
   createNodeId,
+  createOutputManifest,
   createProjectManifest,
   toProjectPath,
 } from "../../../src/core/index.js"
@@ -88,6 +89,13 @@ describe("ProjectGraph", () => {
       version: "5.0.0",
       createdAt: "2026-08-12T00:00:00.000Z",
       diagnostics: diagnostics.summary(),
+      outputManifest: createOutputManifest("client", [{
+        logicalId: "index.html",
+        kind: "asset",
+        fileName: "index.html",
+        url: "/index.html",
+        byteSize: 42,
+      }]),
     })
     const json = JSON.stringify(manifest)
 
@@ -98,7 +106,15 @@ describe("ProjectGraph", () => {
       url: "/",
       params: {},
       draft: false,
+      output: { fileName: "index.html", url: "/index.html" },
     })
+    expect(manifest.outputs).toEqual([{
+      logicalId: "index.html",
+      kind: "asset",
+      fileName: "index.html",
+      url: "/index.html",
+      byteSize: 42,
+    }])
     expect(json).not.toContain("must-not-be-serialized")
     expect(json).not.toContain("apiToken")
     expect(json).not.toContain(process.cwd())

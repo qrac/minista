@@ -11,7 +11,9 @@ AI coding toolやCLIがroute、page、asset、artifactの関係を調べるた�
 
 ## Decision
 
-公開Project ManifestはCoreのinternal graphとは別のschema v1とし、allowlist projectionだけで生成します。`PageNode.props`、metadata、module ID、絶対project root、plugin option、source本文は出力しません。project rootは常に `.` として表現します。
+公開Project ManifestはCoreのinternal graphとは別のschema v1とし、allowlist projectionだけで生成します。`PageNode.props`、metadata、module ID、絶対project root、plugin option、source本文は出力しません。project rootは常に `.` として表現します。client build後はCore Output Manifestのsafe fieldsを `outputs` catalogへ複製し、PageにはURL規則で対応するHTML outputのfile nameとURLを付与します。bundle code、source本文、絶対facade pathは含めません。
+
+`outputs` とPageの `output` はv1 readerでoptionalなadditive fieldとして扱い、現行writerは常に出力します。これにより初期v1 manifestをmigrationなしで読み続けられます。不正なoutput entryは `MINISTA_MANIFEST_INVALID` とします。
 
 serializerはobject keyを再帰的にsortし、配列の意味上の順序を維持して、末尾改行を持つUTF-8 JSONを生成します。filesystem adapterは `.minista` と同じdirectoryに一時ファイルを書き、write完了後にrenameで `.minista/manifest.json` を置換します。失敗時は一時ファイルを削除し、以前のmanifestを維持します。
 

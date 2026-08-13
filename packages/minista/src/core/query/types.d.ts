@@ -21,6 +21,7 @@ export interface ProjectInspection {
     readonly islands: number
     readonly images: number
     readonly artifacts: number
+    readonly outputs: number
   }
   readonly routes: readonly {
     readonly id: string

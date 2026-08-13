@@ -315,7 +315,7 @@ Core runnerはphase、feature、node IDを含むtrace eventを発行します。
       └─ client/
 ```
 
-`manifest.json` はJSON dataのみで、JavaScript moduleをimportしません。最低限 `schemaVersion`, `generator`, `project`, `features`, `routes`, `pages`, `assets`, `artifacts`, `diagnosticSummary`, `createdAt` を持ちます。絶対path、秘密情報、page propsの任意データは既定で出力しません。manifest writerは安定key orderとatomic replaceを使います。
+`manifest.json` はJSON dataのみで、JavaScript moduleをimportしません。`schemaVersion`, `generator`, `project`, `features`, `routes`, `pages`, `assets`, `artifacts`, `outputs`, `diagnosticSummary`, `createdAt` を持ちます。`outputs` はCore Output Manifestのallowlist projectionで、logical ID、kind、相対file name、URL、byte size、entry/import関係だけを含みます。Pageは対応するHTML outputをfile nameとURLで参照します。絶対path、秘密情報、page propsの任意データ、bundle code、source本文は出力しません。manifest writerは安定key orderとatomic replaceを使います。
 
 `diagnostics.json` は `schemaVersion`, `generator`, `command`, `buildId`, `summary`, `diagnostics`, `createdAt` を持つworkspace snapshotです。`check` はvalidation errorを含む終了結果を保存し、App Buildは成功時のsession diagnosticsを保存します。公開Project Manifestとは異なり配布用artifactではありません。両writerは共通のstable JSON serializerとatomic workspace writerを使います。
 

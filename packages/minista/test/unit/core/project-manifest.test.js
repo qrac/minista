@@ -79,6 +79,10 @@ describe("Project manifest", () => {
       .toThrowError(ProjectManifestVersionUnsupportedError)
     expect(() => parseProjectManifest({ schemaVersion: "1" }))
       .toThrowError(ProjectManifestInvalidError)
+    expect(() => parseProjectManifest({
+      ...manifest,
+      outputs: [{ fileName: "missing-fields.js" }],
+    })).toThrowError(ProjectManifestInvalidError)
   })
 
   test("creates a stable diagnostics report", () => {

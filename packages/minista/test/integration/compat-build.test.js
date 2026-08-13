@@ -124,6 +124,16 @@ describe.sequential("v4 compatibility build", () => {
     })
     expect(source).not.toContain(fixtureDir)
     expect(source).not.toContain('"props"')
+    expect(manifest.pages[0].output.fileName).toBe("index.html")
+    expect(manifest.outputs.map(
+      (/** @type {{fileName: string}} */ { fileName }) => fileName,
+    )).toEqual(
+      expect.arrayContaining([
+        "index.html",
+        "assets/search.json",
+        "scripts/client.js",
+      ]),
+    )
 
     const diagnostics = JSON.parse(await fs.promises.readFile(
       path.resolve(manifestDir, "diagnostics.json"),

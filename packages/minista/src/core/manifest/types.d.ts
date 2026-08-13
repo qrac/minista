@@ -48,6 +48,10 @@ export interface ProjectManifest {
     readonly url: string
     readonly params: Readonly<Record<string, string>>
     readonly draft: boolean
+    readonly output?: {
+      readonly fileName: string
+      readonly url: string
+    }
   }[]
   readonly assets: readonly {
     readonly id: string
@@ -70,6 +74,7 @@ export interface ProjectManifest {
     }
     readonly dependencies: readonly string[]
   }[]
+  readonly outputs?: readonly OutputFile[]
   readonly diagnosticSummary: DiagnosticSummary
   readonly createdAt: string
 }

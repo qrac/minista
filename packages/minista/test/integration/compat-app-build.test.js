@@ -126,6 +126,15 @@ describe.sequential("v4 compatibility App Build", () => {
     })
     expect(manifest.routes).not.toHaveLength(0)
     expect(manifest.pages).not.toHaveLength(0)
+    expect(manifest.pages[0].output).toEqual({
+      fileName: "index.html",
+      url: "/index.html",
+    })
+    expect(manifest.outputs.map(
+      (/** @type {{fileName: string}} */ { fileName }) => fileName,
+    )).toEqual(
+      outputManifest?.files.map(({ fileName }) => fileName),
+    )
     expect(source.endsWith("\n")).toBe(true)
     expect(source).not.toContain(fixtureDir)
     expect(source).not.toContain('"props"')
