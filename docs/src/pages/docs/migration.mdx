@@ -7,11 +7,37 @@ prevUrl: "/docs/config"
 
 # Migration
 
-ここではminista v3からv4への移行方法について説明します。
+ここではminista v4からv5への変更点と、v3からv4へ移行する方法を説明します。
 
 ## Table of Contents
 
 contents list
+
+## v4からv5
+
+公開plugin APIと基本的なVite configは継続して使用できます。内部buildは、Vite CLIをrender用とclient用に2回起動する方式から、render environmentとclient environmentを1つのApp Build lifecycleで管理する方式へ変更されました。
+
+通常はconfigの変更は不要です。commandに`--oneBuild`が残っている場合だけ削除してください。v5ではこのoptionを指定すると`MINISTA_CLI_OPTION_REMOVED`で終了します。
+
+```diff
+- minista build --oneBuild
++ minista build
+```
+
+v5では次の機械可読な出力とcommandを利用できます。
+
+- `minista check [--json]`: route／pageと`getStaticData()`を検査
+- `minista inspect [--json]`: sourceからProject Graphを表示
+- `minista inspect --manifest [--json]`: build済みmanifestだけを表示
+- `minista explain <node-id> [--json]`: Graph nodeの関係を説明
+- `.minista/manifest.json`: build時のProject Graph／output projection
+- `.minista/diagnostics.json`: 直近のcheck／build diagnostic
+
+JavaScript利用者は事前buildを必要としません。ministaのpackage entry、CLI、testは`src/`のJavaScript + JSDoc実装を直接参照します。
+
+## v3からv4
+
+以下はv3からv4への移行手順です。
 
 ## Overview
 

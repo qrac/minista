@@ -39,28 +39,29 @@ export default defineConfig({
 
 ## Troubleshooting
 
-### SSR build error
+### Environment-specific config
 
-ministaはViteのSSRビルドと通常ビルドを連続で行います。
+ministaはrender environmentとclient environmentを1つのApp Build lifecycleで順に実行します。多くのVite設定はそのまま両environmentへ適用できます。
 
-**SSRビルドでJSXをNode.js用のJavaScriptに変換し、通常ビルドでHTMLと各種アセットを生成**するからです。
+既存の`isSsrBuild`を使ったconfig関数もcompatibility adapterがenvironmentごとに評価します。Node.jsでpageをrenderする側とbrowser向けassetを生成する側で設定を分けたい場合に使用できます。
 
-そのため、ビルドの設定を一括で行うと多くの場合SSRビルドがエラーになります。これは設定をSSRビルド用・通常ビルド用に切り分けることで解消できます。
+例として、client environmentだけminifyを無効にします。
 
 ```ts title="./vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"
 
 export default defineConfig(({ command, isSsrBuild }) => {
-  const isDev = command === "serve"
   const isSsr = command === "build" && (isSsrBuild ?? false)
   const isBuild = command === "build" && !(isSsrBuild ?? false)
   return { plugins: [pluginSsg()], build: { minify: isBuild ? false : true } }
 })
 ```
 
+render／clientでpluginの名前や順序が変わるconfigはApp Buildで共有できません。この場合ministaはstructured diagnosticを記録し、同一processのcompatibility builderへfallbackします。CoreはViteのenvironment型やhookには依存しません。
+
 ### Bundle error
 
-`pluginBundle` を使って画像をバンドルした際にビルドが失敗する現象があります。これは主にViteが小さい画像をインライン判定したもののSSRビルドでインライン化されないことが原因です。
+`pluginBundle`を使って画像をバンドルした際にビルドが失敗する場合があります。これは主にViteが小さい画像をclientではインライン判定したものの、Node.js向けrender environmentでは同じ形に変換されないことが原因です。
 
 対策の一つとしては、`build.assetsInlineLimit` を `0` に設定し、インライン化を無効化する方法があります。納品時には特にこの対策が効果的です。
 
@@ -72,7 +73,7 @@ export default {
 }
 ```
 
-もしインライン化を利用したい場合は、インポートパスに `?inline` を付与してください。SSRビルドでもインライン化されビルドが成功します。
+インライン化を利用したい場合は、インポートパスに`?inline`を付与してください。render environmentでも明示的にインライン化されます。
 
 ```tsx title="./src/pages/index.tsx"
 import imageUrl from "../assets/image.png?inline"

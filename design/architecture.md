@@ -2,9 +2,9 @@
 
 最終確認日: 2026-08-13
 
-> この文書は移行期間中です。「Current」は現在の `v5` branchに実装されている事実、「Target」はv5で採用するが未実装の構造です。移行完了後はTargetをCurrentに統合し、未実装事項を `roadmap.md` のみに残します。
+> この文書は現在の`v5` branchに実装されている事実だけを記載します。未実装、上流待ち、experimental、移行条件は`roadmap.md`を参照してください。
 
-## Current: 現在実装されている構造
+## 現在実装されている構造
 
 ### パッケージと公開API
 
@@ -18,7 +18,7 @@ monorepoは主に次で構成されています。
 
 package runtime entryは `src/node.js` です。CLI、test、workspace packageは `src/` のJavaScriptを直接実行し、通常の開発にcompile済み `dist/` を必要としません。公開型は `src/*.d.ts` を参照します。`src/node.js` はViteの `defineConfig` と12個の `pluginXXX()` をexportし、`pluginMdx()` を除く各機能は、状態をclosureに持つVite pluginとして実装されています。
 
-### Current build lifecycle
+### Build lifecycle
 
 通常の `minista build` は同じNode.js processで一つの `createBuilder(config, false)` を作り、App Buildのrender/client environmentを順にbuildします。`isSsrBuild` でplugin構成自体を変えるconfigはstable diagnosticを出し、同一processの `LegacyViteBuilderAdapter` がrender/clientごとのbackward-compatible environmentをbuildします。programmatic adapterが変換できないVite CLI flagを指定した場合だけ、最終compatibility fallbackとして `cross-spawn` でVite CLIを二度起動します。
 
@@ -39,7 +39,7 @@ CLI processは一つになり、render/client buildにはbuildId、`DiagnosticCo
 
 App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。`ViteAppBuilderAdapter` は単一の `createBuilder()` でrender、clientを順にbuildし、その間にclient planを適用します。`createViteAppConfig()` はrender/clientのconsumerとSSR設定を明示し、`ViteEnvironmentInputAdapter` は解決済みclient environmentへnamed inputを保存的に合成します。`prepareViteClientEnvironment()` は明示的な `api.minista.prepareClient` だけを、feature descriptorのcapabilityと順序制約でscheduleして実行します。不正な依存はstructured diagnosticを持つstable errorになります。SSG、Entry、Islandはこのprotocolへ移行済みです。Islandはsnippet Artifactをrenderからclientへ渡し、EntryとIslandはrendered page Artifactからclient entryを生成します。Comment、Svg、Sprite、Beautify、Archive、Bundleのoutput hookはApp Buildのclient environmentだけに適用し、ImageとSearchのsource transformもrender/clientへ分離してrender outputを変更しません。既存の `isSsrBuild` config関数はrender用の環境設定を再評価し、Viteがenvironmentごとに受け付けるoptionを投影します。clientだけに設定されたPreact aliasはrender bundleのReact importをexternalizeして分離します。plugin名や順序がrender/clientで異なるconfigは `MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH` を出してlegacy adapterへfallbackします。client buildのRolldown outputは直ちにCore `OutputManifest` schema v1へ変換し、code、source本文、絶対facade pathをresultへ含めません。client pluginの `api.minista.outputClaims()` はfeature descriptor、Artifact owner、file name、page URL、dependencyを明示的に返します。Vite adapterはclaimを実在するOutput Manifest entryと照合してからGraphへ適用し、missing output／ownerをstable diagnosticにします。SSG、Entry、Island、Image、Sprite、Search、Archive、Bundleのoutput claimは接続済みです。各featureがgenerate／bundle／finalize時に既に持つ参照情報を使い、file name patternや生成後の再解析でownerを推測しません。外部Vite CLI fallbackでは全pluginの`writeBundle`完了後にOutput Manifestをfilesystemと照合し、Archiveを含むclaimを収集してhandoffへ保存します。Appとlegacyのprogrammatic client buildは既存outDirを同階層のprivate backupへrenameし、成功時にbackupを削除、失敗時にpartial outputを削除して以前のoutDirを復元します。project rootまたはfilesystem rootをoutDirにする危険なtransactionは `MINISTA_OUTPUT_TRANSACTION_UNSAFE_DIR` で拒否します。通常のApp Buildとprogrammatic legacy fallbackの成功時はbuild sessionのProject Graphから安全なprojectionを作り、安定したkey順の `.minista/manifest.json` と `.minista/diagnostics.json` をatomic replaceします。plugin構成差によるfallback warningもlegacy sessionのdiagnosticsへ引き継ぎます。実際のVite 8.2.1で全compatibility pluginを含むCLI fixture、Preact fixture、plugin mismatch fixtureを確認済みです。
 
-### Current dev lifecycle
+### Dev lifecycle
 
 通常のdev CLIは外部Vite processを起動せず、`ViteDevServerAdapter` が `createServer({ appType: "custom" })`、listen、URL表示、CLI shortcut、closeを所有します。root、config、mode、base、host、port、open、CORSなどの一般的なdev flagはprogrammatic configへ変換し、未対応flagだけ外部Vite CLIへfallbackします。
 
@@ -49,7 +49,7 @@ Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置�
 
 `pluginSsg()` のHMRは `hotUpdate` から `ViteDevUpdateAdapter` を呼び、environment別module graphの存在確認・invalidationと `environment.hot` によるreloadをadapterへ閉じています。page固有のdocument変更ではdev HTMLへ注入したlistenerへ影響PageNodeのURLだけを送り、layout変更またはrouteを限定できない変更だけ標準full reloadを送ります。Spriteは `DevSpritePageIndex` にsource directoryと参照ページURL、Imageは `DevImagePageIndex` にlocal sourceと参照ページURLのedgeを保存し、source変更時は該当ページだけをreloadします。plugin内の `server.ws`、mixed `server.environments`、module graph直接操作は除去済みです。route source／PageNodeとSprite／Image Artifactのinvalidation対応付けは実装済みです。
 
-### Current data model
+### Data model
 
 render後の互換処理で共有する最小snapshotはdomainの`RenderedPage`です。
 
@@ -61,27 +61,26 @@ interface RenderedPage {
 }
 ```
 
-`RenderedPage`の生成元はRoute／Page Graphとrendererであり、通常buildではArtifactStore、外部fallbackではschema付きJSONに保存します。`ViteBuildDataReader`が保存方式の差を吸収し、Entry／Islandはdomain snapshotだけに依存します。SSG／Searchのdev virtual moduleも同じ型を使用し、旧`SsgPage`型は削除済みです。Project Graph、branded node ID、AssetNode、IslandNode、ImageNode、BuildArtifact、各domain featureの明示phaseも実装済みです。compatibility facadeのVite hookはfeatureごとにCore lifecycle runnerへ移行中です。
+`RenderedPage`の生成元はRoute／Page Graphとrendererであり、通常buildではArtifactStore、外部fallbackではschema付きJSONに保存します。`ViteBuildDataReader`が保存方式の差を吸収し、Entry／Islandはdomain snapshotだけに依存します。SSG／Searchのdev virtual moduleも同じ型を使用し、旧`SsgPage`型は削除済みです。Project Graph、branded node ID、AssetNode、IslandNode、ImageNode、BuildArtifact、各domain featureの明示phaseも実装済みです。production outputを持つfeature facadeはCore lifecycle runnerへ接続済みです。
 
-各公開pluginは `api.minista.feature` に `id`, `apiVersion`, `options`, `provides`, `requires` と必要な順序制約を持つmachine-readable metadataを公開し始めています。domain phase schedulerへの接続は未完了です。
+各公開pluginは`api.minista.feature`に`id`、`apiVersion`、`options`、`provides`、`requires`と必要な順序制約を持つmachine-readable metadataを公開します。production phaseはdependency schedulerを持つCore runnerから実行されます。
 
-### Current feature coupling
+### 残っているcompatibility境界
 
-| Producer / consumer | 実際のcontract | 問題 |
+| Producer / consumer | 現在のcontract | 残る境界 |
 | --- | --- | --- |
-| CLI → SSG | 二つのbackward-compatible Vite Builderと `build.ssr` | config解決とVite lifecycleがrender/clientで分かれる |
+| CLI → SSG | App Build。非対応config／flagではprogrammaticまたは外部CLI fallback | fallbackではrender/client lifecycleが分かれる |
 | SSG → fallback時のEntry／Island | buildId scopeのschema付きJSON snapshot | lifecycleとdiagnosticsはrender/client processに分かれる |
-| Page → feature | HTML marker attributeと文字列snippet | source identityとdependencyが失われる |
-| Island SSR → client build | encoded JSX snippet fileとHTML内のencoded snippet | 置換衝突、順序、生成sourceに依存する |
-| Vite output → feature | `generateBundle` でoutput bundleを探索・直接変更 | 複数pluginが同じHTMLを順番に再parseする |
-| Search / Entry | 生成済みHTMLからURLを抽出 | asset / page graphがないため文字列解析が唯一の情報源 |
-| Archive | plugin orderと `enforce: post` | finalize順がVite hook orderに埋め込まれる |
+| Page → feature | source transformが付けるHTML markerとDocument Store | markerはcompatibility facade内の非公開protocolとして残る |
+| Vite output → feature | facadeごとの`ViteCompatibilityLifecycle`へoutputを投影 | Vite hookごとにHTMLを再parseし、build全体で単一のDocument Storeではない |
+| dev feature | `transformIndexHtml()`とfeature別の差分cache／page index | productionと同じ長寿命lifecycleではない |
+| MDX | `@mdx-js/rollup`を包むcompiler adapter | document／output phaseを持たずVite transformとして残る |
 
-module-level global variableはほぼ使われていませんが、plugin instance closureのmutable stateはenvironment単位にkey化されていません。将来plugin instanceをenvironment間で共有するとstate混線の危険があります。
+module-level global variableはほぼ使われていませんが、plugin instance closureのmutable stateはenvironment単位にkey化されていません。このためplugin instanceをenvironment間で共有する構成には対応していません。
 
-### Current diagnostics and tests
+### Diagnostics and tests
 
-- legacy build pluginのerrorはまだthrow、`console.error`、警告文字列が中心
+- Core lifecycle、project command、manifest、主要adapterはstructured diagnosticを生成する。Vite／外部library由来の一部errorはadapterから例外として伝播する
 - Coreの `DiagnosticCollector` とstable diagnostic codeは実装済み
 - `check [--json]`, `inspect [--json]`, `explain [--json]` は実装済みで、Vite ModuleRunnerによりpage moduleと `getStaticData()` を評価する
 - public manifestの型、安全なprojection、安定serializer、atomic filesystem writerは実装済み。通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` とbuild diagnosticsを出力し、`check` の成功／失敗時にも `.minista/diagnostics.json` を出力する
@@ -108,7 +107,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - IslandのSWC source transformとNode用entry code生成はadapterへ分離し、rendered page／snippetは`ViteBuildDataReader`から受け取る。`ViteCompatibilityLifecycle` adapterはsnippet Artifactを初期入力としてCore analyze／generateへ渡し、安定したsource planからclient inputを作る。Vite bundle結果はCore bundleへ返し、同じsource planとPage Graphを使ってoutput claimとmarker／CSS／script URLをCore composeで反映する。通常buildのArtifactStoreと別process fallbackのJSON差異はpluginから見えない
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
-### Current v5 migration directories
+### v5 migration directories
 
 次は実装済みです。
 
@@ -129,11 +128,11 @@ Core用 `tsconfig.core.json` はJavaScript + JSDocと隣接 `.d.ts` をstrict mo
 
 package entry、CLI、testは `src/` を直接参照します。`prepare`、`prepack`、test前のruntime buildは行わず、編集直後のsourceをそのまま検証できます。
 
-## Currentの主要問題
+## 残存する実装上の制約
 
-最大の問題は、Ministaのdomain lifecycleがVite plugin hookに分散し、HTML文字列とplugin closure stateがfeature間連携に残っていることです。実行可能temp handoffはArtifactStoreまたはschema付きJSONへ移行しましたが、責務・入力・出力・順序・失敗地点をまだ単一のgraphから判断できません。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。plugin instance closureのmutable state、fallback lifecycle、Vite由来errorの正規化は残存課題です。
 
-## Target: v5で採用する構造（未実装）
+## CoreとFeatureの実装contract
 
 ### Layer boundary
 
@@ -148,41 +147,14 @@ Minista Core
   ProjectGraph, lifecycle, artifact store, diagnostics, manifest
                            ↓ ports
 Adapters
-  Vite adapter, filesystem adapter, React renderer, future CLI/JSON/MCP
+  Vite adapter, filesystem adapter, React renderer, CLI/query adapter
 ```
 
-依存方向は常に外側からCoreへ向けます。Coreは `vite`, React, HTML parser, filesystem concrete APIをimportしません。必要な処理はport interfaceとして受け取ります。
-
-### Target package layout
-
-最初はpackageを増やさず `packages/minista/src` 内で境界を作り、APIが安定してから物理package分割を判断します。
-
-```text
-packages/minista/src/
-├─ public/                 # compatibility facadeとpublic types
-├─ core/
-│  ├─ graph/              # immutable IDとgraph mutation API
-│  ├─ lifecycle/          # phase runnerとfeature scheduler
-│  ├─ diagnostics/        # collector, formatter, error policy
-│  ├─ manifest/           # versioned JSON schema
-│  └─ artifacts/          # ArtifactStore port
-├─ features/
-│  ├─ ssg/
-│  ├─ image/
-│  ├─ island/
-│  └─ ...
-├─ adapters/
-│  ├─ vite/
-│  ├─ react/
-│  └─ filesystem/
-└─ cli/
-```
-
-旧 `src/plugins/*` は移行中のfacadeとして残し、feature移行後に内部から新実装を呼びます。
+依存方向は外側からCoreへ向きます。Coreは`vite`、React、HTML parser、filesystem concrete APIをimportせず、必要な処理をport interfaceとして受け取ります。現在の物理directoryは前節の「v5 migration directories」のとおりです。`src/plugins/*`は公開compatibility facadeとしてfeatureとadapterを呼び出します。
 
 ### Project Graph
 
-Graphは一つの巨大mutable objectを各featureに渡しません。安定IDを持つread modelと、phaseごとに許可されたcommandを分けます。
+Project Graphは安定IDを持つnodeを`ProjectGraph`へ追加し、`snapshot()`で読み取り用Mapへ投影します。`ProjectGraph.fromSnapshot()`はadapter境界でsnapshotから可変Graphを復元します。
 
 ```ts
 type NodeId<T extends string> = `${T}:${string}`
@@ -217,16 +189,6 @@ interface PageNode<Props extends Record<string, unknown> = Record<string, unknow
   draft: boolean
 }
 
-interface PageArtifact {
-  id: ArtifactId
-  pageId: PageId
-  document: HtmlDocument
-  assetRefs: readonly AssetReference[]
-  islandRefs: readonly IslandReference[]
-  imageRefs: readonly ImageReference[]
-  metadata: Readonly<Record<string, unknown>>
-}
-
 interface AssetNode {
   id: AssetId
   kind: "source" | "generated" | "remote" | "bundle"
@@ -240,7 +202,7 @@ interface BuildArtifact {
   id: ArtifactId
   kind: "html" | "script" | "style" | "image" | "sprite" | "data" | "archive"
   owner: FeatureId
-  source: ArtifactSource
+  source: string
   output?: OutputLocation
   dependencies: readonly ArtifactId[]
 }
@@ -250,11 +212,11 @@ interface BuildArtifact {
 
 `PageNode.props` と `metadata` はuser moduleを実行するbuild session内だけのruntime valueで、manifestへ直列化しません。これにより、現行APIで利用できるJSON以外のpropsも維持します。JSON境界では別のallowlist projectionを定義します。
 
-HTMLは外部出力形式であり続けますが、feature連携の主protocolにはしません。HTMLを扱うfeatureは `HtmlDocument` portを通してmarkerとgraph node IDを対応付け、同一documentをcompose phaseで一度だけserializeします。
+HTMLを扱うfeatureは`HtmlDocument` portを通してmarkerとgraph node IDを対応付け、各compatibility lifecycle内の共有Document Storeをcompose phaseで更新します。Vite hookをまたぐ場合は次のfacadeが更新済みHTMLを再parseします。
 
 ### Feature contract
 
-各 `pluginXXX()` はtarget内部では `MinistaFeature` を生成します。
+各`pluginXXX()`は内部で`MinistaFeature`を生成し、Vite hookの入出力をadapterからCore phaseへ投影します。
 
 ```ts
 interface MinistaFeature<Options = unknown> {
@@ -274,6 +236,7 @@ interface FeatureHooks {
   render(ctx: RenderContext): Awaitable<void>
   analyze(ctx: AnalyzeContext): Awaitable<void>
   generate(ctx: GenerateContext): Awaitable<void>
+  bundle(ctx: BundleContext): Awaitable<void>
   compose(ctx: ComposeContext): Awaitable<void>
   emit(ctx: EmitContext): Awaitable<void>
   finalize(ctx: FinalizeContext): Awaitable<void>
@@ -284,25 +247,25 @@ phase内のfeature順はuserのVite plugin配列ではなく、`requires`, `prov
 
 ### Lifecycle
 
-採用phaseは次です。
+Core runnerが実行するphaseは次です。
 
 | Phase | 主な結果 | I/O / side effect |
 | --- | --- | --- |
-| `discover` | feature、route source、source asset | projectのreadのみ |
+| `discover` | feature、route source、source asset | discovery adapterとGraph更新 |
 | `resolve` | page instance、param、metadata、依存edge | `getStaticData` 等のuser code実行をport経由で許可 |
 | `render` | page documentとrender diagnostic | renderer portを使用 |
 | `analyze` | island/image/asset reference | document read、graph commandのみ |
-| `generate` | generated image、sprite、search data、client entry plan | ArtifactStoreへのcontent-addressed write |
+| `generate` | generated image、sprite、search data、client entry plan | ArtifactStoreへのschema付きrecord write |
 | `bundle` | Viteが返すoutput manifest | Vite adapterのみが実行 |
-| `compose` | hashed URLを反映したfinal document | HtmlDocumentを一度serialize |
-| `emit` | distと `.minista/manifest.json` | emitter portのみがfilesystem write |
-| `finalize` | beautify、archive、summary | 既存出力はEmitterの `replace()`、追加出力は `emit()` のみ許可 |
+| `compose` | hashed URLを反映したfinal document | Document Store更新 |
+| `emit` | output emission | Emitter port |
+| `finalize` | beautify、archive、summary | Emitterの`replace()`または`emit()` |
 
-Core runnerはphase、feature、node IDを含むtrace eventを発行します。同じinput/config/content hashに対するphaseは将来cache可能にしますが、初期実装では正しさを優先します。
+Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 
 ### Artifact Storeとmanifest
 
-`.minista` は暗黙の一時ディレクトリから、明示contractを持つworkspaceに変えます。
+`.minista`は公開snapshotと外部fallback用private handoffを分離したworkspaceです。通常の同一process buildは`MemoryArtifactStore`を使用します。
 
 ```text
 .minista/
@@ -310,16 +273,14 @@ Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 ├─ diagnostics.json        # 直近のcheckまたは成功したApp Buildのdiagnostics snapshot
 └─ work/                   # private, buildId単位、削除可能
    └─ <buildId>/
-      ├─ render/
-      ├─ generated/
-      └─ client/
+      └─ external/         # 別process fallbackのschema付きJSON handoff
 ```
 
 `manifest.json` はJSON dataのみで、JavaScript moduleをimportしません。`schemaVersion`, `generator`, `project`, `features`, `routes`, `pages`, `assets`, `artifacts`, `outputs`, `diagnosticSummary`, `createdAt` を持ちます。`outputs` はCore Output Manifestのallowlist projectionで、logical ID、kind、相対file name、URL、byte size、entry/import関係だけを含みます。Pageは対応するHTML outputをfile nameとURLで参照します。絶対path、秘密情報、page propsの任意データ、bundle code、source本文は出力しません。manifest writerは安定key orderとatomic replaceを使います。
 
 `diagnostics.json` は `schemaVersion`, `generator`, `command`, `buildId`, `summary`, `diagnostics`, `createdAt` を持つworkspace snapshotです。`check` はvalidation errorを含む終了結果を保存し、App Buildは成功時のsession diagnosticsを保存します。公開Project Manifestとは異なり配布用artifactではありません。両writerは共通のstable JSON serializerとatomic workspace writerを使います。
 
-`work/<buildId>` はphase間の明示的ArtifactStoreです。producer、content hash、media type、schema versionをmetadataに記録し、別buildの残骸を読みません。
+`work/<buildId>/external`は別process fallbackだけが使用します。buildIdを照合し、成功／失敗後に削除するため別buildの残骸を読みません。画像やIslandなどのVite入力用cache／生成sourceは公開workspaceとは分け、`node_modules/.minista`に置きます。
 
 ### Structured diagnostics
 
@@ -356,7 +317,6 @@ v5 Coreの同じquery serviceを次から共有します。
 - `minista explain <route|file|artifact|diagnostic-code>`: edgeと生成理由
 - `minista build`: lifecycle全体
 - `minista/internal/query`: 公開manifestだけを読むtool adapter向けread-only package boundary
-- 将来の `@minista/mcp`: `minista/internal/query`のadapter。Coreの必須依存にはしない
 
 JSON outputはcommandごとにversioned envelopeを持ちます。
 
@@ -376,9 +336,9 @@ interface CommandResult<T> {
 
 ### Public / internal type boundary
 
-- `public/` はuser config、page/layout props、feature options、public component typeのみexport
-- `core/` のgraph mutation command、adapter port、lifecycle contextはpackage rootからexportしない
-- `internal/query`は将来のtool adapter向けに明示exportするが、一般利用者向けroot APIとはversion管理を分ける
+- package rootは`defineConfig()`、`pluginXXX()`、page/layout props、feature option、public component typeをexportする
+- `core/`のgraph mutation API、adapter port、lifecycle contextはpackage rootからexportしない
+- `internal/query`はtool adapter向けread-only subpathとして明示exportする
 - runtime implementationは `.js` / `.jsx` とJSDocで記述し、public declarationは隣接する `.d.ts` で維持する
 - typecheckは `tsc --noEmit` でsourceを直接検査し、testやCLI実行の前提にcompile stepを置かない
 - `JsonValue`, branded ID, discriminated unionを使用し、arbitrary user valueが必要なruntime boundaryだけ `unknown` を使う
@@ -397,14 +357,14 @@ manifest snapshotだけに依存せず、graph invariant、diagnostic code、dis
 
 ## Public API compatibility summary
 
-| API | v5方針 | 想定される差 |
+| API | 現在のv5実装 | compatibility note |
 | --- | --- | --- |
-| `defineConfig()` | Viteの型付きfacadeとして維持 | environment用helper typeを追加可能 |
-| `pluginSsg()` | lifecycle coordinatorを含むcompatibility facade | 戻り値は引き続きVite `PluginOption`; 内部hookは変更 |
-| `pluginMdx()` | option shapeと移行期間中のruntime return shapeを維持し、MDX feature / Vite transformに分離 | public typeは `PluginOption` として整理するが、配列spread利用もcompatibility testで保護 |
+| `defineConfig()` | Viteの`defineConfig`を再export | minista固有wrapperを持たない |
+| `pluginSsg()` | lifecycle coordinatorを含むVite Plugin compatibility facade | 公開optionとpage/layout contractを維持 |
+| `pluginMdx()` | `@mdx-js/rollup`を設定したVite Plugin配列を返す | 配列のreturn shapeをcompatibility testで保護 |
 | Image/Island/Entry/Sprite/Search | optionとcomponent importを維持 | temp path、marker、output hashの非公開挙動は保証しない |
-| Svg/Comment/Beautify/Archive/Bundle | facadeを維持してphase hookへ移行 | user plugin配列順による偶発的順序は保証しない |
-| `Metadata`, `PageProps`, `LayoutProps`, `StaticData` | exportとmodule augmentationを維持 | `any` はsource-compatibleな範囲でgeneric / unknown化 |
+| Svg/Comment/Beautify/Archive/Bundle | facadeからCore phase hookを実行 | user plugin配列順による偶発的順序は保証しない |
+| `Metadata`, `PageProps`, `LayoutProps`, `StaticData` | exportとmodule augmentationを維持 | 一部のruntime互換境界には`any`が残る |
 | `--oneBuild` | v5で削除し、`MINISTA_CLI_OPTION_REMOVED` errorを返す | 既定buildが単一App Build lifecycleを使用するため代替optionは不要 |
 
 互換性の基準はdocumented API、option default、page/layout contract、出力URLです。`node_modules/.minista` の配置、virtual module ID、Vite plugin name、生成source名、plugin closure stateは非公開であり互換対象にしません。
