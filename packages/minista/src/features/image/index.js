@@ -8,3 +8,4 @@ export {
   createImageFeature,
   createImagePlansArtifactId,
 } from "./image.js"
+export { DevImagePageIndex } from "./dev-page-index.js"

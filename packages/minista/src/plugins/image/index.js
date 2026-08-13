@@ -1,4 +1,5 @@
 /** @typedef {import('vite').Plugin} Plugin */
+/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 
@@ -10,10 +11,12 @@ import { normalizePath } from "vite"
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeImageGenerator } from "../../adapters/image/index.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectImageReferences,
   composeImageDocument,
+  DevImagePageIndex,
 } from "../../features/image/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
@@ -82,9 +85,14 @@ export function pluginImage(uOpts = {}) {
   /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
   let appEnvironmentNames
   let base = "/"
+  let rootDir = ""
   let imageDir = ""
   /** @type {NodeImageGenerator | undefined} */
   let generator
+  /** @type {ViteDevServer | undefined} */
+  let viteServer
+  const devPageIndex = new DevImagePageIndex()
+  const watchedSources = new Set()
 
   return {
     name: "vite-plugin:minista-image",
@@ -109,7 +117,7 @@ export function pluginImage(uOpts = {}) {
       return isDev || isAppBuild || isSsr || isBuild
     },
     async config(config) {
-      const rootDir = getRootDir(cwd, config.root || "")
+      rootDir = getRootDir(cwd, config.root || "")
       const tempDir = getTempDir(cwd, rootDir)
       imageDir = path.resolve(tempDir, "image")
       generator = new NodeImageGenerator(rootDir, imageDir, isDev)
@@ -140,6 +148,16 @@ export function pluginImage(uOpts = {}) {
       }
       if (isBuild || isAppBuild) base = getBuildBase(config.base || base)
     },
+    configureServer(server) {
+      viteServer = server
+      const updates = new ViteDevUpdateAdapter(server)
+      server.watcher.on("all", (event, filePath) => {
+        if (!["add", "change", "unlink"].includes(event)) return
+        const source = normalizePath(path.relative(rootDir, filePath))
+        const pages = devPageIndex.getPages(source)
+        if (pages.length > 0) updates.reloadPages(pages)
+      })
+    },
     async transformIndexHtml(html, context) {
       if (!generator) return html
       const pageId = createNodeId(
@@ -149,6 +167,20 @@ export function pluginImage(uOpts = {}) {
       )
       const document = documents.parse({ pageId, html })
       const references = collectImageReferences(document)
+      if (isDev) {
+        const localSources = [...new Set(
+          references
+            .map(({ source }) => source)
+            .filter((source) => !source.startsWith("http")),
+        )]
+        devPageIndex.replacePage(context?.path || "/", localSources)
+        for (const source of localSources) {
+          const sourceFile = path.resolve(rootDir, source.replace(/^\//, ""))
+          if (watchedSources.has(sourceFile)) continue
+          watchedSources.add(sourceFile)
+          viteServer?.watcher.add(sourceFile)
+        }
+      }
       if (references.length === 0) return html
       const generated = await generator.generate(references, opts)
 

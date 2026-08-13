@@ -51,6 +51,27 @@ export default function Other() {
 `,
       "utf8",
     )
+    const indexFile = path.resolve(fixtureDir, "src/pages/index.jsx")
+    const indexSource = await fs.promises.readFile(indexFile, "utf8")
+    await Promise.all([
+      fs.promises.writeFile(
+        indexFile,
+        indexSource.replace(
+          '<Image src="/src/assets/pixel.svg" alt="Pixel" width={2} height={2} />',
+          `<Image src="/src/assets/pixel.svg" alt="Pixel" width={2} height={2} />
+        <Image src="/src/assets/photo.svg" alt="Photo" width={2} height={2} />`,
+        ),
+        "utf8",
+      ),
+      fs.promises.writeFile(
+        path.resolve(fixtureDir, "src/assets/photo.svg"),
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2">
+  <circle cx="1" cy="1" r="1" fill="#abcdef" />
+</svg>
+`,
+        "utf8",
+      ),
+    ])
 
     running = await new ViteDevServerAdapter().start(
       {
@@ -187,5 +208,35 @@ export default function Other() {
 
     hotSend.mockRestore()
     throw new Error("The changed sprite artifact did not target its page.")
+  }, 15_000)
+
+  test("reloads only pages connected to a changed image artifact", async () => {
+    if (!running) throw new Error("The dev server is not running.")
+    const hotSend = vi.spyOn(running.server.environments.client.hot, "send")
+    const imageFile = path.resolve(fixtureDir, "src/assets/photo.svg")
+    const source = await fs.promises.readFile(imageFile, "utf8")
+    await fs.promises.writeFile(
+      imageFile,
+      source.replace("#abcdef", "#fedcba"),
+      "utf8",
+    )
+
+    const deadline = Date.now() + 10_000
+    while (Date.now() < deadline) {
+      const targetedReload = hotSend.mock.calls.find(
+        ([event, payload]) =>
+          event === "minista:full-reload" &&
+          JSON.stringify(payload) === JSON.stringify({ paths: ["/"] }),
+      )
+      if (targetedReload) {
+        expect(targetedReload[1]).not.toMatchObject({ paths: ["/other"] })
+        hotSend.mockRestore()
+        return
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+
+    hotSend.mockRestore()
+    throw new Error("The changed image artifact did not target its page.")
   }, 15_000)
 })
