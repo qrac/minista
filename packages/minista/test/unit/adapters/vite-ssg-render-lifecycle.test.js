@@ -90,6 +90,22 @@ describe("Vite SSG render lifecycle", () => {
     ])
   })
 
+  test("replaces rendered pages in a long-lived artifact store", async () => {
+    const artifacts = new MemoryArtifactStore()
+    await renderViteSsgPages(createFixtureGraph(), {
+      render: async () => "<h1>First</h1>",
+    }, { artifacts })
+
+    const result = await renderViteSsgPages(createFixtureGraph(), {
+      render: async () => "<h1>Second</h1>",
+    }, { artifacts })
+
+    expect(result.pages[0]?.html).toBe("<h1>Second</h1>")
+    expect(JSON.parse(String(
+      (await artifacts.get(createRenderedPagesArtifactId()))?.content,
+    ))[0].html).toBe("<h1>Second</h1>")
+  })
+
   test("surfaces render failures as structured adapter diagnostics", async () => {
     await expect(renderViteSsgPages(createFixtureGraph(), {
       render: async () => {

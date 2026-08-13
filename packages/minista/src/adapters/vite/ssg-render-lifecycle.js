@@ -32,6 +32,9 @@ export async function renderViteSsgPages(snapshot, renderer, options = {}) {
   const artifacts = options.artifacts ?? new MemoryArtifactStore()
   const graph = ProjectGraph.fromSnapshot(snapshot, diagnostics)
   const feature = createSsgRenderFeature(renderer)
+  const renderedPagesId = createRenderedPagesArtifactId()
+  await artifacts.delete(renderedPagesId)
+  graph.removeArtifacts(new Set([renderedPagesId]))
   const result = await new LifecycleRunner([feature], {
     graph,
     diagnostics,
@@ -42,7 +45,7 @@ export async function renderViteSsgPages(snapshot, renderer, options = {}) {
   if (!result.ok) {
     throw new ViteSsgRenderLifecycleError(diagnostics.snapshot())
   }
-  const record = await artifacts.get(createRenderedPagesArtifactId())
+  const record = await artifacts.get(renderedPagesId)
   if (!record) {
     diagnostics.error({
       code: "MINISTA_RENDER_FAILED",

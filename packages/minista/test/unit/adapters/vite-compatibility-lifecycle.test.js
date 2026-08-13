@@ -16,6 +16,11 @@ import {
   createImageOutputsArtifactId,
 } from "../../../src/features/image/index.js"
 import {
+  createIslandFeature,
+  createIslandSnippetsArtifactId,
+  createIslandSourcePlanArtifactId,
+} from "../../../src/features/island/index.js"
+import {
   createSearchDataArtifactId,
   createSearchFeature,
 } from "../../../src/features/search/index.js"
@@ -255,6 +260,74 @@ describe("Vite compatibility lifecycle", () => {
 
     expect((await readOutputs()).map(({ source }) => source)).toEqual([
       "/second.png",
+    ])
+  })
+
+  test("regenerates island page patterns from retained dev references", async () => {
+    const session = createViteBuildSession({ buildId: "dev-islands" })
+    const snippets = ["encoded-first", "encoded-second"]
+    const feature = createIslandFeature({
+      useSplitPages: true,
+      outName: "island-[index]",
+      rootAttrName: "island",
+      rootDOMElement: "div",
+      rootStyle: { display: "contents" },
+    }, {
+      async createSnippet(snippet) {
+        return `snippet:${snippet}`
+      },
+      async createEntry(indexes) {
+        return `entry:${indexes.join(",")}`
+      },
+    }, {
+      async bundle(plan) {
+        return plan.entries.map((entry) => ({
+          patternIndex: entry.patternIndex,
+          fileName: `${entry.fileName}.js`,
+          cssFiles: [],
+        }))
+      },
+    }, {
+      resolve(fileName) {
+        return `/assets/${fileName}`
+      },
+    })
+    /** @param {string} fileName @param {string} url @param {string} html */
+    const run = (fileName, url, html) => processViteDocuments(
+      [{ fileName, url, html }],
+      [feature],
+      ["analyze", "generate", "bundle", "compose"],
+      createViteCompatibilityTraceHooks(session, `island:dev:${url}`, {
+        artifactUpdate: "input-pages",
+        inputArtifacts: [{
+          schemaVersion: "1",
+          id: createIslandSnippetsArtifactId(),
+          owner: feature.id,
+          mediaType: "application/vnd.minista.island-snippets+json",
+          content: JSON.stringify(snippets),
+        }],
+      }),
+    )
+    /** @param {string} snippet */
+    const island = (snippet) =>
+      `<html><head></head><body><div data-island-client-snippet="${snippet}"></div></body></html>`
+
+    await run("first.html", "/first/", island(snippets[0]))
+    await run("second.html", "/second/", island(snippets[1]))
+
+    const readPlan = async () => JSON.parse(String(
+      (await session.artifacts.get(createIslandSourcePlanArtifactId()))
+        ?.content,
+    ))
+    expect(Object.keys((await readPlan()).pagePatterns)).toHaveLength(2)
+
+    await run("first.html", "/first/", "<html><head></head><body></body></html>")
+
+    /** @type {import("../../../src/features/island/index.js").IslandSourcePlan} */
+    const plan = await readPlan()
+    expect(Object.keys(plan.pagePatterns)).toHaveLength(1)
+    expect(plan.snippets.map(({ encoded }) => encoded)).toEqual([
+      "encoded-second",
     ])
   })
 

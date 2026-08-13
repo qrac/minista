@@ -30,8 +30,6 @@ import {
   createIslandSnippetsArtifactId,
   createIslandSourcePlanArtifactId,
 } from "../../features/island/index.js"
-import { decodeSnippet } from "./utils/snippet.js"
-import { getIslandServeCode } from "./utils/code.js"
 import { getHtmlPageUrl } from "../../shared/filename.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
@@ -274,33 +272,65 @@ export function pluginIsland(uOpts = {}) {
         }
       }
       const snippetList = [...state.uniqueSnippets]
-      if (snippetList.length === 0) return html
-
-      let newHtml = html
       const rootDir = getRootDir(cwd, server.config.root || "")
       const islandDir = path.resolve(getTempDir(cwd, rootDir), "island/serve")
+      const snippetsDir = path.resolve(islandDir, "snippets")
       const base = getServeBase(server.config.base || "/")
-
-      await Promise.all(
-        snippetList.map(async (snippet, index) => {
-          const snippetIndex = index + 1
-          const fileName = `island-${snippetIndex}.tsx`
-          const fullPath = path.resolve(islandDir, fileName)
-          const code = getIslandServeCode(
-            decodeSnippet(snippet),
-            snippetIndex,
-            opts,
-          )
-          const timestamp = Date.now()
-          const prefixBase = base.replace(/\/$/, "")
-          const scriptSrc = `${prefixBase}${islandAlias}/${fileName}?=${timestamp}`
-          const script = `<script type="module" src="${scriptSrc}"></script>`
-          await fs.promises.writeFile(fullPath, code, "utf8")
-          newHtml = newHtml.replaceAll(snippet, `${snippetIndex}`)
-          newHtml = newHtml.replace(/<\/head>/, `${script}</head>`)
-        }),
+      await fs.promises.mkdir(snippetsDir, { recursive: true })
+      const timestamp = Date.now()
+      const prefixBase = base.replace(/\/$/, "")
+      const feature = createIslandFeature(
+        opts,
+        entryGenerator,
+        {
+          async bundle(plan) {
+            await Promise.all(plan.snippets.map((snippet) =>
+              fs.promises.writeFile(
+                path.resolve(snippetsDir, `snippet-${snippet.index}.tsx`),
+                snippet.code,
+                "utf8",
+              )
+            ))
+            await Promise.all(plan.entries.map((entry) =>
+              fs.promises.writeFile(
+                path.resolve(islandDir, `${entry.fileName}.tsx`),
+                entry.code,
+                "utf8",
+              )
+            ))
+            return plan.entries.map((entry) => ({
+              patternIndex: entry.patternIndex,
+              fileName: `${entry.fileName}.tsx`,
+              cssFiles: [],
+            }))
+          },
+        },
+        {
+          resolve(fileName) {
+            return `${prefixBase}${islandAlias}/${fileName}?t=${timestamp}`
+          },
+        },
       )
-      return newHtml
+      const result = await processViteDocuments(
+        [{ fileName: context.path, url: context.path, html }],
+        [feature],
+        ["analyze", "generate", "bundle", "compose"],
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(server.config),
+          "island:dev",
+          {
+            artifactUpdate: "input-pages",
+            inputArtifacts: [{
+              schemaVersion: "1",
+              id: createIslandSnippetsArtifactId(),
+              owner: feature.id,
+              mediaType: "application/vnd.minista.island-snippets+json",
+              content: JSON.stringify(snippetList),
+            }],
+          },
+        ),
+      )
+      return result.documents[0]?.html ?? html
     },
     async transform(code, id) {
       if (!/\.(tsx|jsx)$/.test(id)) return null

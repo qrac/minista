@@ -100,6 +100,16 @@ async function createLifecycle(features, hooks = {}) {
   const inputCapabilities = /** @type {readonly import("../../core/types.js").Capability[]} */ (
     /** @type {unknown} */ (["html-documents", "output-files"])
   )
+  const lifecycleFeatures = [
+    Object.freeze({
+      id: createNodeId("feature", "vite-compatibility-input"),
+      apiVersion: /** @type {const} */ (1),
+      options: Object.freeze({}),
+      provides: inputCapabilities,
+      hooks: Object.freeze({}),
+    }),
+    ...features,
+  ]
   return {
     diagnostics,
     documents: documentStore,
@@ -107,16 +117,8 @@ async function createLifecycle(features, hooks = {}) {
     emitter,
     graph,
     owners,
-    runner: new LifecycleRunner([
-      Object.freeze({
-        id: createNodeId("feature", "vite-compatibility-input"),
-        apiVersion: /** @type {const} */ (1),
-        options: Object.freeze({}),
-        provides: inputCapabilities,
-        hooks: Object.freeze({}),
-      }),
-      ...features,
-    ], {
+    features: lifecycleFeatures,
+    runner: new LifecycleRunner(lifecycleFeatures, {
       graph,
       diagnostics,
       documents: documentStore,
@@ -253,6 +255,17 @@ export async function processViteDocuments(
   )
   for (const artifact of hooks.inputArtifacts ?? []) {
     await lifecycle.artifacts.put(artifact)
+  }
+  if (hooks.artifactUpdate === "input-pages") {
+    const scopedDocuments = new MemoryHtmlDocumentStore()
+    for (const { document } of states) scopedDocuments.put(document)
+    lifecycle.runner = new LifecycleRunner(lifecycle.features, {
+      graph: lifecycle.graph,
+      diagnostics: lifecycle.diagnostics,
+      documents: scopedDocuments,
+      artifacts: lifecycle.artifacts,
+      emitter: lifecycle.emitter,
+    })
   }
 
   const composeIndex = phases.indexOf("compose")

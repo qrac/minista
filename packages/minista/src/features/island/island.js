@@ -240,6 +240,7 @@ export function createIslandFeature(options, generator, bundler, outputs) {
             owner: ISLAND_FEATURE_ID,
             mediaType: "application/vnd.minista.island-references+json",
             content: JSON.stringify(references),
+            scope: { kind: "page", pageId: document.pageId },
           })
           if (context.graph.snapshot().features.has(ISLAND_FEATURE_ID)) {
             context.graph.addArtifact({
@@ -248,6 +249,7 @@ export function createIslandFeature(options, generator, bundler, outputs) {
               owner: ISLAND_FEATURE_ID,
               source: `page:${document.pageId}`,
               dependencies: [],
+              scope: { kind: "page", pageId: document.pageId },
             })
           }
         }

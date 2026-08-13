@@ -95,44 +95,58 @@ export function pluginSsg(uOpts = {}) {
 
   /**
    * @param {ReturnType<typeof devStates.get>} state
+   * @param {import("../../core/graph/index.js").ProjectGraphSnapshot} graph
    * @param {ResolvedLayout} resolvedLayout
    * @param {readonly ResolvedPage[]} resolvedPages
    * @param {import("../../core/ports/index.js").StaticRenderer<import("react").ReactNode> | undefined} renderer
-   * @param {DevRenderCache<RenderedPage>} [renderCache]
+   * @param {DevRenderCache<RenderedPage>} renderCache
+   * @param {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} session
    */
   async function updateRenderedPages(
     state,
+    graph,
     resolvedLayout,
     resolvedPages,
     renderer,
     renderCache,
+    session,
   ) {
     const activePageIds = resolvedPages
       .filter(({ metadata }) => metadata?.draft !== true)
       .map(({ pageId, url }) => String(pageId ?? `url:${url}`))
     renderCache?.retain(activePageIds)
-    const pages = await Promise.all(
-      resolvedPages.map(async (resolvedPage) => {
-        if (resolvedPage.metadata?.draft === true) {
-          return null
-        }
-        const render = async () => {
-          const url = resolvedPage.url
-          const fileName = getHtmlFileName(url)
-          const html = await transformHtml(
-            { resolvedLayout, resolvedPage },
-            renderer,
-          )
-          return { url, fileName, html }
-        }
-        const pageId = String(resolvedPage.pageId ?? `url:${resolvedPage.url}`)
-        return renderCache ? renderCache.get(pageId, render) : render()
-      }),
+    const resolvedById = new Map(
+      resolvedPages.map((page) => [page.pageId, page]),
     )
-    state.ssgPages = pages.filter(
-        /** @type {(page: RenderedPage | null) => page is RenderedPage} */
-        (page) => page !== null,
-      )
+    const rendered = await renderViteSsgPages(
+      graph,
+      {
+        async render(page) {
+          const resolvedPage = resolvedById.get(page.id)
+          if (!resolvedPage) {
+            throw new Error(`Resolved page ${page.id} is not available.`)
+          }
+          const render = async () => ({
+            url: page.url,
+            fileName: getHtmlFileName(page.url),
+            html: await transformHtml(
+              { resolvedLayout, resolvedPage },
+              renderer,
+            ),
+          })
+          return (await renderCache.get(String(page.id), render)).html
+        },
+      },
+      {
+        artifacts: session?.artifacts,
+        diagnostics: session?.diagnostics,
+        onTrace: createViteCompatibilityTraceHooks(
+          session,
+          "ssg:dev-render",
+        ).onTrace,
+      },
+    )
+    state.ssgPages = [...rendered.pages]
   }
 
   /**
@@ -463,10 +477,12 @@ export function pluginSsg(uOpts = {}) {
 
           await updateRenderedPages(
             state,
+            project.graph,
             resolvedLayout,
             resolvedPages,
             state.renderer,
             state.renderCache,
+            getViteBuildSession(server.config),
           )
           evaluator.invalidateModule(SSG_PAGES_VIRTUAL)
           const layoutSourceFiles = Object.keys(LAYOUTS).map((sourceFile) =>

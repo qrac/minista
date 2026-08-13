@@ -148,7 +148,9 @@ export default function Other() {
     expect(scopes).toEqual(expect.arrayContaining([
       "comment:dev",
       "image:dev",
+      "island:dev",
       "sprite:dev",
+      "ssg:dev-render",
       "svg:dev",
     ]))
     expect(session?.state?.compatibilityDocuments?.list().length).toBeGreaterThan(
