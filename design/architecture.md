@@ -91,7 +91,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - CommentとSvgのcompatibility facadeは`ViteCompatibilityLifecycle` adapterからCore runnerのcompose phaseを実行し、domain featureがDocument Storeを変更する
 - Svgのfilesystem読込、SVGO、fragment parseは `NodeSvgSourceResolver` adapterに閉じている
 - Beautify compatibility facadeはVite outputをMemoryEmitterへ投影し、Core runnerでimage preload除去のcomposeと既存出力整形のfinalizeを順に実行する
-- Archiveはfinalizeでarchive出力を追加し、filesystemとarchive libraryは `NodeArchiveBuilder` adapterに閉じている
+- Archive compatibility facadeはCore runnerのfinalize phaseを実行し、domain featureがarchiveをEmitterへ追加する。archive libraryは`NodeArchiveBuilder`、安全なrelative outputの書込みは`NodeOutputWriter` adapterに閉じ、directory逸脱を`MINISTA_OUTPUT_WRITE_UNSAFE_PATH`で拒否する
 - Searchはanalyzeでpage解析Artifact、generateでSearchData Artifactを作り、composeで相対階層属性を共有documentへ反映する
 - SearchのDOM tree走査は `NodeSearchDocumentAnalyzer` adapterへ閉じ、同じparse treeを再利用する
 - Search compatibility facadeはbuild済みdocumentからJSON assetを直接生成し、SSGのexecutable temp moduleを読まない

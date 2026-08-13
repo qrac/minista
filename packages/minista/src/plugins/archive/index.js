@@ -2,13 +2,15 @@
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
-import fs from "node:fs"
 import path from "node:path"
 import pc from "picocolors"
 
 import { NodeArchiveBuilder } from "../../adapters/archive/index.js"
+import { NodeOutputWriter } from "../../adapters/filesystem/output-writer.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
+import { processViteOutputs } from "../../adapters/vite/compatibility-lifecycle.js"
 import { createNodeId } from "../../core/graph/index.js"
+import { createArchiveFeature } from "../../features/archive/index.js"
 import { getRootDir } from "../../shared/path.js"
 
 /** @type {PluginOptions} */
@@ -39,6 +41,7 @@ export function pluginArchive(uOpts = {}) {
   let builder
   /** @type {import("../../core/graph/index.js").OutputClaim[]} */
   let outputClaims = []
+  const outputWriter = new NodeOutputWriter()
 
   return {
     name: "vite-plugin:minista-archive",
@@ -59,49 +62,33 @@ export function pluginArchive(uOpts = {}) {
       const dist = options.dir
       if (!dist || !builder) return
       outputClaims = []
-      const archiveBuilder = builder
-
-      await Promise.all(
-        opts.archives.map(async (archive) => {
-          const { outName } = archive
-          const format = archive.format || "zip"
-          const outFile = `${outName}.${format}`
-
-          try {
-            const finalPath = path.resolve(dist, outFile)
-            await fs.promises.writeFile(
-              finalPath,
-              await archiveBuilder.build(archive),
-            )
-            const fileName = path.relative(dist, finalPath).replaceAll("\\", "/")
-            outputClaims.push(Object.freeze({
-              id: createNodeId("artifact", "archive-output", fileName),
-              kind: "archive",
-              owner: createNodeId("feature", "archive"),
-              source: archive.srcDir,
-              fileName,
-              pageUrls: Object.freeze([]),
-              dependencies: Object.freeze([]),
-            }))
-
-            const rel = path.relative(rootDir, path.dirname(finalPath))
-            console.log(
-              pc.gray(
-                (rel + path.sep).replaceAll("\\", "/") +
-                  pc.green(path.basename(finalPath)),
-              ),
-            )
-          } catch (err) {
-            if (err instanceof Error) {
-              console.error(
-                pc.red(`Error creating archive ${outName}: ${err.message}`),
-              )
-            } else {
-              console.error(pc.red(`An unknown error occurred: ${err}`))
-            }
-          }
-        }),
-      )
+      const outputs = await processViteOutputs([], [
+        createArchiveFeature(opts, builder),
+      ])
+      const paths = await outputWriter.write(dist, outputs)
+      const archiveByFileName = new Map(opts.archives.map((archive) => [
+        `${archive.outName}.${archive.format ?? "zip"}`,
+        archive,
+      ]))
+      for (const [index, output] of outputs.entries()) {
+        const archive = archiveByFileName.get(output.fileName)
+        if (!archive) continue
+        outputClaims.push(Object.freeze({
+          id: createNodeId("artifact", "archive-output", output.fileName),
+          kind: "archive",
+          owner: createNodeId("feature", "archive"),
+          source: archive.srcDir,
+          fileName: output.fileName,
+          pageUrls: Object.freeze([]),
+          dependencies: Object.freeze([]),
+        }))
+        const finalPath = paths[index]
+        const rel = path.relative(rootDir, path.dirname(finalPath))
+        console.log(pc.gray(
+          (rel + path.sep).replaceAll("\\", "/") +
+            pc.green(path.basename(finalPath)),
+        ))
+      }
     },
   }
 }
