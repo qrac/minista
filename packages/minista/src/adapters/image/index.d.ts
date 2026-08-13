@@ -1,1 +1,1 @@
-export { NodeImageGenerator } from "./node.js"
+export { NodeImageError, NodeImageGenerator } from "./node.js"

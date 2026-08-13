@@ -320,3 +320,15 @@ type ArtDirective = {
   height?: number | string
 } & Partial<ImagesOptimize>
 ```
+
+## Diagnostics
+
+画像処理に失敗した場合、buildは次のstable diagnostic codeを出力します。
+
+- `MINISTA_IMAGE_DOWNLOAD_FAILED`: リモート画像の取得失敗
+- `MINISTA_IMAGE_READ_FAILED`: local画像の欠落または読込失敗
+- `MINISTA_IMAGE_METADATA_FAILED`: 画像サイズ／形式の解析失敗
+- `MINISTA_IMAGE_TRANSFORM_FAILED`: Sharpによる変換失敗
+- `MINISTA_IMAGE_CACHE_FAILED`: cacheの読込／書込失敗
+
+local画像のdiagnosticにはproject相対locationが含まれます。リモートURLのquery parameterはdiagnostic messageへ出力しません。
