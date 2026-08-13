@@ -79,3 +79,82 @@ export function inspectProjectManifest(manifest) {
     }))),
   })
 }
+
+/**
+ * 公開manifestだけからPageと生成outputの関係を追跡する。
+ *
+ * @param {ProjectManifest} manifest
+ * @param {string} target Page IDまたはURL
+ * @returns {import("./types.js").ProjectPageTrace}
+ */
+export function traceProjectPage(manifest, target) {
+  const page = manifest.pages.find((item) =>
+    item.id === target || item.url === target
+  )
+  if (!page) {
+    return Object.freeze({
+      schemaVersion: /** @type {const} */ ("1"),
+      target,
+      found: false,
+      assets: Object.freeze([]),
+      artifacts: Object.freeze([]),
+      outputs: Object.freeze([]),
+    })
+  }
+  const route = manifest.routes.find(({ id }) => id === page.routeId)
+  const assets = manifest.assets
+    .filter(({ consumers }) => consumers.includes(page.id))
+    .sort((left, right) => left.id.localeCompare(right.id))
+  const outputFileNames = new Set([
+    ...(page.output ? [page.output.fileName] : []),
+    ...assets.flatMap(({ output }) => output ? [output.fileName] : []),
+  ])
+  const artifacts = manifest.artifacts
+    .filter(({ output }) => output && outputFileNames.has(output.fileName))
+    .sort((left, right) => left.id.localeCompare(right.id))
+  for (const artifact of artifacts) {
+    if (artifact.output) outputFileNames.add(artifact.output.fileName)
+  }
+  const outputs = (manifest.outputs ?? [])
+    .filter(({ fileName }) => outputFileNames.has(fileName))
+    .sort((left, right) => left.fileName.localeCompare(right.fileName))
+  return Object.freeze({
+    schemaVersion: /** @type {const} */ ("1"),
+    target,
+    found: true,
+    page: Object.freeze({
+      ...page,
+      params: Object.freeze({ ...page.params }),
+      ...(page.output ? { output: Object.freeze({ ...page.output }) } : {}),
+    }),
+    ...(route ? { route: Object.freeze({
+      ...route,
+      params: Object.freeze(route.params.map((param) =>
+        Object.freeze({ ...param })
+      )),
+    }) } : {}),
+    assets: Object.freeze(assets.map((asset) => Object.freeze({
+      ...asset,
+      consumers: Object.freeze([...asset.consumers]),
+      ...(asset.output ? { output: Object.freeze({ ...asset.output }) } : {}),
+    }))),
+    artifacts: Object.freeze(artifacts.map((artifact) =>
+      Object.freeze({
+        ...artifact,
+        dependencies: Object.freeze([...artifact.dependencies]),
+        ...(artifact.output
+          ? { output: Object.freeze({ ...artifact.output }) }
+          : {}),
+      })
+    )),
+    outputs: Object.freeze(outputs.map((output) => Object.freeze({
+      ...output,
+      ...(output.imports
+        ? { imports: Object.freeze([...output.imports]) }
+        : {}),
+      ...(output.dynamicImports
+        ? { dynamicImports: Object.freeze([...output.dynamicImports]) }
+        : {}),
+    }))),
+  })
+}

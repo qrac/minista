@@ -30,6 +30,10 @@
       "import": "./src/assets.js",
       "types": "./src/assets.d.ts"
     },
+    "./internal/query": {
+      "import": "./src/internal/query.js",
+      "types": "./src/internal/query.d.ts"
+    },
     "./package.json": {
       "import": "./package.json"
     }

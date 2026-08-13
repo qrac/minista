@@ -38,3 +38,4 @@
 - [ADR-0008: 公開Project Manifestを安全かつ原子的に出力する](decisions/0008-public-project-manifest.md)
 - [ADR-0009: 直近のstructured diagnosticsをworkspace snapshotへ保存する](decisions/0009-diagnostics-workspace-snapshot.md)
 - [ADR-0010: feature output ownershipを明示的なclaimでGraphへ統合する](decisions/0010-explicit-output-claims.md)
+- [ADR-0011: read-only queryをinternal package boundaryとして公開する](decisions/0011-internal-read-only-query-boundary.md)

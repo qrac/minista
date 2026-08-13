@@ -355,11 +355,14 @@ v5 Coreの同じquery serviceを次から共有します。
 - `minista inspect --manifest [--json]`: `.minista/manifest.json` だけを読み、Vite serverやuser moduleを実行しない。missing、invalid JSON、unsupported schema versionはstable diagnosticを返す
 - `minista explain <route|file|artifact|diagnostic-code>`: edgeと生成理由
 - `minista build`: lifecycle全体
-- 将来の `@minista/mcp`: 上記query serviceのadapter。Coreの必須依存にはしない
+- `minista/internal/query`: 公開manifestだけを読むtool adapter向けread-only package boundary
+- 将来の `@minista/mcp`: `minista/internal/query`のadapter。Coreの必須依存にはしない
 
 JSON outputはcommandごとにversioned envelopeを持ちます。
 
 Project Manifest readerはparse前に明示的なmigration registryを一段ずつ適用します。v1が最初の公開schemaなのでbuilt-in registryは空です。未登録versionは `MINISTA_MANIFEST_VERSION_UNSUPPORTED`、cycle、重複migration、不正な変換結果は `MINISTA_MANIFEST_MIGRATION_FAILED` として区別します。
+
+`minista/internal/query`は`queryProject()`と純粋な`queryProjectManifest()`を公開し、`inspect`または`trace-page` requestを受けます。`trace-page`はPage ID／URLからRoute、consumer Asset、対応Artifact、最終Outputを返します。user moduleやViteを起動せず、filesystemへの書込みも行いません。CLIの`inspect --manifest`も同じboundaryを使用します。不正なrequestは`MINISTA_QUERY_REQUEST_INVALID`です。
 
 ```ts
 interface CommandResult<T> {
@@ -375,6 +378,7 @@ interface CommandResult<T> {
 
 - `public/` はuser config、page/layout props、feature options、public component typeのみexport
 - `core/` のgraph mutation command、adapter port、lifecycle contextはpackage rootからexportしない
+- `internal/query`は将来のtool adapter向けに明示exportするが、一般利用者向けroot APIとはversion管理を分ける
 - runtime implementationは `.js` / `.jsx` とJSDocで記述し、public declarationは隣接する `.d.ts` で維持する
 - typecheckは `tsc --noEmit` でsourceを直接検査し、testやCLI実行の前提にcompile stepを置かない
 - `JsonValue`, branded ID, discriminated unionを使用し、arbitrary user valueが必要なruntime boundaryだけ `unknown` を使う

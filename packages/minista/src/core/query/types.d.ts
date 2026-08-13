@@ -1,4 +1,5 @@
 import type { Diagnostic } from "../diagnostics/index.js"
+import type { OutputFile, ProjectManifest } from "../manifest/index.js"
 export type CommandName = "check" | "inspect" | "explain" | "build"
 export interface CommandResult<Data> {
   readonly schemaVersion: "1"
@@ -36,4 +37,14 @@ export interface Explanation {
   readonly found: boolean
   readonly summary: string
   readonly relatedNodeIds: readonly string[]
+}
+export interface ProjectPageTrace {
+  readonly schemaVersion: "1"
+  readonly target: string
+  readonly found: boolean
+  readonly page?: ProjectManifest["pages"][number]
+  readonly route?: ProjectManifest["routes"][number]
+  readonly assets: readonly ProjectManifest["assets"][number][]
+  readonly artifacts: readonly ProjectManifest["artifacts"][number][]
+  readonly outputs: readonly OutputFile[]
 }

@@ -7,7 +7,10 @@ import {
   ProjectManifestVersionUnsupportedError,
   serializeProjectManifest,
 } from "../../../src/core/manifest/index.js"
-import { inspectProjectManifest } from "../../../src/core/query/index.js"
+import {
+  inspectProjectManifest,
+  traceProjectPage,
+} from "../../../src/core/query/index.js"
 import {
   createDiagnosticsReport,
   serializeDiagnosticsReport,
@@ -74,6 +77,24 @@ describe("Project manifest", () => {
       project: { name: "fixture" },
       counts: { routes: 1, pages: 1 },
       routes: [{ id: "route:index", pageIds: ["page:index"] }],
+    })
+    expect(traceProjectPage(manifest, "/")).toMatchObject({
+      schemaVersion: "1",
+      target: "/",
+      found: true,
+      page: { id: "page:index" },
+      route: { id: "route:index" },
+      assets: [],
+      artifacts: [],
+      outputs: [],
+    })
+    expect(traceProjectPage(manifest, "/missing")).toEqual({
+      schemaVersion: "1",
+      target: "/missing",
+      found: false,
+      assets: [],
+      artifacts: [],
+      outputs: [],
     })
     expect(() => parseProjectManifest({ schemaVersion: "2" }))
       .toThrowError(ProjectManifestVersionUnsupportedError)

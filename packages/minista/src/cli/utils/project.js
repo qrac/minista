@@ -7,14 +7,13 @@ import { createServer } from "vite"
 import { glob } from "tinyglobby"
 
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
-import { NodeProjectManifestReader } from "../../adapters/filesystem/project-manifest-reader.js"
 import { NodeDiagnosticsWriter } from "../../adapters/filesystem/diagnostics-writer.js"
+import { queryProject } from "../../internal/query.js"
 import {
   createCommandResult,
   createDiagnosticsReport,
   createNodeId,
   DiagnosticCollector,
-  inspectProjectManifest,
   toProjectPath,
 } from "../../core/index.js"
 
@@ -116,8 +115,7 @@ async function inspectManifest(rootDir) {
   const diagnostics = new DiagnosticCollector()
   let inspection
   try {
-    const manifest = await new NodeProjectManifestReader().read(rootDir)
-    inspection = inspectProjectManifest(manifest)
+    inspection = await queryProject(rootDir, { kind: "inspect" })
   } catch (error) {
     const errorCode = error && typeof error === "object"
       ? Reflect.get(error, "code")
