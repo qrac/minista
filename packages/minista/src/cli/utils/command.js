@@ -1,9 +1,14 @@
 import { spawn } from "cross-spawn"
 import path from "node:path"
 
-import { attachViteBuildSession } from "../../adapters/vite/build-session.js"
+import { ViteAppBuilderAdapter } from "../../adapters/vite/app-builder.js"
+import { ViteAppConfigPluginMismatchError } from "../../adapters/vite/app-config-loader.js"
+import {
+  attachViteBuildSession,
+  createViteBuildSession,
+  disposeViteBuildSession,
+} from "../../adapters/vite/build-session.js"
 import { LegacyViteBuilderAdapter } from "../../adapters/vite/legacy-builder.js"
-import { MemoryArtifactStore } from "../../core/artifacts/index.js"
 
 /** @typedef {import("../../adapters/vite/build-session.js").ViteBuildSession} ViteBuildSession */
 
@@ -77,10 +82,10 @@ function readRoot(args) {
 
 /**
  * @param {string[]} args
- * @param {boolean} isRender
- * @param {ViteBuildSession} [session]
+ * @param {boolean} [isRender]
+ * @returns {import("vite").InlineConfig}
  */
-export async function runProgrammaticBuild(args, isRender, session) {
+function createProgrammaticConfig(args, isRender) {
   const root = readRoot(args)
   const configFile = readOption(args, "--config", "-c")
   const mode = readOption(args, "--mode", "-m")
@@ -88,7 +93,7 @@ export async function runProgrammaticBuild(args, isRender, session) {
   const logLevel = readOption(args, "--logLevel")
   const clearScreenValue = readOption(args, "--clearScreen")
 
-  const config = {
+  return {
     root: root ? path.resolve(process.cwd(), root) : process.cwd(),
     configFile: configFile ? path.resolve(process.cwd(), configFile) : undefined,
     mode,
@@ -100,11 +105,47 @@ export async function runProgrammaticBuild(args, isRender, session) {
       clearScreenValue === undefined
         ? undefined
         : clearScreenValue !== "false",
-    build: { ssr: isRender },
+    ...(isRender === undefined ? {} : { build: { ssr: isRender } }),
   }
+}
+
+/**
+ * @param {string[]} args
+ * @param {boolean} isRender
+ * @param {ViteBuildSession} [session]
+ */
+export async function runProgrammaticBuild(args, isRender, session) {
+  const config = createProgrammaticConfig(args, isRender)
   await new LegacyViteBuilderAdapter().build(
     session ? attachViteBuildSession(config, session) : config,
   )
+}
+
+/**
+ * @param {string[]} args
+ * @param {ViteBuildSession} session
+ */
+export async function runProgrammaticAppBuild(args, session) {
+  const config = attachViteBuildSession(createProgrammaticConfig(args), session)
+  return new ViteAppBuilderAdapter().build(config)
+}
+
+/** @param {ViteAppConfigPluginMismatchError} error */
+function reportAppBuildFallback(error) {
+  const diagnostic = error.diagnostic
+  console.warn(`[${diagnostic.code}] ${diagnostic.message}`)
+  console.warn(`  hint: ${diagnostic.hint}`)
+}
+
+/** @param {string[]} args */
+async function runLegacyBuildLifecycle(args) {
+  const session = createViteBuildSession()
+  try {
+    await runProgrammaticBuild(args, true, session)
+    await runProgrammaticBuild(args, false, session)
+  } finally {
+    await disposeViteBuildSession(session)
+  }
 }
 
 /**
@@ -117,9 +158,18 @@ export async function runMinista(args, isOneBuild) {
 
   try {
     if (isBuild && !isOneBuild && canRunProgrammaticBuild(args)) {
-      const session = { artifacts: new MemoryArtifactStore() }
-      await runProgrammaticBuild(args, true, session)
-      await runProgrammaticBuild(args, false, session)
+      const session = createViteBuildSession()
+      let useLegacyFallback = false
+      try {
+        await runProgrammaticAppBuild(args, session)
+      } catch (error) {
+        if (!(error instanceof ViteAppConfigPluginMismatchError)) throw error
+        reportAppBuildFallback(error)
+        useLegacyFallback = true
+      } finally {
+        await disposeViteBuildSession(session)
+      }
+      if (useLegacyFallback) await runLegacyBuildLifecycle(args)
       return
     }
     if (isBuild && !isOneBuild) {

@@ -3,6 +3,7 @@
 import { createBuilder } from "vite"
 
 import { loadViteAppConfig } from "./app-config-loader.js"
+import { getViteBuildSession } from "./build-session.js"
 import { prepareViteClientEnvironment } from "./environment-preparation.js"
 
 /** @typedef {import("vite").BuildEnvironment} BuildEnvironment */
@@ -35,6 +36,7 @@ export class ViteAppBuilderAdapter {
    * @param {ViteAppBuildOptions} [options]
    */
   async build(config, options = {}) {
+    const session = getViteBuildSession(config)
     const renderName = options.renderName ?? "render"
     const clientName = options.clientName ?? "client"
     const appConfig = await loadViteAppConfig(config, {
@@ -52,6 +54,10 @@ export class ViteAppBuilderAdapter {
     const clientOutput = await builder.build(client)
 
     return Object.freeze({
+      schemaVersion: "1",
+      status: "success",
+      ...(session?.buildId ? { buildId: session.buildId } : {}),
+      diagnostics: session?.diagnostics?.snapshot() ?? Object.freeze([]),
       builder,
       renderOutput,
       clientOutput,

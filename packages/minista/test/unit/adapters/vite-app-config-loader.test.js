@@ -1,6 +1,9 @@
 import { describe, expect, test, vi } from "vitest"
 
-import { loadViteAppConfig } from "../../../src/adapters/vite/app-config-loader.js"
+import {
+  loadViteAppConfig,
+  ViteAppConfigPluginMismatchError,
+} from "../../../src/adapters/vite/app-config-loader.js"
 
 describe("Vite App Build config loader", () => {
   test("projects legacy render config options into render only", async () => {
@@ -34,6 +37,14 @@ describe("Vite App Build config loader", () => {
       undefined,
       undefined,
     )
+    expect(loader).toHaveBeenCalledWith(
+      expect.objectContaining({ command: "build", isSsrBuild: false }),
+      undefined,
+      "/project",
+      undefined,
+      undefined,
+      undefined,
+    )
     expect(config.environments?.render).toMatchObject({
       consumer: "server",
       resolve: { conditions: ["module"] },
@@ -44,6 +55,35 @@ describe("Vite App Build config loader", () => {
       build: { ssr: false },
     })
     expect(config.plugins).toBeUndefined()
+  })
+
+  test("rejects legacy config functions that change plugin composition", async () => {
+    const loader = vi.fn(async (environment) => ({
+      path: "/project/vite.config.js",
+      dependencies: [],
+      config: {
+        plugins: environment.isSsrBuild
+          ? [{ name: "render-only" }]
+          : [{ name: "client-only" }],
+      },
+    }))
+
+    await expect(
+      loadViteAppConfig(
+        { root: "/project" },
+        {},
+        /** @type {any} */ (loader),
+      ),
+    ).rejects.toMatchObject({
+      code: "MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH",
+      name: ViteAppConfigPluginMismatchError.name,
+      renderPlugins: ["render-only"],
+      clientPlugins: ["client-only"],
+      diagnostic: {
+        severity: "warning",
+        phase: "analyze",
+      },
+    })
   })
 
   test("skips loading when no config file or root can be resolved", async () => {

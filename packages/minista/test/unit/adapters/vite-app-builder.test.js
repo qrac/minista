@@ -4,6 +4,10 @@ import {
   ViteAppBuilderAdapter,
   ViteAppEnvironmentNotFoundError,
 } from "../../../src/adapters/vite/app-builder.js"
+import {
+  attachViteBuildSession,
+  createViteBuildSession,
+} from "../../../src/adapters/vite/build-session.js"
 
 describe("Vite App Builder adapter", () => {
   test("builds render, prepares client, then builds client", async () => {
@@ -23,12 +27,15 @@ describe("Vite App Builder adapter", () => {
     const adapter = new ViteAppBuilderAdapter(/** @type {any} */ (factory))
 
     const result = await adapter.build(
-      { builder: {}, environments: { render: {}, client: {} } },
+      attachViteBuildSession(
+        { builder: {}, environments: { render: {}, client: {} } },
+        createViteBuildSession({ buildId: "build:test" }),
+      ),
       { prepareClient },
     )
 
     expect(factory).toHaveBeenCalledWith(
-      {
+      expect.objectContaining({
         __ministaAppBuild: {
           renderName: "render",
           clientName: "client",
@@ -38,11 +45,17 @@ describe("Vite App Builder adapter", () => {
           render: { consumer: "server", build: { ssr: true } },
           client: { consumer: "client", build: { ssr: false } },
         },
-      },
+      }),
       false,
     )
     expect(calls).toEqual(["build:render", "prepare:render", "build:client"])
-    expect(result).toMatchObject({ builder })
+    expect(result).toMatchObject({
+      schemaVersion: "1",
+      status: "success",
+      buildId: "build:test",
+      diagnostics: [],
+      builder,
+    })
   })
 
   test("reports a missing configured environment with a stable code", async () => {

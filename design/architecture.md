@@ -20,26 +20,24 @@ package runtime entryは `src/node.js` です。CLI、test、workspace package�
 
 ### Current build lifecycle
 
-通常の `minista build` は同じNode.js processからViteのBuilder APIをrender/clientの順に呼びます。現在は各buildに対して `createBuilder(config, true)` でbackward-compatible environmentを一つ作る `LegacyViteBuilderAdapter` を使用します。programmatic adapterがまだ変換できないVite CLI flagを指定した場合だけ、compatibility fallbackとして `cross-spawn` でVite CLIを二度起動します。
+通常の `minista build` は同じNode.js processで一つの `createBuilder(config, false)` を作り、App Buildのrender/client environmentを順にbuildします。`isSsrBuild` でplugin構成自体を変えるconfigはstable diagnosticを出し、同一processの `LegacyViteBuilderAdapter` がrender/clientごとのbackward-compatible environmentをbuildします。programmatic adapterが変換できないVite CLI flagを指定した場合だけ、最終compatibility fallbackとして `cross-spawn` でVite CLIを二度起動します。
 
 ```text
 minista build (current programmatic path)
-  ├─ createBuilder({ build: { ssr: true } }, true)
-  │    └─ builder.build(render-compatible environment)
-  │         └─ page/layout glob entryをbundle
-  │              -> node_modules/.minista/ssr/__minista-ssg.mjs
-  └─ createBuilder({ build: { ssr: false } }, true)
-       └─ builder.build(client-compatible environment)
-            ├─ SSR bundleをnative import
-            ├─ getStaticDataとReact renderToStringを実行
-            ├─ node_modules/.minista/ssg/__minista-ssg.mjsへHTML配列を書き出す
-            ├─ compatibility fallbackだけがそのファイルをnative import
-            └─ Vite bundleを直接変更してHTML / assetを出力
+  └─ createBuilder({ environments: { render, client } }, false)
+       ├─ builder.build(render)
+       │    └─ page/layout glob entryをbundle
+       ├─ prepareClient
+       │    ├─ render bundleをnative import
+       │    ├─ getStaticDataとReact rendererを実行
+       │    └─ ArtifactStoreからclient inputを合成
+       └─ builder.build(client)
+            └─ HTML / assetを出力
 ```
 
-CLI processは一つになり、render/client buildには同じbuild-session `MemoryArtifactStore` を渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。未対応CLI flagで別processのVite CLIへfallbackした場合だけ、従来の `.minista` 内の実行可能な `.mjs` を読みます。`--oneBuild` は前半を省略するescape hatchです。
+CLI processは一つになり、render/client buildにはbuildId、`DiagnosticCollector`、`MemoryArtifactStore` を持つ同じbuild sessionを渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。App Builderはschema付きの単一resultを返し、CLIは成功、失敗、legacy fallbackの各経路でArtifactStoreをclearします。未対応CLI flagで別processのVite CLIへfallbackした場合だけ、従来の `.minista` 内の実行可能な `.mjs` を読みます。`--oneBuild` は前半を省略するescape hatchです。
 
-App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。通常buildのconfig-time temp importはbuild-session ArtifactStoreへ移行済みですが、default adapterはrender/clientごとにbackward-compatible Builderを作る構造です。単一の `createBuilder()` でrender、clientを順にbuildし、その間にclient planを適用する `ViteAppBuilderAdapter` は実装済みです。`createViteAppConfig()` はrender/clientのconsumerとSSR設定を明示し、`ViteEnvironmentInputAdapter` は解決済みclient environmentへnamed inputを保存的に合成します。`prepareViteClientEnvironment()` は明示的な `api.minista.prepareClient` だけを、feature descriptorのcapabilityと順序制約でscheduleして実行します。不正な依存はstructured diagnosticを持つstable errorになります。SSG、Entry、Islandはこのprotocolへ移行済みです。Islandはsnippet Artifactをrenderからclientへ渡し、EntryとIslandはrendered page Artifactからclient entryを生成します。Comment、Svg、Sprite、Beautify、Archive、Bundleのoutput hookはApp Buildのclient environmentだけに適用し、ImageとSearchのsource transformもrender/clientへ分離してrender outputを変更しません。既存の `isSsrBuild` config関数はrender用の環境設定を再評価し、Viteがenvironmentごとに受け付けるoptionを投影します。clientだけに設定されたPreact aliasはrender bundleのReact importをexternalizeして分離します。実際のVite 8.2.1で全compatibility pluginを含む単一Builder fixtureとPreact fixtureが、Head、Entry、Island、Image、Search、Sprite、Archiveの出力を作ることも確認済みです。CLI default切替、result / cleanup lifecycleの接続、`isSsrBuild` でplugin構成自体を変えるconfigの互換判定が残っています。
+App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。`ViteAppBuilderAdapter` は単一の `createBuilder()` でrender、clientを順にbuildし、その間にclient planを適用します。`createViteAppConfig()` はrender/clientのconsumerとSSR設定を明示し、`ViteEnvironmentInputAdapter` は解決済みclient environmentへnamed inputを保存的に合成します。`prepareViteClientEnvironment()` は明示的な `api.minista.prepareClient` だけを、feature descriptorのcapabilityと順序制約でscheduleして実行します。不正な依存はstructured diagnosticを持つstable errorになります。SSG、Entry、Islandはこのprotocolへ移行済みです。Islandはsnippet Artifactをrenderからclientへ渡し、EntryとIslandはrendered page Artifactからclient entryを生成します。Comment、Svg、Sprite、Beautify、Archive、Bundleのoutput hookはApp Buildのclient environmentだけに適用し、ImageとSearchのsource transformもrender/clientへ分離してrender outputを変更しません。既存の `isSsrBuild` config関数はrender用の環境設定を再評価し、Viteがenvironmentごとに受け付けるoptionを投影します。clientだけに設定されたPreact aliasはrender bundleのReact importをexternalizeして分離します。plugin名や順序がrender/clientで異なるconfigは `MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH` を出してlegacy adapterへfallbackします。実際のVite 8.2.1で全compatibility pluginを含むCLI fixture、Preact fixture、plugin mismatch fixtureを確認済みです。失敗時のpartial filesystem output policyとCore `OutputManifest` への変換が残っています。
 
 ### Current dev lifecycle
 

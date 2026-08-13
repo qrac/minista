@@ -3,6 +3,8 @@ import { resolveConfig } from "vite"
 
 import {
   attachViteBuildSession,
+  createViteBuildSession,
+  disposeViteBuildSession,
   getViteBuildSession,
 } from "../../../src/adapters/vite/build-session.js"
 import { MemoryArtifactStore } from "../../../src/core/index.js"
@@ -17,4 +19,26 @@ describe("Vite build session", () => {
 
     expect(getViteBuildSession(config)).toBe(session)
   })
+})
+
+test("creates one build identity and clears artifacts during disposal", async () => {
+  const session = createViteBuildSession({ buildId: "build:test" })
+  await session.artifacts.put({
+    schemaVersion: "1",
+    id: /** @type {import("../../../src/core/graph/index.js").ArtifactId} */ (
+      "artifact:test"
+    ),
+    owner: /** @type {import("../../../src/core/graph/index.js").FeatureId} */ (
+      "feature:test"
+    ),
+    mediaType: "text/plain",
+    content: "test",
+  })
+
+  expect(session.buildId).toBe("build:test")
+  expect(session.diagnostics.snapshot()).toEqual([])
+  expect(await session.artifacts.list()).toHaveLength(1)
+
+  await disposeViteBuildSession(session)
+  expect(await session.artifacts.list()).toEqual([])
 })

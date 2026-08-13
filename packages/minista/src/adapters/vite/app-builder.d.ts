@@ -19,6 +19,10 @@ export interface ViteAppBuildOptions {
   ) => void | Promise<void>
 }
 export interface ViteAppBuildResult {
+  readonly schemaVersion: "1"
+  readonly status: "success"
+  readonly buildId?: string
+  readonly diagnostics: readonly import("../../core/diagnostics/index.js").Diagnostic[]
   readonly builder: ViteBuilder
   readonly renderOutput: ViteBuildOutput
   readonly clientOutput: ViteBuildOutput
