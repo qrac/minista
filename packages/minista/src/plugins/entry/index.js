@@ -14,7 +14,10 @@ import {
   getViteAppEnvironmentNames,
   isViteAppClientEnvironment,
 } from "../../adapters/vite/app-config.js"
-import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteDocuments,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -76,6 +79,7 @@ export function pluginEntry(uOpts = {}) {
         { resolve: () => undefined },
       )],
       ["analyze"],
+      createViteCompatibilityTraceHooks(buildSession, "entry:prepare"),
     )
     /** @type {import("../../features/entry/index.js").EntryReference[]} */
     const references = analysis.artifacts
@@ -283,6 +287,9 @@ export function pluginEntry(uOpts = {}) {
         html: String(item.source),
       }))
       const pageFileNames = new Map()
+      const buildSession = getViteBuildSession(
+        this.environment.getTopLevelConfig(),
+      )
       const result = await processViteDocuments(
         pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
         [createEntryFeature(
@@ -298,14 +305,14 @@ export function pluginEntry(uOpts = {}) {
           },
         )],
         ["analyze", "bundle", "compose"],
-        {
+        createViteCompatibilityTraceHooks(buildSession, "entry:bundle", {
           beforeCompose({ graph }) {
             for (const page of graph.pages.values()) {
               const route = graph.routes.get(page.routeId)
               if (route) pageFileNames.set(page.id, route.pageModuleId)
             }
           },
-        },
+        }),
       )
       const outputDocuments = new Map(
         result.documents.map((document) => [document.fileName, document]),

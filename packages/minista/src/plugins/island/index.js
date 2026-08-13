@@ -17,7 +17,10 @@ import { ViteBuildDataReader } from "../../adapters/vite/build-data-reader.js"
 import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
-import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteDocuments,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
@@ -119,7 +122,7 @@ export function pluginIsland(uOpts = {}) {
       ssgPages.map(({ fileName, url, html }) => ({ fileName, url, html })),
       [feature],
       ["analyze", "generate"],
-      {
+      createViteCompatibilityTraceHooks(buildSession, "island:prepare", {
         inputArtifacts: [{
           schemaVersion: "1",
           id: createIslandSnippetsArtifactId(),
@@ -127,7 +130,7 @@ export function pluginIsland(uOpts = {}) {
           mediaType: "application/vnd.minista.island-snippets+json",
           content: JSON.stringify(snippetList),
         }],
-      },
+      }),
     )
     const sourceRecord = result.artifacts.find(
       ({ id }) => id === createIslandSourcePlanArtifactId(),
@@ -383,6 +386,9 @@ export function pluginIsland(uOpts = {}) {
         html: String(item.source),
       }))
       const pageFileNames = new Map()
+      const buildSession = getViteBuildSession(
+        this.environment.getTopLevelConfig(),
+      )
       const feature = createIslandFeature(
         opts,
         entryGenerator,
@@ -400,7 +406,7 @@ export function pluginIsland(uOpts = {}) {
         pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
         [feature],
         ["bundle", "compose"],
-        {
+        createViteCompatibilityTraceHooks(buildSession, "island:bundle", {
           inputArtifacts: [{
             schemaVersion: "1",
             id: createIslandSourcePlanArtifactId(),
@@ -414,7 +420,7 @@ export function pluginIsland(uOpts = {}) {
               if (route) pageFileNames.set(page.id, route.pageModuleId)
             }
           },
-        },
+        }),
       )
       const pageUrlsByPattern = new Map()
       for (const page of result.graph.pages.values()) {

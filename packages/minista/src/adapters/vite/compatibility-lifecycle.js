@@ -27,6 +27,35 @@ export class ViteCompatibilityLifecycleError extends Error {
   }
 }
 
+/**
+ * Accumulate compatibility phase events in the build session without exposing
+ * Vite objects to Core lifecycle hooks.
+ *
+ * @param {import("./build-session.js").ViteBuildSession | undefined} session
+ * @param {string} scope
+ * @param {import("./compatibility-lifecycle.js").ViteCompatibilityDocumentHooks} [hooks]
+ */
+export function createViteCompatibilityTraceHooks(
+  session,
+  scope,
+  hooks = {},
+) {
+  return {
+    ...hooks,
+    /** @param {import("../../core/lifecycle/index.js").PhaseTraceEvent} event */
+    onTrace(event) {
+      if (session?.state) {
+        session.state.compatibilityTraces ??= []
+        session.state.compatibilityTraces.push(Object.freeze({
+          scope,
+          ...event,
+        }))
+      }
+      hooks.onTrace?.(event)
+    },
+  }
+}
+
 /** @param {readonly import("../../core/lifecycle/index.js").MinistaFeature[]} features */
 function createLifecycle(features) {
   const diagnostics = new DiagnosticCollector()
@@ -130,14 +159,16 @@ export async function processViteDocuments(
   const composeIndex = phases.indexOf("compose")
   if (hooks.beforeCompose && composeIndex >= 0) {
     const beforeCompose = phases.slice(0, composeIndex)
-    if (beforeCompose.length > 0) await run(lifecycle, beforeCompose)
+    if (beforeCompose.length > 0) {
+      await run(lifecycle, beforeCompose, hooks.onTrace)
+    }
     await hooks.beforeCompose(Object.freeze({
       artifacts: await lifecycle.artifacts.list(),
       graph: lifecycle.graph.snapshot(),
     }))
-    await run(lifecycle, phases.slice(composeIndex))
+    await run(lifecycle, phases.slice(composeIndex), hooks.onTrace)
   } else {
-    await run(lifecycle, phases)
+    await run(lifecycle, phases, hooks.onTrace)
   }
   return Object.freeze({
     documents: Object.freeze(states.map(({ input, document, before }) => {
@@ -153,9 +184,9 @@ export async function processViteDocuments(
   })
 }
 
-/** @param {{runner: LifecycleRunner, diagnostics: DiagnosticCollector}} lifecycle @param {readonly import("../../core/types.js").BuildPhase[]} phases */
-async function run(lifecycle, phases) {
-  const result = await lifecycle.runner.run({ phases })
+/** @param {{runner: LifecycleRunner, diagnostics: DiagnosticCollector}} lifecycle @param {readonly import("../../core/types.js").BuildPhase[]} phases @param {(event: import("../../core/lifecycle/index.js").PhaseTraceEvent) => void} [onTrace] */
+async function run(lifecycle, phases, onTrace) {
+  const result = await lifecycle.runner.run({ phases, onTrace })
   if (!result.ok) {
     throw new ViteCompatibilityLifecycleError(
       lifecycle.diagnostics.snapshot(),

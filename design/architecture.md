@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。残る主要課題は、この短命lifecycleとfeature別dev処理をbuild／dev session全体の長寿命lifecycleへ統合することです。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。Entry／Islandのprepareとbundle／composeが生成するphase traceはscope付きで同じbuild sessionへ集約されますが、Document Storeとdomain Artifact Storeはまだ各呼出しで作り直します。devもfeature別cacheと`transformIndexHtml()`を使用します。残る主要課題は、この短命lifecycleとfeature別dev処理をbuild／dev session全体の長寿命lifecycleへ統合することです。
 
 ## CoreとFeatureの実装contract
 

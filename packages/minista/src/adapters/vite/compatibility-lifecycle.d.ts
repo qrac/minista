@@ -3,6 +3,8 @@ import type { Diagnostic } from "../../core/diagnostics/index.js"
 import type { ProjectGraphSnapshot } from "../../core/graph/index.js"
 import type { MinistaFeature } from "../../core/lifecycle/index.js"
 import type { BuildPhase } from "../../core/types.js"
+import type { PhaseTraceEvent } from "../../core/lifecycle/index.js"
+import type { ViteBuildSession } from "./build-session.js"
 
 export interface ViteCompatibilityDocumentInput {
   readonly fileName: string
@@ -17,11 +19,18 @@ export interface ViteCompatibilityDocumentResult {
 }
 export interface ViteCompatibilityDocumentHooks {
   readonly inputArtifacts?: readonly ArtifactRecord[]
+  readonly onTrace?: (event: PhaseTraceEvent) => void
   readonly beforeCompose?: (context: {
     readonly artifacts: readonly ArtifactRecord[]
     readonly graph: ProjectGraphSnapshot
   }) => void | Promise<void>
 }
+
+export declare function createViteCompatibilityTraceHooks(
+  session: ViteBuildSession | undefined,
+  scope: string,
+  hooks?: ViteCompatibilityDocumentHooks,
+): ViteCompatibilityDocumentHooks
 
 export declare class ViteCompatibilityLifecycleError extends Error {
   readonly code: "MINISTA_VITE_COMPATIBILITY_LIFECYCLE_FAILED"

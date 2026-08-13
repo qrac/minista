@@ -2,10 +2,12 @@ import { describe, expect, test } from "vitest"
 
 import {
   composeViteHtml,
+  createViteCompatibilityTraceHooks,
   processViteDocuments,
   processViteOutputs,
   ViteCompatibilityLifecycleError,
 } from "../../../src/adapters/vite/compatibility-lifecycle.js"
+import { createViteBuildSession } from "../../../src/adapters/vite/build-session.js"
 import { createNodeId } from "../../../src/core/graph/index.js"
 import { createBeautifyFeature } from "../../../src/features/beautify/index.js"
 import { createCommentFeature } from "../../../src/features/comment/index.js"
@@ -20,6 +22,53 @@ import {
 import { NodeSearchDocumentAnalyzer } from "../../../src/adapters/html/index.js"
 
 describe("Vite compatibility lifecycle", () => {
+  test("accumulates phase traces across compatibility runs in a build session", async () => {
+    const session = createViteBuildSession({ buildId: "trace-fixture" })
+    /** @type {string[]} */
+    const observed = []
+    const page = [{
+      fileName: "index.html",
+      url: "/",
+      html: '<main><span data-minista-comment="">fixture</span></main>',
+    }]
+
+    await processViteDocuments(
+      page,
+      [createCommentFeature()],
+      ["compose"],
+      createViteCompatibilityTraceHooks(session, "comment:first", {
+        onTrace(event) {
+          observed.push(event.type)
+        },
+      }),
+    )
+    await processViteDocuments(
+      page,
+      [createCommentFeature()],
+      ["compose"],
+      createViteCompatibilityTraceHooks(session, "comment:second"),
+    )
+
+    expect(observed).toEqual([
+      "phase:start",
+      "feature:start",
+      "feature:end",
+      "phase:end",
+    ])
+    expect(session.state.compatibilityTraces).toHaveLength(8)
+    expect(session.state.compatibilityTraces?.map(({ scope }) => scope))
+      .toEqual([
+        "comment:first",
+        "comment:first",
+        "comment:first",
+        "comment:first",
+        "comment:second",
+        "comment:second",
+        "comment:second",
+        "comment:second",
+      ])
+  })
+
   test("runs document composition through the Core lifecycle", async () => {
     await expect(composeViteHtml(
       '<main><span data-minista-comment="">fixture</span></main>',
