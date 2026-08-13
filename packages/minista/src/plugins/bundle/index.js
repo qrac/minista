@@ -44,18 +44,9 @@ export function pluginBundle(uOpts = {}) {
   const aliasGlob = `/@__minista-bundle-glob`
   const tempName = "__minista-bundle"
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-
-  let base = "/"
-  let rootDir = ""
-  let tempDir = ""
-  let globDir = ""
-  let globFile = ""
-
-  /** @type {Set<string>} */
-  let importedImageFiles = new Set()
+  const bundleStates = new ViteEnvironmentState(() => ({
+    importedImageFiles: /** @type {Set<string>} */ (new Set()),
+  }))
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
@@ -65,25 +56,19 @@ export function pluginBundle(uOpts = {}) {
     api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "bundle", apiVersion: 1, options: opts, provides: ["client-bundle"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isBuild
+      return command === "serve" || (command === "build" && !isSsrBuild)
     },
     applyToEnvironment: isViteAppClientEnvironment,
-    config: async (config) => {
-      importedImageFiles = new Set()
-      claimStates.clear()
-      rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
-      globDir = path.resolve(tempDir, "glob")
+    config: async (config, { command, isSsrBuild }) => {
+      const rootDir = getRootDir(cwd, config.root || "")
+      const tempDir = getTempDir(cwd, rootDir)
+      const globDir = path.resolve(tempDir, "glob")
 
       const code = getGlobImportCode(opts)
       await fs.promises.mkdir(globDir, { recursive: true })
 
-      if (isDev) {
-        base = getServeBase(config.base || base)
-        globFile = path.resolve(globDir, `${tempName}.js`)
+      if (command === "serve") {
+        const globFile = path.resolve(globDir, `${tempName}.js`)
         await fs.promises.writeFile(globFile, code, "utf8")
         return {
           resolve: {
@@ -96,9 +81,8 @@ export function pluginBundle(uOpts = {}) {
           },
         }
       }
-      if (isBuild) {
-        base = getBuildBase(config.base || base)
-        globFile = path.resolve(globDir, `${opts.outName}.js`)
+      if (command === "build" && !isSsrBuild) {
+        const globFile = path.resolve(globDir, `${opts.outName}.js`)
         await fs.promises.writeFile(globFile, code, "utf8")
         return {
           build: {
@@ -111,19 +95,32 @@ export function pluginBundle(uOpts = {}) {
         }
       }
     },
-    transformIndexHtml(html) {
+    transformIndexHtml(html, context) {
+      if (!context.server) return html
+      const base = getServeBase(context.server.config.base || "/")
       const prefixBase = base.replace(/\/$/, "")
       const scriptTag = `<script type="module" src="${prefixBase}${aliasGlob}"></script>`
       return html.replace("</head>", `${scriptTag}</head>`)
     },
+    buildStart() {
+      bundleStates.get(this.environment).importedImageFiles.clear()
+    },
     load(id) {
-      if (isDev) return
+      if (this.environment.config.command === "serve") return
       if (regImage.test(id)) {
+        const rootDir = getRootDir(cwd, this.environment.config.root || "")
         const relativePath = normalizePath(path.relative(rootDir, id))
-        importedImageFiles.add(relativePath)
+        bundleStates.get(this.environment).importedImageFiles.add(relativePath)
       }
     },
     async generateBundle(options, bundle) {
+      const rootDir = getRootDir(cwd, this.environment.config.root || "")
+      const tempDir = getTempDir(cwd, rootDir)
+      const globFile = path.resolve(tempDir, "glob", `${opts.outName}.js`)
+      const base = getBuildBase(this.environment.config.base || "/")
+      const importedImageFiles = bundleStates.get(
+        this.environment,
+      ).importedImageFiles
       const outputClaims = claimStates.get(this.environment).claims
       outputClaims.length = 0
       const outputChunks = filterOutputChunks(bundle)

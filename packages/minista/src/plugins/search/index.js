@@ -62,14 +62,6 @@ export function pluginSearch(uOpts = {}) {
     path.resolve(__dirname, "components/search.js"),
   )
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-  let isAppBuild = false
-  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
-  let appEnvironmentNames
-
-  let base = "/"
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
@@ -84,23 +76,23 @@ export function pluginSearch(uOpts = {}) {
     api: { minista: { outputClaims: getOutputClaims, feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      appEnvironmentNames = getViteAppEnvironmentNames(config)
-      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
-      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isAppBuild && !isSsrBuild
-      return isDev || isAppBuild || isBuild
+      const isAppBuild = Boolean(getViteAppEnvironmentNames(config))
+      return command === "serve" ||
+        (command === "build" && (isAppBuild || !isSsrBuild))
     },
-    config: async (config) => {
-      if (isDev) {
-        base = getServeBase(config.base || base)
+    config: async (config, { command, isSsrBuild }) => {
+      if (command === "serve") {
         return {
           ssr: {
             noExternal: mergeSsrNoExternal(config, ["minista"]),
           },
         }
       }
-      if (isSsr) {
+      if (
+        command === "build" &&
+        !getViteAppEnvironmentNames(config) &&
+        isSsrBuild
+      ) {
         return {
           ssr: {
             noExternal: mergeSsrNoExternal(config, ["minista"]),
@@ -128,6 +120,16 @@ export function pluginSearch(uOpts = {}) {
     },
     transform(code, id) {
       if (![cpSearchPath].includes(id)) return
+      const environment = this.environment
+      const appEnvironmentNames = getViteAppEnvironmentNames(
+        environment.getTopLevelConfig(),
+      )
+      const isDev = environment.config.command === "serve"
+      const isAppClient = Boolean(appEnvironmentNames) &&
+        environment.name === appEnvironmentNames?.clientName
+      const isLegacyClient = !appEnvironmentNames &&
+        environment.config.command === "build" &&
+        !environment.config.build.ssr
 
       let newCode = code
 
@@ -137,12 +139,10 @@ export function pluginSearch(uOpts = {}) {
       const regInputAttr = /(const inputAttr = )"data-search-input"/
 
       if (isDev) {
+        const base = getServeBase(environment.config.base || "/")
         newCode = newCode.replace(regBase, `$1"${base}"`)
       }
-      const isAppClient =
-        isAppBuild &&
-        this.environment.name === appEnvironmentNames?.clientName
-      if (isBuild || isAppClient) {
+      if (isLegacyClient || isAppClient) {
         newCode = newCode.replace(regApply, `$1"build"`)
         newCode = newCode.replace(regRelativeAttr, `$1"${opts.relativeAttr}"`)
       }
@@ -150,9 +150,13 @@ export function pluginSearch(uOpts = {}) {
       return newCode
     },
     async generateBundle(options, bundle) {
+      const appEnvironmentNames = getViteAppEnvironmentNames(
+        this.environment.getTopLevelConfig(),
+      )
       if (
-        isAppBuild &&
-        this.environment.name !== appEnvironmentNames?.clientName
+        this.environment.config.build.ssr ||
+        (appEnvironmentNames &&
+          this.environment.name !== appEnvironmentNames.clientName)
       ) return
       const outputClaims = claimStates.get(this.environment).claims
       outputClaims.length = 0

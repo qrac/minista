@@ -76,7 +76,7 @@ interface RenderedPage {
 | dev feature | `transformIndexHtml()`とfeature別の差分cache／page index | productionと同じ長寿命lifecycleではない |
 | MDX | `@mdx-js/rollup`を包むcompiler adapter | document／output phaseを持たずVite transformとして残る |
 
-module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautify／Svgの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。Sprite／Imageのdev stateは `ViteDevServerRegistry` が解決するserver identityごとに分離し、production generator／root／baseはbundle environment configから生成します。Svgなどの `transformIndexHtml()` が使用するconfig解決値と、その他のdev cache／page indexにはplugin instance closureのmutable stateが残るため、plugin instanceを任意のenvironment間で共有する構成への対応は移行中です。
+module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautifyの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。Sprite／Imageのdev stateとSvg source resolverは `ViteDevServerRegistry` が解決するserver identityごとに分離し、production generator／resolver／root／baseはbundle environment configから生成します。Searchはmode／baseをsource transformのenvironment configから判定し、Bundleのimported image集合もenvironment identity単位に保持します。その他のdev cache／page indexにはplugin instance closureのmutable stateが残るため、plugin instanceを任意のenvironment間で共有する構成への対応は移行中です。
 
 ### Diagnostics and tests
 
@@ -88,12 +88,12 @@ module-level global variableはほぼ使われていません。output claim col
 - production SSGはRoute／Page Graph snapshotを`ViteSsgRenderLifecycle` adapterで可変Graphへ復元し、Core runnerのrender phaseを実行する。React 19では`ReactStaticRenderer`、Preact aliasまたはReact 18では`ReactRenderToStringRenderer`をportとして選択し、Headを含むpage treeを1回だけrenderする。render phaseはdraftを除外した`RenderedPage` ArtifactとGraph edgeを生成し、失敗を`MINISTA_RENDER_FAILED` diagnosticにする
 - parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを実装し、markerとgraph node IDをbindできる。parse、selector query、mutation、serializeのerrorはoperation別のstable diagnosticへ変換し、page node IDを保持する
 - CommentとSvgのcompatibility facadeは`ViteCompatibilityLifecycle` adapterからCore runnerのcompose phaseを実行し、domain featureがDocument Storeを変更する
-- Svgのfilesystem読込、SVGO、fragment parseは `NodeSvgSourceResolver` adapterに閉じ、missing source以外の失敗をoperation別のstable diagnosticへ変換する。project内のsource errorにはproject相対locationを付ける
+- Svgのfilesystem読込、SVGO、fragment parseは `NodeSvgSourceResolver` adapterに閉じ、missing source以外の失敗をoperation別のstable diagnosticへ変換する。project内のsource errorにはproject相対locationを付ける。resolverはdev serverまたはproduction bundle environment identity単位に保持する
 - Beautify compatibility facadeはVite outputをMemoryEmitterへ投影し、Core runnerでimage preload除去のcomposeと既存出力整形のfinalizeを順に実行する
 - Archive compatibility facadeはCore runnerのfinalize phaseを実行し、domain featureがarchiveをEmitterへ追加する。archive libraryは`NodeArchiveBuilder`へ閉じ、library errorを`MINISTA_ARCHIVE_FAILED`へ変換する。安全なrelative outputの書込みは`NodeOutputWriter` adapterに閉じ、directory逸脱を`MINISTA_OUTPUT_WRITE_UNSAFE_PATH`で拒否する
 - Searchはanalyzeでpage解析Artifact、generateでSearchData Artifactを作り、composeで相対階層属性を共有documentへ反映する
 - SearchのDOM tree走査は `NodeSearchDocumentAnalyzer` adapterへ閉じ、同じparse treeを再利用する
-- Search compatibility facadeはbuild済みHTML群を`ViteCompatibilityLifecycle` adapterでPage GraphとDocument Storeへ投影し、Core runnerのanalyze／generate／composeを一括実行する。生成されたSearchData ArtifactをJSON assetとしてViteへ戻し、SSGのexecutable temp moduleを読まない
+- Search compatibility facadeはbuild済みHTML群を`ViteCompatibilityLifecycle` adapterでPage GraphとDocument Storeへ投影し、Core runnerのanalyze／generate／composeを一括実行する。生成されたSearchData ArtifactをJSON assetとしてViteへ戻し、SSGのexecutable temp moduleを読まない。dev／render／client判定とbaseは各source transformのenvironment configから取得する
 - Spriteはanalyzeで参照Artifact、generateでSVG sprite ArtifactとAssetNodeを作り、composeで確定URLを共有documentへ反映する
 - Spriteのsource探索、filesystem読込、SVG／symbol parse、SVGOは `NodeSpriteBuilder` adapterへ閉じ、operation別の `MINISTA_SPRITE_*_FAILED` diagnosticへ変換する。project内のsource errorにはproject相対locationを付ける。build時のcompatibility facadeはHTML群を`ViteCompatibilityLifecycle` adapterへ投影し、Core runnerのanalyze／generate後にSVG ArtifactをViteへemitして出力URLを解決してから、同じDocument Storeでcomposeを実行する
 - Imageはanalyzeでmarker参照Artifact、generateで画像Artifact・plan・ImageNode、composeで `src` / `srcset` / sizeを共有documentへ反映する
@@ -102,7 +102,7 @@ module-level global variableはほぼ使われていません。output claim col
 - Entryはanalyzeでroot asset参照Artifact、bundleでentry bundle plan、composeで確定URLとimported CSSを共有documentへ反映する
 - Entry compatibility facadeは`ViteBuildDataReader`から検証済みの`RenderedPage` snapshotを受け取り、`ViteCompatibilityLifecycle` adapterのCore analyzeでroot asset参照とPage Graphの対応を収集する。client input登録とVite bundle結果の`EntryBundler` portへの返却だけをadapter責務とし、確定script／CSS URLはCore bundle／composeで共有Document Storeへ反映する。ArtifactStoreと外部JSONの選択はadapterが所有する
 - Bundleはanalyzeで対象page Artifact、bundleでclient bundle plan、composeでCSSと相対画像URLを共有documentへ反映する
-- Bundle compatibility facadeはVite固有のglob entryとoutput探索を維持し、確定planを`BundleBuilder` portからCore bundleへ返す。Coreはページ別output参照Artifactを生成し、同じ情報からCSS／画像のoutput claimと共有Document Storeのcomposeを行う
+- Bundle compatibility facadeはVite固有のglob entryとoutput探索を維持し、確定planを`BundleBuilder` portからCore bundleへ返す。Coreはページ別output参照Artifactを生成し、同じ情報からCSS／画像のoutput claimと共有Document Storeのcomposeを行う。root／base／glob entryはbundle environment configから再構成し、imported image集合はenvironment identity単位に保持する
 - Islandはanalyzeでsnippet参照Artifact、generateでsnippet／entry source plan、bundleでclient output plan、composeでmarkerとCSS／script URLを共有documentへ反映する
 - IslandのSWC source transformとNode用entry code生成はadapterへ分離し、rendered page／snippetは`ViteBuildDataReader`から受け取る。`ViteCompatibilityLifecycle` adapterはsnippet Artifactを初期入力としてCore analyze／generateへ渡し、安定したsource planからclient inputを作る。Vite bundle結果はCore bundleへ返し、同じsource planとPage Graphを使ってoutput claimとmarker／CSS／script URLをCore composeで反映する。通常buildのArtifactStoreと別process fallbackのJSON差異はpluginから見えない
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。Sprite／Image以外で `transformIndexHtml()` が使用するconfig解決値と、plugin closureに残るdev cache／page indexのenvironment分離は残存課題です。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。SSG／Island／Entryなどのplugin closureに残るconfig解決値とdev cache／page indexのenvironment分離は残存課題です。
 
 ## CoreとFeatureの実装contract
 

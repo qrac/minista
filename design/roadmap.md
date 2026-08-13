@@ -159,11 +159,13 @@ Archiveはwrite hookのenvironment configからrootとbuilderを生成するよ�
 
 Sprite／Imageはdev generator、watch対象、Page indexをserver identity単位へ分離し、production generator／root／baseをbundle environment configから生成するように変更しました。カスタムSSG経路のoptionalまたはwrapper HTML context serverは `ViteDevServerRegistry` が登録済みserverへ解決します。build中のdev用asset生成は除去し、production処理をgenerate lifecycleへ一本化しました。
 
+Searchはmode／baseをsource transformのenvironment configから判定し、Bundleはroot／base／glob entryをbundle environment configから再構成してimported image集合をenvironment identity単位へ分離しました。Svg resolverもdev serverまたはproduction bundle environment identity単位へ分離し、build中のHTML変換をbundle hookへ一本化しました。
+
 残るcleanupは次です。
 
 - Vite hookごとの短命lifecycleをbuild全体のDocument Store／Artifact Store／traceへ統合する
 - devのfeature別cacheと`transformIndexHtml()`をproductionと共通の長寿命lifecycleへ寄せる
-- Sprite／Image以外のplugin closureに残るconfig解決値とdev cache／page indexをenvironment単位に分離する
+- SSG／Island／Entryなどのplugin closureに残るconfig解決値とdev cache／page indexをenvironment単位に分離する
 - programmatic／外部CLI fallbackを縮退する
 - plugin個別docsの内部挙動説明をv5 terminologyへ順次更新する
 
