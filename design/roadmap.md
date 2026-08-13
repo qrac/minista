@@ -151,7 +151,7 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 8: compatibility facade cleanup
 
-進捗: 進行中。runtime implementationのJavaScript + JSDoc移行と隣接`.d.ts`は完了済みです。`--oneBuild`と専用分岐を削除し、旧option指定時はstable diagnosticで拒否します。外部Vite CLI fallbackのrendered pages／Island snippetsをbuildId scopeのschema付きJSONへ移行し、Entry／Islandによるexecutable data module importも削除しました。`ViteBuildDataReader`へArtifactStore／外部JSONの選択とdomain parserを集約し、全compatibility pluginから旧`SsgPage`型を除去してdomainの`RenderedPage`へ統一しました。compatibility plugin hookのlifecycle接続、公開docsとCurrent／Target整理は継続します。
+進捗: 進行中。runtime implementationのJavaScript + JSDoc移行と隣接`.d.ts`は完了済みです。`--oneBuild`と専用分岐を削除し、旧option指定時はstable diagnosticで拒否します。外部Vite CLI fallbackのrendered pages／Island snippetsをbuildId scopeのschema付きJSONへ移行し、Entry／Islandによるexecutable data module importも削除しました。`ViteBuildDataReader`へArtifactStore／外部JSONの選択とdomain parserを集約し、全compatibility pluginから旧`SsgPage`型を除去してdomainの`RenderedPage`へ統一しました。Comment／Svg／Beautifyは`ViteCompatibilityLifecycle` adapterを介してCore runnerのcompose／finalize phaseへ接続済みです。残るfeature facadeのlifecycle接続、公開docsとCurrent／Target整理は継続します。
 
 - runtime implementationを `.js` / `.jsx` + JSDocに統一
 - public APIの隣接 `.d.ts` とinternal JSDoc typeを整理

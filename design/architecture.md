@@ -75,7 +75,7 @@ interface RenderedPage {
 | Island SSR → client build | encoded JSX snippet fileとHTML内のencoded snippet | 置換衝突、順序、生成sourceに依存する |
 | Vite output → feature | `generateBundle` でoutput bundleを探索・直接変更 | 複数pluginが同じHTMLを順番に再parseする |
 | Search / Entry | 生成済みHTMLからURLを抽出 | asset / page graphがないため文字列解析が唯一の情報源 |
-| Beautify / Archive | plugin orderと `enforce: post` | feature完了順がVite hook orderに埋め込まれる |
+| Archive | plugin orderと `enforce: post` | finalize順がVite hook orderに埋め込まれる |
 
 module-level global variableはほぼ使われていませんが、plugin instance closureのmutable stateはenvironment単位にkey化されていません。将来plugin instanceをenvironment間で共有するとstate混線の危険があります。
 
@@ -88,9 +88,9 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - representative fixture build、project command、Core/feature/adapterのunit testを追加済み
 - legacy SSGはReact 19で `ReactStaticRenderer`、Preact aliasまたはReact 18で `ReactRenderToStringRenderer` を選択し、Headを含むpage treeを1回だけrenderする
 - parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを実装し、markerとgraph node IDをbindできる
-- CommentとSvgのdomain featureは明示的なcompose phaseで共有documentを変更し、compatibility facadeも同じ変換を使用する
+- CommentとSvgのcompatibility facadeは`ViteCompatibilityLifecycle` adapterからCore runnerのcompose phaseを実行し、domain featureがDocument Storeを変更する
 - Svgのfilesystem読込、SVGO、fragment parseは `NodeSvgSourceResolver` adapterに閉じている
-- Beautifyはimage preload除去をcompose、既存出力の整形をfinalizeで行い、Emitterの明示的な `replace()` だけを使用する
+- Beautify compatibility facadeはVite outputをMemoryEmitterへ投影し、Core runnerでimage preload除去のcomposeと既存出力整形のfinalizeを順に実行する
 - Archiveはfinalizeでarchive出力を追加し、filesystemとarchive libraryは `NodeArchiveBuilder` adapterに閉じている
 - Searchはanalyzeでpage解析Artifact、generateでSearchData Artifactを作り、composeで相対階層属性を共有documentへ反映する
 - SearchのDOM tree走査は `NodeSearchDocumentAnalyzer` adapterへ閉じ、同じparse treeを再利用する

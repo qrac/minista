@@ -2,20 +2,16 @@
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
-import {
-  NodeHtmlDocumentFactory,
-  NodeSvgSourceResolver,
-} from "../../adapters/html/index.js"
+import { NodeSvgSourceResolver } from "../../adapters/html/index.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
-import { createNodeId } from "../../core/graph/index.js"
-import { composeSvgDocument } from "../../features/svg/index.js"
+import { composeViteHtml } from "../../adapters/vite/compatibility-lifecycle.js"
+import { createSvgFeature } from "../../features/svg/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir } from "../../shared/path.js"
 import { filterOutputAssets } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
-const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -41,12 +37,9 @@ export function pluginSvg(uOpts = {}) {
    */
   async function transformSvgHtml(html, pageIdentity) {
     if (!sources) return html
-    const document = documents.parse({
-      pageId: createNodeId("page", "legacy-svg", pageIdentity),
-      html,
-    })
-    const count = await composeSvgDocument(document, sources)
-    return count > 0 ? document.serialize() : html
+    return composeViteHtml(html, pageIdentity, [
+      createSvgFeature(opts, sources),
+    ])
   }
 
   return {

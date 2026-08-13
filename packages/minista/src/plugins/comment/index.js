@@ -2,29 +2,13 @@
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
 
-import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
-import { createNodeId } from "../../core/graph/index.js"
-import { composeCommentDocument } from "../../features/comment/index.js"
+import { composeViteHtml } from "../../adapters/vite/compatibility-lifecycle.js"
+import { createCommentFeature } from "../../features/comment/index.js"
 import { filterOutputAssets } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
-const documents = new NodeHtmlDocumentFactory()
-
-/**
- * @param {string} html
- * @param {string} pageIdentity
- */
-function transformCommentHtml(html, pageIdentity) {
-  const document = documents.parse({
-    pageId: createNodeId("page", "legacy-comment", pageIdentity),
-    html,
-  })
-  const count = composeCommentDocument(document)
-  return count > 0 ? document.serialize() : html
-}
-
 /**
  * @param {UserPluginOptions} uOpts
  * @returns {Plugin}
@@ -32,6 +16,7 @@ function transformCommentHtml(html, pageIdentity) {
 export function pluginComment(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = { ...defaultOptions, ...uOpts }
+  const feature = createCommentFeature(opts)
   let isDev = false
   let isSsr = false
   let isBuild = false
@@ -48,7 +33,7 @@ export function pluginComment(uOpts = {}) {
     },
     applyToEnvironment: isViteAppClientEnvironment,
     async transformIndexHtml(html, context) {
-      return transformCommentHtml(html, context.path)
+      return composeViteHtml(html, context.path, [feature])
     },
     async generateBundle(options, bundle) {
       const outputAssets = filterOutputAssets(bundle)
@@ -57,7 +42,11 @@ export function pluginComment(uOpts = {}) {
       )
 
       for (const item of htmlItems) {
-        item.source = transformCommentHtml(String(item.source), item.fileName)
+        item.source = await composeViteHtml(
+          String(item.source),
+          item.fileName,
+          [feature],
+        )
       }
     },
   }

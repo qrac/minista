@@ -2,12 +2,10 @@
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
-import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
-import { createNodeId } from "../../core/graph/index.js"
+import { processViteOutputs } from "../../adapters/vite/compatibility-lifecycle.js"
 import {
-  composeBeautifyDocument,
-  createOutputFormatter,
+  createBeautifyFeature,
   createOutputMatcher,
 } from "../../features/beautify/index.js"
 import { mergeObj } from "../../shared/obj.js"
@@ -32,7 +30,6 @@ export const defaultOptions = {
   },
   removeImagePreload: true,
 }
-const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -41,8 +38,8 @@ const documents = new NodeHtmlDocumentFactory()
 export function pluginBeautify(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = mergeObj(defaultOptions, uOpts)
-  const format = createOutputFormatter(opts)
   const isMatch = createOutputMatcher(opts)
+  const feature = createBeautifyFeature(opts)
 
   let isDev = false
   let isSsr = false
@@ -59,33 +56,36 @@ export function pluginBeautify(uOpts = {}) {
       return isBuild
     },
     applyToEnvironment: isViteAppClientEnvironment,
-    generateBundle(options, bundle) {
+    async generateBundle(options, bundle) {
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
-
-      for (const item of Object.values(outputAssets)) {
-        if (!isMatch(item.fileName)) continue
-        if (!/\.(html|css)$/.test(item.fileName)) continue
-        let content = String(item.source)
-        if (item.fileName.endsWith(".html") && opts.removeImagePreload) {
-          const document = documents.parse({
-            pageId: createNodeId("page", "legacy-beautify", item.fileName),
-            html: content,
-          })
-          composeBeautifyDocument(document, opts)
-          content = document.serialize()
-        }
-        const formatted = format({ fileName: item.fileName, content })
-        item.source = formatted.content
-      }
-
-      for (const item of Object.values(outputChunks)) {
-        if (!isMatch(item.fileName) || !item.fileName.endsWith(".js")) continue
-        const formatted = format({
+      const assets = Object.values(outputAssets).filter((item) =>
+        isMatch(item.fileName) && /\.(html|css)$/.test(item.fileName)
+      )
+      const chunks = Object.values(outputChunks).filter((item) =>
+        isMatch(item.fileName) && item.fileName.endsWith(".js")
+      )
+      const processed = await processViteOutputs([
+        ...assets.map((item) => ({
+          fileName: item.fileName,
+          content: item.source,
+        })),
+        ...chunks.map((item) => ({
           fileName: item.fileName,
           content: item.code,
-        })
-        item.code = String(formatted.content)
+        })),
+      ], [feature])
+      const contentByFileName = new Map(processed.map((file) => [
+        file.fileName,
+        file.content,
+      ]))
+      for (const item of assets) {
+        const content = contentByFileName.get(item.fileName)
+        if (content !== undefined) item.source = content
+      }
+      for (const item of chunks) {
+        const content = contentByFileName.get(item.fileName)
+        if (content !== undefined) item.code = String(content)
       }
     },
   }
