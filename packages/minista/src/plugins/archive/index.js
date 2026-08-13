@@ -7,8 +7,12 @@ import pc from "picocolors"
 
 import { NodeArchiveBuilder } from "../../adapters/archive/index.js"
 import { NodeOutputWriter } from "../../adapters/filesystem/output-writer.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
-import { processViteOutputs } from "../../adapters/vite/compatibility-lifecycle.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteOutputs,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createArchiveFeature } from "../../features/archive/index.js"
@@ -54,7 +58,10 @@ export function pluginArchive(uOpts = {}) {
       outputClaims.length = 0
       const outputs = await processViteOutputs([], [
         createArchiveFeature(opts, builder),
-      ])
+      ], createViteCompatibilityTraceHooks(
+        getViteBuildSession(this.environment.getTopLevelConfig()),
+        "archive:build",
+      ))
       const paths = await outputWriter.write(dist, outputs)
       const archiveByFileName = new Map(opts.archives.map((archive) => [
         `${archive.outName}.${archive.format ?? "zip"}`,

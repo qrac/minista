@@ -198,8 +198,9 @@ async function run(lifecycle, phases, onTrace) {
  * @param {string} html
  * @param {string} pageIdentity
  * @param {readonly import("../../core/lifecycle/index.js").MinistaFeature[]} features
+ * @param {import("./compatibility-lifecycle.js").ViteCompatibilityRunHooks} [hooks]
  */
-export async function composeViteHtml(html, pageIdentity, features) {
+export async function composeViteHtml(html, pageIdentity, features, hooks = {}) {
   const lifecycle = createLifecycle(features)
   const document = documents.parse({
     pageId: createNodeId("page", "vite-compatibility", pageIdentity),
@@ -207,7 +208,7 @@ export async function composeViteHtml(html, pageIdentity, features) {
   })
   const before = document.serialize()
   lifecycle.documents.put(document)
-  await run(lifecycle, ["compose"])
+  await run(lifecycle, ["compose"], hooks.onTrace)
   const after = document.serialize()
   return after === before ? html : after
 }
@@ -215,8 +216,9 @@ export async function composeViteHtml(html, pageIdentity, features) {
 /**
  * @param {readonly import("../../core/artifacts/index.js").EmittedFile[]} files
  * @param {readonly import("../../core/lifecycle/index.js").MinistaFeature[]} features
+ * @param {import("./compatibility-lifecycle.js").ViteCompatibilityRunHooks} [hooks]
  */
-export async function processViteOutputs(files, features) {
+export async function processViteOutputs(files, features, hooks = {}) {
   const lifecycle = createLifecycle(features)
   /** @type {Map<string, {document: import("../../core/document/index.js").HtmlDocument, before: string}>} */
   const htmlDocuments = new Map()
@@ -235,7 +237,7 @@ export async function processViteOutputs(files, features) {
       before: document.serialize(),
     })
   }
-  await run(lifecycle, ["compose"])
+  await run(lifecycle, ["compose"], hooks.onTrace)
   for (const file of files) {
     const state = htmlDocuments.get(file.fileName)
     if (!state || typeof file.content !== "string") continue
@@ -244,6 +246,6 @@ export async function processViteOutputs(files, features) {
       await lifecycle.emitter.replace({ ...file, content: after })
     }
   }
-  await run(lifecycle, ["finalize"])
+  await run(lifecycle, ["finalize"], hooks.onTrace)
   return lifecycle.emitter.list()
 }

@@ -6,8 +6,12 @@ import fs from "node:fs"
 import path from "node:path"
 import { normalizePath } from "vite"
 
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
-import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteDocuments,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createBundleFeature } from "../../features/bundle/index.js"
@@ -191,14 +195,17 @@ export function pluginBundle(uOpts = {}) {
           },
         )],
         ["analyze", "bundle", "compose"],
-        {
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(this.environment.getTopLevelConfig()),
+          "bundle:build",
+          {
           beforeCompose({ graph }) {
             for (const page of graph.pages.values()) {
               const route = graph.routes.get(page.routeId)
               if (route) pageFileNames.set(page.id, route.pageModuleId)
             }
           },
-        },
+        }),
       )
       /** @type {import("../../features/bundle/index.js").BundleOutputReference[]} */
       const references = result.artifacts

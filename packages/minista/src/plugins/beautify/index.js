@@ -3,7 +3,11 @@
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
-import { processViteOutputs } from "../../adapters/vite/compatibility-lifecycle.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteOutputs,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import {
   createBeautifyFeature,
   createOutputMatcher,
@@ -67,7 +71,10 @@ export function pluginBeautify(uOpts = {}) {
           fileName: item.fileName,
           content: item.code,
         })),
-      ], [feature])
+      ], [feature], createViteCompatibilityTraceHooks(
+        getViteBuildSession(this.environment.getTopLevelConfig()),
+        "beautify:build",
+      ))
       const contentByFileName = new Map(processed.map((file) => [
         file.fileName,
         file.content,

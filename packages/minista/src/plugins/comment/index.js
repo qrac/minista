@@ -3,7 +3,11 @@
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
 
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
-import { composeViteHtml } from "../../adapters/vite/compatibility-lifecycle.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import {
+  composeViteHtml,
+  createViteCompatibilityTraceHooks,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import { createCommentFeature } from "../../features/comment/index.js"
 import { filterOutputAssets } from "../../shared/vite.js"
 
@@ -30,6 +34,10 @@ export function pluginComment(uOpts = {}) {
       return composeViteHtml(html, context.path, [feature])
     },
     async generateBundle(options, bundle) {
+      const traceHooks = createViteCompatibilityTraceHooks(
+        getViteBuildSession(this.environment.getTopLevelConfig()),
+        "comment:build",
+      )
       const outputAssets = filterOutputAssets(bundle)
       const htmlItems = Object.values(outputAssets).filter((item) =>
         item.fileName.endsWith(".html"),
@@ -40,6 +48,7 @@ export function pluginComment(uOpts = {}) {
           String(item.source),
           item.fileName,
           [feature],
+          traceHooks,
         )
       }
     },

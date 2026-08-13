@@ -165,11 +165,11 @@ EntryはApp Buildのentry計画をclient environment identity単位へ分離し�
 
 SSGはdevのpage／render／route cache、renderer、rendered pagesをserver identity単位へ分離しました。productionのrendered pages、Project Graph、外部fallback manifest候補はclient environment identity単位に保持し、build hookのmode／root／build sessionはenvironment configから判定します。named environmentの静的input／outDirは通常の `config()` hookから既存environment optionへ合成し、`configEnvironment()` とconfig-time closure stateを削除しました。
 
-長寿命lifecycleへの移行入口として、compatibility lifecycleのphase eventをscope付きでbuild sessionへ集約するtrace protocolを追加しました。EntryとIslandはprepareのanalyze／generateからclient bundleのbundle／composeまで同じsession traceへ記録します。Document Storeとdomain Artifact Storeはまだ呼出しごとに独立しています。
+長寿命lifecycleへの移行入口として、lifecycleのphase eventをscope付きでbuild sessionへ集約するtrace protocolを追加しました。SSG render、Search／Sprite／Image／Bundle、Comment／Svg／Beautify／Archiveに加え、EntryとIslandはprepareのanalyze／generateからclient bundleのbundle／composeまで同じsession traceへ記録します。production featureのtrace接続は完了しました。Document Storeとdomain Artifact Storeはまだ呼出しごとに独立しています。
 
 残るcleanupは次です。
 
-- 残るfeatureのphase traceをbuild sessionへ接続し、短命lifecycleをbuild全体のDocument Store／Artifact Storeへ統合する
+- 短命lifecycleをbuild全体のDocument Store／Artifact Storeへ統合する
 - devのfeature別cacheと`transformIndexHtml()`をproductionと共通の長寿命lifecycleへ寄せる
 - programmatic／外部CLI fallbackを縮退する
 - plugin個別docsの内部挙動説明をv5 terminologyへ順次更新する

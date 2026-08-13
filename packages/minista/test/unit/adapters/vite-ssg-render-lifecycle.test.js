@@ -56,11 +56,18 @@ function createFixtureGraph() {
 describe("Vite SSG render lifecycle", () => {
   test("renders non-draft Page Graph nodes into a rendered-pages artifact", async () => {
     const artifacts = new MemoryArtifactStore()
+    /** @type {string[]} */
+    const traces = []
     const render = vi.fn(async (page) => `<h1>${page.props.title}</h1>`)
     const result = await renderViteSsgPages(
       createFixtureGraph(),
       { render },
-      { artifacts },
+      {
+        artifacts,
+        onTrace(event) {
+          traces.push(event.type)
+        },
+      },
     )
 
     expect(render).toHaveBeenCalledOnce()
@@ -75,6 +82,12 @@ describe("Vite SSG render lifecycle", () => {
     })
     expect(result.graph.artifacts.get(createRenderedPagesArtifactId()))
       .toMatchObject({ kind: "data", owner: createNodeId("feature", "ssg") })
+    expect(traces).toEqual([
+      "phase:start",
+      "feature:start",
+      "feature:end",
+      "phase:end",
+    ])
   })
 
   test("surfaces render failures as structured adapter diagnostics", async () => {

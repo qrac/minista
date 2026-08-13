@@ -3,8 +3,12 @@
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
 import { NodeSvgSourceResolver } from "../../adapters/html/index.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
-import { composeViteHtml } from "../../adapters/vite/compatibility-lifecycle.js"
+import {
+  composeViteHtml,
+  createViteCompatibilityTraceHooks,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createSvgFeature } from "../../features/svg/index.js"
@@ -40,12 +44,13 @@ export function pluginSvg(uOpts = {}) {
    * @param {string} html
    * @param {string} pageIdentity
    * @param {NodeSvgSourceResolver} sources
+   * @param {import("../../adapters/vite/compatibility-lifecycle.js").ViteCompatibilityRunHooks} [hooks]
    * @returns {Promise<string>}
    */
-  async function transformSvgHtml(html, pageIdentity, sources) {
+  async function transformSvgHtml(html, pageIdentity, sources, hooks) {
     return composeViteHtml(html, pageIdentity, [
       createSvgFeature(opts, sources),
-    ])
+    ], hooks)
   }
 
   return {
@@ -77,11 +82,16 @@ export function pluginSvg(uOpts = {}) {
       const htmlItems = Object.values(outputAssets).filter((item) =>
         item.fileName.endsWith(".html"),
       )
+      const traceHooks = createViteCompatibilityTraceHooks(
+        getViteBuildSession(this.environment.getTopLevelConfig()),
+        "svg:build",
+      )
       for (const item of htmlItems) {
         item.source = await transformSvgHtml(
           String(item.source),
           item.fileName,
           sources,
+          traceHooks,
         )
       }
     },

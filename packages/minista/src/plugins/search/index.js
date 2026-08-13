@@ -9,8 +9,12 @@ import { normalizePath } from "vite"
 
 import { getSearchData } from "./utils/data.js"
 import { NodeSearchDocumentAnalyzer } from "../../adapters/html/index.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
-import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteDocuments,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -178,6 +182,11 @@ export function pluginSearch(uOpts = {}) {
       const result = await processViteDocuments(
         renderedPages.map(({ fileName, url, html }) => ({ fileName, url, html })),
         [createSearchFeature(opts, analyzer)],
+        undefined,
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(this.environment.getTopLevelConfig()),
+          "search:build",
+        ),
       )
       const searchArtifact = result.artifacts.find(
         ({ id }) => id === createSearchDataArtifactId(opts.outName),

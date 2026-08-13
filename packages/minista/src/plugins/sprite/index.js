@@ -8,8 +8,12 @@ import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeSpriteBuilder } from "../../adapters/sprite/index.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
-import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteDocuments,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
@@ -192,7 +196,10 @@ export function pluginSprite(uOpts = {}) {
         pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
         [feature],
         undefined,
-        {
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(this.environment.getTopLevelConfig()),
+          "sprite:build",
+          {
           beforeCompose: async ({ artifacts, graph }) => {
             for (const page of graph.pages.values()) {
               const route = graph.routes.get(page.routeId)
@@ -238,7 +245,7 @@ export function pluginSprite(uOpts = {}) {
               }))
             }
           },
-        },
+        }),
       )
       const outputDocuments = new Map(
         result.documents.map((document) => [document.fileName, document]),

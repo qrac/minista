@@ -1,6 +1,7 @@
 import type { ArtifactStore } from "../../core/artifacts/index.js"
 import type { Diagnostic, DiagnosticCollector } from "../../core/diagnostics/index.js"
 import type { ProjectGraphSnapshot } from "../../core/graph/index.js"
+import type { PhaseTraceEvent } from "../../core/lifecycle/index.js"
 import type { RenderedPage, SsgPageRenderer } from "../../features/ssg/index.js"
 
 export declare class ViteSsgRenderLifecycleError extends Error {
@@ -14,6 +15,7 @@ export declare function renderViteSsgPages(
   options?: {
     readonly artifacts?: ArtifactStore
     readonly diagnostics?: DiagnosticCollector
+    readonly onTrace?: (event: PhaseTraceEvent) => void
   },
 ): Promise<{
   readonly graph: ProjectGraphSnapshot

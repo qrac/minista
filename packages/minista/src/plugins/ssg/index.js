@@ -20,6 +20,7 @@ import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-bui
 import { LegacySsgRouteCache } from "../../adapters/vite/legacy-ssg-route-cache.js"
 import { createViteReactRenderer } from "../../adapters/vite/react-renderer.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { createViteCompatibilityTraceHooks } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
@@ -195,6 +196,10 @@ export function pluginSsg(uOpts = {}) {
       {
         artifacts: buildSession?.artifacts,
         diagnostics: buildSession?.diagnostics,
+        onTrace: createViteCompatibilityTraceHooks(
+          buildSession,
+          "ssg:render",
+        ).onTrace,
       },
     )
     state.ssgPages = [...rendered.pages]

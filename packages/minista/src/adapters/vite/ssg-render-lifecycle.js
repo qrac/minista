@@ -25,7 +25,7 @@ export class ViteSsgRenderLifecycleError extends Error {
 /**
  * @param {import("../../core/graph/index.js").ProjectGraphSnapshot} snapshot
  * @param {import("../../features/ssg/index.js").SsgPageRenderer} renderer
- * @param {{artifacts?: import("../../core/artifacts/index.js").ArtifactStore, diagnostics?: DiagnosticCollector}} [options]
+ * @param {{artifacts?: import("../../core/artifacts/index.js").ArtifactStore, diagnostics?: DiagnosticCollector, onTrace?: (event: import("../../core/lifecycle/index.js").PhaseTraceEvent) => void}} [options]
  */
 export async function renderViteSsgPages(snapshot, renderer, options = {}) {
   const diagnostics = options.diagnostics ?? new DiagnosticCollector()
@@ -38,7 +38,7 @@ export async function renderViteSsgPages(snapshot, renderer, options = {}) {
     documents: new MemoryHtmlDocumentStore(),
     artifacts,
     emitter: new MemoryEmitter(),
-  }).run({ phases: ["render"] })
+  }).run({ phases: ["render"], onTrace: options.onTrace })
   if (!result.ok) {
     throw new ViteSsgRenderLifecycleError(diagnostics.snapshot())
   }

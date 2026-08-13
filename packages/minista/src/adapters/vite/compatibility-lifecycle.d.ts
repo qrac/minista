@@ -17,9 +17,11 @@ export interface ViteCompatibilityDocumentResult {
   readonly artifacts: readonly ArtifactRecord[]
   readonly graph: ProjectGraphSnapshot
 }
-export interface ViteCompatibilityDocumentHooks {
-  readonly inputArtifacts?: readonly ArtifactRecord[]
+export interface ViteCompatibilityRunHooks {
   readonly onTrace?: (event: PhaseTraceEvent) => void
+}
+export interface ViteCompatibilityDocumentHooks extends ViteCompatibilityRunHooks {
+  readonly inputArtifacts?: readonly ArtifactRecord[]
   readonly beforeCompose?: (context: {
     readonly artifacts: readonly ArtifactRecord[]
     readonly graph: ProjectGraphSnapshot
@@ -41,6 +43,7 @@ export declare function composeViteHtml(
   html: string,
   pageIdentity: string,
   features: readonly MinistaFeature[],
+  hooks?: ViteCompatibilityRunHooks,
 ): Promise<string>
 export declare function processViteDocuments(
   pages: readonly ViteCompatibilityDocumentInput[],
@@ -51,4 +54,5 @@ export declare function processViteDocuments(
 export declare function processViteOutputs(
   files: readonly EmittedFile[],
   features: readonly MinistaFeature[],
+  hooks?: ViteCompatibilityRunHooks,
 ): Promise<readonly EmittedFile[]>

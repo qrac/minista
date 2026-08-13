@@ -9,8 +9,12 @@ import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeImageGenerator } from "../../adapters/image/index.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
-import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteDocuments,
+} from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
@@ -281,7 +285,10 @@ export function pluginImage(uOpts = {}) {
         pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
         [feature],
         undefined,
-        {
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(this.environment.getTopLevelConfig()),
+          "image:build",
+          {
           beforeCompose: async ({ artifacts, graph }) => {
             for (const page of graph.pages.values()) {
               const route = graph.routes.get(page.routeId)
@@ -329,7 +336,7 @@ export function pluginImage(uOpts = {}) {
               }))
             }
           },
-        },
+        }),
       )
       const outputDocuments = new Map(
         result.documents.map((document) => [document.fileName, document]),
