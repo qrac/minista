@@ -1,3 +1,3 @@
 // @ts-check
 
-export { NodeSpriteBuilder } from "./node.js"
+export { NodeSpriteBuilder, NodeSpriteError } from "./node.js"

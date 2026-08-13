@@ -101,3 +101,14 @@ export default function () {
   )
 }
 ```
+
+## Diagnostics
+
+Sprite生成に失敗した場合、buildは次のstable diagnostic codeを出力します。
+
+- `MINISTA_SPRITE_DISCOVERY_FAILED`: SVG sourceの探索失敗
+- `MINISTA_SPRITE_READ_FAILED`: SVG fileの読込失敗
+- `MINISTA_SPRITE_PARSE_FAILED`: SVG／symbol markupの解析失敗
+- `MINISTA_SPRITE_OPTIMIZE_FAILED`: SVGOによる最適化失敗
+
+project内のSVGにはproject相対locationが含まれます。

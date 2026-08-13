@@ -80,7 +80,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 
 ### Diagnostics and tests
 
-- Core lifecycle、project command、manifest、主要adapterはstructured diagnosticを生成する。runnerはadapter errorの単一 `diagnostic` または複数 `diagnostics` を保持し、不足するphaseとfeatureだけを補完する。programmatic buildのVite／Rolldown errorは `MINISTA_VITE_BUILD_FAILED`、外部CLI fallbackのprocess errorは `MINISTA_VITE_CLI_FAILED`、Archiver errorは `MINISTA_ARCHIVE_FAILED`、Image source／Sharp／cache errorはoperation別の `MINISTA_IMAGE_*_FAILED` へadapterで正規化する。programmatic build失敗時はsessionとerrorが持つdiagnosticを重複排除し、build ID付きworkspace snapshotへ保存する。一部の外部library errorと外部process内の詳細は例外またはsubprocess stderrとして伝播する
+- Core lifecycle、project command、manifest、主要adapterはstructured diagnosticを生成する。runnerはadapter errorの単一 `diagnostic` または複数 `diagnostics` を保持し、不足するphaseとfeatureだけを補完する。programmatic buildのVite／Rolldown errorは `MINISTA_VITE_BUILD_FAILED`、外部CLI fallbackのprocess errorは `MINISTA_VITE_CLI_FAILED`、Archiver errorは `MINISTA_ARCHIVE_FAILED`、Image source／Sharp／cache errorはoperation別の `MINISTA_IMAGE_*_FAILED`、Sprite source探索／読込／parse／SVGO errorはoperation別の `MINISTA_SPRITE_*_FAILED` へadapterで正規化する。programmatic build失敗時はsessionとerrorが持つdiagnosticを重複排除し、build ID付きworkspace snapshotへ保存する。一部のHTML parser errorと外部process内の詳細は例外またはsubprocess stderrとして伝播する
 - Coreの `DiagnosticCollector` とstable diagnostic codeは実装済み
 - `check [--json]`, `inspect [--json]`, `explain [--json]` は実装済みで、Vite ModuleRunnerによりpage moduleと `getStaticData()` を評価する
 - public manifestの型、安全なprojection、安定serializer、atomic filesystem writerは実装済み。通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` とbuild diagnosticsを出力し、`check` の成功／失敗時にも `.minista/diagnostics.json` を出力する
@@ -95,7 +95,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - SearchのDOM tree走査は `NodeSearchDocumentAnalyzer` adapterへ閉じ、同じparse treeを再利用する
 - Search compatibility facadeはbuild済みHTML群を`ViteCompatibilityLifecycle` adapterでPage GraphとDocument Storeへ投影し、Core runnerのanalyze／generate／composeを一括実行する。生成されたSearchData ArtifactをJSON assetとしてViteへ戻し、SSGのexecutable temp moduleを読まない
 - Spriteはanalyzeで参照Artifact、generateでSVG sprite ArtifactとAssetNodeを作り、composeで確定URLを共有documentへ反映する
-- Spriteのfilesystem読込、SVGO、symbol生成は `NodeSpriteBuilder` adapterへ閉じる。build時のcompatibility facadeはHTML群を`ViteCompatibilityLifecycle` adapterへ投影し、Core runnerのanalyze／generate後にSVG ArtifactをViteへemitして出力URLを解決してから、同じDocument Storeでcomposeを実行する
+- Spriteのsource探索、filesystem読込、SVG／symbol parse、SVGOは `NodeSpriteBuilder` adapterへ閉じ、operation別の `MINISTA_SPRITE_*_FAILED` diagnosticへ変換する。project内のsource errorにはproject相対locationを付ける。build時のcompatibility facadeはHTML群を`ViteCompatibilityLifecycle` adapterへ投影し、Core runnerのanalyze／generate後にSVG ArtifactをViteへemitして出力URLを解決してから、同じDocument Storeでcomposeを実行する
 - Imageはanalyzeでmarker参照Artifact、generateで画像Artifact・plan・ImageNode、composeで `src` / `srcset` / sizeを共有documentへ反映する
 - Image compatibility facadeはdev／buildの両方でdomainの参照収集と属性反映を再利用し、SSGのexecutable temp moduleやfacade固有のrecipe mapを使用しない。build時はHTML群を`ViteCompatibilityLifecycle` adapterへ投影し、Core runnerが画像binary Artifact、compose plan、source／file nameを持つ出力計画Artifactを生成する。facadeは出力計画に従ってVite assetを登録し、確定URLを同じDocument Storeのcomposeへ返す
 - `NodeImageGenerator` はlocal／remote source、Sharp変換、source contentと生成patternのhashで無効化するfilesystem cacheをImageGenerator portへ適合させる。missing source、remote HTTP、metadata、transform、cache errorはgenerate phaseのstable diagnosticへ変換する。local sourceはproject相対locationを持ち、remote URLのqueryはmessageに含めない
@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。plugin instance closureのmutable stateとSprite／HTML parser由来errorの正規化は残存課題です。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。plugin instance closureのmutable stateとHTML parser由来errorの正規化は残存課題です。
 
 ## CoreとFeatureの実装contract
 
