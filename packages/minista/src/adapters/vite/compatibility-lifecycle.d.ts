@@ -16,6 +16,7 @@ export interface ViteCompatibilityDocumentResult {
   readonly graph: ProjectGraphSnapshot
 }
 export interface ViteCompatibilityDocumentHooks {
+  readonly inputArtifacts?: readonly ArtifactRecord[]
   readonly beforeCompose?: (context: {
     readonly artifacts: readonly ArtifactRecord[]
     readonly graph: ProjectGraphSnapshot

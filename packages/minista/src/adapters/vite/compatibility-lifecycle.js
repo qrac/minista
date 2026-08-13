@@ -99,6 +99,10 @@ export async function processViteDocuments(
   /** @type {{input: import("./compatibility-lifecycle.js").ViteCompatibilityDocumentInput, document: import("../../core/document/index.js").HtmlDocument, before: string}[]} */
   const states = []
 
+  for (const artifact of hooks.inputArtifacts ?? []) {
+    await lifecycle.artifacts.put(artifact)
+  }
+
   for (const page of pages) {
     const routeId = createNodeId("route", "vite-output", page.fileName)
     const pageId = createNodeId("page", routeId, page.url)

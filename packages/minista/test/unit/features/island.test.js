@@ -16,6 +16,7 @@ import {
   ISLAND_FEATURE_ID,
   createIslandBundleArtifactId,
   createIslandFeature,
+  createIslandSnippetsArtifactId,
   createIslandSourcePlanArtifactId,
 } from "../../../src/features/island/index.js"
 
@@ -81,6 +82,13 @@ describe("island feature", () => {
       createSnippet: vi.fn(async (snippet) => `decoded:${snippet}`),
       createEntry: vi.fn(async (indexes) => `entry:${indexes.join(",")}`),
     }
+    await artifacts.put({
+      schemaVersion: "1",
+      id: createIslandSnippetsArtifactId(),
+      owner: ISLAND_FEATURE_ID,
+      mediaType: "application/vnd.minista.island-snippets+json",
+      content: JSON.stringify(["encoded-b", "encoded-a"]),
+    })
     const bundler = {
       bundle: vi.fn(async (plan) =>
         plan.entries.map(
@@ -122,6 +130,8 @@ describe("island feature", () => {
 
     expect(result.ok).toBe(true)
     expect(generator.createSnippet).toHaveBeenCalledTimes(2)
+    expect(generator.createSnippet).toHaveBeenNthCalledWith(1, "encoded-b")
+    expect(generator.createSnippet).toHaveBeenNthCalledWith(2, "encoded-a")
     expect(generator.createEntry).toHaveBeenCalledWith([1, 2], options)
     expect(bundler.bundle).toHaveBeenCalledOnce()
     expect(await artifacts.get(createIslandSourcePlanArtifactId())).toBeDefined()

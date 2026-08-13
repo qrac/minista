@@ -105,7 +105,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - Bundleはanalyzeで対象page Artifact、bundleでclient bundle plan、composeでCSSと相対画像URLを共有documentへ反映する
 - Bundle compatibility facadeはVite固有のglob entryとoutput探索を維持し、確定planを`BundleBuilder` portからCore bundleへ返す。Coreはページ別output参照Artifactを生成し、同じ情報からCSS／画像のoutput claimと共有Document Storeのcomposeを行う
 - Islandはanalyzeでsnippet参照Artifact、generateでsnippet／entry source plan、bundleでclient output plan、composeでmarkerとCSS／script URLを共有documentへ反映する
-- IslandのSWC source transformとNode用entry code生成はadapterへ分離し、rendered page／snippetは`ViteBuildDataReader`から受け取る。通常buildのArtifactStoreと別process fallbackのJSON差異はpluginから見えない
+- IslandのSWC source transformとNode用entry code生成はadapterへ分離し、rendered page／snippetは`ViteBuildDataReader`から受け取る。`ViteCompatibilityLifecycle` adapterはsnippet Artifactを初期入力としてCore analyze／generateへ渡し、安定したsource planからclient inputを作る。Vite bundle結果はCore bundleへ返し、同じsource planとPage Graphを使ってoutput claimとmarker／CSS／script URLをCore composeで反映する。通常buildのArtifactStoreと別process fallbackのJSON差異はpluginから見えない
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
 ### Current v5 migration directories

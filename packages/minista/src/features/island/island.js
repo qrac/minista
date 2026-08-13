@@ -279,6 +279,20 @@ export function createIslandFeature(options, generator, bundler, outputs) {
         const references = records.flatMap((record) =>
           JSON.parse(String(record.content)),
         )
+        const snippetsRecord = await context.artifacts.get(
+          createIslandSnippetsArtifactId(),
+        )
+        if (snippetsRecord) {
+          const snippets = parseIslandSnippets(
+            JSON.parse(String(snippetsRecord.content)),
+          )
+          references.sort((left, right) => {
+            const leftIndex = snippets.indexOf(left.snippet)
+            const rightIndex = snippets.indexOf(right.snippet)
+            return (leftIndex < 0 ? snippets.length : leftIndex) -
+              (rightIndex < 0 ? snippets.length : rightIndex)
+          })
+        }
         const plan = await createIslandSourcePlan(references, options, generator)
         await context.artifacts.put({
           schemaVersion: "1",

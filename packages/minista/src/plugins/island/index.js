@@ -8,7 +8,6 @@ import fs from "node:fs"
 import path from "node:path"
 import { normalizePath } from "vite"
 
-import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import {
   NodeIslandEntryGenerator,
   SwcIslandSourceTransformer,
@@ -18,13 +17,13 @@ import { ViteBuildDataReader } from "../../adapters/vite/build-data-reader.js"
 import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
-  collectIslandReferences,
-  composeIslandDocument,
+  createIslandFeature,
   createIslandSnippetsArtifactId,
-  createIslandSourcePlan,
+  createIslandSourcePlanArtifactId,
 } from "../../features/island/index.js"
 import { decodeSnippet } from "./utils/snippet.js"
 import { getIslandServeCode } from "./utils/code.js"
@@ -49,7 +48,6 @@ export const defaultOptions = {
   rootDOMElement: "div",
   rootStyle: { display: "contents" },
 }
-const documents = new NodeHtmlDocumentFactory()
 const entryGenerator = new NodeIslandEntryGenerator()
 const sourceTransformer = new SwcIslandSourceTransformer()
 
@@ -110,22 +108,35 @@ export function pluginIsland(uOpts = {}) {
     ssgPages = await dataReader.readRenderedPages()
 
     if (!ssgPages.length) return
-    const references = ssgPages.flatMap((page) =>
-      collectIslandReferences(
-        documents.parse({
-          pageId: createNodeId("page", "legacy-island", page.fileName),
-          html: page.html,
-        }),
-        opts,
-      ),
+    const feature = createIslandFeature(
+      opts,
+      entryGenerator,
+      { bundle: async () => [] },
+      { resolve: () => undefined },
     )
-    references.sort(
-      (left, right) =>
-        snippetList.indexOf(left.snippet) - snippetList.indexOf(right.snippet),
+    const result = await processViteDocuments(
+      ssgPages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+      [feature],
+      ["analyze", "generate"],
+      {
+        inputArtifacts: [{
+          schemaVersion: "1",
+          id: createIslandSnippetsArtifactId(),
+          owner: feature.id,
+          mediaType: "application/vnd.minista.island-snippets+json",
+          content: JSON.stringify(snippetList),
+        }],
+      },
     )
-    sourcePlan = await createIslandSourcePlan(references, opts, entryGenerator)
+    const sourceRecord = result.artifacts.find(
+      ({ id }) => id === createIslandSourcePlanArtifactId(),
+    )
+    if (!sourceRecord) return
+    /** @type {import("../../features/island/index.js").IslandSourcePlan} */
+    const activeSourcePlan = JSON.parse(String(sourceRecord.content))
+    sourcePlan = activeSourcePlan
     await Promise.all(
-      sourcePlan.snippets.map(async (snippet) => {
+      activeSourcePlan.snippets.map(async (snippet) => {
         const fullPath = path.resolve(
           snippetsDir,
           `snippet-${snippet.index}.tsx`,
@@ -134,7 +145,7 @@ export function pluginIsland(uOpts = {}) {
       }),
     )
     await Promise.all(
-      sourcePlan.entries.map(async (entry) => {
+      activeSourcePlan.entries.map(async (entry) => {
         const fileName = `${entry.fileName}.tsx`
         const fullPath = path.resolve(islandDir, fileName)
         await fs.promises.writeFile(fullPath, entry.code, "utf8")
@@ -286,7 +297,7 @@ export function pluginIsland(uOpts = {}) {
         map: null,
       }
     },
-    generateBundle(_options, bundle) {
+    async generateBundle(_options, bundle) {
       if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
         return
       }
@@ -325,23 +336,58 @@ export function pluginIsland(uOpts = {}) {
       const htmlItems = Object.values(outputAssets).filter((item) => {
         return item.fileName.endsWith(".html")
       })
-      const pages = htmlItems.map((item) => {
-        const document = documents.parse({
-          pageId: createNodeId("page", "legacy-island", item.fileName),
-          html: String(item.source),
-        })
-        return {
-          item,
-          document,
-          patternIndex: activeSourcePlan.pagePatterns[document.pageId],
-        }
-      })
+      const pages = htmlItems.map((item) => ({
+        item,
+        fileName: item.fileName,
+        url: getHtmlPageUrl(item.fileName),
+        html: String(item.source),
+      }))
+      const pageFileNames = new Map()
+      const feature = createIslandFeature(
+        opts,
+        entryGenerator,
+        { bundle: async () => bundleOutputs },
+        {
+          resolve(fileName, pageId) {
+            const pageFileName = pageFileNames.get(pageId)
+            return pageFileName
+              ? getBasedAssetUrl(base, pageFileName, fileName)
+              : undefined
+          },
+        },
+      )
+      const result = await processViteDocuments(
+        pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+        [feature],
+        ["bundle", "compose"],
+        {
+          inputArtifacts: [{
+            schemaVersion: "1",
+            id: createIslandSourcePlanArtifactId(),
+            owner: feature.id,
+            mediaType: "application/vnd.minista.island-sources+json",
+            content: JSON.stringify(activeSourcePlan),
+          }],
+          beforeCompose({ graph }) {
+            for (const page of graph.pages.values()) {
+              const route = graph.routes.get(page.routeId)
+              if (route) pageFileNames.set(page.id, route.pageModuleId)
+            }
+          },
+        },
+      )
+      const pageUrlsByPattern = new Map()
+      for (const page of result.graph.pages.values()) {
+        const patternIndex = activeSourcePlan.pagePatterns[page.id]
+        if (!patternIndex) continue
+        const urls = pageUrlsByPattern.get(patternIndex) ?? []
+        urls.push(page.url)
+        pageUrlsByPattern.set(patternIndex, urls)
+      }
       /** @type {Map<string, Set<string>>} */
       const cssPageUrls = new Map()
       for (const output of bundleOutputs) {
-        const pageUrls = pages
-          .filter(({ patternIndex }) => patternIndex === output.patternIndex)
-          .map(({ item }) => getHtmlPageUrl(item.fileName))
+        const pageUrls = pageUrlsByPattern.get(output.patternIndex) ?? []
         outputClaims.push(Object.freeze({
           id: createNodeId(
             "artifact",
@@ -373,18 +419,12 @@ export function pluginIsland(uOpts = {}) {
         })
       ))
 
-      for (const { item, document } of pages) {
-        composeIslandDocument(
-          document,
-          activeSourcePlan,
-          bundleOutputs,
-          opts,
-          {
-            resolve: (fileName) =>
-              getBasedAssetUrl(base, item.fileName, fileName),
-          },
-        )
-        item.source = document.serialize()
+      const outputDocuments = new Map(
+        result.documents.map((document) => [document.fileName, document]),
+      )
+      for (const page of pages) {
+        const output = outputDocuments.get(page.fileName)
+        if (output && output.html !== page.html) page.item.source = output.html
       }
     },
     async writeBundle() {
