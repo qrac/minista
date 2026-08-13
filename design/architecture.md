@@ -76,7 +76,7 @@ interface RenderedPage {
 | dev feature | `transformIndexHtml()`とfeature別の差分cache／page index | productionと同じ長寿命lifecycleではない |
 | MDX | `@mdx-js/rollup`を包むcompiler adapter | document／output phaseを持たずVite transformとして残る |
 
-module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。config解決値とdev cache／page indexにはplugin instance closureのmutable stateが残るため、plugin instanceを任意のenvironment間で共有する構成への対応は移行中です。
+module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautify／Svgの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。Svgなどの `transformIndexHtml()` が使用するconfig解決値とdev cache／page indexにはplugin instance closureのmutable stateが残るため、plugin instanceを任意のenvironment間で共有する構成への対応は移行中です。
 
 ### Diagnostics and tests
 
@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。plugin closureに残るconfig解決値とdev cache／page indexのenvironment分離は残存課題です。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。`transformIndexHtml()` のhook contextがenvironmentを公開しない箇所を含め、plugin closureに残るconfig解決値とdev cache／page indexのenvironment分離は残存課題です。
 
 ## CoreとFeatureの実装contract
 

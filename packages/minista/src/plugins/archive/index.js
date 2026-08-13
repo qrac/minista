@@ -32,14 +32,6 @@ export function pluginArchive(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = { ...defaultOptions, ...uOpts }
   const cwd = process.cwd()
-
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-
-  let rootDir = ""
-  /** @type {NodeArchiveBuilder | undefined} */
-  let builder
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
@@ -50,19 +42,14 @@ export function pluginArchive(uOpts = {}) {
     api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["output-files"], optionalAfter: ["beautify"] } } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isBuild
+      return command === "build" && !isSsrBuild
     },
     applyToEnvironment: isViteAppClientEnvironment,
-    config: (config) => {
-      rootDir = getRootDir(cwd, config.root || "")
-      builder = new NodeArchiveBuilder(rootDir)
-    },
     async writeBundle(options) {
       const dist = options.dir
-      if (!dist || !builder) return
+      if (!dist) return
+      const rootDir = getRootDir(cwd, this.environment.config.root || "")
+      const builder = new NodeArchiveBuilder(rootDir)
       const outputClaims = claimStates.get(this.environment).claims
       outputClaims.length = 0
       const outputs = await processViteOutputs([], [

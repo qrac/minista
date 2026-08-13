@@ -35,9 +35,6 @@ export function pluginEntry(uOpts = {}) {
   const opts = { ...defaultOptions, ...uOpts }
   const cwd = process.cwd()
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
   let isAppBuild = false
   /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
   let appEnvironmentNames
@@ -142,12 +139,10 @@ export function pluginEntry(uOpts = {}) {
     api: { minista: { prepareClient: prepareAppClient, outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
-      isDev = command === "serve"
       appEnvironmentNames = getViteAppEnvironmentNames(config)
       isAppBuild = command === "build" && Boolean(appEnvironmentNames)
-      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isAppBuild && !isSsrBuild
-      return isBuild || isAppBuild
+      const isLegacyBuild = command === "build" && !isAppBuild && !isSsrBuild
+      return isLegacyBuild || isAppBuild
     },
     applyToEnvironment(environment) {
       return !isAppBuild || environment.name === appEnvironmentNames?.clientName

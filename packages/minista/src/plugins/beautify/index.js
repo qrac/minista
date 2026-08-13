@@ -41,19 +41,12 @@ export function pluginBeautify(uOpts = {}) {
   const isMatch = createOutputMatcher(opts)
   const feature = createBeautifyFeature(opts)
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-
   return {
     name: "vite-plugin:minista-beautify",
     api: { minista: { feature: { id: "beautify", apiVersion: 1, options: opts, provides: ["formatted-output"], requires: ["html-documents", "output-files"] } } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isBuild
+      return command === "build" && !isSsrBuild
     },
     applyToEnvironment: isViteAppClientEnvironment,
     async generateBundle(options, bundle) {

@@ -155,6 +155,8 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 output claim collectorはenvironment identityをproviderへ渡し、Archive／Sprite／Bundle／Image／Entry／Island／Searchのclaim stateをadapter storeへ分離しました。
 
+Archiveはwrite hookのenvironment configからrootとbuilderを生成するように変更し、Comment／Beautify／Svgの適用判定とEntryのlegacy mode判定から不要なclosure flagを削除しました。environmentを公開しない `transformIndexHtml()` が所有するconfig stateは長寿命lifecycle移行と合わせて扱います。
+
 残るcleanupは次です。
 
 - Vite hookごとの短命lifecycleをbuild全体のDocument Store／Artifact Store／traceへ統合する

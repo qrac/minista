@@ -17,19 +17,13 @@ export function pluginComment(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = { ...defaultOptions, ...uOpts }
   const feature = createCommentFeature(opts)
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
 
   return {
     name: "vite-plugin:minista-comment",
     api: { minista: { feature: { id: "comment", apiVersion: 1, options: opts, provides: ["html-comments"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isBuild
+      return command === "serve" || (command === "build" && !isSsrBuild)
     },
     applyToEnvironment: isViteAppClientEnvironment,
     async transformIndexHtml(html, context) {

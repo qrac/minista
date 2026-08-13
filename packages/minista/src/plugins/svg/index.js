@@ -22,10 +22,6 @@ export function pluginSvg(uOpts = {}) {
   const opts = mergeObj(defaultOptions, uOpts)
   const cwd = process.cwd()
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-
   let rootDir = ""
   /** @type {NodeSvgSourceResolver | undefined} */
   let sources
@@ -47,10 +43,7 @@ export function pluginSvg(uOpts = {}) {
     api: { minista: { feature: { id: "svg", apiVersion: 1, options: opts, provides: ["inline-svg"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isBuild
+      return command === "serve" || (command === "build" && !isSsrBuild)
     },
     applyToEnvironment: isViteAppClientEnvironment,
     config: async (config) => {
