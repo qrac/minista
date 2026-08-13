@@ -44,6 +44,14 @@ describe.sequential("programmatic custom dev server", () => {
     await fs.promises.writeFile(
       path.resolve(fixtureDir, "src/pages/other.jsx"),
       `let renders = 0
+let staticDataRuns = 0
+export function getStaticDataRuns() {
+  return staticDataRuns
+}
+export async function getStaticData() {
+  staticDataRuns += 1
+  return { props: {} }
+}
 export default function Other() {
   renders += 1
   return <h1>Other renders: {renders}</h1>
@@ -164,6 +172,10 @@ export default function Other() {
           signal: AbortSignal.timeout(10_000),
         }).then((response) => response.text())
         expect(otherAfter).toContain("<h1>Other renders: <!-- -->1</h1>")
+        const otherModule = await /** @type {any} */ (
+          running.server.environments.ssr
+        ).runner.import(path.resolve(fixtureDir, "src/pages/other.jsx"))
+        expect(otherModule.getStaticDataRuns()).toBe(1)
         expect(hotSend).toHaveBeenCalledWith(
           "minista:full-reload",
           { paths: ["/"] },

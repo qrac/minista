@@ -118,11 +118,11 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 6: ModuleRunner dev adapter
 
-進捗: `ViteDevServerAdapter` を追加し、通常のdev CLIをprogrammatic `createServer({ appType: "custom" })` へ切り替えました。adapterがlisten、URL表示、CLI shortcut、closeを所有し、root、config、mode、base、host、port、open、CORS、strict port、forceなどの一般的なflagを変換します。未対応flagだけ外部Vite CLIへfallbackします。`ViteDevModuleEvaluator` はrunnable environmentのguard、`runner.import()`、module invalidation、stacktrace補正を既存のCore portへ適合させ、SSG、Island、Search、project commandが共有します。plugin／CLIからの `server.ssrLoadModule()` 直接利用は除去済みです。`DevPageCache` は最初に解決・renderしたpage snapshotを後続requestで再利用し、同時loadを一本化します。`ViteDevUpdateAdapter` はenvironment別module graph、変更moduleからroute sourceへのimporter traversal、hot channelを所有し、SSG／Spriteからmixed graphと `server.ws` 直接利用を除去しました。`DevRenderCache` はpage固有の変更で影響RouteNode配下のPageNodeだけを再renderし、dev HTMLのlistenerは該当URLだけをreloadします。`DevSpritePageIndex` と `DevImagePageIndex` はsourceと参照ページのArtifact edgeを保持し、local source変更時も該当ページだけをreloadします。2ページfixtureで未影響pageを再renderせず、page／Sprite／Image変更のすべてでhot channelへ影響URLだけを送ることを確認済みです。route discoveryの差分cacheが残っています。
+進捗: 完了。`ViteDevServerAdapter` で通常のdev CLIをprogrammatic custom serverへ切り替え、`ViteDevModuleEvaluator` がModuleRunner評価をCore portへ適合させました。`DevPageCache` はsnapshotと同時load、`LegacySsgRouteCache` はrouteごとのdiscovery／`getStaticData()`／PageNode解決、`DevRenderCache` はPageNodeごとのHTMLを保持します。変更moduleはenvironment graphのimporter traversalから影響RouteNodeへ投影し、未影響routeのresolveとrenderを再実行しません。Project Graph全体はcache entryから再構成してglobal invariantを毎回検証します。`ViteDevUpdateAdapter` はenvironment別module graphとhot channelを所有し、plugin／CLIからlegacy `ssrLoadModule()`、mixed graph、`server.ws` 直接利用を除去しました。page固有変更とSprite／Image Artifact変更は該当URLだけをreloadし、layoutなど全体変更だけ標準full reloadへfallbackします。2ページfixtureで未影響pageの`getStaticData()`とrenderが再実行されず、page／Sprite／Image変更で影響URLだけを通知することを確認済みです。
 
 - dev CLIをprogrammatic `createServer({ appType: "custom" })` に移す。実装済み
 - `render` environmentの `RunnableDevEnvironment.runner.import()` でpage moduleを評価。移行中の `ssr` environmentに対して実装済み
-- requestごとの全pages再評価をsnapshot cacheで除去。route／module dependency単位への細分化は未実装
+- requestごとの全pages再評価をsnapshot cacheで除去し、route／module dependency単位のresolve cacheを実装済み
 - environmentごとのmodule graphと `hotUpdate` を使用
 - source change → affected RouteNode／PageNodeを特定済み。Sprite／Image Artifact edgeも実装済み
 - page固有document変更とSprite／Image Artifact変更は該当URLだけreloadし、layoutなど全体変更だけ標準full reloadを使用

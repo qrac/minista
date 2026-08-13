@@ -15,6 +15,7 @@ import { pathToFileURL } from "url"
 import pc from "picocolors"
 
 import { resolveLegacySsgProject } from "../../adapters/vite/legacy-ssg-project.js"
+import { LegacySsgRouteCache } from "../../adapters/vite/legacy-ssg-route-cache.js"
 import { createViteReactRenderer } from "../../adapters/vite/react-renderer.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
@@ -82,6 +83,7 @@ export function pluginSsg(uOpts = {}) {
   const devPageCache = new DevPageCache()
   /** @type {DevRenderCache<SsgPage>} */
   const devRenderCache = new DevRenderCache()
+  const devRouteCache = new LegacySsgRouteCache()
 
   /**
    * @param {ResolvedLayout} resolvedLayout
@@ -348,7 +350,7 @@ export function pluginSsg(uOpts = {}) {
           const { LAYOUTS = {}, PAGES = {} } = modules
           const formatedLayout = formatLayout(LAYOUTS)
           const resolvedLayout = await resolveLayout(formatedLayout)
-          const project = await resolveLegacySsgProject(PAGES, opts)
+          const project = await devRouteCache.resolve(PAGES, opts)
           const resolvedPages = project.pages
 
           const errors = project.diagnostics.filter(
@@ -496,12 +498,18 @@ export function pluginSsg(uOpts = {}) {
 
             if (affectedLayouts.length > 0 || affectedRouteFiles.length === 0) {
               devRenderCache.invalidate()
+              if (affectedLayouts.length === 0) devRouteCache.clear()
             } else {
-              const routeIds = new Set(
-                affectedRouteFiles
-                  .map((sourceFile) => routeBySourceFile.get(sourceFile)?.id)
-                  .filter(Boolean),
+              const affectedRoutes = affectedRouteFiles.flatMap(
+                (sourceFile) => {
+                  const route = routeBySourceFile.get(sourceFile)
+                  return route ? [route] : []
+                },
               )
+              devRouteCache.invalidate(
+                affectedRoutes.map(({ sourceFile }) => sourceFile),
+              )
+              const routeIds = new Set(affectedRoutes.map(({ id }) => id))
               const pageIds = [...snapshot.graph.pages.values()]
                 .filter(({ routeId }) => routeIds.has(routeId))
                 .map(({ id }) => id)
@@ -555,6 +563,8 @@ export function pluginSsg(uOpts = {}) {
             timestamp,
             true,
           )
+          devRouteCache.clear()
+          devRenderCache.invalidate()
           devPageCache.invalidate()
           const rel = stripQuery(
             path.relative(server.config.root, modules[0].id || ""),
