@@ -147,6 +147,7 @@ export default function Other() {
     const scopes = session?.state?.compatibilityTraces?.map(({ scope }) => scope)
     expect(scopes).toEqual(expect.arrayContaining([
       "comment:dev",
+      "image:dev",
       "sprite:dev",
       "svg:dev",
     ]))

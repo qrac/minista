@@ -12,6 +12,10 @@ import { createNodeId } from "../../../src/core/graph/index.js"
 import { createBeautifyFeature } from "../../../src/features/beautify/index.js"
 import { createCommentFeature } from "../../../src/features/comment/index.js"
 import {
+  createImageFeature,
+  createImageOutputsArtifactId,
+} from "../../../src/features/image/index.js"
+import {
   createSearchDataArtifactId,
   createSearchFeature,
 } from "../../../src/features/search/index.js"
@@ -174,6 +178,84 @@ describe("Vite compatibility lifecycle", () => {
     expect([...graph?.artifacts.values() ?? []].filter(({ scope }) =>
       scope?.kind === "page"
     )).toHaveLength(1)
+  })
+
+  test("regenerates image aggregates from retained dev page references", async () => {
+    const session = createViteBuildSession({ buildId: "dev-images" })
+    /** @type {import("../../../src/features/image/index.js").ImageGenerator} */
+    const generator = {
+      async generate(references) {
+        return {
+          artifacts: references.map((reference) => {
+            const name = reference.source.split("/").pop() ?? "image"
+            return {
+              id: createNodeId("artifact", "image", name),
+              source: reference.source,
+              fileName: `${name}.webp`,
+              mediaType: "image/webp",
+              content: new Uint8Array([name.length]),
+            }
+          }),
+          plans: references.map((reference) => {
+            const name = reference.source.split("/").pop() ?? "image"
+            const artifactId = createNodeId("artifact", "image", name)
+            return {
+              key: reference.key,
+              src: artifactId,
+              srcset: [{ descriptor: "1x", artifactId }],
+              sizes: "100vw",
+              width: 1,
+              height: 1,
+            }
+          }),
+        }
+      },
+    }
+    const feature = createImageFeature({
+      useCache: false,
+      optimize: {},
+      decoding: "async",
+      loading: "eager",
+    }, generator, {
+      resolve(artifactId) {
+        return `/assets/${artifactId}.webp`
+      },
+    })
+    /** @param {string} fileName @param {string} url @param {string} html */
+    const run = (fileName, url, html) => processViteDocuments(
+      [{ fileName, url, html }],
+      [feature],
+      undefined,
+      createViteCompatibilityTraceHooks(session, `image:dev:${url}`, {
+        artifactUpdate: "input-pages",
+      }),
+    )
+
+    await run(
+      "first.html",
+      "/first/",
+      '<img data-minista-image data-minista-image-src="/first.png">',
+    )
+    await run(
+      "second.html",
+      "/second/",
+      '<img data-minista-image data-minista-image-src="/second.png">',
+    )
+
+    /** @returns {Promise<import("../../../src/features/image/index.js").GeneratedImageOutput[]>} */
+    const readOutputs = async () => JSON.parse(String(
+      (await session.artifacts.get(createImageOutputsArtifactId()))?.content,
+    ))
+    expect((await readOutputs()).map(({ source }) => source).sort()).toEqual([
+      "/first.png",
+      "/second.png",
+    ])
+
+    await run("first.html", "/first/", "<main>No image</main>")
+
+    expect((await readOutputs()).map(({ source }) => source)).toEqual([
+      "/second.png",
+    ])
   })
 
   test("accumulates finalized outputs in the build-session emitter", async () => {

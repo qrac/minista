@@ -7,7 +7,6 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { normalizePath } from "vite"
 
-import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeImageGenerator } from "../../adapters/image/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
@@ -18,10 +17,7 @@ import {
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
-import { createNodeId } from "../../core/graph/index.js"
 import {
-  collectImageReferences,
-  composeImageDocument,
   createImageFeature,
   createImageOutputsArtifactId,
   DevImagePageIndex,
@@ -63,8 +59,6 @@ export const defaultOptions = {
   decoding: "async",
   loading: "eager",
 }
-
-const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {string} value
@@ -183,46 +177,77 @@ export function pluginImage(uOpts = {}) {
       if (!server) return html
       const state = getDevState(server)
       if (!state.generator) return html
-      const pageId = createNodeId(
-        "page",
-        "legacy-image-dev",
-        context?.path || "/",
-      )
-      const document = documents.parse({ pageId, html })
-      const references = collectImageReferences(document)
-      const localSources = [...new Set(
-        references
-          .map(({ source }) => source)
-          .filter((source) => !source.startsWith("http")),
-      )]
-      state.pageIndex.replacePage(context?.path || "/", localSources)
-      for (const source of localSources) {
-        const sourceFile = path.resolve(
-          state.rootDir,
-          source.replace(/^\//, ""),
-        )
-        if (state.watchedSources.has(sourceFile)) continue
-        state.watchedSources.add(sourceFile)
-        server.watcher.add(sourceFile)
-      }
-      if (references.length === 0) return html
-      const generated = await state.generator.generate(references, opts)
-
-      /** @type {Map<string, string>} */
+      const pagePath = context.path || "/"
+      /** @type {Map<import("../../core/graph/index.js").ArtifactId, string>} */
       const outputUrls = new Map()
-      for (const artifact of generated.artifacts) {
-        const outputFile = path.resolve(state.imageDir, artifact.fileName)
-        await fs.promises.mkdir(path.dirname(outputFile), { recursive: true })
-        await fs.promises.writeFile(outputFile, artifact.content)
-        outputUrls.set(
-          artifact.id,
-          `${trimEndSlash(state.base)}${imageAlias}/${normalizePath(artifact.fileName)}`,
-        )
-      }
-      composeImageDocument(document, generated.plans, {
+      const feature = createImageFeature(opts, state.generator, {
         resolve: (artifactId) => outputUrls.get(artifactId),
       })
-      return document.serialize()
+      const result = await processViteDocuments(
+        [{ fileName: pagePath, url: pagePath, html }],
+        [feature],
+        undefined,
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(server.config),
+          "image:dev",
+          {
+            artifactUpdate: "input-pages",
+            async beforeCompose({ artifacts, graph }) {
+              const page = [...graph.pages.values()].find((item) => {
+                const route = graph.routes.get(item.routeId)
+                return item.url === pagePath &&
+                  route?.pageModuleId === pagePath
+              })
+              /** @type {import("../../features/image/index.js").ImageReference[]} */
+              const references = artifacts
+                .filter((record) =>
+                  record.owner === feature.id &&
+                  record.mediaType ===
+                    "application/vnd.minista.image-references+json"
+                )
+                .flatMap((record) => JSON.parse(String(record.content)))
+              const localSources = [...new Set(references
+                .filter((reference) => reference.pageId === page?.id)
+                .map(({ source }) => source)
+                .filter((source) => !source.startsWith("http")))]
+              state.pageIndex.replacePage(pagePath, localSources)
+              for (const source of localSources) {
+                const sourceFile = path.resolve(
+                  state.rootDir,
+                  source.replace(/^\//, ""),
+                )
+                if (state.watchedSources.has(sourceFile)) continue
+                state.watchedSources.add(sourceFile)
+                server.watcher.add(sourceFile)
+              }
+              const outputsRecord = artifacts.find(
+                ({ id }) => id === createImageOutputsArtifactId(),
+              )
+              /** @type {import("../../features/image/index.js").GeneratedImageOutput[]} */
+              const outputs = outputsRecord
+                ? JSON.parse(String(outputsRecord.content))
+                : []
+              const records = new Map(
+                artifacts.map((artifact) => [artifact.id, artifact]),
+              )
+              for (const output of outputs) {
+                const artifact = records.get(output.id)
+                if (!artifact) continue
+                const outputFile = path.resolve(state.imageDir, output.fileName)
+                await fs.promises.mkdir(path.dirname(outputFile), {
+                  recursive: true,
+                })
+                await fs.promises.writeFile(outputFile, artifact.content)
+                outputUrls.set(
+                  output.id,
+                  `${trimEndSlash(state.base)}${imageAlias}/${normalizePath(output.fileName)}`,
+                )
+              }
+            },
+          },
+        ),
+      )
+      return result.documents[0]?.html ?? html
     },
     transform(code, id) {
       const appEnvironmentNames = getViteAppEnvironmentNames(
