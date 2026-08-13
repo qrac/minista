@@ -31,7 +31,7 @@ Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvir
 | `builder.sharedConfigBuild`, `sharedPlugins` | experimental | 初期不採用 |
 | `this.environment`, environment module graph, `hotUpdate` | Environment API migration path | adapter内で採用。stateはenvironment単位に分離 |
 | `perEnvironmentState()` | Vite 8.2.1 type declarationで `@experimental` | Core前提にせず、adapter所有の互換state storeを使用 |
-| `transformIndexHtml()` hook context | Vite 8.2.1ではenvironmentを公開せず、serverもoptional | Sprite／Image／Svg devは登録server identityをadapterで解決。他featureは長寿命Document lifecycleへの移行までconfig stateを明示管理 |
+| `transformIndexHtml()` hook context | Vite 8.2.1ではenvironmentを公開せず、serverもoptional | Sprite／Image／Svg／Island devは登録server identityをadapterで解決。他featureは長寿命Document lifecycleへの移行までconfig stateを明示管理 |
 | `server.ssrLoadModule()` | backward-compatible legacy API。Environment APIはrunnerをreplacementと説明 | 新規codeではavoid。migration fallbackのみ |
 | top-level `ssr` config | Environment API stable後にdeprecated予定 | 新adapterは `environments.render` を使用。public config compatibilityの入力だけ変換 |
 | `server.moduleGraph`, `handleHotUpdate`, `server.ws` | client/ssr mixed backward-compatible view | 新規codeではavoid。per-environment graph / hot channelを使う |

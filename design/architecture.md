@@ -76,7 +76,7 @@ interface RenderedPage {
 | dev feature | `transformIndexHtml()`とfeature別の差分cache／page index | productionと同じ長寿命lifecycleではない |
 | MDX | `@mdx-js/rollup`を包むcompiler adapter | document／output phaseを持たずVite transformとして残る |
 
-module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautifyの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。Sprite／Imageのdev stateとSvg source resolverは `ViteDevServerRegistry` が解決するserver identityごとに分離し、production generator／resolver／root／baseはbundle environment configから生成します。Searchはmode／baseをsource transformのenvironment configから判定し、Bundleのimported image集合もenvironment identity単位に保持します。その他のdev cache／page indexにはplugin instance closureのmutable stateが残るため、plugin instanceを任意のenvironment間で共有する構成への対応は移行中です。
+module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautifyの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。Sprite／Image／Islandのdev stateとSvg source resolverは `ViteDevServerRegistry` が解決するserver identityごとに分離し、production generator／resolver／root／baseはbundle environment configから生成します。Searchはmode／baseをsource transformのenvironment configから判定し、Bundleのimported image集合、Entryのentry計画、Islandのsnippet／source planもenvironment identity単位に保持します。SSGのdev cache／page indexにはplugin instance closureのmutable stateが残るため、plugin instanceを任意のenvironment間で共有する構成への対応は移行中です。
 
 ### Diagnostics and tests
 
@@ -100,11 +100,11 @@ module-level global variableはほぼ使われていません。output claim col
 - Image compatibility facadeはdev／buildの両方でdomainの参照収集と属性反映を再利用し、SSGのexecutable temp moduleやfacade固有のrecipe mapを使用しない。build時はHTML群を`ViteCompatibilityLifecycle` adapterへ投影し、Core runnerが画像binary Artifact、compose plan、source／file nameを持つ出力計画Artifactを生成する。facadeは出力計画に従ってVite assetを登録し、確定URLを同じDocument Storeのcomposeへ返す
 - `NodeImageGenerator` はlocal／remote source、Sharp変換、source contentと生成patternのhashで無効化するfilesystem cacheをImageGenerator portへ適合させる。missing source、remote HTTP、metadata、transform、cache errorはgenerate phaseのstable diagnosticへ変換する。local sourceはproject相対locationを持ち、remote URLのqueryはmessageに含めない
 - Entryはanalyzeでroot asset参照Artifact、bundleでentry bundle plan、composeで確定URLとimported CSSを共有documentへ反映する
-- Entry compatibility facadeは`ViteBuildDataReader`から検証済みの`RenderedPage` snapshotを受け取り、`ViteCompatibilityLifecycle` adapterのCore analyzeでroot asset参照とPage Graphの対応を収集する。client input登録とVite bundle結果の`EntryBundler` portへの返却だけをadapter責務とし、確定script／CSS URLはCore bundle／composeで共有Document Storeへ反映する。ArtifactStoreと外部JSONの選択はadapterが所有する
+- Entry compatibility facadeは`ViteBuildDataReader`から検証済みの`RenderedPage` snapshotを受け取り、`ViteCompatibilityLifecycle` adapterのCore analyzeでroot asset参照とPage Graphの対応を収集する。client input登録とVite bundle結果の`EntryBundler` portへの返却だけをadapter責務とし、確定script／CSS URLはCore bundle／composeで共有Document Storeへ反映する。ArtifactStoreと外部JSONの選択はadapterが所有し、App Buildのentry計画はclient environment identity単位に保持する
 - Bundleはanalyzeで対象page Artifact、bundleでclient bundle plan、composeでCSSと相対画像URLを共有documentへ反映する
 - Bundle compatibility facadeはVite固有のglob entryとoutput探索を維持し、確定planを`BundleBuilder` portからCore bundleへ返す。Coreはページ別output参照Artifactを生成し、同じ情報からCSS／画像のoutput claimと共有Document Storeのcomposeを行う。root／base／glob entryはbundle environment configから再構成し、imported image集合はenvironment identity単位に保持する
 - Islandはanalyzeでsnippet参照Artifact、generateでsnippet／entry source plan、bundleでclient output plan、composeでmarkerとCSS／script URLを共有documentへ反映する
-- IslandのSWC source transformとNode用entry code生成はadapterへ分離し、rendered page／snippetは`ViteBuildDataReader`から受け取る。`ViteCompatibilityLifecycle` adapterはsnippet Artifactを初期入力としてCore analyze／generateへ渡し、安定したsource planからclient inputを作る。Vite bundle結果はCore bundleへ返し、同じsource planとPage Graphを使ってoutput claimとmarker／CSS／script URLをCore composeで反映する。通常buildのArtifactStoreと別process fallbackのJSON差異はpluginから見えない
+- IslandのSWC source transformとNode用entry code生成はadapterへ分離し、rendered page／snippetは`ViteBuildDataReader`から受け取る。`ViteCompatibilityLifecycle` adapterはsnippet Artifactを初期入力としてCore analyze／generateへ渡し、安定したsource planからclient inputを作る。Vite bundle結果はCore bundleへ返し、同じsource planとPage Graphを使ってoutput claimとmarker／CSS／script URLをCore composeで反映する。通常buildのArtifactStoreと別process fallbackのJSON差異はpluginから見えない。devのsnippet集合／module evaluatorはserver identity単位、productionのsnippet集合／entry／source planはenvironment identity単位に保持する
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
 ### v5 migration directories
@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。SSG／Island／Entryなどのplugin closureに残るconfig解決値とdev cache／page indexのenvironment分離は残存課題です。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。SSG plugin closureに残るconfig解決値とdev cache／page indexのserver／environment分離は残存課題です。
 
 ## CoreとFeatureの実装contract
 

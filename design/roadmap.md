@@ -161,11 +161,13 @@ Sprite／Imageはdev generator、watch対象、Page indexをserver identity単�
 
 Searchはmode／baseをsource transformのenvironment configから判定し、Bundleはroot／base／glob entryをbundle environment configから再構成してimported image集合をenvironment identity単位へ分離しました。Svg resolverもdev serverまたはproduction bundle environment identity単位へ分離し、build中のHTML変換をbundle hookへ一本化しました。
 
+EntryはApp Buildのentry計画をclient environment identity単位へ分離し、root／base／build sessionをhook実行時のconfigから取得するように変更しました。Islandはdevのsnippet集合／module evaluatorをserver identity単位、productionのsnippet集合／entry／source planをenvironment identity単位へ分離し、mode／root／base／build sessionをenvironment configから判定します。
+
 残るcleanupは次です。
 
 - Vite hookごとの短命lifecycleをbuild全体のDocument Store／Artifact Store／traceへ統合する
 - devのfeature別cacheと`transformIndexHtml()`をproductionと共通の長寿命lifecycleへ寄せる
-- SSG／Island／Entryなどのplugin closureに残るconfig解決値とdev cache／page indexをenvironment単位に分離する
+- SSG plugin closureに残るconfig解決値とdev cache／page indexをserver／environment単位に分離する
 - programmatic／外部CLI fallbackを縮退する
 - plugin個別docsの内部挙動説明をv5 terminologyへ順次更新する
 

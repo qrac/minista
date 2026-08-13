@@ -10,7 +10,10 @@ import { normalizePath } from "vite"
 
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { ViteBuildDataReader } from "../../adapters/vite/build-data-reader.js"
-import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import {
+  getViteAppEnvironmentNames,
+  isViteAppClientEnvironment,
+} from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
@@ -35,36 +38,31 @@ export function pluginEntry(uOpts = {}) {
   const opts = { ...defaultOptions, ...uOpts }
   const cwd = process.cwd()
 
-  let isAppBuild = false
-  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
-  let appEnvironmentNames
-
-  let base = "/"
-  let rootDir = ""
-  /** @type {readonly RenderedPage[]} */
-  let ssgPages = []
-  /** @type {{[pathId: string]: string}} */
-  let entries = {}
-  /** @type {Set<string>} */
-  let entryIds = new Set()
-  /** @type {{[entryId: string]: string}} */
-  let entrySources = {}
-  /** @type {Map<string, Set<string>>} */
-  let entryPageUrls = new Map()
+  const createEntryState = () => ({
+    entries: /** @type {{[pathId: string]: string}} */ ({}),
+    entryIds: /** @type {Set<string>} */ (new Set()),
+    entrySources: /** @type {{[entryId: string]: string}} */ ({}),
+    entryPageUrls: /** @type {Map<string, Set<string>>} */ (new Map()),
+  })
+  const entryStates = new ViteEnvironmentState(createEntryState)
+  const legacyState = createEntryState()
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
-  /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
-  let buildSession
   const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
   const environmentInput = new ViteEnvironmentInputAdapter()
 
-  async function prepareEntries() {
-    entries = {}
-    entryIds = new Set()
-    entrySources = {}
-    entryPageUrls = new Map()
-    ssgPages = await new ViteBuildDataReader({
+  /**
+   * @param {ReturnType<typeof createEntryState>} state
+   * @param {string} rootDir
+   * @param {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} buildSession
+   */
+  async function prepareEntries(state, rootDir, buildSession) {
+    state.entries = {}
+    state.entryIds = new Set()
+    state.entrySources = {}
+    state.entryPageUrls = new Map()
+    const ssgPages = await new ViteBuildDataReader({
       root: rootDir,
       session: buildSession,
       externalBuildId,
@@ -96,19 +94,19 @@ export function pluginEntry(uOpts = {}) {
     for (const { pageId, source } of references) {
       const url = pageUrls.get(pageId)
       if (!url) continue
-      const urls = entryPageUrls.get(source) ?? new Set()
+      const urls = state.entryPageUrls.get(source) ?? new Set()
       urls.add(url)
-      entryPageUrls.set(source, urls)
+      state.entryPageUrls.set(source, urls)
     }
     assetNames = [...new Set(assetNames)]
 
     for (const assetName of assetNames) {
       const pathId = regScript.test(assetName)
         ? path.parse(assetName).name
-        : createAssetEntryId(assetName, entryIds)
+        : createAssetEntryId(assetName, state.entryIds)
       const fullPath = path.resolve(rootDir, assetName)
       preEntries[pathId] = fullPath
-      entrySources[pathId] = assetName
+      state.entrySources[pathId] = assetName
     }
 
     const checks = await Promise.all(
@@ -122,16 +120,23 @@ export function pluginEntry(uOpts = {}) {
       }),
     )
     for (const pair of checks) {
-      if (pair) entries[pair[0]] = pair[1]
+      if (pair) state.entries[pair[0]] = pair[1]
     }
   }
 
   /** @param {ViteEnvironmentPreparation} preparation */
   async function prepareAppClient(preparation) {
-    if (!isAppBuild) return
+    const topLevelConfig = preparation.client.getTopLevelConfig()
+    if (!getViteAppEnvironmentNames(topLevelConfig)) return
     claimStates.delete(preparation.client)
-    await prepareEntries()
-    environmentInput.merge(preparation.client, entries)
+    const state = entryStates.get(preparation.client)
+    const rootDir = getRootDir(cwd, preparation.client.config.root || "")
+    await prepareEntries(
+      state,
+      rootDir,
+      getViteBuildSession(topLevelConfig),
+    )
+    environmentInput.merge(preparation.client, state.entries)
   }
 
   return {
@@ -139,33 +144,42 @@ export function pluginEntry(uOpts = {}) {
     api: { minista: { prepareClient: prepareAppClient, outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
-      appEnvironmentNames = getViteAppEnvironmentNames(config)
-      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
+      const isAppBuild = command === "build" &&
+        Boolean(getViteAppEnvironmentNames(config))
       const isLegacyBuild = command === "build" && !isAppBuild && !isSsrBuild
       return isLegacyBuild || isAppBuild
     },
-    applyToEnvironment(environment) {
-      return !isAppBuild || environment.name === appEnvironmentNames?.clientName
-    },
+    applyToEnvironment: isViteAppClientEnvironment,
     config: async (config) => {
-      base = getBuildBase(config.base || base)
-      rootDir = getRootDir(cwd, config.root || "")
-      buildSession = getViteBuildSession(config)
-      if (isAppBuild) return
+      if (getViteAppEnvironmentNames(config)) return
 
-      await prepareEntries()
+      const rootDir = getRootDir(cwd, config.root || "")
+      await prepareEntries(
+        legacyState,
+        rootDir,
+        getViteBuildSession(config),
+      )
 
       return {
         build: {
           rolldownOptions: {
             input: {
-              ...entries,
+              ...legacyState.entries,
             },
           },
         },
       }
     },
     async generateBundle(options, bundle) {
+      const appEnvironmentNames = getViteAppEnvironmentNames(
+        this.environment.getTopLevelConfig(),
+      )
+      const state = appEnvironmentNames
+        ? entryStates.get(this.environment)
+        : legacyState
+      const { entries, entrySources, entryPageUrls } = state
+      const rootDir = getRootDir(cwd, this.environment.config.root || "")
+      const base = getBuildBase(this.environment.config.base || "/")
       const outputChunks = filterOutputChunks(bundle)
       const outputAssets = filterOutputAssets(bundle)
       const entryIds = Object.keys(entries)

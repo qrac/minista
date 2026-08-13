@@ -18,6 +18,7 @@ import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-bui
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -63,50 +64,49 @@ export function pluginIsland(uOpts = {}) {
   const islandAlias = `/@__minista-island`
   const tempName = "__minista-island"
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-  let isAppBuild = false
-  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
-  let appEnvironmentNames
-
-  let base = "/"
-  let rootDir = ""
-  let tempDir = ""
-  let islandDir = ""
-  let snippetsDir = ""
-  /** @type {string[]} */
-  let snippetList = []
-  /** @type {Set<string>} */
-  let uniqueSnippets = new Set()
-  /** @type {ViteDevModuleEvaluator | undefined} */
-  let moduleEvaluator
-  /** @type {readonly RenderedPage[]} */
-  let ssgPages = []
-  /** @type {{[pathId: string]: string}} */
-  let entries = {}
-  /** @type {import("../../features/island/index.js").IslandSourcePlan | undefined} */
-  let sourcePlan
+  const createBuildState = () => ({
+    uniqueSnippets: /** @type {Set<string>} */ (new Set()),
+    entries: /** @type {{[pathId: string]: string}} */ ({}),
+    sourcePlan: /** @type {import("../../features/island/index.js").IslandSourcePlan | undefined} */ (undefined),
+  })
+  const buildStates = new ViteEnvironmentState(createBuildState)
+  const legacyState = createBuildState()
+  const devServers = new ViteDevServerRegistry()
+  const devStates = new ViteEnvironmentState(() => ({
+    uniqueSnippets: /** @type {Set<string>} */ (new Set()),
+    moduleEvaluator: /** @type {ViteDevModuleEvaluator | undefined} */ (undefined),
+  }))
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
-  /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
-  let buildSession
   const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
   const environmentInput = new ViteEnvironmentInputAdapter()
 
-  async function prepareIslandEntries() {
-    entries = {}
-    sourcePlan = undefined
+  /**
+   * @param {ReturnType<typeof createBuildState>} state
+   * @param {string} rootDir
+   * @param {string} islandDir
+   * @param {string} snippetsDir
+   * @param {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} buildSession
+   */
+  async function prepareIslandEntries(
+    state,
+    rootDir,
+    islandDir,
+    snippetsDir,
+    buildSession,
+  ) {
+    state.entries = {}
+    state.sourcePlan = undefined
     const dataReader = new ViteBuildDataReader({
       root: rootDir,
       session: buildSession,
       externalBuildId,
     })
-    snippetList = [...await dataReader.readIslandSnippets()]
-    if (!snippetList || snippetList.length === 0) return
+    const snippetList = [...await dataReader.readIslandSnippets()]
+    if (snippetList.length === 0) return
 
-    ssgPages = await dataReader.readRenderedPages()
+    const ssgPages = await dataReader.readRenderedPages()
 
     if (!ssgPages.length) return
     const feature = createIslandFeature(
@@ -135,7 +135,7 @@ export function pluginIsland(uOpts = {}) {
     if (!sourceRecord) return
     /** @type {import("../../features/island/index.js").IslandSourcePlan} */
     const activeSourcePlan = JSON.parse(String(sourceRecord.content))
-    sourcePlan = activeSourcePlan
+    state.sourcePlan = activeSourcePlan
     await Promise.all(
       activeSourcePlan.snippets.map(async (snippet) => {
         const fullPath = path.resolve(
@@ -150,17 +150,29 @@ export function pluginIsland(uOpts = {}) {
         const fileName = `${entry.fileName}.tsx`
         const fullPath = path.resolve(islandDir, fileName)
         await fs.promises.writeFile(fullPath, entry.code, "utf8")
-        entries[path.parse(fileName).name] = fullPath
+        state.entries[path.parse(fileName).name] = fullPath
       }),
     )
   }
 
   /** @param {ViteEnvironmentPreparation} preparation */
   async function prepareAppClient(preparation) {
-    if (!isAppBuild) return
+    const topLevelConfig = preparation.client.getTopLevelConfig()
+    if (!getViteAppEnvironmentNames(topLevelConfig)) return
     claimStates.delete(preparation.client)
-    await prepareIslandEntries()
-    environmentInput.merge(preparation.client, entries)
+    const state = buildStates.get(preparation.client)
+    const rootDir = getRootDir(cwd, preparation.client.config.root || "")
+    const tempDir = getTempDir(cwd, rootDir)
+    const islandDir = path.resolve(tempDir, "island/build")
+    const snippetsDir = path.resolve(islandDir, "snippets")
+    await prepareIslandEntries(
+      state,
+      rootDir,
+      islandDir,
+      snippetsDir,
+      getViteBuildSession(topLevelConfig),
+    )
+    environmentInput.merge(preparation.client, state.entries)
   }
 
   return {
@@ -180,21 +192,18 @@ export function pluginIsland(uOpts = {}) {
     },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      appEnvironmentNames = getViteAppEnvironmentNames(config)
-      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
-      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isAppBuild && !isSsrBuild
-      return isDev || isAppBuild || isSsr || isBuild
+      const isAppBuild = command === "build" &&
+        Boolean(getViteAppEnvironmentNames(config))
+      const isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
+      return command === "serve" || isAppBuild || isSsr ||
+        (command === "build" && !isSsrBuild)
     },
-    config: async (config) => {
-      buildSession = getViteBuildSession(config)
-      rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
+    config: async (config, { command, isSsrBuild }) => {
+      const rootDir = getRootDir(cwd, config.root || "")
+      const tempDir = getTempDir(cwd, rootDir)
 
-      if (isDev) {
-        base = getServeBase(config.base || base)
-        islandDir = path.resolve(tempDir, "island/serve")
+      if (command === "serve") {
+        const islandDir = path.resolve(tempDir, "island/serve")
         await fs.promises.mkdir(islandDir, { recursive: true })
         return {
           resolve: {
@@ -210,49 +219,64 @@ export function pluginIsland(uOpts = {}) {
           },
         }
       }
-      if (isSsr || isBuild || isAppBuild) {
-        base = getBuildBase(config.base || base)
-        islandDir = path.resolve(tempDir, "island/build")
-        snippetsDir = path.resolve(tempDir, "island/build/snippets")
+      if (command === "build") {
+        const islandDir = path.resolve(tempDir, "island/build")
+        const snippetsDir = path.resolve(islandDir, "snippets")
 
         await fs.promises.mkdir(islandDir, { recursive: true })
         await fs.promises.mkdir(snippetsDir, { recursive: true })
 
-        if (isSsr || isAppBuild) return
-        await prepareIslandEntries()
+        if (isSsrBuild || getViteAppEnvironmentNames(config)) return
+        await prepareIslandEntries(
+          legacyState,
+          rootDir,
+          islandDir,
+          snippetsDir,
+          getViteBuildSession(config),
+        )
 
         return {
           build: {
             rolldownOptions: {
-              input: entries,
+              input: legacyState.entries,
             },
           },
         }
       }
     },
     configureServer(server) {
+      devServers.add(server)
+      server.httpServer?.once("close", () => devServers.delete(server))
       return () => {
-        moduleEvaluator = new ViteDevModuleEvaluator(server)
+        devStates.get(server).moduleEvaluator = new ViteDevModuleEvaluator(server)
       }
     },
-    async transformIndexHtml(html) {
+    async transformIndexHtml(html, context) {
+      const server = devServers.resolve(context)
+      if (!server) return html
+      const state = devStates.get(server)
+      const { moduleEvaluator } = state
       if (moduleEvaluator) {
         /** @type {{default?: RenderedPage[]}} */
         const mod = await moduleEvaluator.importModule("virtual:ssg-pages")
-        ssgPages = mod.default ?? []
+        const ssgPages = mod.default ?? []
 
-        if (ssgPages && ssgPages.length > 0) {
-          uniqueSnippets = new Set(
-            [...uniqueSnippets].filter((snippet) =>
-              ssgPages.some(({ html }) => html.includes(snippet)),
+        if (ssgPages.length > 0) {
+          const activeSnippets = new Set(
+            [...state.uniqueSnippets].filter((snippet) =>
+              ssgPages.some(({ html }) => html.includes(snippet))
             ),
           )
+          state.uniqueSnippets = activeSnippets
         }
       }
-      const snippetList = [...uniqueSnippets]
+      const snippetList = [...state.uniqueSnippets]
       if (snippetList.length === 0) return html
 
       let newHtml = html
+      const rootDir = getRootDir(cwd, server.config.root || "")
+      const islandDir = path.resolve(getTempDir(cwd, rootDir), "island/serve")
+      const base = getServeBase(server.config.base || "/")
 
       await Promise.all(
         snippetList.map(async (snippet, index) => {
@@ -276,8 +300,10 @@ export function pluginIsland(uOpts = {}) {
       return newHtml
     },
     async transform(code, id) {
-      if (isBuild) return null
       if (!/\.(tsx|jsx)$/.test(id)) return null
+      const environment = this.environment
+      const isDev = environment.config.command === "serve"
+      if (!isDev && !environment.config.build.ssr) return null
 
       let newCode = code
 
@@ -289,8 +315,13 @@ export function pluginIsland(uOpts = {}) {
         )
         newCode = transformdCode
 
+        const server = isDev
+          ? devServers.resolve({ path: "", filename: id })
+          : undefined
+        const uniqueSnippets = server
+          ? devStates.get(server).uniqueSnippets
+          : buildStates.get(environment).uniqueSnippets
         for (const snippet of snippets) {
-          if (uniqueSnippets.has(snippet)) continue
           uniqueSnippets.add(snippet)
         }
       }
@@ -300,9 +331,15 @@ export function pluginIsland(uOpts = {}) {
       }
     },
     async generateBundle(_options, bundle) {
-      if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
-        return
-      }
+      if (this.environment.config.build.ssr) return
+      const appEnvironmentNames = getViteAppEnvironmentNames(
+        this.environment.getTopLevelConfig(),
+      )
+      const state = appEnvironmentNames
+        ? buildStates.get(this.environment)
+        : legacyState
+      const { entries, sourcePlan } = state
+      const base = getBuildBase(this.environment.config.base || "/")
       const outputClaims = claimStates.get(this.environment).claims
       outputClaims.length = 0
 
@@ -431,18 +468,16 @@ export function pluginIsland(uOpts = {}) {
       }
     },
     async writeBundle() {
-      if (isBuild) return
-      if (
-        isAppBuild &&
-        this.environment.name !== appEnvironmentNames?.renderName
-      ) {
-        return
-      }
+      if (!this.environment.config.build.ssr) return
 
-      snippetList = [...uniqueSnippets]
+      const snippetList = [
+        ...buildStates.get(this.environment).uniqueSnippets,
+      ]
 
       if (snippetList.length === 0) return
 
+      const topLevelConfig = this.environment.getTopLevelConfig()
+      const buildSession = getViteBuildSession(topLevelConfig)
       if (buildSession) {
         await buildSession.artifacts.put({
           schemaVersion: "1",
@@ -454,6 +489,7 @@ export function pluginIsland(uOpts = {}) {
       }
       if (!buildSession) {
         if (!externalBuildId) return
+        const rootDir = getRootDir(cwd, this.environment.config.root || "")
         await new NodeExternalBuildHandoff().writeIslandSnippets(
           rootDir,
           externalBuildId,
