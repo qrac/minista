@@ -14,6 +14,7 @@ export default function ElementPulldown(props: Partial<Props>) {
     ...{ anchorName: `--${id}` },
   }
   const pulldownButton = cloneElement(buttonNode, {
+    key: id,
     popoverTarget: id,
     style: mergedStyle,
   })
