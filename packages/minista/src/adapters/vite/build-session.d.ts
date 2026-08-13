@@ -1,4 +1,4 @@
-import type { ArtifactStore } from "../../core/artifacts/index.js"
+import type { ArtifactStore, Emitter } from "../../core/artifacts/index.js"
 import type { DiagnosticCollector } from "../../core/diagnostics/index.js"
 import type { InlineConfig } from "vite"
 import type { ProjectGraphSnapshot } from "../../core/graph/index.js"
@@ -15,6 +15,8 @@ export interface ViteBuildSessionState {
   compatibilityTraces?: ViteCompatibilityTraceEvent[]
   compatibilityDocuments?: HtmlDocumentStore
   compatibilityDocumentIds?: Map<string, PageId>
+  compatibilityGraph?: ProjectGraphSnapshot
+  compatibilityEmitter?: Emitter
 }
 
 export interface ViteBuildSession {

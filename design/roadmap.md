@@ -169,9 +169,11 @@ SSGはdevのpage／render／route cache、renderer、rendered pagesをserver ide
 
 compatibility lifecycleのDocument Storeとdomain Artifact Storeもbuild session単位に共有しました。同一output pageはfile identityから既存Documentを再利用し、入力HTMLが外部hookで変わった場合だけ再parseします。Artifactはfeature実行前に同じownerの以前の生成物だけを削除するため、再実行時のcontent conflictを避けながらSSG／Islandなど他featureのhandoffを保持します。Project GraphとEmitterはまだhook単位です。
 
+hookごとのProject Graph snapshotをbuild sessionへ集約し、同一Assetのconsumer、Island／Imageのpage／generated asset関係を失わずmergeするようにしました。Emitter outputもfileName単位でsession Emitterへ同期し、hookのローカル返却値には他hookのoutputを混入させません。各LifecycleRunnerが直接操作するmutable Graph／Emitterはまだhookローカルです。
+
 残るcleanupは次です。
 
-- 短命lifecycleのProject Graph／Emitterをbuild sessionへ統合する
+- LifecycleRunner contextがsession Graph／Emitterを直接操作する長寿命実行境界を作る
 - devのfeature別cacheと`transformIndexHtml()`をproductionと共通の長寿命lifecycleへ寄せる
 - programmatic／外部CLI fallbackを縮退する
 - plugin個別docsの内部挙動説明をv5 terminologyへ順次更新する

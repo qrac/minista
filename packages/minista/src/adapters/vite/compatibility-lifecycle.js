@@ -147,6 +147,91 @@ function getDocument(lifecycle, hooks, identity, pageId, html) {
   return document
 }
 
+/** @template {string} Id @template {{readonly id: Id}} Node @param {ReadonlyMap<Id, Node>} current @param {ReadonlyMap<Id, Node>} incoming @returns {Map<Id, Node>} */
+function mergeNodes(current, incoming) {
+  return new Map([...current, ...incoming])
+}
+
+/**
+ * @param {import("../../core/graph/index.js").ProjectGraphSnapshot | undefined} current
+ * @param {import("../../core/graph/index.js").ProjectGraphSnapshot} incoming
+ */
+function mergeGraph(current, incoming) {
+  if (!current) return incoming
+  const assets = mergeNodes(current.assets, incoming.assets)
+  for (const [id, node] of incoming.assets) {
+    const previous = current.assets.get(id)
+    if (!previous) continue
+    assets.set(id, Object.freeze({
+      ...previous,
+      ...node,
+      consumers: Object.freeze([
+        ...new Set([...previous.consumers, ...node.consumers]),
+      ]),
+      output: node.output ?? previous.output,
+    }))
+  }
+  const islands = mergeNodes(current.islands, incoming.islands)
+  for (const [id, node] of incoming.islands) {
+    const previous = current.islands.get(id)
+    if (!previous) continue
+    islands.set(id, Object.freeze({
+      ...previous,
+      ...node,
+      pages: Object.freeze([...new Set([...previous.pages, ...node.pages])]),
+    }))
+  }
+  const images = mergeNodes(current.images, incoming.images)
+  for (const [id, node] of incoming.images) {
+    const previous = current.images.get(id)
+    if (!previous) continue
+    images.set(id, Object.freeze({
+      ...previous,
+      ...node,
+      pages: Object.freeze([...new Set([...previous.pages, ...node.pages])]),
+      generatedAssets: Object.freeze([
+        ...new Set([...previous.generatedAssets, ...node.generatedAssets]),
+      ]),
+    }))
+  }
+  return Object.freeze({
+    schemaVersion: /** @type {const} */ ("1"),
+    project: current.project,
+    features: mergeNodes(current.features, incoming.features),
+    routes: mergeNodes(current.routes, incoming.routes),
+    pages: mergeNodes(current.pages, incoming.pages),
+    assets,
+    islands,
+    images,
+    artifacts: mergeNodes(current.artifacts, incoming.artifacts),
+  })
+}
+
+/**
+ * @param {{graph: ProjectGraph, emitter: MemoryEmitter}} lifecycle
+ * @param {import("./compatibility-lifecycle.js").ViteCompatibilityRunHooks} hooks
+ */
+async function commitLifecycle(lifecycle, hooks) {
+  const state = hooks.session?.state
+  if (!state) return
+  state.compatibilityGraph = mergeGraph(
+    state.compatibilityGraph,
+    lifecycle.graph.snapshot(),
+  )
+  state.compatibilityEmitter ??= new MemoryEmitter()
+  const current = new Set(
+    (await state.compatibilityEmitter.list()).map(({ fileName }) => fileName),
+  )
+  for (const file of await lifecycle.emitter.list()) {
+    if (current.has(file.fileName)) {
+      await state.compatibilityEmitter.replace(file)
+    } else {
+      await state.compatibilityEmitter.emit(file)
+      current.add(file.fileName)
+    }
+  }
+}
+
 /**
  * Run document-oriented domain phases against a complete Vite HTML output set.
  *
@@ -213,6 +298,8 @@ export async function processViteDocuments(
   } else {
     await run(lifecycle, phases, hooks.onTrace)
   }
+  const graph = lifecycle.graph.snapshot()
+  await commitLifecycle(lifecycle, hooks)
   return Object.freeze({
     documents: Object.freeze(states.map(({ input, document, before }) => {
       const after = document.serialize()
@@ -223,7 +310,7 @@ export async function processViteDocuments(
       })
     })),
     artifacts: await lifecycle.artifacts.list(),
-    graph: lifecycle.graph.snapshot(),
+    graph,
   })
 }
 
@@ -255,6 +342,7 @@ export async function composeViteHtml(html, pageIdentity, features, hooks = {}) 
   const before = document.serialize()
   await run(lifecycle, ["compose"], hooks.onTrace)
   const after = document.serialize()
+  await commitLifecycle(lifecycle, hooks)
   return after === before ? html : after
 }
 
@@ -294,5 +382,7 @@ export async function processViteOutputs(files, features, hooks = {}) {
     }
   }
   await run(lifecycle, ["finalize"], hooks.onTrace)
-  return lifecycle.emitter.list()
+  const outputs = await lifecycle.emitter.list()
+  await commitLifecycle(lifecycle, hooks)
+  return outputs
 }

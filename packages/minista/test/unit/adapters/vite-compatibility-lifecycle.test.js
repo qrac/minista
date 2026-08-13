@@ -37,7 +37,7 @@ describe("Vite compatibility lifecycle", () => {
       hooks: Object.freeze({
         async generate(
           /** @type {import("../../../src/core/lifecycle/index.js").PhaseContext} */
-          { artifacts },
+          { artifacts, graph },
         ) {
           await artifacts.put({
             schemaVersion: "1",
@@ -45,6 +45,13 @@ describe("Vite compatibility lifecycle", () => {
             owner: producerId,
             mediaType: "text/plain",
             content: "fixture",
+          })
+          graph.addArtifact({
+            id: artifactId,
+            kind: "data",
+            owner: producerId,
+            source: "fixture",
+            dependencies: [],
           })
         },
         compose(
@@ -93,6 +100,80 @@ describe("Vite compatibility lifecycle", () => {
 
     expect(consumedDocument).toBe(producedDocument)
     expect(session.state.compatibilityDocuments?.list()).toHaveLength(1)
+    expect(session.state.compatibilityGraph?.features.has(producerId)).toBe(true)
+    expect(session.state.compatibilityGraph?.features.has(consumerId)).toBe(true)
+    expect(session.state.compatibilityGraph?.artifacts.get(artifactId))
+      .toMatchObject({ owner: producerId })
+    expect(session.state.compatibilityGraph?.pages.size).toBe(1)
+  })
+
+  test("accumulates finalized outputs in the build-session emitter", async () => {
+    const session = createViteBuildSession({ buildId: "emitter-fixture" })
+    /** @param {string} name @param {string} fileName */
+    const feature = (name, fileName) => /** @type {import("../../../src/core/lifecycle/index.js").MinistaFeature} */ ({
+      id: createNodeId("feature", name),
+      apiVersion: 1,
+      options: Object.freeze({}),
+      hooks: Object.freeze({
+        async finalize(
+          /** @type {import("../../../src/core/lifecycle/index.js").PhaseContext} */
+          { emitter },
+        ) {
+          await emitter.emit({ fileName, content: name })
+        },
+      }),
+    })
+
+    await processViteOutputs(
+      [],
+      [feature("first-output", "first.txt")],
+      createViteCompatibilityTraceHooks(session, "first-output"),
+    )
+    const second = await processViteOutputs(
+      [],
+      [feature("second-output", "second.txt")],
+      createViteCompatibilityTraceHooks(session, "second-output"),
+    )
+
+    expect(second.map(({ fileName }) => fileName)).toEqual(["second.txt"])
+    expect((await session.state.compatibilityEmitter?.list())
+      ?.map(({ fileName }) => fileName)).toEqual(["first.txt", "second.txt"])
+  })
+
+  test("merges consumers when features contribute the same session asset", async () => {
+    const session = createViteBuildSession({ buildId: "graph-fixture" })
+    const assetId = createNodeId("asset", "shared.css")
+    /** @param {string} name */
+    const feature = (name) => /** @type {import("../../../src/core/lifecycle/index.js").MinistaFeature} */ ({
+      id: createNodeId("feature", name),
+      apiVersion: 1,
+      options: Object.freeze({}),
+      hooks: Object.freeze({
+        generate(
+          /** @type {import("../../../src/core/lifecycle/index.js").PhaseContext} */
+          { documents, graph },
+        ) {
+          graph.addAsset({
+            id: assetId,
+            kind: "source",
+            consumers: documents.list().map(({ pageId }) => pageId),
+          })
+        },
+      }),
+    })
+    /** @param {string} name @param {string} fileName @param {string} url */
+    const run = (name, fileName, url) => processViteDocuments(
+      [{ fileName, url, html: `<main>${name}</main>` }],
+      [feature(name)],
+      ["generate"],
+      createViteCompatibilityTraceHooks(session, name),
+    )
+
+    await run("first-asset", "first.html", "/first/")
+    await run("second-asset", "second.html", "/second/")
+
+    expect(session.state.compatibilityGraph?.assets.get(assetId)?.consumers)
+      .toHaveLength(2)
   })
 
   test("accumulates phase traces across compatibility runs in a build session", async () => {

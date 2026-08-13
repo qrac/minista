@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みです。SSG renderと全production compatibility featureが生成するphase trace、Document Store、domain Artifact Storeは同じbuild sessionで共有します。同一output pageはfile identityから同じDocument instanceを再利用し、feature再実行時はそのfeature所有Artifactだけを置換して他featureのhandoffを保持します。一方、Project GraphとEmitter、LifecycleRunnerはVite hookごとに作り直します。devもfeature別cacheと`transformIndexHtml()`を使用します。残る主要課題はGraph／Emitterとfeature別dev処理をbuild／dev session全体の長寿命lifecycleへ統合することです。
+production featureのdomain phaseはCore runnerへ接続済みです。SSG renderと全production compatibility featureが生成するphase trace、Document Store、domain Artifact Storeは同じbuild sessionで共有します。同一output pageはfile identityから同じDocument instanceを再利用し、feature再実行時はそのfeature所有Artifactだけを置換して他featureのhandoffを保持します。hookごとのGraph snapshotもsession Graphへ集約し、同一Assetのconsumer、Island／Imageのpage／generated asset関係をmergeします。Emitter outputはfileName単位でsession Emitterへ同期します。ただし各LifecycleRunnerへ渡すmutable Graph／Emitterはまだhookローカルです。devもfeature別cacheと`transformIndexHtml()`を使用します。残る主要課題はrunner contextとfeature別dev処理をbuild／dev session全体の長寿命lifecycleへ統合することです。
 
 ## CoreとFeatureの実装contract
 
