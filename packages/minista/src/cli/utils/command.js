@@ -23,6 +23,15 @@ import { reportCliDiagnostic } from "./diagnostic.js"
 const require = createRequire(import.meta.url)
 const { version: ministaVersion } = require("../../../package.json")
 
+/** @param {unknown} error */
+function reportCliError(error) {
+  const diagnostic = error && typeof error === "object"
+    ? Reflect.get(error, "diagnostic")
+    : undefined
+  if (diagnostic) reportCliDiagnostic(diagnostic)
+  else console.error(error)
+}
+
 /** @param {unknown} value */
 function isDiagnostic(value) {
   return Boolean(
@@ -324,7 +333,7 @@ export async function runProgrammaticDev(args) {
   const shutdown = () => {
     process.off("SIGINT", shutdown)
     process.off("SIGTERM", shutdown)
-    void running.close().catch((error) => console.error(error))
+    void running.close().catch(reportCliError)
   }
   process.once("SIGINT", shutdown)
   process.once("SIGTERM", shutdown)
@@ -452,11 +461,7 @@ export async function runMinista(args) {
     }
     await viteCli.run(args)
   } catch (error) {
-    const diagnostic = error && typeof error === "object"
-      ? Reflect.get(error, "diagnostic")
-      : undefined
-    if (diagnostic) reportCliDiagnostic(diagnostic)
-    else console.error(error)
+    reportCliError(error)
     process.exit(1)
   }
 }

@@ -21,7 +21,7 @@ devを次の順に段階移行します。
 
 CoreはVite server、ModuleRunner、module graphの型を持ちません。module評価は既存の `ModuleEvaluator` portを通します。
 
-手順1〜5は実装済みです。`ViteDevModuleEvaluator` は移行中の `ssr` environmentをguardし、SSG、Island、Search、project commandのmodule評価を共有します。`LegacySsgRouteCache` は変更moduleから特定したrouteだけdiscovery、`getStaticData()`、PageNode解決を再実行し、Project Graph全体をcache entryから再構成します。Sprite／Imageはlocal sourceから参照ページへのArtifact edgeも保持します。`ViteDevUpdateAdapter` はenvironment別module graphとhot channelを所有し、pluginからmixed graph／直接WebSocket操作を除去しました。page固有変更とSprite／Image変更はcustom HMR eventで該当URLだけをreloadし、全体変更だけ標準full reloadへfallbackします。
+手順1〜5は実装済みです。`ViteDevServerAdapter` はcreate、listen、起動後設定、closeの失敗をoperation付き `MINISTA_VITE_DEV_SERVER_FAILED` diagnosticへ正規化し、listen後の設定失敗でもserverを閉じます。`ViteDevModuleEvaluator` は移行中の `ssr` environmentをguardし、SSG、Island、Search、project commandのmodule評価を共有します。`LegacySsgRouteCache` は変更moduleから特定したrouteだけdiscovery、`getStaticData()`、PageNode解決を再実行し、Project Graph全体をcache entryから再構成します。Sprite／Imageはlocal sourceから参照ページへのArtifact edgeも保持します。`ViteDevUpdateAdapter` はenvironment別module graphとhot channelを所有し、pluginからmixed graph／直接WebSocket操作を除去しました。page固有変更とSprite／Image変更はcustom HMR eventで該当URLだけをreloadし、全体変更だけ標準full reloadへfallbackします。
 
 ## Consequences
 
