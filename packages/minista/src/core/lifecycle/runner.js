@@ -9,6 +9,28 @@ import { scheduleFeatures } from "./scheduler.js"
 /** @typedef {import("./types.js").PhaseTraceEvent} PhaseTraceEvent */
 /** @typedef {import("./runner.js").LifecycleDependencies} LifecycleDependencies */
 
+/**
+ * @param {unknown} value
+ * @returns {value is import("../diagnostics/index.js").Diagnostic}
+ */
+function isDiagnostic(value) {
+  return Boolean(
+    value && typeof value === "object" &&
+    typeof Reflect.get(value, "code") === "string" &&
+    Reflect.get(value, "code").startsWith("MINISTA_") &&
+    ["error", "warning", "info"].includes(Reflect.get(value, "severity")),
+  )
+}
+
+/** @param {unknown} error */
+function getErrorDiagnostics(error) {
+  if (!error || typeof error !== "object") return []
+  const diagnostics = Reflect.get(error, "diagnostics")
+  if (Array.isArray(diagnostics)) return diagnostics.filter(isDiagnostic)
+  const diagnostic = Reflect.get(error, "diagnostic")
+  return isDiagnostic(diagnostic) ? [diagnostic] : []
+}
+
 export class LifecycleRunner {
   /** @type {readonly MinistaFeature[]} */
   #features
@@ -58,12 +80,25 @@ export class LifecycleRunner {
           })
         }
         catch (error) {
-          this.#dependencies.diagnostics.error({
-            code: phase === "render" ? "MINISTA_RENDER_FAILED" : "MINISTA_PHASE_FAILED",
-            message: error instanceof Error ? error.message : String(error),
-            phase,
-            feature: feature.id,
-          })
+          const errorDiagnostics = getErrorDiagnostics(error)
+          if (errorDiagnostics.length > 0) {
+            for (const diagnostic of errorDiagnostics) {
+              this.#dependencies.diagnostics.add({
+                ...diagnostic,
+                phase: diagnostic.phase ?? phase,
+                feature: diagnostic.feature ?? feature.id,
+              })
+            }
+          } else {
+            this.#dependencies.diagnostics.error({
+              code: phase === "render"
+                ? "MINISTA_RENDER_FAILED"
+                : "MINISTA_PHASE_FAILED",
+              message: error instanceof Error ? error.message : String(error),
+              phase,
+              feature: feature.id,
+            })
+          }
           return Object.freeze({ ok: false, traces: Object.freeze(traces) })
         }
         trace({ type: "feature:end", phase, feature: feature.id })

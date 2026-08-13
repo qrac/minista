@@ -128,4 +128,42 @@ describe("feature scheduler and lifecycle", () => {
       "feature:start",
     ])
   })
+
+  test("preserves structured diagnostics thrown by an adapter", async () => {
+    const dependencies = createDependencies()
+    const featureId = createNodeId("feature", "archive")
+    const feature: MinistaFeature = {
+      id: featureId,
+      apiVersion: 1,
+      options: {},
+      hooks: {
+        finalize: () => {
+          throw Object.assign(new Error("archive failed"), {
+            diagnostic: {
+              code: "MINISTA_ARCHIVE_FAILED" as const,
+              severity: "error" as const,
+              message: "archive failed",
+              hint: "check archive options",
+            },
+          })
+        },
+      },
+    }
+
+    const result = await new LifecycleRunner([feature], dependencies).run({
+      phases: ["finalize"],
+    })
+
+    expect(result.ok).toBe(false)
+    expect(dependencies.diagnostics.snapshot()).toEqual([
+      expect.objectContaining({
+        code: "MINISTA_ARCHIVE_FAILED",
+        phase: "finalize",
+        feature: featureId,
+        hint: "check archive options",
+      }),
+    ])
+    expect(dependencies.diagnostics.byCode("MINISTA_PHASE_FAILED"))
+      .toHaveLength(0)
+  })
 })

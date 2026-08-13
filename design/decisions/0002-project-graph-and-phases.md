@@ -18,9 +18,10 @@ versioned Project Graph、Artifact Store、structured Diagnosticをlifecycleの�
 - HTMLはfinal outputかdocument representationであり、feature間の唯一のprotocolにしない
 - `.minista/work/<buildId>` はmetadata付きArtifactStoreとし、globで前回buildのexecutable fileを探さない
 - emit後のfinalizeはEmitterの明示的な `replace()` と追加 `emit()` だけで出力を変更する
+- adapterがstructured diagnosticを持つerrorを投げた場合、runnerはstable code、hint、locationを保持し、欠けているphaseとfeatureだけを実行contextから補う
 - public manifestはgraphの安全なprojectionとする
 
-compatibility facadeを段階移行する間も、参照解析、成果物生成、document反映は同じdomain contractとadapterを使用します。Imageではdev／buildを一つの `ImageGenerator` portへ接続し、facade closureにrecipe、remote index、出力entryのmutable mapを保持しません。cache invalidationはsource contentと生成patternのhashをadapterが管理します。Entry、Bundle、Islandではbundlerをportとして扱い、Vite outputから得たplanをdomain composeへ渡します。Vite hookが所有するbundle object自体はCoreやfeatureへ渡しません。programmatic build間で必要なrendered pageとIsland snippetはCLIが所有するbuild-session ArtifactStoreへ保存し、inline Vite configに明示的なsessionとして渡します。
+compatibility facadeを段階移行する間も、参照解析、成果物生成、document反映は同じdomain contractとadapterを使用します。Imageではdev／buildを一つの `ImageGenerator` portへ接続し、facade closureにrecipe、remote index、出力entryのmutable mapを保持しません。cache invalidationはsource contentと生成patternのhashをadapterが管理します。ArchiveではArchiver由来errorを `MINISTA_ARCHIVE_FAILED` に変換し、runnerがfinalize phaseとfeature identityを維持します。Entry、Bundle、Islandではbundlerをportとして扱い、Vite outputから得たplanをdomain composeへ渡します。Vite hookが所有するbundle object自体はCoreやfeatureへ渡しません。programmatic build間で必要なrendered pageとIsland snippetはCLIが所有するbuild-session ArtifactStoreへ保存し、inline Vite configに明示的なsessionとして渡します。
 
 ## Consequences
 

@@ -1,3 +1,3 @@
 // @ts-check
 
-export { NodeArchiveBuilder } from "./node.js"
+export { NodeArchiveBuilder, NodeArchiveError } from "./node.js"
