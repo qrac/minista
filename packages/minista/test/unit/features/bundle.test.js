@@ -111,5 +111,15 @@ describe("bundle feature", () => {
     expect(graph.snapshot().artifacts.get(
       createNodeId("artifact", "client-bundle-plan"),
     )).toMatchObject({ owner: BUNDLE_FEATURE_ID })
+    expect((await artifacts.list()).find(
+      ({ mediaType }) =>
+        mediaType ===
+          "application/vnd.minista.bundle-output-references+json",
+    )).toMatchObject({
+      content: JSON.stringify({
+        pageId,
+        fileNames: ["assets/bundle.css", "assets/photo.png"],
+      }),
+    })
   })
 })

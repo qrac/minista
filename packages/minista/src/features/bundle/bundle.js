@@ -146,6 +146,33 @@ export function createBundleFeature(options, builder, outputs) {
           mediaType: "application/vnd.minista.client-bundle+json",
           content: JSON.stringify(plan),
         })
+        for (const document of context.documents.list()) {
+          const referencesId = createNodeId(
+            "artifact",
+            "bundle-output-references",
+            document.pageId,
+          )
+          await context.artifacts.put({
+            schemaVersion: "1",
+            id: referencesId,
+            owner: BUNDLE_FEATURE_ID,
+            mediaType:
+              "application/vnd.minista.bundle-output-references+json",
+            content: JSON.stringify({
+              pageId: document.pageId,
+              fileNames: collectBundleOutputReferences(document, plan),
+            }),
+          })
+          if (context.graph.snapshot().features.has(BUNDLE_FEATURE_ID)) {
+            context.graph.addArtifact({
+              id: referencesId,
+              kind: "data",
+              owner: BUNDLE_FEATURE_ID,
+              source: `page:${document.pageId}`,
+              dependencies: [id],
+            })
+          }
+        }
         if (context.graph.snapshot().features.has(BUNDLE_FEATURE_ID)) {
           context.graph.addArtifact({
             id,

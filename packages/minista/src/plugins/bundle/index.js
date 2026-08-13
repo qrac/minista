@@ -6,13 +6,10 @@ import fs from "node:fs"
 import path from "node:path"
 import { normalizePath } from "vite"
 
-import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
+import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { createNodeId } from "../../core/graph/index.js"
-import {
-  collectBundleOutputReferences,
-  composeBundleDocument,
-} from "../../features/bundle/index.js"
+import { createBundleFeature } from "../../features/bundle/index.js"
 import { getGlobImportCode } from "./utils/code.js"
 import { getHtmlPageUrl } from "../../shared/filename.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
@@ -34,7 +31,6 @@ export const defaultOptions = {
   outName: "bundle",
   useExportCss: true,
 }
-const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -125,7 +121,7 @@ export function pluginBundle(uOpts = {}) {
         importedImageFiles.add(relativePath)
       }
     },
-    generateBundle(options, bundle) {
+    async generateBundle(options, bundle) {
       outputClaims = []
       const outputChunks = filterOutputChunks(bundle)
       const outputAssets = filterOutputAssets(bundle)
@@ -173,17 +169,47 @@ export function pluginBundle(uOpts = {}) {
         imageFiles,
         rewriteRootImages: base === "./" || base === "",
       }
-      const pages = htmlItems.map((item) => {
-        const document = documents.parse({
-          pageId: createNodeId("page", "legacy-bundle-compose", item.fileName),
-          html: String(item.source),
-        })
-        return {
-          item,
-          document,
-          references: collectBundleOutputReferences(document, plan),
-        }
-      })
+      const pages = htmlItems.map((item) => ({
+        item,
+        fileName: item.fileName,
+        url: getHtmlPageUrl(item.fileName),
+        html: String(item.source),
+      }))
+      const pageFileNames = new Map()
+      const result = await processViteDocuments(
+        pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+        [createBundleFeature(
+          opts,
+          { bundle: async () => plan },
+          {
+            resolve(fileName, pageId) {
+              const pageFileName = pageFileNames.get(pageId)
+              return pageFileName
+                ? getBasedAssetUrl(base, pageFileName, fileName)
+                : undefined
+            },
+          },
+        )],
+        ["analyze", "bundle", "compose"],
+        {
+          beforeCompose({ graph }) {
+            for (const page of graph.pages.values()) {
+              const route = graph.routes.get(page.routeId)
+              if (route) pageFileNames.set(page.id, route.pageModuleId)
+            }
+          },
+        },
+      )
+      /** @type {import("../../features/bundle/index.js").BundleOutputReference[]} */
+      const references = result.artifacts
+        .filter((record) =>
+          record.mediaType ===
+            "application/vnd.minista.bundle-output-references+json"
+        )
+        .map((record) => JSON.parse(String(record.content)))
+      const pageUrls = new Map(
+        [...result.graph.pages.values()].map(({ id, url }) => [id, url]),
+      )
       const cssSet = new Set(cssFiles)
       for (const fileName of [...cssFiles, ...imageFiles]) {
         outputClaims.push(Object.freeze({
@@ -192,23 +218,20 @@ export function pluginBundle(uOpts = {}) {
           owner: createNodeId("feature", "bundle"),
           source: opts.outName,
           fileName,
-          pageUrls: Object.freeze(pages
-            .filter(({ references }) => references.includes(fileName))
-            .map(({ item }) => getHtmlPageUrl(item.fileName))),
+          pageUrls: Object.freeze(references
+            .filter(({ fileNames }) => fileNames.includes(fileName))
+            .map(({ pageId }) => pageUrls.get(pageId))
+            .filter((url) => url !== undefined)),
           dependencies: Object.freeze([]),
         }))
       }
 
-      for (const { item, document } of pages) {
-        composeBundleDocument(
-          document,
-          plan,
-          {
-            resolve: (fileName) =>
-              getBasedAssetUrl(base, item.fileName, fileName),
-          },
-        )
-        item.source = document.serialize()
+      const outputDocuments = new Map(
+        result.documents.map((document) => [document.fileName, document]),
+      )
+      for (const page of pages) {
+        const output = outputDocuments.get(page.fileName)
+        if (output && output.html !== page.html) page.item.source = output.html
       }
     },
   }

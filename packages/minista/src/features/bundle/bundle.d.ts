@@ -12,6 +12,10 @@ export interface BundlePlan {
   readonly imageFiles: readonly string[]
   readonly rewriteRootImages: boolean
 }
+export interface BundleOutputReference {
+  readonly pageId: PageId
+  readonly fileNames: readonly string[]
+}
 export interface BundleBuilder {
   bundle(options: BundleFeatureOptions): Promise<BundlePlan>
 }
