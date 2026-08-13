@@ -65,4 +65,24 @@ describe("Vite dev update adapter", () => {
       })
     }
   })
+
+  test("projects importer chains to affected route source files", () => {
+    const pageA = { id: "/root/src/pages/a.jsx", importers: new Set() }
+    const pageB = { id: "/root/src/pages/b.jsx", importers: new Set() }
+    const changed = {
+      id: "/root/src/components/shared.jsx?t=1",
+      importers: new Set([pageB, pageA]),
+    }
+    const adapter = new ViteDevUpdateAdapter(
+      /** @type {any} */ ({ environments: {} }),
+    )
+
+    expect(adapter.findAffectedFiles(
+      [/** @type {any} */ (changed)],
+      ["/root/src/pages/b.jsx", "/root/src/pages/a.jsx"],
+    )).toEqual([
+      "/root/src/pages/a.jsx",
+      "/root/src/pages/b.jsx",
+    ])
+  })
 })

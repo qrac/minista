@@ -1,5 +1,7 @@
 // @ts-check
 
+import { normalizePath } from "vite"
+
 /** @typedef {import("vite").EnvironmentModuleNode} EnvironmentModuleNode */
 /** @typedef {import("vite").ViteDevServer} ViteDevServer */
 
@@ -85,6 +87,38 @@ export class ViteDevUpdateAdapter {
     for (const module of modules) {
       graph.invalidateModule(module, invalidated, timestamp, hardInvalidate)
     }
+  }
+
+  /**
+   * changed moduleからimporterを辿り、影響を受ける候補source fileを返す。
+   *
+   * @param {readonly EnvironmentModuleNode[]} modules
+   * @param {readonly string[]} candidateFiles
+   * @returns {readonly string[]}
+   */
+  findAffectedFiles(modules, candidateFiles) {
+    const candidates = new Map(
+      candidateFiles.map((file) => [normalizePath(file), file]),
+    )
+    const affected = new Set()
+    /** @type {EnvironmentModuleNode[]} */
+    const queue = [...modules]
+    /** @type {Set<EnvironmentModuleNode>} */
+    const seen = new Set()
+
+    while (queue.length > 0) {
+      const module = queue.shift()
+      if (!module || seen.has(module)) continue
+      seen.add(module)
+      const identity = module.file ?? module.id?.split("?")[0]
+      const candidate = identity
+        ? candidates.get(normalizePath(identity))
+        : undefined
+      if (candidate) affected.add(candidate)
+      for (const importer of module.importers ?? []) queue.push(importer)
+    }
+
+    return Object.freeze([...affected].sort())
   }
 
   /** @param {string} [environmentName] */

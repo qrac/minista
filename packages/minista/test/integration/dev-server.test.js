@@ -40,6 +40,16 @@ describe.sequential("programmatic custom dev server", () => {
         { recursive: true },
       ),
     ])
+    await fs.promises.writeFile(
+      path.resolve(fixtureDir, "src/pages/other.jsx"),
+      `let renders = 0
+export default function Other() {
+  renders += 1
+  return <h1>Other renders: {renders}</h1>
+}
+`,
+      "utf8",
+    )
 
     running = await new ViteDevServerAdapter().start(
       {
@@ -93,6 +103,11 @@ describe.sequential("programmatic custom dev server", () => {
   })
 
   test("invalidates the cached page snapshot after a source change", async () => {
+    const otherBefore = await fetch(`${origin}/other`, {
+      signal: AbortSignal.timeout(10_000),
+    }).then((response) => response.text())
+    expect(otherBefore).toContain("<h1>Other renders: <!-- -->1</h1>")
+
     const pageFile = path.resolve(fixtureDir, "src/pages/index.jsx")
     const source = await fs.promises.readFile(pageFile, "utf8")
     await fs.promises.writeFile(
@@ -110,7 +125,13 @@ describe.sequential("programmatic custom dev server", () => {
         signal: AbortSignal.timeout(10_000),
       })
       const updatedHtml = await response.text()
-      if (updatedHtml.includes("<h1>Compatibility updated</h1>")) return
+      if (updatedHtml.includes("<h1>Compatibility updated</h1>")) {
+        const otherAfter = await fetch(`${origin}/other`, {
+          signal: AbortSignal.timeout(10_000),
+        }).then((response) => response.text())
+        expect(otherAfter).toContain("<h1>Other renders: <!-- -->1</h1>")
+        return
+      }
       await new Promise((resolve) => setTimeout(resolve, 50))
     }
 

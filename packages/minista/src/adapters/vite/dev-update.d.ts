@@ -25,5 +25,9 @@ export declare class ViteDevUpdateAdapter {
     timestamp: number,
     hardInvalidate?: boolean,
   ): void
+  findAffectedFiles(
+    modules: readonly EnvironmentModuleNode[],
+    candidateFiles: readonly string[],
+  ): readonly string[]
   fullReload(environmentName?: string): void
 }

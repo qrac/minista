@@ -43,11 +43,11 @@ App BuildではViteが全environmentのconfigをbuild前に解決するため、
 
 通常のdev CLIは外部Vite processを起動せず、`ViteDevServerAdapter` が `createServer({ appType: "custom" })`、listen、URL表示、CLI shortcut、closeを所有します。root、config、mode、base、host、port、open、CORSなどの一般的なdev flagはprogrammatic configへ変換し、未対応flagだけ外部Vite CLIへfallbackします。
 
-`pluginSsg()` は引き続きVite middlewareを登録しますが、module評価は `ViteDevModuleEvaluator` を通じて `RunnableDevEnvironment.runner.import()` を使用します。adapterはrunnable environmentのguard、module invalidation、stacktrace補正を所有し、Core側にはViteの型を公開しません。最初のrequestでroute解決と全page renderを行い、世代管理付きの `DevPageCache` がsnapshotを後続requestで再利用します。page/layoutの依存moduleに到達するhot updateではsnapshotを破棄し、次のrequestで再評価します。routeごとの個別cacheとgraph node単位のinvalidationは未実装です。
+`pluginSsg()` は引き続きVite middlewareを登録しますが、module評価は `ViteDevModuleEvaluator` を通じて `RunnableDevEnvironment.runner.import()` を使用します。adapterはrunnable environmentのguard、module invalidation、stacktrace補正を所有し、Core側にはViteの型を公開しません。最初のrequestでroute解決と全page renderを行い、世代管理付きの `DevPageCache` がsnapshotを後続requestで再利用します。page/layoutの依存moduleに到達するhot updateではsnapshotを破棄し、次のrequestで再評価します。`ViteDevUpdateAdapter` は変更moduleのimporter chainをroute sourceへ投影し、`DevRenderCache` は影響RouteNode配下のPageNodeだけを破棄します。layout変更またはrouteを限定できない変更では全pageを破棄します。route discovery自体の差分cacheとArtifact edge単位のinvalidationは未実装です。
 
 Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置換し、開発用sourceやassetを `.minista` に生成します。Imageはdomainの参照収集とdocument composeを使い、Node adapterが生成した画像assetだけを `.minista` に保存します。IslandとSearchも共有module evaluatorから `virtual:ssg-pages` をimportし、plugin／CLIからの `ssrLoadModule()` 直接利用は除去済みです。
 
-`pluginSsg()` のHMRは `hotUpdate` から `ViteDevUpdateAdapter` を呼び、environment別module graphの存在確認・invalidationと `environment.hot` によるfull reloadをadapterへ閉じています。Spriteのreloadも同じadapterを使用し、plugin内の `server.ws`、mixed `server.environments`、module graph直接操作は除去済みです。route／page／artifactとのinvalidation対応付けは未実装で、reloadは多くの場合full reloadです。
+`pluginSsg()` のHMRは `hotUpdate` から `ViteDevUpdateAdapter` を呼び、environment別module graphの存在確認・invalidationと `environment.hot` によるfull reloadをadapterへ閉じています。Spriteのreloadも同じadapterを使用し、plugin内の `server.ws`、mixed `server.environments`、module graph直接操作は除去済みです。route sourceとPageNodeへのinvalidation対応付けは実装済みですが、Artifact edgeとの対応付けは未実装で、document変更はfull reloadです。
 
 ### Current data model
 

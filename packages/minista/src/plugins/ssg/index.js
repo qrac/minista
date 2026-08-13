@@ -24,6 +24,7 @@ import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { DevPageCache } from "../../features/ssg/dev-page-cache.js"
+import { DevRenderCache } from "../../features/ssg/dev-render-cache.js"
 import { getGlobImportCode, getSsgExportCode } from "./utils/code.js"
 import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { transformHtml } from "./utils/html.js"
@@ -77,27 +78,41 @@ export function pluginSsg(uOpts = {}) {
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
   const environmentInput = new ViteEnvironmentInputAdapter()
-  /** @type {DevPageCache<{resolvedLayout: ResolvedLayout, resolvedPages: readonly ResolvedPage[]}>} */
+  /** @type {DevPageCache<{graph: import("../../core/graph/index.js").ProjectGraphSnapshot, layoutSourceFiles: readonly string[], resolvedLayout: ResolvedLayout, resolvedPages: readonly ResolvedPage[]}>} */
   const devPageCache = new DevPageCache()
+  /** @type {DevRenderCache<SsgPage>} */
+  const devRenderCache = new DevRenderCache()
 
   /**
    * @param {ResolvedLayout} resolvedLayout
    * @param {readonly ResolvedPage[]} resolvedPages
+   * @param {DevRenderCache<SsgPage>} [renderCache]
    */
-  async function selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages) {
+  async function selfUpdateResolvedToSsgPages(
+    resolvedLayout,
+    resolvedPages,
+    renderCache,
+  ) {
+    const activePageIds = resolvedPages
+      .filter(({ metadata }) => metadata?.draft !== true)
+      .map(({ pageId, url }) => String(pageId ?? `url:${url}`))
+    renderCache?.retain(activePageIds)
     const pages = await Promise.all(
       resolvedPages.map(async (resolvedPage) => {
         if (resolvedPage.metadata?.draft === true) {
           return null
         }
-        const url = resolvedPage.url
-        const fileName = getHtmlFileName(url)
-        const html = await transformHtml({ resolvedLayout, resolvedPage }, renderer)
-        return {
-          url,
-          fileName,
-          html,
+        const render = async () => {
+          const url = resolvedPage.url
+          const fileName = getHtmlFileName(url)
+          const html = await transformHtml(
+            { resolvedLayout, resolvedPage },
+            renderer,
+          )
+          return { url, fileName, html }
         }
+        const pageId = String(resolvedPage.pageId ?? `url:${resolvedPage.url}`)
+        return renderCache ? renderCache.get(pageId, render) : render()
       }),
     )
     ssgPages = pages.filter(
@@ -324,9 +339,21 @@ export function pluginSsg(uOpts = {}) {
             )
           }
 
-          await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
+          await selfUpdateResolvedToSsgPages(
+            resolvedLayout,
+            resolvedPages,
+            devRenderCache,
+          )
           evaluator.invalidateModule(SSG_PAGES_VIRTUAL)
-          return { resolvedLayout, resolvedPages }
+          const layoutSourceFiles = Object.keys(LAYOUTS).map((sourceFile) =>
+            path.resolve(rootDir, sourceFile.replace(/^\/+/, "")),
+          )
+          return {
+            graph: project.graph,
+            layoutSourceFiles: Object.freeze(layoutSourceFiles),
+            resolvedLayout,
+            resolvedPages,
+          }
         }
 
         server.middlewares.use(async (req, res, next) => {
@@ -424,6 +451,40 @@ export function pluginSsg(uOpts = {}) {
         )
 
         if (touchSsrHtml) {
+          const snapshot = devPageCache.peek()
+          if (snapshot) {
+            const routeBySourceFile = new Map(
+              [...snapshot.graph.routes.values()].map((route) => [
+                path.resolve(rootDir, route.sourceFile),
+                route,
+              ]),
+            )
+            const routeSourceFiles = [...routeBySourceFile.keys()]
+            const affectedLayouts = updates.findAffectedFiles(
+              modules,
+              snapshot.layoutSourceFiles,
+            )
+            const affectedRouteFiles = updates.findAffectedFiles(
+              modules,
+              routeSourceFiles,
+            )
+
+            if (affectedLayouts.length > 0 || affectedRouteFiles.length === 0) {
+              devRenderCache.invalidate()
+            } else {
+              const routeIds = new Set(
+                affectedRouteFiles
+                  .map((sourceFile) => routeBySourceFile.get(sourceFile)?.id)
+                  .filter(Boolean),
+              )
+              const pageIds = [...snapshot.graph.pages.values()]
+                .filter(({ routeId }) => routeIds.has(routeId))
+                .map(({ id }) => id)
+              devRenderCache.invalidate(pageIds)
+            }
+          } else {
+            devRenderCache.invalidate()
+          }
           devPageCache.invalidate()
           const rel = modules[0]?.id
             ? stripQuery(path.relative(server.config.root, modules[0].id))

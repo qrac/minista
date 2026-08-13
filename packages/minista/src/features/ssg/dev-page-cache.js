@@ -38,6 +38,11 @@ export class DevPageCache {
     )
   }
 
+  /** @returns {Snapshot | undefined} */
+  peek() {
+    return this.#snapshot
+  }
+
   invalidate() {
     this.#generation += 1
     this.#snapshot = undefined

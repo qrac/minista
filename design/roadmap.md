@@ -118,13 +118,13 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 6: ModuleRunner dev adapter
 
-進捗: `ViteDevServerAdapter` を追加し、通常のdev CLIをprogrammatic `createServer({ appType: "custom" })` へ切り替えました。adapterがlisten、URL表示、CLI shortcut、closeを所有し、root、config、mode、base、host、port、open、CORS、strict port、forceなどの一般的なflagを変換します。未対応flagだけ外部Vite CLIへfallbackします。`ViteDevModuleEvaluator` はrunnable environmentのguard、`runner.import()`、module invalidation、stacktrace補正を既存のCore portへ適合させ、SSG、Island、Search、project commandが共有します。plugin／CLIからの `server.ssrLoadModule()` 直接利用は除去済みです。`DevPageCache` は最初に解決・renderしたpage snapshotを後続requestで再利用し、同時loadを一本化します。page/layout依存のhot updateでcache世代を更新し、source変更後のHTML再生成を実サーバーで確認済みです。`ViteDevUpdateAdapter` はenvironment別module graphとhot channelを所有し、SSG／Spriteからmixed graphと `server.ws` 直接利用を除去しました。routeごとのcache、graph edge単位のinvalidation、full reload対象の縮小が残っています。
+進捗: `ViteDevServerAdapter` を追加し、通常のdev CLIをprogrammatic `createServer({ appType: "custom" })` へ切り替えました。adapterがlisten、URL表示、CLI shortcut、closeを所有し、root、config、mode、base、host、port、open、CORS、strict port、forceなどの一般的なflagを変換します。未対応flagだけ外部Vite CLIへfallbackします。`ViteDevModuleEvaluator` はrunnable environmentのguard、`runner.import()`、module invalidation、stacktrace補正を既存のCore portへ適合させ、SSG、Island、Search、project commandが共有します。plugin／CLIからの `server.ssrLoadModule()` 直接利用は除去済みです。`DevPageCache` は最初に解決・renderしたpage snapshotを後続requestで再利用し、同時loadを一本化します。`ViteDevUpdateAdapter` はenvironment別module graph、変更moduleからroute sourceへのimporter traversal、hot channelを所有し、SSG／Spriteからmixed graphと `server.ws` 直接利用を除去しました。`DevRenderCache` はpage固有の変更で影響RouteNode配下のPageNodeだけを再renderし、2ページfixtureで未影響pageを再renderしないことを確認済みです。route discoveryの差分cache、Artifact edge単位のinvalidation、full reload対象の縮小が残っています。
 
 - dev CLIをprogrammatic `createServer({ appType: "custom" })` に移す。実装済み
 - `render` environmentの `RunnableDevEnvironment.runner.import()` でpage moduleを評価。移行中の `ssr` environmentに対して実装済み
 - requestごとの全pages再評価をsnapshot cacheで除去。route／module dependency単位への細分化は未実装
 - environmentごとのmodule graphと `hotUpdate` を使用
-- source change → affected route/page/artifact edgeをgraphで説明可能にする
+- source change → affected RouteNode／PageNodeを特定済み。Artifact edgeへの拡張は未実装
 - HMR不能なdocument changeのみ明示的full reloadにする
 - `server.ssrLoadModule`、mixed module graph、`server.ws` のplugin／CLI直接利用を削除済み
 
