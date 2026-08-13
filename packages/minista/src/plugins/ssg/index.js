@@ -90,12 +90,6 @@ export function pluginSsg(uOpts = {}) {
     renderCache: /** @type {DevRenderCache<RenderedPage>} */ (new DevRenderCache()),
     routeCache: new LegacySsgRouteCache(),
   }))
-  /**
-   * Vite configEnvironment does not expose the top-level root. Keep only the
-   * deterministic config-time paths needed to configure named environments.
-   * @type {{names?: Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames>, globFile: string, ssrDir: string, throughFile: string}}
-   */
-  let appConfigPlan = { globFile: "", ssrDir: "", throughFile: "" }
   const environmentInput = new ViteEnvironmentInputAdapter()
 
   /**
@@ -296,8 +290,45 @@ export function pluginSsg(uOpts = {}) {
         await fs.promises.writeFile(globFile, code, "utf8")
       }
       if (isAppBuild) {
-        appConfigPlan = { names, globFile, ssrDir, throughFile }
+        const renderName = /** @type {NonNullable<typeof names>} */ (names)
+          .renderName
+        const clientName = /** @type {NonNullable<typeof names>} */ (names)
+          .clientName
+        const renderEnvironment = config.environments?.[renderName]
         return {
+          environments: {
+            [renderName]: {
+              build: {
+                rolldownOptions: {
+                  external: mergeRolldownExternal(
+                    renderEnvironment?.build?.rolldownOptions?.external,
+                    [
+                      "minista/context",
+                      "minista/head",
+                      "react",
+                      "react/jsx-runtime",
+                      "react/jsx-dev-runtime",
+                      "react-dom",
+                      "react-dom/server",
+                    ],
+                  ),
+                  input: { [tempName]: globFile },
+                  output: {
+                    chunkFileNames: "[name].mjs",
+                    entryFileNames: "[name].mjs",
+                  },
+                },
+                outDir: ssrDir,
+              },
+            },
+            [clientName]: {
+              build: {
+                rolldownOptions: {
+                  input: { [tempName]: throughFile },
+                },
+              },
+            },
+          },
           ssr: {
             external: mergeSsrExternal(config, [
               "minista/context",
@@ -347,44 +378,6 @@ export function pluginSsg(uOpts = {}) {
               input: {
                 [tempName]: throughFile,
               },
-            },
-          },
-        }
-      }
-    },
-    configEnvironment(name, config) {
-      if (!appConfigPlan.names) return
-      if (name === appConfigPlan.names.renderName) {
-        return {
-          build: {
-            rolldownOptions: {
-              external: mergeRolldownExternal(
-                config.build?.rolldownOptions?.external,
-                [
-                  "minista/context",
-                  "minista/head",
-                  "react",
-                  "react/jsx-runtime",
-                  "react/jsx-dev-runtime",
-                  "react-dom",
-                  "react-dom/server",
-                ],
-              ),
-              input: { [tempName]: appConfigPlan.globFile },
-              output: {
-                chunkFileNames: "[name].mjs",
-                entryFileNames: "[name].mjs",
-              },
-            },
-            outDir: appConfigPlan.ssrDir,
-          },
-        }
-      }
-      if (name === appConfigPlan.names.clientName) {
-        return {
-          build: {
-            rolldownOptions: {
-              input: { [tempName]: appConfigPlan.throughFile },
             },
           },
         }

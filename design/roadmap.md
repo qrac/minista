@@ -155,7 +155,7 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 output claim collectorはenvironment identityをproviderへ渡し、Archive／Sprite／Bundle／Image／Entry／Island／Searchのclaim stateをadapter storeへ分離しました。
 
-Archiveはwrite hookのenvironment configからrootとbuilderを生成するように変更し、Comment／Beautify／Svgの適用判定とEntryのlegacy mode判定から不要なclosure flagを削除しました。environmentを公開しない `transformIndexHtml()` が所有するconfig stateは長寿命lifecycle移行と合わせて扱います。
+Archiveはwrite hookのenvironment configからrootとbuilderを生成するように変更し、Comment／Beautify／Svgの適用判定とEntryのlegacy mode判定から不要なclosure flagを削除しました。environmentを公開しない `transformIndexHtml()` は登録server identityをadapterで解決します。
 
 Sprite／Imageはdev generator、watch対象、Page indexをserver identity単位へ分離し、production generator／root／baseをbundle environment configから生成するように変更しました。カスタムSSG経路のoptionalまたはwrapper HTML context serverは `ViteDevServerRegistry` が登録済みserverへ解決します。build中のdev用asset生成は除去し、production処理をgenerate lifecycleへ一本化しました。
 
@@ -163,13 +163,12 @@ Searchはmode／baseをsource transformのenvironment configから判定し、Bu
 
 EntryはApp Buildのentry計画をclient environment identity単位へ分離し、root／base／build sessionをhook実行時のconfigから取得するように変更しました。Islandはdevのsnippet集合／module evaluatorをserver identity単位、productionのsnippet集合／entry／source planをenvironment identity単位へ分離し、mode／root／base／build sessionをenvironment configから判定します。
 
-SSGはdevのpage／render／route cache、renderer、rendered pagesをserver identity単位へ分離しました。productionのrendered pages、Project Graph、外部fallback manifest候補はclient environment identity単位に保持し、build hookのmode／root／build sessionはenvironment configから判定します。`configEnvironment()` にtop-level rootが渡されないため、named environmentの静的input／outDir planだけは互換facadeのconfig-time stateとして残しています。
+SSGはdevのpage／render／route cache、renderer、rendered pagesをserver identity単位へ分離しました。productionのrendered pages、Project Graph、外部fallback manifest候補はclient environment identity単位に保持し、build hookのmode／root／build sessionはenvironment configから判定します。named environmentの静的input／outDirは通常の `config()` hookから既存environment optionへ合成し、`configEnvironment()` とconfig-time closure stateを削除しました。
 
 残るcleanupは次です。
 
 - Vite hookごとの短命lifecycleをbuild全体のDocument Store／Artifact Store／traceへ統合する
 - devのfeature別cacheと`transformIndexHtml()`をproductionと共通の長寿命lifecycleへ寄せる
-- SSGのnamed environment用config-time planをApp Build adapterの静的environment生成へ統合する
 - programmatic／外部CLI fallbackを縮退する
 - plugin個別docsの内部挙動説明をv5 terminologyへ順次更新する
 

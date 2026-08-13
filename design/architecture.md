@@ -16,7 +16,7 @@ monorepoは主に次で構成されています。
 - `playground`: pluginごとの動作確認プロジェクト
 - `packages/minista/test`: pure utilityを中心としたVitest test
 
-package runtime entryは `src/node.js` です。CLI、test、workspace packageは `src/` のJavaScriptを直接実行し、通常の開発にcompile済み `dist/` を必要としません。公開型は `src/*.d.ts` を参照します。`src/node.js` はViteの `defineConfig` と12個の `pluginXXX()` をexportし、`pluginMdx()` を除く各機能は、状態をclosureに持つVite pluginとして実装されています。
+package runtime entryは `src/node.js` です。CLI、test、workspace packageは `src/` のJavaScriptを直接実行し、通常の開発にcompile済み `dist/` を必要としません。公開型は `src/*.d.ts` を参照します。`src/node.js` はViteの `defineConfig` と12個の `pluginXXX()` をexportし、`pluginMdx()` を除く各機能はCore featureを呼び出すVite compatibility facadeとして実装されています。
 
 ### Build lifecycle
 
@@ -76,7 +76,7 @@ interface RenderedPage {
 | dev feature | `transformIndexHtml()`とfeature別の差分cache／page index | productionと同じ長寿命lifecycleではない |
 | MDX | `@mdx-js/rollup`を包むcompiler adapter | document／output phaseを持たずVite transformとして残る |
 
-module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautifyの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。SSG／Sprite／Image／Islandのdev stateとSvg source resolverは `ViteDevServerRegistry` が解決するserver identityごとに分離し、production generator／resolver／root／baseはbundle environment configから生成します。Searchはmode／baseをsource transformのenvironment configから判定し、Bundleのimported image集合、Entryのentry計画、Islandのsnippet／source plan、SSGのrendered pages／Project Graph／manifest候補もenvironment identity単位に保持します。SSGの `configEnvironment()` にtop-level rootが渡されないため、named environmentの静的input／outDirだけはplugin instanceのconfig-time planとして保持します。
+module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautifyの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。SSG／Sprite／Image／Islandのdev stateとSvg source resolverは `ViteDevServerRegistry` が解決するserver identityごとに分離し、production generator／resolver／root／baseはbundle environment configから生成します。Searchはmode／baseをsource transformのenvironment configから判定し、Bundleのimported image集合、Entryのentry計画、Islandのsnippet／source plan、SSGのrendered pages／Project Graph／manifest候補もenvironment identity単位に保持します。SSGのnamed environment用静的設定は通常の `config()` hookが既存environment optionへ合成し、plugin instance直下にmutableなconfig planを保存しません。
 
 ### Diagnostics and tests
 
@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。SSGのnamed environment用config-time planをVite App Build adapter側の静的environment生成へ統合する作業が残っています。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。残る主要課題は、この短命lifecycleとfeature別dev処理をbuild／dev session全体の長寿命lifecycleへ統合することです。
 
 ## CoreとFeatureの実装contract
 
