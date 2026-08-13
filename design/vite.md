@@ -54,7 +54,7 @@ Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvir
 
 EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。`createViteAppConfig()` はrenderをserver consumerかつSSR build、clientをclient consumerかつnon-SSR buildとして構成します。`ViteEnvironmentInputAdapter` は `prepareClient` 時に解決済みRolldown optionを保ったままinputを差し替えます。このlate inputが実際のVite 8.2.1 client buildに反映されることはintegration testで確認済みです。
 
-App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。そのため `prepareViteClientEnvironment()` が `api.minista.prepareClient` をfeature descriptorのcapability / `after` でscheduleし、late preparationをconfig hookから分離します。SSG pluginは `configEnvironment()` でrender/clientの静的設定を返し、`prepareClient` でrender bundle評価、page render、Artifact生成を行います。Islandはsnippet Artifactをrenderで保存し、client preparationでsource planとentryを生成します。Entryもrendered page Artifactを解析してentryを生成し、両者は `ViteEnvironmentInputAdapter.merge()` でSSGのthrough inputを消さずnamed inputを合成します。render bundleでHead contextをrendererと共有するため、`minista/context` と `minista/head` はuserのRolldown external設定を保ったままexternalizeします。React関連importもrenderでexternalizeし、client限定のPreact aliasから分離します。Minista専用config markerかenvironment名も伝播するため、通常のVite `builder` optionをApp Buildと誤認しません。Comment、Svg、Sprite、Beautify、Archive、Bundleは `applyToEnvironment` でclientだけにoutput hookを登録し、ImageとSearchもenvironment別source transformを使うため、render側でclient用HTML変更やarchive生成を行いません。全compatibility plugin fixtureとPreact fixtureの単一Builder buildは成功済みです。build sessionはbuildId、ArtifactStore、diagnostic collectorを共有し、CLIが全終了経路でArtifactStoreをclearします。App Builderはschema version、status、buildId、diagnostics、両environment outputを一つのresultとして返します。
+App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。そのため `prepareViteClientEnvironment()` が `api.minista.prepareClient` をfeature descriptorのcapability / `after` でscheduleし、late preparationをconfig hookから分離します。SSG pluginは `configEnvironment()` でrender/clientの静的設定を返し、`prepareClient` でrender bundle評価、page render、Artifact生成を行います。Islandはsnippet Artifactをrenderで保存し、client preparationでsource planとentryを生成します。Entryもrendered page Artifactを解析してentryを生成し、両者は `ViteEnvironmentInputAdapter.merge()` でSSGのthrough inputを消さずnamed inputを合成します。render bundleでHead contextをrendererと共有するため、`minista/context` と `minista/head` はuserのRolldown external設定を保ったままexternalizeします。React関連importもrenderでexternalizeし、client限定のPreact aliasから分離します。Minista専用config markerかenvironment名も伝播するため、通常のVite `builder` optionをApp Buildと誤認しません。Comment、Svg、Sprite、Beautify、Archive、Bundleは `applyToEnvironment` でclientだけにoutput hookを登録し、ImageとSearchもenvironment別source transformを使うため、render側でclient用HTML変更やarchive生成を行いません。全compatibility plugin fixtureとPreact fixtureの単一Builder buildは成功済みです。build sessionはbuildId、ArtifactStore、diagnostic collectorを共有し、CLIが全終了経路でArtifactStoreをclearします。App Builderはschema version、status、buildId、diagnostics、environment status、Core `OutputManifest` を一つのresultとして返します。manifestはlogical ID、kind、fileName、公開URL、byte size、entry/import関係だけを持ち、Vite Builder、実行code、asset source、絶対facade pathを含みません。
 
 ### Environments
 
@@ -98,7 +98,7 @@ Viteはenvironment record順にbuildできますが、Ministaはrender結果か�
 - orchestration state: Ministaの `ProjectContext`
 - 大きい/generated data: `ArtifactStore` のbuildId namespace
 - client input: 解決時点でgraphを読むstable virtual entry
-- bundle result: Vite/Rolldown objectからCore `OutputManifest` へ即座に変換
+- bundle result: Vite/Rolldown objectからCore `OutputManifest` schema v1へ即座に変換済み
 
 `.minista/work/<buildId>` を使う場合もproducer / schema / hashがあるdata artifactに限定し、native importするhandoff moduleや前回buildのglob searchは禁止します。render bundle自体はexecutable outputなのでnative importしますが、そのlocationはcurrent build resultから直接取得し、directory globで探索しません。
 
@@ -175,7 +175,7 @@ Headはrender中のside effectで収集されるため、page treeを二重rende
 ## Rolldown boundary
 
 - Vite 8のproduction outputはRolldownだが、featureはRolldown `OutputBundle` を直接変更しない
-- adapterがchunk/asset metadataをnormalized `OutputManifest` に変換する
+- adapterがchunk/asset metadataをnormalized `OutputManifest` に変換する。schema v1は実装済み
 - asset entryはlogical ArtifactIdで宣言し、file name matchingや `originalFileNames` scanはadapter内に限定
 - `generateBundle` で複数featureがHTMLを順番に変更するcurrent patternを廃止
 - userの `build.rolldownOptions` は可能な限り透過的に維持し、Minista reserved input/outputとの衝突をdiagnosticにする

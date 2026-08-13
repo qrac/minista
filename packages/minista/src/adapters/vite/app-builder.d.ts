@@ -3,6 +3,7 @@ import type {
   InlineConfig,
   ViteBuilder,
 } from "vite"
+import type { OutputManifest } from "../../core/manifest/index.js"
 
 export type ViteBuildOutput = Awaited<ReturnType<ViteBuilder["build"]>>
 export interface ViteAppBuildPreparation {
@@ -23,9 +24,11 @@ export interface ViteAppBuildResult {
   readonly status: "success"
   readonly buildId?: string
   readonly diagnostics: readonly import("../../core/diagnostics/index.js").Diagnostic[]
-  readonly builder: ViteBuilder
-  readonly renderOutput: ViteBuildOutput
-  readonly clientOutput: ViteBuildOutput
+  readonly environments: Readonly<{
+    render: Readonly<{ name: string; status: "built" }>
+    client: Readonly<{ name: string; status: "built" }>
+  }>
+  readonly outputManifest: OutputManifest
 }
 export declare class ViteAppEnvironmentNotFoundError extends Error {
   readonly code: "MINISTA_VITE_APP_ENVIRONMENT_NOT_FOUND"

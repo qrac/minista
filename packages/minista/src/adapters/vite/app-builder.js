@@ -1,10 +1,16 @@
 // @ts-check
 
+import path from "node:path"
+
 import { createBuilder } from "vite"
 
 import { loadViteAppConfig } from "./app-config-loader.js"
 import { getViteBuildSession } from "./build-session.js"
 import { prepareViteClientEnvironment } from "./environment-preparation.js"
+import {
+  createViteOutputManifest,
+  reconcileViteOutputManifest,
+} from "./output-manifest.js"
 
 /** @typedef {import("vite").BuildEnvironment} BuildEnvironment */
 /** @typedef {import("vite").InlineConfig} InlineConfig */
@@ -52,15 +58,27 @@ export class ViteAppBuilderAdapter {
     await prepareViteClientEnvironment(preparation)
     await options.prepareClient?.(preparation)
     const clientOutput = await builder.build(client)
+    let outputManifest = createViteOutputManifest(clientOutput, {
+      environment: clientName,
+      base: client.config.base,
+    })
+    if (client.config.build.write !== false) {
+      outputManifest = await reconcileViteOutputManifest(outputManifest, {
+        outDir: path.resolve(client.config.root, client.config.build.outDir),
+        base: client.config.base,
+      })
+    }
 
     return Object.freeze({
       schemaVersion: "1",
       status: "success",
       ...(session?.buildId ? { buildId: session.buildId } : {}),
       diagnostics: session?.diagnostics?.snapshot() ?? Object.freeze([]),
-      builder,
-      renderOutput,
-      clientOutput,
+      environments: Object.freeze({
+        render: Object.freeze({ name: renderName, status: "built" }),
+        client: Object.freeze({ name: clientName, status: "built" }),
+      }),
+      outputManifest,
     })
   }
 

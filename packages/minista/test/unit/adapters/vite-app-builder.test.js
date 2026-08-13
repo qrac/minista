@@ -14,15 +14,29 @@ describe("Vite App Builder adapter", () => {
     /** @type {string[]} */
     const calls = []
     const render = { name: "render" }
-    const client = { name: "client" }
+    const client = {
+      name: "client",
+      config: { base: "/", build: { write: false } },
+    }
     const build = vi.fn(async (environment) => {
       calls.push(`build:${environment.name}`)
-      return { output: [{ environment: environment.name }] }
+      return {
+        output: [{
+          type: "chunk",
+          name: environment.name,
+          fileName: `${environment.name}.js`,
+          code: "export default true",
+          isEntry: true,
+          isDynamicEntry: false,
+          imports: [],
+          dynamicImports: [],
+        }],
+      }
     })
     const builder = { environments: { render, client }, build }
     const factory = vi.fn(async () => builder)
     const prepareClient = vi.fn(async ({ renderOutput }) => {
-      calls.push(`prepare:${renderOutput.output[0].environment}`)
+      calls.push(`prepare:${renderOutput.output[0].name}`)
     })
     const adapter = new ViteAppBuilderAdapter(/** @type {any} */ (factory))
 
@@ -54,7 +68,11 @@ describe("Vite App Builder adapter", () => {
       status: "success",
       buildId: "build:test",
       diagnostics: [],
-      builder,
+      environments: {
+        render: { name: "render", status: "built" },
+        client: { name: "client", status: "built" },
+      },
+      outputManifest: { schemaVersion: "1", environment: "client" },
     })
   })
 

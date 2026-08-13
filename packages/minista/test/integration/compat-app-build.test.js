@@ -14,8 +14,10 @@ const sourceFixtureDir = path.resolve(here, "../fixtures/compat-basic")
 let fixtureDir = ""
 
 describe.sequential("v4 compatibility App Build", () => {
-  /** @type {import("vite").ViteBuilder | undefined} */
-  let builder
+  /** @type {import("../../src/adapters/vite/app-builder.js").ViteAppBuildResult["environments"] | undefined} */
+  let environments
+  /** @type {import("../../src/core/manifest/index.js").OutputManifest | undefined} */
+  let outputManifest
 
   beforeAll(async () => {
     const testTempDir = path.resolve(packageDir, "test/.tmp")
@@ -49,7 +51,8 @@ describe.sequential("v4 compatibility App Build", () => {
         { artifacts: new MemoryArtifactStore() },
       ),
     )
-    builder = result.builder
+    environments = result.environments
+    outputManifest = result.outputManifest
   }, 60_000)
 
   afterAll(async () => {
@@ -59,8 +62,8 @@ describe.sequential("v4 compatibility App Build", () => {
   })
 
   test("builds render and client in one Vite Builder", () => {
-    expect(builder?.environments.render?.isBuilt).toBe(true)
-    expect(builder?.environments.client?.isBuilt).toBe(true)
+    expect(environments?.render.status).toBe("built")
+    expect(environments?.client.status).toBe("built")
   })
 
   test("emits the existing page, entry, and Island contract", async () => {
@@ -84,6 +87,10 @@ describe.sequential("v4 compatibility App Build", () => {
         "scripts/island-1.js",
       ]),
     )
+    expect(outputManifest?.files.map(({ fileName }) => fileName)).toEqual(
+      files.filter((file) => file !== "assets" && file !== "scripts"),
+    )
+    expect(JSON.stringify(outputManifest)).not.toContain(fixtureDir)
     expect(html).toContain('<html lang="en">')
     expect(html).toContain('<body class="fixture" data-search-relative="0">')
     expect(html).toContain("<title>Compatibility fixture</title>")

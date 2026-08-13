@@ -1,4 +1,20 @@
 import type { DiagnosticSummary } from "../diagnostics/index.js"
+export interface OutputFile {
+  readonly logicalId: string
+  readonly kind: "chunk" | "asset"
+  readonly fileName: string
+  readonly url: string
+  readonly byteSize: number
+  readonly isEntry?: boolean
+  readonly isDynamicEntry?: boolean
+  readonly imports?: readonly string[]
+  readonly dynamicImports?: readonly string[]
+}
+export interface OutputManifest {
+  readonly schemaVersion: "1"
+  readonly environment: string
+  readonly files: readonly OutputFile[]
+}
 export interface ProjectManifest {
   readonly schemaVersion: "1"
   readonly generator: {

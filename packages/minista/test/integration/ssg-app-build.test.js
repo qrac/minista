@@ -27,8 +27,8 @@ async function removeGenerated() {
 
 describe.sequential("SSG App Build", () => {
   const artifacts = new MemoryArtifactStore()
-  /** @type {import("vite").ViteBuilder | undefined} */
-  let builder
+  /** @type {import("../../src/adapters/vite/app-builder.js").ViteAppBuildResult["environments"] | undefined} */
+  let environments
 
   beforeAll(async () => {
     await removeGenerated()
@@ -42,14 +42,14 @@ describe.sequential("SSG App Build", () => {
         { artifacts },
       ),
     )
-    builder = result.builder
+    environments = result.environments
   }, 60_000)
 
   afterAll(removeGenerated)
 
   test("builds the named environments in one builder", () => {
-    expect(builder?.environments.render?.isBuilt).toBe(true)
-    expect(builder?.environments.client?.isBuilt).toBe(true)
+    expect(environments?.render.status).toBe("built")
+    expect(environments?.client.status).toBe("built")
   })
 
   test("hands rendered pages to the client through the artifact store", async () => {

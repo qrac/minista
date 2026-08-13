@@ -69,11 +69,9 @@ describe("Vite App Builder compatibility", () => {
       },
     )
 
-    const clientEntry = outputItems(result.clientOutput).find(
-      (item) => item.type === "chunk" && item.isEntry,
+    const clientEntry = result.outputManifest.files.find(
+      (item) => item.kind === "chunk" && item.isEntry,
     )
-    expect(clientEntry?.facadeModuleId).toBe(
-      "\0virtual:minista-test:prepared-client",
-    )
+    expect(clientEntry?.logicalId).toBe("client")
   })
 })
