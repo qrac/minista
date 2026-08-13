@@ -1,6 +1,11 @@
 import { spawn } from "cross-spawn"
 import path from "node:path"
+import { randomUUID } from "node:crypto"
+import { createRequire } from "node:module"
 
+import { NodeDiagnosticsWriter } from "../../adapters/filesystem/diagnostics-writer.js"
+import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
+import { NodeProjectManifestWriter } from "../../adapters/filesystem/project-manifest-writer.js"
 import { ViteAppBuilderAdapter } from "../../adapters/vite/app-builder.js"
 import { ViteAppConfigPluginMismatchError } from "../../adapters/vite/app-config-loader.js"
 import {
@@ -10,17 +15,25 @@ import {
 } from "../../adapters/vite/build-session.js"
 import { LegacyViteBuilderAdapter } from "../../adapters/vite/legacy-builder.js"
 import { ViteDevServerAdapter } from "../../adapters/vite/dev-server.js"
+import { createDiagnosticsReport } from "../../core/diagnostics/index.js"
 import { reportCliDiagnostic } from "./diagnostic.js"
 
 /** @typedef {import("../../adapters/vite/build-session.js").ViteBuildSession} ViteBuildSession */
 
+const require = createRequire(import.meta.url)
+const { version: ministaVersion } = require("../../../package.json")
+
 /**
  * @param {string[]} args
+ * @param {Readonly<Record<string, string>>} [environment]
  * @returns {Promise<number>}
  */
-async function runVite(args) {
+async function runVite(args, environment = {}) {
   return new Promise((resolve, reject) => {
-    const process = spawn("vite", args, { stdio: "inherit" })
+    const process = spawn("vite", args, {
+      stdio: "inherit",
+      env: { ...globalThis.process.env, ...environment },
+    })
 
     process.on("close", (code) => {
       if (code === 0) {
@@ -30,6 +43,27 @@ async function runVite(args) {
       }
     })
   })
+}
+
+/** @param {string[]} args @param {string} buildId */
+async function promoteExternalBuildMetadata(args, buildId) {
+  const root = createProgrammaticConfig(args).root || process.cwd()
+  const handoff = new NodeExternalBuildHandoff()
+  const manifest = await handoff.read(root, buildId)
+  const createdAt = new Date().toISOString()
+  if (manifest) {
+    await new NodeProjectManifestWriter().write(root, manifest)
+  }
+  await new NodeDiagnosticsWriter().write(
+    root,
+    createDiagnosticsReport({
+      version: ministaVersion,
+      command: "build",
+      buildId,
+      diagnostics: [],
+      createdAt,
+    }),
+  )
 }
 
 const supportedBuildFlags = new Set([
@@ -315,7 +349,18 @@ export async function runMinista(args, isOneBuild) {
       return
     }
     if (isBuild && !isOneBuild) {
-      await runVite([...args, "--ssr"])
+      const buildId = randomUUID()
+      const environment = { MINISTA_EXTERNAL_BUILD_ID: buildId }
+      const root = createProgrammaticConfig(args).root || process.cwd()
+      const handoff = new NodeExternalBuildHandoff()
+      try {
+        await runVite([...args, "--ssr"], environment)
+        await runVite(args, environment)
+        await promoteExternalBuildMetadata(args, buildId)
+      } finally {
+        await handoff.clear(root, buildId)
+      }
+      return
     }
     await runVite(args)
   } catch (error) {

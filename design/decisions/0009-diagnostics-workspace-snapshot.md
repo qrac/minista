@@ -13,7 +13,7 @@ Project Manifestの `diagnosticSummary` は件数だけを持ち、stable code�
 
 `.minista/diagnostics.json` schema v1をworkspace内の直近実行snapshotとします。`schemaVersion`, `generator`, `command`, optionalな `buildId`, `summary`, `diagnostics`, `createdAt` を持ちます。
 
-`check` は成功とvalidation errorの両方でreportを置換します。通常のApp Buildはclient outputのcommit後、成功したbuild sessionのdiagnosticsを保存します。build途中の例外をstructured diagnosticへ変換する境界は未実装なので、失敗したbuildは以前の正常なreportを置換しません。
+`check` は成功とvalidation errorの両方でreportを置換します。通常のApp Buildとprogrammatic legacy fallbackはclient outputのcommit後、成功したbuild sessionのdiagnosticsを保存します。別processの外部Vite CLI fallbackは両process成功後に空の成功reportを保存します。build途中の例外をstructured diagnosticへ変換する境界は未実装なので、失敗したbuildは以前の正常なreportを置換しません。
 
 Project Manifest writerとDiagnostics writerは同じstable JSON serializerとatomic workspace writerを使います。同一directoryの一時ファイルへwriteした後でrenameし、失敗時は一時ファイルを削除します。
 

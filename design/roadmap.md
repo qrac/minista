@@ -132,7 +132,7 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 7: manifest / inspect / explain
 
-進捗: 進行中。Project Manifest schema v1、安全なallowlist projection、安定key orderのserializer、同一directory内の一時ファイルとrenameを使うatomic writerを実装し、通常のApp Buildとprogrammatic legacy fallbackから `.minista/manifest.json` を出力します。絶対pathとruntime-only propsを含めないprojection test、serializerとwriterのtest、実Vite fixtureのbuild出力testを追加済みです。`inspect` / `inspect --json` / `explain` とstdout／stderr分離はsource query経路で実装済みです。`inspect --manifest` はVite serverとuser moduleを起動せず公開manifestだけを読み、missing、invalid、unsupported versionをstructured diagnosticとして返します。schema migration registryとmigration failure diagnosticも実装済みです。v1が最初の公開schemaのためbuilt-in migrationはまだありません。`.minista/diagnostics.json` schema v1とatomic writerも実装し、`check` の成功／失敗、通常のApp Build、programmatic legacy fallbackの成功時に保存します。別processの外部Vite CLI fallbackからのmetadata出力は未実装です。
+進捗: 進行中。Project Manifest schema v1、安全なallowlist projection、安定key orderのserializer、同一directory内の一時ファイルとrenameを使うatomic writerを実装し、通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` を出力します。外部fallbackはbuildId付きprivate handoffを両build成功後だけ公開metadataへ昇格し、失敗時に候補を残しません。絶対pathとruntime-only propsを含めないprojection test、serializerとwriterのtest、実Vite fixtureのbuild出力testを追加済みです。`inspect` / `inspect --json` / `explain` とstdout／stderr分離はsource query経路で実装済みです。`inspect --manifest` はVite serverとuser moduleを起動せず公開manifestだけを読み、missing、invalid、unsupported versionをstructured diagnosticとして返します。schema migration registryとmigration failure diagnosticも実装済みです。v1が最初の公開schemaのためbuilt-in migrationはまだありません。`.minista/diagnostics.json` schema v1とatomic writerも実装し、`check` の成功／失敗と全build compatibility経路の成功時に保存します。生成asset／artifact／output edgeのmanifest反映とread-only query APIのpackage boundary整理は継続します。
 
 - `.minista/manifest.json` schema v1とatomic writerを通常のApp Buildへ実装済み
 - absolute path / arbitrary props / secret-like configのredaction testを追加済み
@@ -142,7 +142,8 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 - `.minista/diagnostics.json` schema v1を `check` と通常のApp Buildへ実装済み
 - programmatic legacy fallbackへProject Manifest／diagnostics出力を接続済み
 - manifest migration registryとfailure diagnosticを実装済み
-- 別processの外部Vite CLI fallbackへmetadata出力を接続
+- 別processの外部Vite CLI fallbackへprivate handoff経由のmetadata出力を接続済み
+- 生成asset／artifact／output edgeをProject Manifestへ反映
 - 将来の `@minista/mcp` が使用できるread-only query APIをinternal package boundaryとして整理
 
 完了条件: source全体を解析しなくてもroute → page → generated asset → outputの関係をJSONから追える。

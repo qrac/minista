@@ -12,9 +12,11 @@
 import fs from "node:fs"
 import path from "node:path"
 import { pathToFileURL } from "url"
+import { createRequire } from "node:module"
 import pc from "picocolors"
 
 import { resolveLegacySsgProject } from "../../adapters/vite/legacy-ssg-project.js"
+import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
 import { LegacySsgRouteCache } from "../../adapters/vite/legacy-ssg-route-cache.js"
 import { createViteReactRenderer } from "../../adapters/vite/react-renderer.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
@@ -23,6 +25,7 @@ import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
+import { createProjectManifest } from "../../core/manifest/index.js"
 import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { DevPageCache } from "../../features/ssg/dev-page-cache.js"
 import { DevRenderCache } from "../../features/ssg/dev-render-cache.js"
@@ -43,6 +46,9 @@ export const defaultOptions = {
   srcBases: ["/src/pages"],
 }
 
+const require = createRequire(import.meta.url)
+const { version: ministaVersion } = require("../../../package.json")
+
 /**
  * @param {UserPluginOptions} uOpts
  * @returns {Plugin}
@@ -54,6 +60,7 @@ export function pluginSsg(uOpts = {}) {
   const tempName = "__minista-ssg"
   const SSG_PAGES_ID = "virtual:ssg-pages"
   const SSG_PAGES_VIRTUAL = "\0" + SSG_PAGES_ID
+  const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
 
   let isDev = false
   let isSsr = false
@@ -64,6 +71,8 @@ export function pluginSsg(uOpts = {}) {
 
   let rootDir = ""
   let projectName = "legacy-ssg"
+  /** @type {import("../../core/graph/index.js").ProjectGraphSnapshot | undefined} */
+  let projectGraph
   let tempDir = ""
   let globDir = ""
   let globFile = ""
@@ -132,6 +141,7 @@ export function pluginSsg(uOpts = {}) {
     const resolvedLayout = await resolveLayout(formatedLayout)
     const project = await resolveLegacySsgProject(PAGES, opts, projectName)
     const resolvedPages = project.pages
+    projectGraph = project.graph
 
     if (buildSession?.state) buildSession.state.projectGraph = project.graph
 
@@ -628,6 +638,25 @@ export function pluginSsg(uOpts = {}) {
           break
         }
       }
+    },
+    async writeBundle() {
+      if (
+        !isBuild ||
+        buildSession ||
+        !externalBuildId ||
+        !projectGraph
+      ) {
+        return
+      }
+      await new NodeExternalBuildHandoff().write(
+        rootDir,
+        externalBuildId,
+        createProjectManifest(projectGraph, {
+          version: ministaVersion,
+          createdAt: new Date().toISOString(),
+          diagnostics: { errors: 0, warnings: 0, info: 0 },
+        }),
+      )
     },
   }
 }

@@ -17,7 +17,9 @@ serializerはobject keyを再帰的にsortし、配列の意味上の順序を�
 
 通常のApp Buildとprogrammatic legacy fallbackはclient output transactionのcommit後、build sessionに保存されたProject Graph snapshotからmanifestを生成します。`inspect --manifest` はfilesystem readerとCore parserを通してmanifestだけを読み、Vite serverやuser moduleを起動しません。schemaなし／構造不正は `MINISTA_MANIFEST_INVALID`、未対応versionは `MINISTA_MANIFEST_VERSION_UNSUPPORTED`、fileなしは `MINISTA_MANIFEST_NOT_FOUND` として返します。
 
-readerはparse前に明示的なmigration registryを適用します。migrationは `from` と `to` を宣言し、一versionずつ変換します。v1が最初の公開schemaなのでbuilt-in registryは空です。cycle、同じversionからの重複migration、宣言したversionを返さない変換は `MINISTA_MANIFEST_MIGRATION_FAILED` とします。別processの外部Vite CLI fallbackはbuild sessionを共有できないため、metadata出力を段階的に追加します。
+readerはparse前に明示的なmigration registryを適用します。migrationは `from` と `to` を宣言し、一versionずつ変換します。v1が最初の公開schemaなのでbuilt-in registryは空です。cycle、同じversionからの重複migration、宣言したversionを返さない変換は `MINISTA_MANIFEST_MIGRATION_FAILED` とします。
+
+別processの外部Vite CLI fallbackでは親CLIが一つのbuildIdを `MINISTA_EXTERNAL_BUILD_ID` としてrender/client processへ渡します。client SSG pluginはpublic schemaへprojection済みのmanifest候補だけをprivate `work/<buildId>/external` へ書き、親CLIが両processの成功を確認してから公開manifestへatomic replaceします。失敗時と昇格後はbuildId scopeを削除します。arbitrary graph dataや実行可能moduleはこのhandoffへ追加しません。
 
 ## Consequences
 
