@@ -9,6 +9,7 @@ import {
   disposeViteBuildSession,
 } from "../../adapters/vite/build-session.js"
 import { LegacyViteBuilderAdapter } from "../../adapters/vite/legacy-builder.js"
+import { reportCliDiagnostic } from "./diagnostic.js"
 
 /** @typedef {import("../../adapters/vite/build-session.js").ViteBuildSession} ViteBuildSession */
 
@@ -132,9 +133,7 @@ export async function runProgrammaticAppBuild(args, session) {
 
 /** @param {ViteAppConfigPluginMismatchError} error */
 function reportAppBuildFallback(error) {
-  const diagnostic = error.diagnostic
-  console.warn(`[${diagnostic.code}] ${diagnostic.message}`)
-  console.warn(`  hint: ${diagnostic.hint}`)
+  reportCliDiagnostic(error.diagnostic)
 }
 
 /** @param {string[]} args */

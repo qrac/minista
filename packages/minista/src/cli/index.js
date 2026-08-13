@@ -8,6 +8,10 @@ import {
 import { findConfigFile } from "./utils/file.js"
 import { runMinista } from "./utils/command.js"
 import {
+  createOneBuildDeprecationDiagnostic,
+  reportCliDiagnostic,
+} from "./utils/diagnostic.js"
+import {
   isProjectCommand,
   parseProjectCommandArgs,
   runProjectCommand,
@@ -26,6 +30,9 @@ async function main() {
 
   const rootArg = findRootArg(args)
   const isOneBuild = checkOneBuildArg(args)
+  if (isOneBuild) {
+    reportCliDiagnostic(createOneBuildDeprecationDiagnostic())
+  }
   const configFile = findConfigFile(rootArg)
 
   args = resolveConfigArg(args, configFile)

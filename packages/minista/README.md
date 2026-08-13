@@ -68,14 +68,14 @@ export default function () {
 | コマンド                 | 内容                                          |
 | ------------------------ | --------------------------------------------- |
 | `minista [root]`         | 開発モード（`Ctrl + C` で停止）               |
-| `minista build [root]`   | 静的書き出し（SSRビルド後に連続で通常ビルド） |
+| `minista build [root]`   | App Build lifecycleによる静的書き出し         |
 | `minista preview [root]` | 静的書き出し後の動作確認                      |
 
 [ViteのCLIコマンドオプション](https://ja.vitejs.dev/guide/cli.html)がすべて使えるほか、以下の独自オプションがあります。
 
 | 独自のオプション | 内容                                           |
 | ---------------- | ---------------------------------------------- |
-| `--oneBuild`     | ministaのビルドを1回に制限（連続ビルドしない） |
+| `--oneBuild`     | 非推奨の互換option。指定時はwarningを出力       |
 
 ## Config
 

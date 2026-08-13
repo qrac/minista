@@ -35,7 +35,7 @@ minista build (current programmatic path)
             └─ HTML / assetを出力
 ```
 
-CLI processは一つになり、render/client buildにはbuildId、`DiagnosticCollector`、`MemoryArtifactStore` を持つ同じbuild sessionを渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。App Builderはschema付きの単一resultを返し、CLIは成功、失敗、legacy fallbackの各経路でArtifactStoreをclearします。未対応CLI flagで別processのVite CLIへfallbackした場合だけ、従来の `.minista` 内の実行可能な `.mjs` を読みます。`--oneBuild` は前半を省略するescape hatchです。
+CLI processは一つになり、render/client buildにはbuildId、`DiagnosticCollector`、`MemoryArtifactStore` を持つ同じbuild sessionを渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。App Builderはschema付きの単一resultを返し、CLIは成功、失敗、legacy fallbackの各経路でArtifactStoreをclearします。未対応CLI flagで別processのVite CLIへfallbackした場合だけ、従来の `.minista` 内の実行可能な `.mjs` を読みます。`--oneBuild` は移行用escape hatchとして受理しますが、`MINISTA_CLI_ONE_BUILD_DEPRECATED` warningを出します。
 
 App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。`ViteAppBuilderAdapter` は単一の `createBuilder()` でrender、clientを順にbuildし、その間にclient planを適用します。`createViteAppConfig()` はrender/clientのconsumerとSSR設定を明示し、`ViteEnvironmentInputAdapter` は解決済みclient environmentへnamed inputを保存的に合成します。`prepareViteClientEnvironment()` は明示的な `api.minista.prepareClient` だけを、feature descriptorのcapabilityと順序制約でscheduleして実行します。不正な依存はstructured diagnosticを持つstable errorになります。SSG、Entry、Islandはこのprotocolへ移行済みです。Islandはsnippet Artifactをrenderからclientへ渡し、EntryとIslandはrendered page Artifactからclient entryを生成します。Comment、Svg、Sprite、Beautify、Archive、Bundleのoutput hookはApp Buildのclient environmentだけに適用し、ImageとSearchのsource transformもrender/clientへ分離してrender outputを変更しません。既存の `isSsrBuild` config関数はrender用の環境設定を再評価し、Viteがenvironmentごとに受け付けるoptionを投影します。clientだけに設定されたPreact aliasはrender bundleのReact importをexternalizeして分離します。plugin名や順序がrender/clientで異なるconfigは `MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH` を出してlegacy adapterへfallbackします。client buildのRolldown outputは直ちにCore `OutputManifest` schema v1へ変換し、code、source本文、絶対facade pathをresultへ含めません。Appとlegacyのprogrammatic client buildは既存outDirを同階層のprivate backupへrenameし、成功時にbackupを削除、失敗時にpartial outputを削除して以前のoutDirを復元します。project rootまたはfilesystem rootをoutDirにする危険なtransactionは `MINISTA_OUTPUT_TRANSACTION_UNSAFE_DIR` で拒否します。実際のVite 8.2.1で全compatibility pluginを含むCLI fixture、Preact fixture、plugin mismatch fixtureを確認済みです。
 
@@ -394,6 +394,6 @@ manifest snapshotだけに依存せず、graph invariant、diagnostic code、dis
 | Image/Island/Entry/Sprite/Search | optionとcomponent importを維持 | temp path、marker、output hashの非公開挙動は保証しない |
 | Svg/Comment/Beautify/Archive/Bundle | facadeを維持してphase hookへ移行 | user plugin配列順による偶発的順序は保証しない |
 | `Metadata`, `PageProps`, `LayoutProps`, `StaticData` | exportとmodule augmentationを維持 | `any` はsource-compatibleな範囲でgeneric / unknown化 |
-| `--oneBuild` | deprecation warning後に削除 | v5 lifecycleでは不要。移行中のみ受理 |
+| `--oneBuild` | `MINISTA_CLI_ONE_BUILD_DEPRECATED` warningを実装済み。次majorで削除 | v5 lifecycleでは不要。移行中のみ受理 |
 
 互換性の基準はdocumented API、option default、page/layout contract、出力URLです。`node_modules/.minista` の配置、virtual module ID、Vite plugin name、生成source名、plugin closure stateは非公開であり互換対象にしません。
