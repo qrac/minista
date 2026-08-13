@@ -3,4 +3,6 @@ export { discoverRoute, discoverRoutes, parseRouteParams, sourceFileToRoutePatte
 export { resolvePageNodes } from "./resolve.js"
 export { createRenderedPagesArtifactId, parseRenderedPages } from "./rendered-pages.js"
 export type { RenderedPage } from "./rendered-pages.js"
+export { SSG_FEATURE_ID, createSsgRenderFeature } from "./render.js"
+export type { SsgPageRenderer } from "./render.js"
 export type { DiscoveredRoute, GetStaticData, PageModule, SsgDiscoveryOptions, StaticData, } from "./types.js"

@@ -24,6 +24,7 @@ import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { renderViteSsgPages } from "../../adapters/vite/ssg-render-lifecycle.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
 import {
@@ -33,7 +34,6 @@ import {
 import { collectViteOutputClaims } from "../../adapters/vite/output-claims.js"
 import { DiagnosticCollector } from "../../core/diagnostics/index.js"
 import { applyOutputClaims } from "../../core/graph/index.js"
-import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { DevPageCache } from "../../features/ssg/dev-page-cache.js"
 import { DevRenderCache } from "../../features/ssg/dev-render-cache.js"
 import { getGlobImportCode } from "./utils/code.js"
@@ -151,9 +151,6 @@ export function pluginSsg(uOpts = {}) {
     const resolvedLayout = await resolveLayout(formatedLayout)
     const project = await resolveLegacySsgProject(PAGES, opts, projectName)
     const resolvedPages = project.pages
-    projectGraph = project.graph
-
-    if (buildSession?.state) buildSession.state.projectGraph = project.graph
 
     const errors = project.diagnostics.filter(
       ({ severity }) => severity === "error",
@@ -164,17 +161,29 @@ export function pluginSsg(uOpts = {}) {
       )
     }
 
-    await updateRenderedPages(resolvedLayout, resolvedPages)
+    const resolvedById = new Map(
+      resolvedPages.map((page) => [page.pageId, page]),
+    )
+    const rendered = await renderViteSsgPages(
+      project.graph,
+      {
+        async render(page) {
+          const resolvedPage = resolvedById.get(page.id)
+          if (!resolvedPage) {
+            throw new Error(`Resolved page ${page.id} is not available.`)
+          }
+          return transformHtml({ resolvedLayout, resolvedPage }, renderer)
+        },
+      },
+      {
+        artifacts: buildSession?.artifacts,
+        diagnostics: buildSession?.diagnostics,
+      },
+    )
+    ssgPages = [...rendered.pages]
+    projectGraph = rendered.graph
 
-    if (buildSession) {
-      await buildSession.artifacts.put({
-        schemaVersion: "1",
-        id: createRenderedPagesArtifactId(),
-        owner: createNodeId("feature", "ssg"),
-        mediaType: "application/vnd.minista.rendered-pages+json",
-        content: JSON.stringify(ssgPages),
-      })
-    }
+    if (buildSession?.state) buildSession.state.projectGraph = rendered.graph
 
     if (!buildSession && externalBuildId) {
       await new NodeExternalBuildHandoff().writeRenderedPages(

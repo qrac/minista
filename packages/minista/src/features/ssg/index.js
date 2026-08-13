@@ -7,3 +7,4 @@ export {
   createRenderedPagesArtifactId,
   parseRenderedPages,
 } from "./rendered-pages.js"
+export { SSG_FEATURE_ID, createSsgRenderFeature } from "./render.js"

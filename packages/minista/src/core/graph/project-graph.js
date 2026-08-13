@@ -24,6 +24,21 @@ export class ProjectGraph {
   #images = new Map()
   #artifacts = new Map()
   /**
+   * @param {ProjectGraphSnapshot} snapshot
+   * @param {DiagnosticCollector} diagnostics
+   */
+  static fromSnapshot(snapshot, diagnostics) {
+    const graph = new ProjectGraph(snapshot.project, diagnostics)
+    for (const node of snapshot.features.values()) graph.addFeature(node)
+    for (const node of snapshot.routes.values()) graph.addRoute(node)
+    for (const node of snapshot.pages.values()) graph.addPage(node)
+    for (const node of snapshot.assets.values()) graph.addAsset(node)
+    for (const node of snapshot.islands.values()) graph.addIsland(node)
+    for (const node of snapshot.images.values()) graph.addImage(node)
+    for (const node of snapshot.artifacts.values()) graph.addArtifact(node)
+    return graph
+  }
+  /**
    * @param {ProjectNode} project
    * @param {DiagnosticCollector} diagnostics
    */
