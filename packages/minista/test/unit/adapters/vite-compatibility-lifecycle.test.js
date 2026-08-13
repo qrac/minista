@@ -13,6 +13,10 @@ import {
   createSearchDataArtifactId,
   createSearchFeature,
 } from "../../../src/features/search/index.js"
+import {
+  createSpriteArtifactId,
+  createSpriteFeature,
+} from "../../../src/features/sprite/index.js"
 import { NodeSearchDocumentAnalyzer } from "../../../src/adapters/html/index.js"
 
 describe("Vite compatibility lifecycle", () => {
@@ -73,6 +77,33 @@ describe("Vite compatibility lifecycle", () => {
       pages: [{ url: "/guide/" }],
     })
     expect(result.documents[0].html).toContain('data-search-relative="1"')
+  })
+
+  test("resolves generated artifact outputs before composing documents", async () => {
+    const outputs = new Map()
+    const feature = createSpriteFeature(
+      {},
+      { build: async () => '<svg><symbol id="home"></symbol></svg>' },
+      { resolve: (artifactId) => outputs.get(artifactId) },
+    )
+    const result = await processViteDocuments([{
+      fileName: "guide/index.html",
+      url: "/guide/",
+      html: '<svg><use data-minista-sprite data-minista-sprite-src="src/icons/home.svg"></use></svg>',
+    }], [feature], undefined, {
+      beforeCompose({ artifacts }) {
+        expect(artifacts).toContainEqual(expect.objectContaining({
+          id: createSpriteArtifactId("src/icons"),
+          mediaType: "image/svg+xml",
+        }))
+        outputs.set(createSpriteArtifactId("src/icons"), "assets/icons.svg")
+      },
+    })
+
+    expect(result.documents[0].html).toContain(
+      'href="assets/icons.svg#home"',
+    )
+    expect(result.documents[0].html).not.toContain("data-minista-sprite")
   })
 
   test("surfaces lifecycle diagnostics with a stable adapter error", async () => {

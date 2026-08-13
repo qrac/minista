@@ -86,12 +86,14 @@ function createLifecycle(features) {
  * @param {readonly import("./compatibility-lifecycle.js").ViteCompatibilityDocumentInput[]} pages
  * @param {readonly import("../../core/lifecycle/index.js").MinistaFeature[]} features
  * @param {readonly import("../../core/types.js").BuildPhase[]} [phases]
+ * @param {import("./compatibility-lifecycle.js").ViteCompatibilityDocumentHooks} [hooks]
  * @returns {Promise<import("./compatibility-lifecycle.js").ViteCompatibilityDocumentResult>}
  */
 export async function processViteDocuments(
   pages,
   features,
   phases = ["analyze", "generate", "compose"],
+  hooks = {},
 ) {
   const lifecycle = createLifecycle(features)
   /** @type {{input: import("./compatibility-lifecycle.js").ViteCompatibilityDocumentInput, document: import("../../core/document/index.js").HtmlDocument, before: string}[]} */
@@ -121,7 +123,18 @@ export async function processViteDocuments(
     states.push({ input: page, document, before: document.serialize() })
   }
 
-  await run(lifecycle, phases)
+  const composeIndex = phases.indexOf("compose")
+  if (hooks.beforeCompose && composeIndex >= 0) {
+    const beforeCompose = phases.slice(0, composeIndex)
+    if (beforeCompose.length > 0) await run(lifecycle, beforeCompose)
+    await hooks.beforeCompose(Object.freeze({
+      artifacts: await lifecycle.artifacts.list(),
+      graph: lifecycle.graph.snapshot(),
+    }))
+    await run(lifecycle, phases.slice(composeIndex))
+  } else {
+    await run(lifecycle, phases)
+  }
   return Object.freeze({
     documents: Object.freeze(states.map(({ input, document, before }) => {
       const after = document.serialize()

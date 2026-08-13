@@ -10,12 +10,14 @@ import { normalizePath } from "vite"
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeSpriteBuilder } from "../../adapters/sprite/index.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
+import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectSpriteReferences,
   composeSpriteDocument,
   createSpriteArtifactId,
+  createSpriteFeature,
   DevSpritePageIndex,
 } from "../../features/sprite/index.js"
 import { mergeObj } from "../../shared/obj.js"
@@ -158,57 +160,81 @@ export function pluginSprite(uOpts = {}) {
       const htmlItems = Object.values(filterOutputAssets(bundle)).filter((item) =>
         item.fileName.endsWith(".html"),
       )
-      const pages = htmlItems.map((item) => {
-        const document = documents.parse({
-          pageId: createNodeId("page", "legacy-sprite", item.fileName),
-          html: String(item.source),
-        })
-        return { item, document, references: collectSpriteReferences(document) }
-      })
-      const sourceDirectories = [
-        ...new Set(
-          pages.flatMap(({ references }) =>
-            references.map(({ sourceDirectory }) => sourceDirectory),
-          ),
-        ),
-      ].sort()
+      const pages = htmlItems.map((item) => ({
+        item,
+        fileName: item.fileName,
+        url: getHtmlPageUrl(item.fileName),
+        html: String(item.source),
+      }))
       const outputByArtifact = new Map()
-      for (const sourceDirectory of sourceDirectories) {
-        const referenceId = this.emitFile({
-          type: "asset",
-          name: `${path.basename(sourceDirectory)}.svg`,
-          source: await builder.build(sourceDirectory),
-        })
-        outputByArtifact.set(
-          createSpriteArtifactId(sourceDirectory),
-          this.getFileName(referenceId),
-        )
-        outputClaims.push(Object.freeze({
-          id: createSpriteArtifactId(sourceDirectory),
-          kind: "sprite",
-          owner: createNodeId("feature", "sprite"),
-          source: sourceDirectory,
-          fileName: this.getFileName(referenceId),
-          pageUrls: Object.freeze(pages
-            .filter(({ references }) => references.some(
-              (reference) =>
-                reference.sourceDirectory === sourceDirectory,
-            ))
-            .map(({ item }) => getHtmlPageUrl(item.fileName))),
-          dependencies: Object.freeze([]),
-        }))
-      }
-      for (const { item, document, references } of pages) {
-        if (references.length === 0) continue
-        composeSpriteDocument(document, {
-          resolve: (artifactId) => {
-            const fileName = outputByArtifact.get(artifactId)
-            return fileName
-              ? getBasedAssetUrl(base, item.fileName, fileName)
-              : undefined
+      const pageFileNames = new Map()
+      const feature = createSpriteFeature(opts, builder, {
+        resolve(artifactId, pageId) {
+          const fileName = outputByArtifact.get(artifactId)
+          const pageFileName = pageFileNames.get(pageId)
+          return fileName && pageFileName
+            ? getBasedAssetUrl(base, pageFileName, fileName)
+            : undefined
+        },
+      })
+      const result = await processViteDocuments(
+        pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+        [feature],
+        undefined,
+        {
+          beforeCompose: async ({ artifacts, graph }) => {
+            for (const page of graph.pages.values()) {
+              const route = graph.routes.get(page.routeId)
+              if (route) pageFileNames.set(page.id, route.pageModuleId)
+            }
+            /** @type {import("../../features/sprite/index.js").SpriteReference[]} */
+            const references = artifacts
+              .filter((record) =>
+                record.owner === feature.id &&
+                record.mediaType ===
+                  "application/vnd.minista.sprite-references+json"
+              )
+              .flatMap((record) => JSON.parse(String(record.content)))
+            for (const artifact of artifacts.filter(
+              (record) =>
+                record.owner === feature.id &&
+                record.mediaType === "image/svg+xml",
+            )) {
+              const sourceDirectory = graph.artifacts.get(artifact.id)?.source
+              if (!sourceDirectory) continue
+              const referenceId = this.emitFile({
+                type: "asset",
+                name: `${path.basename(sourceDirectory)}.svg`,
+                source: artifact.content,
+              })
+              const fileName = this.getFileName(referenceId)
+              outputByArtifact.set(artifact.id, fileName)
+              outputClaims.push(Object.freeze({
+                id: artifact.id,
+                kind: "sprite",
+                owner: feature.id,
+                source: sourceDirectory,
+                fileName,
+                pageUrls: Object.freeze([
+                  ...new Set(references
+                    .filter((reference) =>
+                      reference.sourceDirectory === sourceDirectory
+                    )
+                    .map((reference) => graph.pages.get(reference.pageId)?.url)
+                    .filter((url) => url !== undefined)),
+                ]),
+                dependencies: Object.freeze([]),
+              }))
+            }
           },
-        })
-        item.source = document.serialize()
+        },
+      )
+      const outputDocuments = new Map(
+        result.documents.map((document) => [document.fileName, document]),
+      )
+      for (const page of pages) {
+        const output = outputDocuments.get(page.fileName)
+        if (output && output.html !== page.html) page.item.source = output.html
       }
     },
   }
