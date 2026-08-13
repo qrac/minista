@@ -91,6 +91,24 @@ describe("Vite App Builder adapter", () => {
     })
   })
 
+  test("normalizes Vite failures while creating the application builder", async () => {
+    const session = createViteBuildSession({ buildId: "build:config" })
+    const adapter = new ViteAppBuilderAdapter(
+      /** @type {any} */ (async () => {
+        throw new Error("config plugin failed")
+      }),
+    )
+
+    await expect(adapter.build(attachViteBuildSession({}, session)))
+      .rejects.toMatchObject({
+        code: "MINISTA_VITE_BUILD_FAILED",
+        environment: "application",
+      })
+    expect(session.diagnostics.snapshot()).toMatchObject([{
+      code: "MINISTA_VITE_BUILD_FAILED",
+    }])
+  })
+
   test("restores the previous client output when the client build fails", async () => {
     const root = await fs.promises.mkdtemp(
       path.resolve(process.env.TMPDIR || "/tmp", "minista-app-rollback-"),
@@ -129,15 +147,26 @@ describe("Vite App Builder adapter", () => {
       const adapter = new ViteAppBuilderAdapter(
         /** @type {any} */ (async () => builder),
       )
+      const session = createViteBuildSession({ buildId: "build:test" })
 
       await expect(
         adapter.build(
           attachViteBuildSession(
             { configFile: false },
-            createViteBuildSession({ buildId: "build:test" }),
+            session,
           ),
         ),
-      ).rejects.toThrow("client failed")
+      ).rejects.toMatchObject({
+        code: "MINISTA_VITE_BUILD_FAILED",
+        environment: "client",
+        diagnostic: {
+          code: "MINISTA_VITE_BUILD_FAILED",
+          phase: "bundle",
+        },
+      })
+      expect(session.diagnostics.snapshot()).toMatchObject([{
+        code: "MINISTA_VITE_BUILD_FAILED",
+      }])
       await expect(
         fs.promises.readFile(path.resolve(outDir, "stable.html"), "utf8"),
       ).resolves.toBe("stable")

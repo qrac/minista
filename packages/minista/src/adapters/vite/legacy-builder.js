@@ -16,6 +16,7 @@ import {
 import { collectViteOutputClaims } from "./output-claims.js"
 import { getViteBuildSession } from "./build-session.js"
 import { ViteOutputTransaction } from "./output-transaction.js"
+import { normalizeViteBuildError } from "./build-error.js"
 
 /** @typedef {import("vite").InlineConfig} InlineConfig */
 /** @typedef {import("vite").ViteBuilder} ViteBuilder */
@@ -49,10 +50,21 @@ export class LegacyViteBuilderAdapter {
    * @param {InlineConfig} config
    */
   async build(config) {
-    const builder = await this.#createBuilder(config, true)
+    const session = getViteBuildSession(config)
+    let builder
+    try {
+      builder = await this.#createBuilder(config, true)
+    } catch (error) {
+      const normalized = normalizeViteBuildError(error, {
+        environment: config.build?.ssr ? "render" : "client",
+        root: config.root ?? process.cwd(),
+      })
+      const diagnostic = Reflect.get(normalized, "diagnostic")
+      if (diagnostic) session?.diagnostics?.add(diagnostic)
+      throw normalized
+    }
     const environment = Object.values(builder.environments)[0]
     if (!environment) throw new ViteEnvironmentNotFoundError()
-    const session = getViteBuildSession(config)
     const writesClientOutput =
       config.build?.ssr === false && environment.config.build.write !== false
     const transaction = writesClientOutput
@@ -81,7 +93,13 @@ export class LegacyViteBuilderAdapter {
       }
     } catch (error) {
       await transaction?.rollback()
-      throw error
+      const normalized = normalizeViteBuildError(error, {
+        environment: environment.name,
+        root: environment.config.root ?? config.root ?? process.cwd(),
+      })
+      const diagnostic = Reflect.get(normalized, "diagnostic")
+      if (diagnostic) session?.diagnostics?.add(diagnostic)
+      throw normalized
     }
     await transaction?.commit()
     if (writesClientOutput) {

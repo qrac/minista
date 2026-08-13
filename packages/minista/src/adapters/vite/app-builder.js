@@ -20,6 +20,7 @@ import {
 } from "./output-manifest.js"
 import { ViteOutputTransaction } from "./output-transaction.js"
 import { collectViteOutputClaims } from "./output-claims.js"
+import { normalizeViteBuildError } from "./build-error.js"
 
 /** @typedef {import("vite").BuildEnvironment} BuildEnvironment */
 /** @typedef {import("vite").InlineConfig} InlineConfig */
@@ -61,11 +62,33 @@ export class ViteAppBuilderAdapter {
       renderName,
       clientName,
     })
-    const builder = await this.#createBuilder(appConfig, false)
+    let builder
+    try {
+      builder = await this.#createBuilder(appConfig, false)
+    } catch (error) {
+      const normalized = normalizeViteBuildError(error, {
+        environment: "application",
+        root: appConfig.root ?? process.cwd(),
+      })
+      const diagnostic = Reflect.get(normalized, "diagnostic")
+      if (diagnostic) session?.diagnostics?.add(diagnostic)
+      throw normalized
+    }
     const render = this.#environment(builder, renderName)
     const client = this.#environment(builder, clientName)
 
-    const renderOutput = await builder.build(render)
+    let renderOutput
+    try {
+      renderOutput = await builder.build(render)
+    } catch (error) {
+      const normalized = normalizeViteBuildError(error, {
+        environment: renderName,
+        root: render.config?.root ?? appConfig.root ?? process.cwd(),
+      })
+      const diagnostic = Reflect.get(normalized, "diagnostic")
+      if (diagnostic) session?.diagnostics?.add(diagnostic)
+      throw normalized
+    }
     const preparation = { builder, render, client, renderOutput }
     await prepareViteClientEnvironment(preparation)
     await options.prepareClient?.(preparation)
@@ -94,7 +117,13 @@ export class ViteAppBuilderAdapter {
       }
     } catch (error) {
       await transaction?.rollback()
-      throw error
+      const normalized = normalizeViteBuildError(error, {
+        environment: clientName,
+        root: client.config.root ?? appConfig.root ?? process.cwd(),
+      })
+      const diagnostic = Reflect.get(normalized, "diagnostic")
+      if (diagnostic) session?.diagnostics?.add(diagnostic)
+      throw normalized
     }
     await transaction?.commit()
 

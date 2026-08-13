@@ -67,9 +67,18 @@ describe("legacy Vite Builder adapter", () => {
           },
         })),
       )
+      const session = createViteBuildSession({ buildId: "build:legacy" })
 
-      await expect(adapter.build({ build: { ssr: false } }))
-        .rejects.toThrow("legacy client failed")
+      await expect(adapter.build(attachViteBuildSession(
+        { build: { ssr: false } },
+        session,
+      ))).rejects.toMatchObject({
+        code: "MINISTA_VITE_BUILD_FAILED",
+        environment: "client",
+      })
+      expect(session.diagnostics.snapshot()).toMatchObject([{
+        code: "MINISTA_VITE_BUILD_FAILED",
+      }])
       await expect(
         fs.promises.readFile(path.resolve(outDir, "stable.html"), "utf8"),
       ).resolves.toBe("stable")

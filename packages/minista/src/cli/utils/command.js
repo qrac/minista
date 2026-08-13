@@ -363,7 +363,11 @@ export async function runMinista(args) {
     }
     await runVite(args)
   } catch (error) {
-    console.error(error)
+    const diagnostic = error && typeof error === "object"
+      ? Reflect.get(error, "diagnostic")
+      : undefined
+    if (diagnostic) reportCliDiagnostic(diagnostic)
+    else console.error(error)
     process.exit(1)
   }
 }
