@@ -80,7 +80,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 
 ### Diagnostics and tests
 
-- Core lifecycle、project command、manifest、主要adapterはstructured diagnosticを生成する。programmatic buildのVite／Rolldown errorはadapterでstable diagnosticへ正規化し、外部CLI fallbackと一部の外部library errorは例外またはsubprocess stderrとして伝播する
+- Core lifecycle、project command、manifest、主要adapterはstructured diagnosticを生成する。programmatic buildのVite／Rolldown errorは `MINISTA_VITE_BUILD_FAILED`、外部CLI fallbackのprocess errorは `MINISTA_VITE_CLI_FAILED` へadapterで正規化する。一部の外部library errorと外部process内の詳細は例外またはsubprocess stderrとして伝播する
 - Coreの `DiagnosticCollector` とstable diagnostic codeは実装済み
 - `check [--json]`, `inspect [--json]`, `explain [--json]` は実装済みで、Vite ModuleRunnerによりpage moduleと `getStaticData()` を評価する
 - public manifestの型、安全なprojection、安定serializer、atomic filesystem writerは実装済み。通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` とbuild diagnosticsを出力し、`check` の成功／失敗時にも `.minista/diagnostics.json` を出力する
@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。plugin instance closureのmutable state、外部CLI fallbackとdev／外部library由来errorの正規化は残存課題です。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。plugin instance closureのmutable state、dev／外部library由来errorの正規化は残存課題です。
 
 ## CoreとFeatureの実装contract
 
@@ -270,7 +270,7 @@ Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 ```text
 .minista/
 ├─ manifest.json           # public machine-readable snapshot
-├─ diagnostics.json        # 直近のcheckまたは成功したApp Buildのdiagnostics snapshot
+├─ diagnostics.json        # 直近のcheckまたはbuildのdiagnostics snapshot
 └─ work/                   # private, buildId単位、削除可能
    └─ <buildId>/
       └─ external/         # 別process fallbackのschema付きJSON handoff
@@ -278,7 +278,7 @@ Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 
 `manifest.json` はJSON dataのみで、JavaScript moduleをimportしません。`schemaVersion`, `generator`, `project`, `features`, `routes`, `pages`, `assets`, `artifacts`, `outputs`, `diagnosticSummary`, `createdAt` を持ちます。`outputs` はCore Output Manifestのallowlist projectionで、logical ID、kind、相対file name、URL、byte size、entry/import関係だけを含みます。Pageは対応するHTML outputをfile nameとURLで参照します。絶対path、秘密情報、page propsの任意データ、bundle code、source本文は出力しません。manifest writerは安定key orderとatomic replaceを使います。
 
-`diagnostics.json` は `schemaVersion`, `generator`, `command`, `buildId`, `summary`, `diagnostics`, `createdAt` を持つworkspace snapshotです。`check` はvalidation errorを含む終了結果を保存し、App Buildは成功時のsession diagnosticsを保存します。公開Project Manifestとは異なり配布用artifactではありません。両writerは共通のstable JSON serializerとatomic workspace writerを使います。
+`diagnostics.json` は `schemaVersion`, `generator`, `command`, `buildId`, `summary`, `diagnostics`, `createdAt` を持つworkspace snapshotです。`check` はvalidation errorを含む終了結果を保存し、App Buildは成功時のsession diagnosticsを保存します。外部Vite CLI fallbackは成功reportに加え、process起動／終了失敗を `MINISTA_VITE_CLI_FAILED` として保存します。公開Project Manifestとは異なり配布用artifactではありません。writerは共通のstable JSON serializerとatomic workspace writerを使います。
 
 `work/<buildId>/external`は別process fallbackだけが使用します。buildIdを照合し、成功／失敗後に削除するため別buildの残骸を読みません。画像やIslandなどのVite入力用cache／生成sourceは公開workspaceとは分け、`node_modules/.minista`に置きます。
 

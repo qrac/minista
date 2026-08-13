@@ -1,4 +1,3 @@
-import { spawn } from "cross-spawn"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
 import { createRequire } from "node:module"
@@ -15,6 +14,7 @@ import {
 } from "../../adapters/vite/build-session.js"
 import { LegacyViteBuilderAdapter } from "../../adapters/vite/legacy-builder.js"
 import { ViteDevServerAdapter } from "../../adapters/vite/dev-server.js"
+import { ViteCliProcessAdapter } from "../../adapters/vite/cli-process.js"
 import { createDiagnosticsReport } from "../../core/diagnostics/index.js"
 import { reportCliDiagnostic } from "./diagnostic.js"
 
@@ -23,27 +23,7 @@ import { reportCliDiagnostic } from "./diagnostic.js"
 const require = createRequire(import.meta.url)
 const { version: ministaVersion } = require("../../../package.json")
 
-/**
- * @param {string[]} args
- * @param {Readonly<Record<string, string>>} [environment]
- * @returns {Promise<number>}
- */
-async function runVite(args, environment = {}) {
-  return new Promise((resolve, reject) => {
-    const process = spawn("vite", args, {
-      stdio: "inherit",
-      env: { ...globalThis.process.env, ...environment },
-    })
-
-    process.on("close", (code) => {
-      if (code === 0) {
-        resolve(code)
-      } else {
-        reject(new Error(`Process exited with code ${code}`))
-      }
-    })
-  })
-}
+const viteCli = new ViteCliProcessAdapter()
 
 /** @param {string[]} args @param {string} buildId */
 async function promoteExternalBuildMetadata(args, buildId) {
@@ -353,15 +333,40 @@ export async function runMinista(args) {
       const root = createProgrammaticConfig(args).root || process.cwd()
       const handoff = new NodeExternalBuildHandoff()
       try {
-        await runVite([...args, "--ssr"], environment)
-        await runVite(args, environment)
+        await viteCli.run([...args, "--ssr"], {
+          environment: "render",
+          phase: "bundle",
+          variables: environment,
+        })
+        await viteCli.run(args, {
+          environment: "client",
+          phase: "bundle",
+          variables: environment,
+        })
         await promoteExternalBuildMetadata(args, buildId)
+      } catch (error) {
+        const diagnostic = error && typeof error === "object"
+          ? Reflect.get(error, "diagnostic")
+          : undefined
+        if (diagnostic) {
+          await new NodeDiagnosticsWriter().write(
+            root,
+            createDiagnosticsReport({
+              version: ministaVersion,
+              command: "build",
+              buildId,
+              diagnostics: [diagnostic],
+              createdAt: new Date().toISOString(),
+            }),
+          )
+        }
+        throw error
       } finally {
         await handoff.clear(root, buildId)
       }
       return
     }
-    await runVite(args)
+    await viteCli.run(args)
   } catch (error) {
     const diagnostic = error && typeof error === "object"
       ? Reflect.get(error, "diagnostic")

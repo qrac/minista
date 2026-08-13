@@ -165,6 +165,21 @@ describe.sequential("external Vite CLI build fallback", () => {
     const result = await runBuild(invalidFixtureDir)
 
     expect(result.code).not.toBe(0)
+    expect(result.output).toContain("[MINISTA_VITE_CLI_FAILED]")
+    const diagnostics = JSON.parse(await fs.promises.readFile(
+      path.resolve(invalidFixtureDir, ".minista/diagnostics.json"),
+      "utf8",
+    ))
+    expect(diagnostics).toMatchObject({
+      schemaVersion: "1",
+      command: "build",
+      summary: { errors: 1 },
+      diagnostics: [{
+        code: "MINISTA_VITE_CLI_FAILED",
+        severity: "error",
+        phase: "bundle",
+      }],
+    })
     await expect(
       fs.promises.access(path.resolve(invalidFixtureDir, ".minista/manifest.json")),
     ).rejects.toMatchObject({ code: "ENOENT" })

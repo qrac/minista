@@ -13,7 +13,7 @@ Project Manifestの `diagnosticSummary` は件数だけを持ち、stable code�
 
 `.minista/diagnostics.json` schema v1をworkspace内の直近実行snapshotとします。`schemaVersion`, `generator`, `command`, optionalな `buildId`, `summary`, `diagnostics`, `createdAt` を持ちます。
 
-`check` は成功とvalidation errorの両方でreportを置換します。通常のApp Buildとprogrammatic legacy fallbackはclient outputのcommit後、成功したbuild sessionのdiagnosticsを保存します。別processの外部Vite CLI fallbackは両process成功後に空の成功reportを保存します。build途中の例外をstructured diagnosticへ変換する境界は未実装なので、失敗したbuildは以前の正常なreportを置換しません。
+`check` は成功とvalidation errorの両方でreportを置換します。通常のApp Buildとprogrammatic legacy fallbackはclient outputのcommit後、成功したbuild sessionのdiagnosticsを保存します。別processの外部Vite CLI fallbackは両process成功後に空の成功reportを保存し、processの起動失敗、signal終了、非zero終了時は `MINISTA_VITE_CLI_FAILED` を持つ失敗reportを保存します。外部processのstderrは構造化せず、元のVite出力としてterminalへ維持します。programmatic build途中のstructured errorを失敗reportとして保存する接続は未実装です。
 
 Project Manifest writerとDiagnostics writerは同じstable JSON serializerとatomic workspace writerを使います。同一directoryの一時ファイルへwriteした後でrenameし、失敗時は一時ファイルを削除します。
 
@@ -22,7 +22,8 @@ Project Manifest writerとDiagnostics writerは同じstable JSON serializerとat
 - toolは `check` を再実行せずstable codeとlocationを参照できる
 - JSON key順と末尾改行が一定になり、差分とcache処理が安定する
 - diagnostic reportはworkspace metadataであり、配布可能または秘密情報を含まないことを保証するartifactではない
-- build失敗reportは、例外をstructured diagnosticへ統合した後に追加する
+- 外部Vite CLI fallbackの失敗はbuild IDとenvironmentを持つreportとして再利用できる
+- programmatic buildの失敗reportは、収集済みdiagnosticをCLI保存境界へ接続した後に追加する
 - manifestとdiagnosticsは個別にatomicですが、二つのfileを一つのtransactionとして置換する保証はありません
 
 ## Rejected alternatives
