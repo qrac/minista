@@ -2,6 +2,8 @@
 
 import { isRunnableDevEnvironment } from "vite"
 
+import { getViteErrorLocation } from "./error-location.js"
+
 /** @typedef {import("vite").Environment} Environment */
 /** @typedef {import("vite").RunnableDevEnvironment} RunnableDevEnvironment */
 /** @typedef {import("vite").ViteDevServer} ViteDevServer */
@@ -23,9 +25,36 @@ export class ViteDevEnvironmentNotRunnableError extends Error {
   }
 }
 
+export class ViteDevModuleError extends Error {
+  code = "MINISTA_VITE_DEV_MODULE_FAILED"
+
+  /**
+   * @param {unknown} cause
+   * @param {{environment: string, moduleId: string, root: string}} options
+   */
+  constructor(cause, options) {
+    const detail = cause instanceof Error ? cause.message : String(cause)
+    const message = `Vite dev module evaluation failed in ${options.environment}: ${detail}`
+    const location = getViteErrorLocation(cause, options.root)
+    super(message, cause instanceof Error ? { cause } : undefined)
+    this.name = "ViteDevModuleError"
+    this.environment = options.environment
+    this.moduleId = options.moduleId
+    this.diagnostic = Object.freeze({
+      code: this.code,
+      severity: "error",
+      message,
+      phase: "resolve",
+      ...(location ? { location } : {}),
+      hint: "Fix the imported module or one of its dependencies.",
+    })
+  }
+}
+
 export class ViteDevModuleEvaluator {
   #server
   #environment
+  #environmentName
 
   /**
    * @param {ViteDevServer} server
@@ -39,6 +68,7 @@ export class ViteDevModuleEvaluator {
     }
     this.#server = server
     this.#environment = environment
+    this.#environmentName = environmentName
   }
 
   /**
@@ -46,8 +76,26 @@ export class ViteDevModuleEvaluator {
    * @param {string} moduleId
    * @returns {Promise<Exports>}
    */
-  importModule(moduleId) {
-    return /** @type {Promise<Exports>} */ (this.#environment.runner.import(moduleId))
+  async importModule(moduleId) {
+    try {
+      return /** @type {Exports} */ (
+        await this.#environment.runner.import(moduleId)
+      )
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        typeof Reflect.get(error, "code") === "string" &&
+        Reflect.get(error, "code").startsWith("MINISTA_")
+      ) {
+        throw error
+      }
+      if (error instanceof Error) this.#server.ssrFixStacktrace(error)
+      throw new ViteDevModuleError(error, {
+        environment: this.#environmentName,
+        moduleId,
+        root: this.#server.config?.root ?? process.cwd(),
+      })
+    }
   }
 
   /** @param {string} moduleId */

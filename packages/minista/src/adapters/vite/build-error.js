@@ -1,8 +1,6 @@
 // @ts-check
 
-import path from "node:path"
-
-import { toProjectPath } from "../../core/graph/index.js"
+import { getViteErrorLocation } from "./error-location.js"
 
 /**
  * @param {unknown} error
@@ -21,44 +19,6 @@ function getErrorMessage(error) {
   return "Unknown Vite build error."
 }
 
-/**
- * @param {unknown} error
- * @param {string} root
- * @returns {import("../../core/diagnostics/index.js").DiagnosticLocation | undefined}
- */
-function getErrorLocation(error, root) {
-  if (!error || typeof error !== "object") return undefined
-  const loc = Reflect.get(error, "loc")
-  const locFile = loc && typeof loc === "object"
-    ? Reflect.get(loc, "file")
-    : undefined
-  const id = locFile ?? Reflect.get(error, "id")
-  if (typeof id !== "string" || id.startsWith("\0")) return undefined
-
-  const cleanId = id.replace(/[?#].*$/, "")
-  if (!cleanId) return undefined
-  const absoluteRoot = path.resolve(root)
-  const absoluteFile = path.isAbsolute(cleanId)
-    ? path.resolve(cleanId)
-    : path.resolve(absoluteRoot, cleanId)
-  const relativeFile = path.relative(absoluteRoot, absoluteFile)
-  if (relativeFile === ".." || relativeFile.startsWith(`..${path.sep}`)) {
-    return undefined
-  }
-
-  const line = loc && typeof loc === "object"
-    ? Reflect.get(loc, "line")
-    : undefined
-  const column = loc && typeof loc === "object"
-    ? Reflect.get(loc, "column")
-    : undefined
-  return Object.freeze({
-    file: toProjectPath(relativeFile),
-    ...(Number.isInteger(line) && line > 0 ? { line } : {}),
-    ...(Number.isInteger(column) && column >= 0 ? { column } : {}),
-  })
-}
-
 export class ViteBuildError extends Error {
   code = "MINISTA_VITE_BUILD_FAILED"
 
@@ -69,7 +29,7 @@ export class ViteBuildError extends Error {
   constructor(cause, options) {
     const detail = getErrorMessage(cause)
     const message = `Vite ${options.environment} environment build failed: ${detail}`
-    const location = getErrorLocation(cause, options.root)
+    const location = getViteErrorLocation(cause, options.root)
     super(message, cause instanceof Error ? { cause } : undefined)
     this.name = "ViteBuildError"
     this.environment = options.environment

@@ -41,7 +41,7 @@ App BuildではViteが全environmentのconfigをbuild前に解決するため、
 
 ### Dev lifecycle
 
-通常のdev CLIは外部Vite processを起動せず、`ViteDevServerAdapter` が `createServer({ appType: "custom" })`、listen、URL表示、CLI shortcut、closeを所有します。create、listen、起動後設定、closeの失敗はoperationを持つ `MINISTA_VITE_DEV_SERVER_FAILED` diagnosticへ変換します。root、config、mode、base、host、port、open、CORSなどの一般的なdev flagはprogrammatic configへ変換し、未対応flagだけ外部Vite CLIへfallbackします。
+通常のdev CLIは外部Vite processを起動せず、`ViteDevServerAdapter` が `createServer({ appType: "custom" })`、listen、URL表示、CLI shortcut、closeを所有します。create、listen、起動後設定、closeの失敗はoperationを持つ `MINISTA_VITE_DEV_SERVER_FAILED` diagnosticへ変換します。`ViteDevModuleEvaluator` はModuleRunner import失敗を `MINISTA_VITE_DEV_MODULE_FAILED` へ変換し、environment、module ID、安全なproject相対locationを保持します。build／devのVite error locationは同じadapterを使い、virtual moduleとproject外pathを公開locationから除外します。root、config、mode、base、host、port、open、CORSなどの一般的なdev flagはprogrammatic configへ変換し、未対応flagだけ外部Vite CLIへfallbackします。
 
 `pluginSsg()` は引き続きVite middlewareを登録しますが、module評価は `ViteDevModuleEvaluator` を通じて `RunnableDevEnvironment.runner.import()` を使用します。adapterはrunnable environmentのguard、module invalidation、stacktrace補正を所有し、Core側にはViteの型を公開しません。最初のrequestでroute解決と全page renderを行い、世代管理付きの `DevPageCache` がsnapshotを後続requestで再利用します。page/layoutの依存moduleに到達するhot updateではsnapshotを破棄し、次のrequestで再評価します。`ViteDevUpdateAdapter` は変更moduleのimporter chainをroute sourceへ投影し、`LegacySsgRouteCache` は影響routeだけRouteNode／PageNodeと `getStaticData()` を再解決します。Project Graph全体はcache entryから毎回再構成し、duplicate routeなどのglobal invariantを再検証します。`DevRenderCache` も影響RouteNode配下のPageNodeだけを破棄し、layout変更またはrouteを限定できない変更では全pageを破棄します。
 
@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。plugin instance closureのmutable state、ModuleRunner評価／外部library由来errorの正規化は残存課題です。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。plugin instance closureのmutable stateと外部library由来errorの正規化は残存課題です。
 
 ## CoreとFeatureの実装contract
 

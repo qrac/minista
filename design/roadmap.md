@@ -118,7 +118,7 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 6: ModuleRunner dev adapter
 
-進捗: 完了。`ViteDevServerAdapter` で通常のdev CLIをprogrammatic custom serverへ切り替え、create／listen／起動後設定／closeのerrorをoperation付きstable diagnosticへ変換しました。`ViteDevModuleEvaluator` がModuleRunner評価をCore portへ適合させました。`DevPageCache` はsnapshotと同時load、`LegacySsgRouteCache` はrouteごとのdiscovery／`getStaticData()`／PageNode解決、`DevRenderCache` はPageNodeごとのHTMLを保持します。変更moduleはenvironment graphのimporter traversalから影響RouteNodeへ投影し、未影響routeのresolveとrenderを再実行しません。Project Graph全体はcache entryから再構成してglobal invariantを毎回検証します。`ViteDevUpdateAdapter` はenvironment別module graphとhot channelを所有し、plugin／CLIからlegacy `ssrLoadModule()`、mixed graph、`server.ws` 直接利用を除去しました。page固有変更とSprite／Image Artifact変更は該当URLだけをreloadし、layoutなど全体変更だけ標準full reloadへfallbackします。2ページfixtureで未影響pageの`getStaticData()`とrenderが再実行されず、page／Sprite／Image変更で影響URLだけを通知することを確認済みです。
+進捗: 完了。`ViteDevServerAdapter` で通常のdev CLIをprogrammatic custom serverへ切り替え、create／listen／起動後設定／closeのerrorをoperation付きstable diagnosticへ変換しました。`ViteDevModuleEvaluator` がModuleRunner評価をCore portへ適合させ、import errorをenvironment／module ID／安全なsource location付きdiagnosticへ変換します。`DevPageCache` はsnapshotと同時load、`LegacySsgRouteCache` はrouteごとのdiscovery／`getStaticData()`／PageNode解決、`DevRenderCache` はPageNodeごとのHTMLを保持します。変更moduleはenvironment graphのimporter traversalから影響RouteNodeへ投影し、未影響routeのresolveとrenderを再実行しません。Project Graph全体はcache entryから再構成してglobal invariantを毎回検証します。`ViteDevUpdateAdapter` はenvironment別module graphとhot channelを所有し、plugin／CLIからlegacy `ssrLoadModule()`、mixed graph、`server.ws` 直接利用を除去しました。page固有変更とSprite／Image Artifact変更は該当URLだけをreloadし、layoutなど全体変更だけ標準full reloadへfallbackします。2ページfixtureで未影響pageの`getStaticData()`とrenderが再実行されず、page／Sprite／Image変更で影響URLだけを通知することを確認済みです。
 
 - dev CLIをprogrammatic `createServer({ appType: "custom" })` に移す。実装済み
 - `render` environmentの `RunnableDevEnvironment.runner.import()` でpage moduleを評価。移行中の `ssr` environmentに対して実装済み
@@ -158,7 +158,7 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 - Vite hookごとの短命lifecycleをbuild全体のDocument Store／Artifact Store／traceへ統合する
 - devのfeature別cacheと`transformIndexHtml()`をproductionと共通の長寿命lifecycleへ寄せる
 - plugin closure stateをenvironment単位に分離する
-- programmatic／外部CLI fallbackを縮退し、ModuleRunner評価と外部library由来errorをstructured diagnosticへ正規化する
+- programmatic／外部CLI fallbackを縮退し、外部library由来errorをstructured diagnosticへ正規化する
 - plugin個別docsの内部挙動説明をv5 terminologyへ順次更新する
 
 - runtime implementationを `.js` / `.jsx` + JSDocに統一
