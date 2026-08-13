@@ -72,3 +72,13 @@ type SvgProps = {
   attributes?: React.SVGProps<SVGSVGElement>
 } & React.SVGProps<SVGSVGElement>
 ```
+
+## Diagnostics
+
+SVGの展開に失敗した場合、buildは次のstable diagnostic codeを出力します。
+
+- `MINISTA_SVG_READ_FAILED`: SVG fileの読込失敗
+- `MINISTA_SVG_OPTIMIZE_FAILED`: SVGOによる最適化失敗
+- `MINISTA_SVG_PARSE_FAILED`: SVG markupの解析失敗
+
+存在しないsourceは従来どおり未解決として扱います。それ以外の失敗では、project内のSVGにproject相対locationが含まれます。HTML document adapterの解析、selector、変更、serializeに失敗した場合は、対応する `MINISTA_HTML_*_FAILED` codeが出力されます。

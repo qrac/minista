@@ -18,6 +18,52 @@ const documentOwners = new WeakMap()
 /** @type {WeakMap<NodeHtmlDocument, import("node-html-parser").HTMLElement>} */
 const nativeDocuments = new WeakMap()
 
+const htmlDocumentErrorCodes = Object.freeze({
+  parse: "MINISTA_HTML_PARSE_FAILED",
+  query: "MINISTA_HTML_QUERY_FAILED",
+  mutate: "MINISTA_HTML_MUTATION_FAILED",
+  serialize: "MINISTA_HTML_SERIALIZE_FAILED",
+})
+
+export class NodeHtmlDocumentError extends Error {
+  /**
+   * @param {unknown} cause
+   * @param {import("./node-html-document.js").NodeHtmlDocumentErrorOptions} options
+   */
+  constructor(cause, options) {
+    const detail = cause instanceof Error ? cause.message : String(cause)
+    const message = `HTML ${options.operation} failed for ${options.pageId}: ${detail}`
+    super(message, cause instanceof Error ? { cause } : undefined)
+    this.name = "NodeHtmlDocumentError"
+    this.code = htmlDocumentErrorCodes[options.operation]
+    this.operation = options.operation
+    this.pageId = options.pageId
+    this.diagnostic = Object.freeze({
+      code: this.code,
+      severity: "error",
+      message,
+      hint: "Check the page HTML and selectors used by the active feature.",
+      nodeId: options.pageId,
+    })
+  }
+}
+
+/**
+ * @template Result
+ * @param {import("./node-html-document.js").NodeHtmlDocumentOperation} operation
+ * @param {import("../../core/graph/index.js").PageId} pageId
+ * @param {() => Result} task
+ * @returns {Result}
+ */
+function runHtmlDocumentOperation(operation, pageId, task) {
+  try {
+    return task()
+  } catch (error) {
+    if (error instanceof NodeHtmlDocumentError) throw error
+    throw new NodeHtmlDocumentError(error, { operation, pageId })
+  }
+}
+
 export class NodeHtmlElement {
   /**
    * @param {HTMLElement} element
@@ -29,25 +75,28 @@ export class NodeHtmlElement {
   }
 
   get tagName() {
-    return getNativeElement(this).tagName.toLowerCase()
+    return runElementOperation(this, "query", () =>
+      getNativeElement(this).tagName.toLowerCase())
   }
 
   get text() {
-    return getNativeElement(this).innerText
+    return runElementOperation(this, "query", () => getNativeElement(this).innerText)
   }
 
   get innerHtml() {
-    return getNativeElement(this).innerHTML
+    return runElementOperation(this, "query", () => getNativeElement(this).innerHTML)
   }
 
   /** @param {string} name */
   getAttribute(name) {
-    return getNativeElement(this).getAttribute(name)
+    return runElementOperation(this, "query", () =>
+      getNativeElement(this).getAttribute(name))
   }
 
   /** @param {string} name */
   hasAttribute(name) {
-    return getNativeElement(this).hasAttribute(name)
+    return runElementOperation(this, "query", () =>
+      getNativeElement(this).hasAttribute(name))
   }
 
   /**
@@ -55,32 +104,51 @@ export class NodeHtmlElement {
    * @param {string} value
    */
   setAttribute(name, value) {
-    getNativeElement(this).setAttribute(name, value)
+    runElementOperation(this, "mutate", () =>
+      getNativeElement(this).setAttribute(name, value))
   }
 
   /** @param {string} name */
   removeAttribute(name) {
-    getNativeElement(this).removeAttribute(name)
+    runElementOperation(this, "mutate", () =>
+      getNativeElement(this).removeAttribute(name))
   }
 
   /** @param {string} html */
   setInnerHtml(html) {
-    getNativeElement(this).innerHTML = html
+    runElementOperation(this, "mutate", () => {
+      getNativeElement(this).innerHTML = html
+    })
   }
 
   /** @param {string} html */
   appendHtml(html) {
-    getNativeElement(this).insertAdjacentHTML("beforeend", html)
+    runElementOperation(this, "mutate", () =>
+      getNativeElement(this).insertAdjacentHTML("beforeend", html))
   }
 
   /** @param {string} html */
   replaceWith(html) {
-    getNativeElement(this).replaceWith(html)
+    runElementOperation(this, "mutate", () =>
+      getNativeElement(this).replaceWith(html))
   }
 
   remove() {
-    getNativeElement(this).remove()
+    runElementOperation(this, "mutate", () => getNativeElement(this).remove())
   }
+}
+
+/**
+ * @template Result
+ * @param {NodeHtmlElement} element
+ * @param {"query" | "mutate"} operation
+ * @param {() => Result} task
+ * @returns {Result}
+ */
+function runElementOperation(element, operation, task) {
+  const owner = documentOwners.get(element)
+  if (!owner) throw new TypeError("Unknown HTML element adapter.")
+  return runHtmlDocumentOperation(operation, owner.pageId, task)
 }
 
 /** @param {NodeHtmlElement} element */
@@ -100,15 +168,17 @@ export class NodeHtmlDocument {
   /** @param {HtmlDocumentInput} input */
   constructor(input) {
     this.pageId = input.pageId
-    this.#root = parse(input.html, { comment: true })
+    this.#root = runHtmlDocumentOperation("parse", input.pageId, () =>
+      parse(input.html, { comment: true }))
     nativeDocuments.set(this, this.#root)
   }
 
   /** @param {string} selector */
   select(selector) {
-    return Object.freeze(
-      this.#root.querySelectorAll(selector).map((element) => this.#wrap(element)),
-    )
+    return runHtmlDocumentOperation("query", this.pageId, () =>
+      Object.freeze(
+        this.#root.querySelectorAll(selector).map((element) => this.#wrap(element)),
+      ))
   }
 
   /**
@@ -132,7 +202,8 @@ export class NodeHtmlDocument {
   }
 
   serialize() {
-    return this.#root.toString()
+    return runHtmlDocumentOperation("serialize", this.pageId, () =>
+      this.#root.toString())
   }
 
   /** @param {HTMLElement} element */

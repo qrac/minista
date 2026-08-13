@@ -7,6 +7,28 @@ import type {
   HtmlMarkerReference,
 } from "../../core/document/index.js"
 import type { FeatureId, PageId } from "../../core/graph/index.js"
+import type { Diagnostic } from "../../core/diagnostics/index.js"
+
+export type NodeHtmlDocumentOperation =
+  | "parse"
+  | "query"
+  | "mutate"
+  | "serialize"
+export interface NodeHtmlDocumentErrorOptions {
+  readonly operation: NodeHtmlDocumentOperation
+  readonly pageId: PageId
+}
+export declare class NodeHtmlDocumentError extends Error {
+  readonly code:
+    | "MINISTA_HTML_PARSE_FAILED"
+    | "MINISTA_HTML_QUERY_FAILED"
+    | "MINISTA_HTML_MUTATION_FAILED"
+    | "MINISTA_HTML_SERIALIZE_FAILED"
+  readonly operation: NodeHtmlDocumentOperation
+  readonly pageId: PageId
+  readonly diagnostic: Diagnostic
+  constructor(cause: unknown, options: NodeHtmlDocumentErrorOptions)
+}
 
 export declare class NodeHtmlElement implements HtmlElement {
   readonly tagName: string
