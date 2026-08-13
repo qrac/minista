@@ -76,7 +76,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 
 ## Stage 4: featureを明示phaseへ移す
 
-進捗: 全公開pluginにmachine-readable feature metadataを追加しました。Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、Bundleに加え、Islandも明示phaseへ分離しました。IslandはSWC source transformをadapterへ分離し、snippet参照を `analyze`、snippet／entry source planを `generate`、bundler portの結果を `bundle`、markerとCSS／script URLの反映を `compose` で扱います。EntryとIslandの通常のprogrammatic buildはrendered page／snippet Artifactをbuild-session `MemoryArtifactStore`から読み、domain処理へ委譲します。別processのVite CLI fallbackだけは従来のSSG／snippet temp handoffを維持します。Stage 4のdomain feature分離は完了し、fallbackの廃止とVite build全体のdomain lifecycle接続が未完了です。
+進捗: 全公開pluginにmachine-readable feature metadataを追加しました。Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、Bundleに加え、Islandも明示phaseへ分離しました。IslandはSWC source transformをadapterへ分離し、snippet参照を `analyze`、snippet／entry source planを `generate`、bundler portの結果を `bundle`、markerとCSS／script URLの反映を `compose` で扱います。EntryとIslandの通常のprogrammatic buildはrendered page／snippet Artifactをbuild-session `MemoryArtifactStore`から読み、domain処理へ委譲します。別processのVite CLI fallbackもbuildId scopeのschema付きJSON snapshotを使用し、SSG／snippetのexecutable temp module importを削除しました。Stage 4のdomain feature分離は完了し、fallbackの廃止とVite build全体のdomain lifecycle接続が未完了です。
 
 移行順はdependencyが少ないものから進めます。
 
@@ -151,11 +151,11 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 8: compatibility facade cleanup
 
-進捗: 進行中。runtime implementationのJavaScript + JSDoc移行と隣接`.d.ts`は完了済みです。`--oneBuild`と専用分岐を削除し、旧option指定時はstable diagnosticで拒否します。外部Vite CLI fallbackのexecutable temp module、compatibility plugin facade、公開docsとCurrent／Target整理は継続します。
+進捗: 進行中。runtime implementationのJavaScript + JSDoc移行と隣接`.d.ts`は完了済みです。`--oneBuild`と専用分岐を削除し、旧option指定時はstable diagnosticで拒否します。外部Vite CLI fallbackのrendered pages／Island snippetsをbuildId scopeのschema付きJSONへ移行し、Entry／Islandによるexecutable data module importも削除しました。compatibility plugin facade、公開docsとCurrent／Target整理は継続します。
 
 - runtime implementationを `.js` / `.jsx` + JSDocに統一
 - public APIの隣接 `.d.ts` とinternal JSDoc typeを整理
-- old `src/plugins` implementationとexecutable temp moduleを削除
+- old `src/plugins` compatibility implementationを段階的に薄くする
 - public docsをv5 lifecycleとcommandに更新
 - `architecture.md` のTargetをCurrentに統合
 - roadmapから完了済みの詳細をrelease note / ADRへ移す

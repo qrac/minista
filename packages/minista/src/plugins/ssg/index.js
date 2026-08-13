@@ -36,7 +36,7 @@ import { applyOutputClaims } from "../../core/graph/index.js"
 import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { DevPageCache } from "../../features/ssg/dev-page-cache.js"
 import { DevRenderCache } from "../../features/ssg/dev-render-cache.js"
-import { getGlobImportCode, getSsgExportCode } from "./utils/code.js"
+import { getGlobImportCode } from "./utils/code.js"
 import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { transformHtml } from "./utils/html.js"
 import { getHtmlFileName } from "../../shared/filename.js"
@@ -85,8 +85,6 @@ export function pluginSsg(uOpts = {}) {
   let globFile = ""
   let ssrDir = ""
   let ssrFile = ""
-  let ssgDir = ""
-  let ssgFile = ""
   /** @type {SsgPage[]} */
   let ssgPages = []
   let throughDir = ""
@@ -178,9 +176,13 @@ export function pluginSsg(uOpts = {}) {
       })
     }
 
-    const code = getSsgExportCode(ssgPages)
-    await fs.promises.mkdir(ssgDir, { recursive: true })
-    await fs.promises.writeFile(ssgFile, code, "utf8")
+    if (!buildSession && externalBuildId) {
+      await new NodeExternalBuildHandoff().writeRenderedPages(
+        rootDir,
+        externalBuildId,
+        ssgPages,
+      )
+    }
     await fs.promises.mkdir(throughDir, { recursive: true })
     await fs.promises.writeFile(throughFile, `console.log("")`, "utf8")
   }
@@ -260,8 +262,6 @@ export function pluginSsg(uOpts = {}) {
       globFile = path.resolve(globDir, `${tempName}.js`)
       ssrDir = path.resolve(tempDir, "ssr")
       ssrFile = path.resolve(ssrDir, `${tempName}.mjs`)
-      ssgDir = path.resolve(tempDir, "ssg")
-      ssgFile = path.resolve(ssgDir, `${tempName}.mjs`)
       throughDir = path.resolve(tempDir, "through")
       throughFile = path.resolve(throughDir, `${tempName}.js`)
 

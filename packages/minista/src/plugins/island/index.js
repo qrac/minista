@@ -6,8 +6,6 @@
 
 import fs from "node:fs"
 import path from "node:path"
-import { pathToFileURL } from "url"
-import { glob } from "tinyglobby"
 import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
@@ -16,6 +14,7 @@ import {
   SwcIslandSourceTransformer,
 } from "../../adapters/island/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
@@ -77,14 +76,12 @@ export function pluginIsland(uOpts = {}) {
   let tempDir = ""
   let islandDir = ""
   let snippetsDir = ""
-  let snippetsFile = ""
   /** @type {string[]} */
   let snippetList = []
   /** @type {Set<string>} */
   let uniqueSnippets = new Set()
   /** @type {ViteDevModuleEvaluator | undefined} */
   let moduleEvaluator
-  let ssgDir = ""
   /** @type {SsgPage[]} */
   let ssgPages = []
   /** @type {{[pathId: string]: string}} */
@@ -95,6 +92,7 @@ export function pluginIsland(uOpts = {}) {
   let outputClaims = []
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
+  const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
   const environmentInput = new ViteEnvironmentInputAdapter()
 
   async function prepareIslandEntries() {
@@ -106,12 +104,15 @@ export function pluginIsland(uOpts = {}) {
       : undefined
     if (snippetArtifact) {
       snippetList = JSON.parse(String(snippetArtifact.content))
+    } else if (externalBuildId) {
+      snippetList = [...(
+        await new NodeExternalBuildHandoff().readIslandSnippets(
+          rootDir,
+          externalBuildId,
+        ) ?? []
+      )]
     } else {
-      if (!fs.existsSync(snippetsFile)) return
-      const snippetsFileUrl = pathToFileURL(snippetsFile).href
-      /** @type {{ssrSnippetList: string[]}} */
-      const { ssrSnippetList } = await import(snippetsFileUrl)
-      snippetList = ssrSnippetList
+      return
     }
     if (!snippetList || snippetList.length === 0) return
 
@@ -120,18 +121,15 @@ export function pluginIsland(uOpts = {}) {
       : undefined
     if (renderedPages) {
       ssgPages = JSON.parse(String(renderedPages.content))
+    } else if (externalBuildId) {
+      ssgPages = [...(
+        await new NodeExternalBuildHandoff().readRenderedPages(
+          rootDir,
+          externalBuildId,
+        ) ?? []
+      )]
     } else {
-      const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-      if (!ssgFiles.length) return
-      ssgPages = (
-        await Promise.all(
-          ssgFiles.map(async (file) => {
-            const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-            const { ssgPages } = await import(ssgFileUrl)
-            return ssgPages
-          }),
-        )
-      ).flat()
+      return
     }
 
     if (!ssgPages.length) return
@@ -226,8 +224,6 @@ export function pluginIsland(uOpts = {}) {
         base = getBuildBase(config.base || base)
         islandDir = path.resolve(tempDir, "island/build")
         snippetsDir = path.resolve(tempDir, "island/build/snippets")
-        snippetsFile = path.resolve(islandDir, `${tempName}-snippets.mjs`)
-        ssgDir = path.resolve(tempDir, "ssg")
 
         await fs.promises.mkdir(islandDir, { recursive: true })
         await fs.promises.mkdir(snippetsDir, { recursive: true })
@@ -437,10 +433,12 @@ export function pluginIsland(uOpts = {}) {
         })
       }
       if (!buildSession) {
-        const code = `export const ssrSnippetList = ${JSON.stringify(
+        if (!externalBuildId) return
+        await new NodeExternalBuildHandoff().writeIslandSnippets(
+          rootDir,
+          externalBuildId,
           snippetList,
-        )}`
-        await fs.promises.writeFile(snippetsFile, code, "utf8")
+        )
       }
     },
   }

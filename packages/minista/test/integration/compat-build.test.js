@@ -102,12 +102,15 @@ describe.sequential("v4 compatibility build", () => {
     expect(search.pages).toMatchObject([{ url: "/" }])
   })
 
-  test("records the current executable temp handoff", async () => {
-    const ssgFile = path.resolve(tempDir, "ssg/__minista-ssg.mjs")
-    const source = await fs.promises.readFile(ssgFile, "utf8")
-
-    expect(source).toContain("export const ssgPages")
-    expect(source).toContain("Compatibility fixture")
+  test("does not retain executable data handoff modules", async () => {
+    await expect(
+      fs.promises.access(path.resolve(tempDir, "ssg/__minista-ssg.mjs")),
+    ).rejects.toMatchObject({ code: "ENOENT" })
+    await expect(
+      fs.promises.access(
+        path.resolve(tempDir, "island/build/__minista-island-snippets.mjs"),
+      ),
+    ).rejects.toMatchObject({ code: "ENOENT" })
   })
 
   test("emits the public project manifest", async () => {

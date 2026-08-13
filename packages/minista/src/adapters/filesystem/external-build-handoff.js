@@ -8,6 +8,17 @@ import {
   parseProjectManifest,
   serializeProjectManifest,
 } from "../../core/manifest/index.js"
+import { serializeStableJson } from "../../core/serialization/index.js"
+
+export class ExternalBuildHandoffInvalidError extends Error {
+  code = "MINISTA_EXTERNAL_HANDOFF_INVALID"
+
+  /** @param {string} message */
+  constructor(message) {
+    super(message)
+    this.name = "ExternalBuildHandoffInvalidError"
+  }
+}
 
 /** @param {string} buildId */
 function assertBuildId(buildId) {
@@ -28,7 +39,127 @@ function resolveBuildDirectory(root, buildId) {
   return path.resolve(root, ".minista", "work", buildId)
 }
 
+/** @param {string} root @param {string} buildId @param {string} name */
+function resolveSnapshotFile(root, buildId, name) {
+  return path.resolve(resolveDirectory(root, buildId), `${name}.json`)
+}
+
+/** @param {string} file @param {unknown} value */
+async function writeJson(file, value) {
+  const directory = path.dirname(file)
+  const pending = path.resolve(directory, `.${path.basename(file)}.${randomUUID()}.tmp`)
+  await fs.promises.mkdir(directory, { recursive: true })
+  try {
+    await fs.promises.writeFile(pending, serializeStableJson(value), "utf8")
+    await fs.promises.rename(pending, file)
+  } catch (error) {
+    await fs.promises.rm(pending, { force: true })
+    throw error
+  }
+}
+
+/** @param {string} file */
+async function readJson(file) {
+  try {
+    return JSON.parse(await fs.promises.readFile(file, "utf8"))
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      Reflect.get(error, "code") === "ENOENT"
+    ) return undefined
+    if (error instanceof SyntaxError) {
+      throw new ExternalBuildHandoffInvalidError(
+        `External build handoff ${path.basename(file)} contains invalid JSON.`,
+      )
+    }
+    throw error
+  }
+}
+
+/** @param {unknown} value */
+function parseRenderedPages(value) {
+  if (!value || typeof value !== "object") {
+    throw new ExternalBuildHandoffInvalidError(
+      "Rendered pages handoff must be an object.",
+    )
+  }
+  const record = /** @type {Record<string, unknown>} */ (value)
+  if (record.schemaVersion !== "1" || record.kind !== "rendered-pages" ||
+    !Array.isArray(record.pages) || !record.pages.every((page) =>
+      page && typeof page === "object" &&
+      typeof Reflect.get(page, "url") === "string" &&
+      typeof Reflect.get(page, "fileName") === "string" &&
+      typeof Reflect.get(page, "html") === "string"
+    )) {
+    throw new ExternalBuildHandoffInvalidError(
+      "Rendered pages handoff does not match schema version 1.",
+    )
+  }
+  return Object.freeze(record.pages.map((page) => Object.freeze({
+    url: String(Reflect.get(page, "url")),
+    fileName: String(Reflect.get(page, "fileName")),
+    html: String(Reflect.get(page, "html")),
+  })))
+}
+
+/** @param {unknown} value */
+function parseIslandSnippets(value) {
+  if (!value || typeof value !== "object") {
+    throw new ExternalBuildHandoffInvalidError(
+      "Island snippets handoff must be an object.",
+    )
+  }
+  const record = /** @type {Record<string, unknown>} */ (value)
+  if (record.schemaVersion !== "1" || record.kind !== "island-snippets" ||
+    !Array.isArray(record.snippets) ||
+    !record.snippets.every((snippet) => typeof snippet === "string")) {
+    throw new ExternalBuildHandoffInvalidError(
+      "Island snippets handoff does not match schema version 1.",
+    )
+  }
+  return Object.freeze([...record.snippets])
+}
+
 export class NodeExternalBuildHandoff {
+  /** @param {string} root @param {string} buildId @param {readonly {url: string, fileName: string, html: string}[]} pages */
+  async writeRenderedPages(root, buildId, pages) {
+    const file = resolveSnapshotFile(root, buildId, "rendered-pages")
+    await writeJson(file, {
+      schemaVersion: "1",
+      kind: "rendered-pages",
+      pages,
+    })
+    return file
+  }
+
+  /** @param {string} root @param {string} buildId */
+  async readRenderedPages(root, buildId) {
+    const value = await readJson(
+      resolveSnapshotFile(root, buildId, "rendered-pages"),
+    )
+    return value === undefined ? undefined : parseRenderedPages(value)
+  }
+
+  /** @param {string} root @param {string} buildId @param {readonly string[]} snippets */
+  async writeIslandSnippets(root, buildId, snippets) {
+    const file = resolveSnapshotFile(root, buildId, "island-snippets")
+    await writeJson(file, {
+      schemaVersion: "1",
+      kind: "island-snippets",
+      snippets,
+    })
+    return file
+  }
+
+  /** @param {string} root @param {string} buildId */
+  async readIslandSnippets(root, buildId) {
+    const value = await readJson(
+      resolveSnapshotFile(root, buildId, "island-snippets"),
+    )
+    return value === undefined ? undefined : parseIslandSnippets(value)
+  }
+
   /**
    * @param {string} root
    * @param {string} buildId

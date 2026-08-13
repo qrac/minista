@@ -35,7 +35,7 @@ minista build (current programmatic path)
             └─ HTML / assetを出力
 ```
 
-CLI processは一つになり、render/client buildにはbuildId、`DiagnosticCollector`、`MemoryArtifactStore` を持つ同じbuild sessionを渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。App Builderはschema付きの単一resultを返し、CLIは成功、失敗、legacy fallbackの各経路でArtifactStoreをclearします。未対応CLI flagで別processのVite CLIへfallbackした場合だけ、従来の `.minista` 内の実行可能な `.mjs` を読みます。この外部fallbackでは親CLIがbuildIdを環境変数で両processへ渡し、client pluginがprivate `work/<buildId>` に安全なmanifest候補を書きます。親CLIは両build成功後だけ公開metadataへ昇格し、成功／失敗の両方でhandoffを削除します。旧`--oneBuild` optionはv5で削除し、指定時は`MINISTA_CLI_OPTION_REMOVED` errorで終了します。
+CLI processは一つになり、render/client buildにはbuildId、`DiagnosticCollector`、`MemoryArtifactStore` を持つ同じbuild sessionを渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。App Builderはschema付きの単一resultを返し、CLIは成功、失敗、legacy fallbackの各経路でArtifactStoreをclearします。未対応CLI flagで別processのVite CLIへfallbackする場合は、buildIdで隔離したprivate `work/<buildId>/external` のschema付きJSONでrendered pagesとIsland snippetsを渡します。client pluginは同じscopeへ安全なmanifest候補を書き、親CLIは両process成功後だけ公開metadataへ昇格します。成功／失敗の両方でhandoff全体を削除します。旧`--oneBuild` optionはv5で削除し、指定時は`MINISTA_CLI_OPTION_REMOVED` errorで終了します。
 
 App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。`ViteAppBuilderAdapter` は単一の `createBuilder()` でrender、clientを順にbuildし、その間にclient planを適用します。`createViteAppConfig()` はrender/clientのconsumerとSSR設定を明示し、`ViteEnvironmentInputAdapter` は解決済みclient environmentへnamed inputを保存的に合成します。`prepareViteClientEnvironment()` は明示的な `api.minista.prepareClient` だけを、feature descriptorのcapabilityと順序制約でscheduleして実行します。不正な依存はstructured diagnosticを持つstable errorになります。SSG、Entry、Islandはこのprotocolへ移行済みです。Islandはsnippet Artifactをrenderからclientへ渡し、EntryとIslandはrendered page Artifactからclient entryを生成します。Comment、Svg、Sprite、Beautify、Archive、Bundleのoutput hookはApp Buildのclient environmentだけに適用し、ImageとSearchのsource transformもrender/clientへ分離してrender outputを変更しません。既存の `isSsrBuild` config関数はrender用の環境設定を再評価し、Viteがenvironmentごとに受け付けるoptionを投影します。clientだけに設定されたPreact aliasはrender bundleのReact importをexternalizeして分離します。plugin名や順序がrender/clientで異なるconfigは `MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH` を出してlegacy adapterへfallbackします。client buildのRolldown outputは直ちにCore `OutputManifest` schema v1へ変換し、code、source本文、絶対facade pathをresultへ含めません。client pluginの `api.minista.outputClaims()` はfeature descriptor、Artifact owner、file name、page URL、dependencyを明示的に返します。Vite adapterはclaimを実在するOutput Manifest entryと照合してからGraphへ適用し、missing output／ownerをstable diagnosticにします。SSG、Entry、Island、Image、Sprite、Search、Archive、Bundleのoutput claimは接続済みです。各featureがgenerate／bundle／finalize時に既に持つ参照情報を使い、file name patternや生成後の再解析でownerを推測しません。外部Vite CLI fallbackでは全pluginの`writeBundle`完了後にOutput Manifestをfilesystemと照合し、Archiveを含むclaimを収集してhandoffへ保存します。Appとlegacyのprogrammatic client buildは既存outDirを同階層のprivate backupへrenameし、成功時にbackupを削除、失敗時にpartial outputを削除して以前のoutDirを復元します。project rootまたはfilesystem rootをoutDirにする危険なtransactionは `MINISTA_OUTPUT_TRANSACTION_UNSAFE_DIR` で拒否します。通常のApp Buildとprogrammatic legacy fallbackの成功時はbuild sessionのProject Graphから安全なprojectionを作り、安定したkey順の `.minista/manifest.json` と `.minista/diagnostics.json` をatomic replaceします。plugin構成差によるfallback warningもlegacy sessionのdiagnosticsへ引き継ぎます。実際のVite 8.2.1で全compatibility pluginを含むCLI fixture、Preact fixture、plugin mismatch fixtureを確認済みです。
 
@@ -70,7 +70,7 @@ type SsgPage = {
 | Producer / consumer | 実際のcontract | 問題 |
 | --- | --- | --- |
 | CLI → SSG | 二つのbackward-compatible Vite Builderと `build.ssr` | config解決とVite lifecycleがrender/clientで分かれる |
-| SSG → fallback時のEntry／Island | `.minista/ssg/*.mjs` の `ssgPages` | 型なし、実行可能temp file、前回buildの残存を区別できない |
+| SSG → fallback時のEntry／Island | buildId scopeのschema付きJSON snapshot | lifecycleとdiagnosticsはrender/client processに分かれる |
 | Page → feature | HTML marker attributeと文字列snippet | source identityとdependencyが失われる |
 | Island SSR → client build | encoded JSX snippet fileとHTML内のencoded snippet | 置換衝突、順序、生成sourceに依存する |
 | Vite output → feature | `generateBundle` でoutput bundleを探索・直接変更 | 複数pluginが同じHTMLを順番に再parseする |
@@ -101,11 +101,11 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - Image compatibility facadeはdev／buildの両方でdomainの参照収集と属性反映を再利用し、SSGのexecutable temp moduleやfacade固有のrecipe mapを使用しない
 - `NodeImageGenerator` はlocal／remote source、Sharp変換、source contentと生成patternのhashで無効化するfilesystem cacheをImageGenerator portへ適合させる
 - Entryはanalyzeでroot asset参照Artifact、bundleでentry bundle plan、composeで確定URLとimported CSSを共有documentへ反映する
-- Entry compatibility facadeはdomainの参照収集とcomposeを再利用し、通常buildのconfig-time inputはbuild-session ArtifactStoreのrendered page Artifactから確定する。別process fallbackだけはSSGのexecutable temp moduleを読む
+- Entry compatibility facadeはdomainの参照収集とcomposeを再利用し、通常buildのconfig-time inputはbuild-session ArtifactStoreのrendered page Artifactから確定する。別process fallbackは検証済みのrendered pages JSON snapshotを読む
 - Bundleはanalyzeで対象page Artifact、bundleでclient bundle plan、composeでCSSと相対画像URLを共有documentへ反映する
 - Bundle compatibility facadeはVite固有のglob entryとoutput探索を維持し、document変更だけをdomain composeへ委譲する
 - Islandはanalyzeでsnippet参照Artifact、generateでsnippet／entry source plan、bundleでclient output plan、composeでmarkerとCSS／script URLを共有documentへ反映する
-- IslandのSWC source transformとNode用entry code生成はadapterへ分離し、通常buildのrendered page／snippet連携はbuild-session ArtifactStoreを使用する
+- IslandのSWC source transformとNode用entry code生成はadapterへ分離し、通常buildのrendered page／snippet連携はbuild-session ArtifactStore、別process fallbackは検証済みJSON snapshotを使用する
 - JavaScript implementationと `.d.ts` が分離し、`StaticData.props` などに `any` が残る
 
 ### Current v5 migration directories
@@ -131,7 +131,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## Currentの主要問題
 
-最大の問題は、Ministaのdomain lifecycleがVite plugin hookに分散し、`.minista` のexecutable temp fileとHTML文字列がfeature間APIになっていることです。その結果、責務・入力・出力・順序・失敗地点を型や単一のgraphから判断できず、人間もAIも局所変更の影響範囲を毎回コード全体から推測する必要があります。
+最大の問題は、Ministaのdomain lifecycleがVite plugin hookに分散し、HTML文字列とplugin closure stateがfeature間連携に残っていることです。実行可能temp handoffはArtifactStoreまたはschema付きJSONへ移行しましたが、責務・入力・出力・順序・失敗地点をまだ単一のgraphから判断できません。
 
 ## Target: v5で採用する構造（未実装）
 

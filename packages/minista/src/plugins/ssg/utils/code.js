@@ -1,5 +1,4 @@
 /** @typedef {import('../types').PluginOptions} PluginOptions */
-/** @typedef {import('../types').SsgPage} SsgPage */
 
 /**
  * @param {PluginOptions} opts
@@ -11,12 +10,4 @@ export function getGlobImportCode(opts) {
   return `const LAYOUTS = import.meta.glob(["${layout}"], { eager: true })
 const PAGES = import.meta.glob(${pages}, { eager: true })
 export { LAYOUTS, PAGES }`
-}
-
-/**
- * @param {SsgPage[]} ssgPages
- * @returns {string}
- */
-export function getSsgExportCode(ssgPages) {
-  return `export const ssgPages = ${JSON.stringify(ssgPages)}`
 }

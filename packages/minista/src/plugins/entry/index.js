@@ -6,12 +6,11 @@
 
 import fs from "node:fs"
 import path from "node:path"
-import { pathToFileURL } from "url"
-import { glob } from "tinyglobby"
 import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -20,7 +19,7 @@ import {
   composeEntryDocument,
 } from "../../features/entry/index.js"
 import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
-import { getRootDir, getTempDir } from "../../shared/path.js"
+import { getRootDir } from "../../shared/path.js"
 import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
 import { regScript } from "../../shared/reg.js"
 import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
@@ -48,8 +47,6 @@ export function pluginEntry(uOpts = {}) {
 
   let base = "/"
   let rootDir = ""
-  let tempDir = ""
-  let ssgDir = ""
   /** @type {SsgPage[]} */
   let ssgPages = []
   /** @type {{[pathId: string]: string}} */
@@ -64,6 +61,7 @@ export function pluginEntry(uOpts = {}) {
   let outputClaims = []
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
+  const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
   const environmentInput = new ViteEnvironmentInputAdapter()
 
   async function prepareEntries() {
@@ -77,18 +75,15 @@ export function pluginEntry(uOpts = {}) {
       : undefined
     if (renderedPages) {
       ssgPages = JSON.parse(String(renderedPages.content))
+    } else if (externalBuildId) {
+      ssgPages = [...(
+        await new NodeExternalBuildHandoff().readRenderedPages(
+          rootDir,
+          externalBuildId,
+        ) ?? []
+      )]
     } else {
-      const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-      if (!ssgFiles.length) return
-      ssgPages = (
-        await Promise.all(
-          ssgFiles.map(async (file) => {
-            const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-            const { ssgPages } = await import(ssgFileUrl)
-            return ssgPages
-          }),
-        )
-      ).flat()
+      return
     }
 
     /** @type {string[]} */
@@ -160,8 +155,6 @@ export function pluginEntry(uOpts = {}) {
     config: async (config) => {
       base = getBuildBase(config.base || base)
       rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
-      ssgDir = path.resolve(tempDir, "ssg")
       buildSession = getViteBuildSession(config)
       if (isAppBuild) return
 
