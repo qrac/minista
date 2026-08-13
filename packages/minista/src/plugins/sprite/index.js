@@ -10,6 +10,7 @@ import { normalizePath } from "vite"
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeSpriteBuilder } from "../../adapters/sprite/index.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
+import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectSpriteReferences,
@@ -98,6 +99,7 @@ export function pluginSprite(uOpts = {}) {
     },
     configureServer(server) {
       viteServer = server
+      const updates = new ViteDevUpdateAdapter(server)
       server.watcher.on("all", async (event, filePath) => {
         if (!filePath.endsWith(".svg")) return
         if (!["add", "change", "unlink"].includes(event)) return
@@ -106,7 +108,7 @@ export function pluginSprite(uOpts = {}) {
         await writeDevSprite(
           normalizePath(path.relative(rootDir, targetDirectory)),
         )
-        server.ws.send({ type: "full-reload" })
+        updates.fullReload()
       })
     },
     async transformIndexHtml(html, context) {

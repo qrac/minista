@@ -47,7 +47,7 @@ App BuildではViteが全environmentのconfigをbuild前に解決するため、
 
 Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置換し、開発用sourceやassetを `.minista` に生成します。Imageはdomainの参照収集とdocument composeを使い、Node adapterが生成した画像assetだけを `.minista` に保存します。IslandとSearchも共有module evaluatorから `virtual:ssg-pages` をimportし、plugin／CLIからの `ssrLoadModule()` 直接利用は除去済みです。
 
-`pluginSsg()` のHMRは既に `this.environment`, environment module graph, `hotUpdate` を一部使用しますが、route／page／artifactとのinvalidation対応付けは未実装で、reloadは多くの場合full reloadです。SSGとSpriteには直接WebSocket操作やenvironment間のmodule graph参照が残っています。
+`pluginSsg()` のHMRは `hotUpdate` から `ViteDevUpdateAdapter` を呼び、environment別module graphの存在確認・invalidationと `environment.hot` によるfull reloadをadapterへ閉じています。Spriteのreloadも同じadapterを使用し、plugin内の `server.ws`、mixed `server.environments`、module graph直接操作は除去済みです。route／page／artifactとのinvalidation対応付けは未実装で、reloadは多くの場合full reloadです。
 
 ### Current data model
 

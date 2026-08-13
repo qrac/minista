@@ -18,6 +18,7 @@ import { resolveLegacySsgProject } from "../../adapters/vite/legacy-ssg-project.
 import { createViteReactRenderer } from "../../adapters/vite/react-renderer.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
+import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -367,6 +368,7 @@ export function pluginSsg(uOpts = {}) {
       order: "pre",
       handler({ modules, server, timestamp }) {
         if (this.environment.name !== "ssr") return
+        const updates = new ViteDevUpdateAdapter(server)
 
         /**
          * @param {string | undefined | null} id
@@ -414,21 +416,12 @@ export function pluginSsg(uOpts = {}) {
           isReachableFromGlob(m, globFile, SSG_PAGES_VIRTUAL),
         )
 
-        const ssrGraph = server.environments?.ssr?.moduleGraph
-
-        /** @type {EnvModuleNode | null} */
-        const vmod = ssrGraph?.getModuleById(SSG_PAGES_VIRTUAL) ?? null
-        if (vmod) {
-          ssrGraph.invalidateModule(vmod, new Set(), Date.now(), true)
-        }
-        if (vmod) {
-          this.environment.moduleGraph.invalidateModule(
-            vmod,
-            new Set(),
-            timestamp,
-            true,
-          )
-        }
+        updates.invalidateModuleById(
+          this.environment.name,
+          SSG_PAGES_VIRTUAL,
+          timestamp,
+          true,
+        )
 
         if (touchSsrHtml) {
           devPageCache.invalidate()
@@ -441,35 +434,34 @@ export function pluginSsg(uOpts = {}) {
               .join(" "),
             { timestamp: true, clear: false },
           )
-          server.ws.send({ type: "full-reload" })
+          updates.fullReload()
           return []
         }
 
         let hasSsrOnly = false
-        const invalidated = new Set()
-        const clientGraph = server.environments.client.moduleGraph
 
         const isKnownInClient = (/** @type {EnvModuleNode} */ mod) => {
           if (!mod?.id) return false
-          if (clientGraph.getModuleById(mod.id)) return true
           const file = mod.file ?? stripQuery(mod.id)
-          const set = file ? clientGraph.getModulesByFile(file) : null
-          return Boolean(set && set.size > 0)
+          return updates.hasModule("client", { id: mod.id, file })
         }
 
+        /** @type {EnvModuleNode[]} */
+        const ssrOnlyModules = []
         for (const mod of modules) {
           if (!mod?.id) continue
           if (isKnownInClient(mod)) continue
-          this.environment.moduleGraph.invalidateModule(
-            mod,
-            invalidated,
-            timestamp,
-            true,
-          )
+          ssrOnlyModules.push(mod)
           hasSsrOnly = true
         }
 
         if (hasSsrOnly) {
+          updates.invalidateModules(
+            this.environment.name,
+            ssrOnlyModules,
+            timestamp,
+            true,
+          )
           devPageCache.invalidate()
           const rel = stripQuery(
             path.relative(server.config.root, modules[0].id || ""),
@@ -478,7 +470,7 @@ export function pluginSsg(uOpts = {}) {
             [pc.dim("(ssr)"), pc.green("page reload"), pc.dim(rel)].join(" "),
             { timestamp: true, clear: false },
           )
-          server.ws.send({ type: "full-reload" })
+          updates.fullReload()
           return []
         }
       },

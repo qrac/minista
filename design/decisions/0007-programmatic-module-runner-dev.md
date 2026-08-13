@@ -21,7 +21,7 @@ devを次の順に段階移行します。
 
 CoreはVite server、ModuleRunner、module graphの型を持ちません。module評価は既存の `ModuleEvaluator` portを通します。
 
-手順1〜3は実装済みです。`ViteDevModuleEvaluator` は移行中の `ssr` environmentをguardし、SSG、Island、Search、project commandのmodule評価を共有します。手順4はpage snapshot cacheと依存module変更時の世代invalidationまで実装し、route／graph node単位への細分化は未実装です。手順5に含まれるmixed module graph／直接WebSocket reloadの除去も残っています。
+手順1〜3は実装済みです。`ViteDevModuleEvaluator` は移行中の `ssr` environmentをguardし、SSG、Island、Search、project commandのmodule評価を共有します。手順4はpage snapshot cacheと依存module変更時の世代invalidationまで実装し、route／graph node単位への細分化は未実装です。手順5は `ViteDevUpdateAdapter` がenvironment別module graphとhot channelを所有し、pluginからmixed graph／直接WebSocket操作を除去しました。
 
 ## Consequences
 
