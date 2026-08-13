@@ -6,13 +6,21 @@ import { createServer } from "vite"
 import { glob } from "tinyglobby"
 
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
+import { NodeProjectManifestReader } from "../../adapters/filesystem/project-manifest-reader.js"
+import {
+  createCommandResult,
+  createNodeId,
+  DiagnosticCollector,
+  inspectProjectManifest,
+  toProjectPath,
+} from "../../core/index.js"
 
 /** @typedef {"check"|"inspect"|"explain"} ProjectCommand */
-/** @typedef {{command: ProjectCommand, target: string, root: string, json: boolean}} ParsedProjectCommand */
+/** @typedef {{command: ProjectCommand, target: string, root: string, json: boolean, manifest: boolean}} ParsedProjectCommand */
 /** @typedef {{id: string, apiVersion: 1, options: {src: string[], srcBases: string[]}, provides: string[], requires: string[]}} FeatureMetadata */
 /** @typedef {import("vite").Plugin & {api?: {minista?: {feature?: FeatureMetadata}}}} MinistaVitePlugin */
 /** @typedef {{code: string, severity: "error"|"warning"|"info", message: string, hint?: string}} ProjectDiagnostic */
-/** @typedef {{command: ProjectCommand, ok: boolean, data: {summary?: string, relatedNodeIds?: string[], counts?: Record<string, number>}, diagnostics: ProjectDiagnostic[]}} ProjectCommandResult */
+/** @typedef {{command: ProjectCommand, ok: boolean, data: {summary?: string, relatedNodeIds?: readonly string[], counts?: Readonly<Record<string, number>>}, diagnostics: readonly ProjectDiagnostic[]}} ProjectCommandResult */
 
 const serviceFile = fileURLToPath(
   new URL("../../adapters/vite/project-service.js", import.meta.url),
@@ -40,6 +48,7 @@ export function parseProjectCommandArgs(args) {
       target: positional[0] || "",
       root: positional[1] || "",
       json: args.includes("--json"),
+      manifest: false,
     }
   }
   return {
@@ -47,6 +56,7 @@ export function parseProjectCommandArgs(args) {
     target: "",
     root: positional[0] || "",
     json: args.includes("--json"),
+    manifest: command === "inspect" && args.includes("--manifest"),
   }
 }
 
@@ -87,11 +97,73 @@ function printHumanResult(result) {
 }
 
 /**
+ * @param {ProjectCommandResult} result
+ * @param {boolean} json
+ */
+function printProjectResult(result, json) {
+  if (json) console.log(JSON.stringify(result, null, 2))
+  else printHumanResult(result)
+  if (!result.ok) process.exitCode = 1
+}
+
+/** @param {string} rootDir */
+async function inspectManifest(rootDir) {
+  const diagnostics = new DiagnosticCollector()
+  let inspection
+  try {
+    const manifest = await new NodeProjectManifestReader().read(rootDir)
+    inspection = inspectProjectManifest(manifest)
+  } catch (error) {
+    const errorCode = error && typeof error === "object"
+      ? Reflect.get(error, "code")
+      : undefined
+    const code = typeof errorCode === "string" &&
+      errorCode.startsWith("MINISTA_")
+      ? /** @type {`MINISTA_${string}`} */ (errorCode)
+      : /** @type {const} */ ("MINISTA_MANIFEST_READ_FAILED")
+    diagnostics.error({
+      code,
+      message: error instanceof Error ? error.message : String(error),
+      hint: code === "MINISTA_MANIFEST_NOT_FOUND"
+        ? "Run minista build before inspecting the manifest."
+        : "Regenerate the manifest with the current minista version.",
+      location: { file: toProjectPath(".minista/manifest.json") },
+      phase: "discover",
+    })
+    inspection = Object.freeze({
+      schemaVersion: /** @type {const} */ ("1"),
+      project: Object.freeze({
+        id: createNodeId("project", path.basename(rootDir)),
+        name: path.basename(rootDir),
+      }),
+      counts: Object.freeze({
+        features: 0,
+        routes: 0,
+        pages: 0,
+        assets: 0,
+        islands: 0,
+        images: 0,
+        artifacts: 0,
+      }),
+      routes: Object.freeze([]),
+    })
+  }
+  return createCommandResult("inspect", inspection, diagnostics)
+}
+
+/**
  * @param {ParsedProjectCommand} parsed
  * @param {string} [configFile]
  */
 export async function runProjectCommand(parsed, configFile) {
   const rootDir = path.resolve(process.cwd(), parsed.root || "")
+  if (parsed.manifest) {
+    printProjectResult(
+      /** @type {ProjectCommandResult} */ (await inspectManifest(rootDir)),
+      parsed.json,
+    )
+    return
+  }
   const server = await createServer({
     root: rootDir,
     configFile: configFile || undefined,
@@ -127,9 +199,7 @@ export async function runProjectCommand(parsed, configFile) {
       evaluator,
     })
 
-    if (parsed.json) console.log(JSON.stringify(result, null, 2))
-    else printHumanResult(result)
-    if (!result.ok) process.exitCode = 1
+    printProjectResult(result, parsed.json)
   } finally {
     await server.close()
   }

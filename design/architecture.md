@@ -350,6 +350,7 @@ v5 Coreの同じquery serviceを次から共有します。
 
 - `minista check [--json]`: discovery / resolve / validation。distを生成しない
 - `minista inspect [--json]`: graph / manifestの要約またはJSON
+- `minista inspect --manifest [--json]`: `.minista/manifest.json` だけを読み、Vite serverやuser moduleを実行しない。missing、invalid JSON、unsupported schema versionはstable diagnosticを返す
 - `minista explain <route|file|artifact|diagnostic-code>`: edgeと生成理由
 - `minista build`: lifecycle全体
 - 将来の `@minista/mcp`: 上記query serviceのadapter。Coreの必須依存にはしない
