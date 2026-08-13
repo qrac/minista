@@ -7,6 +7,10 @@ import {
   LegacyViteBuilderAdapter,
   ViteEnvironmentNotFoundError,
 } from "../../../src/adapters/vite/legacy-builder.js"
+import {
+  attachViteBuildSession,
+  createViteBuildSession,
+} from "../../../src/adapters/vite/build-session.js"
 
 describe("legacy Vite Builder adapter", () => {
   test("builds the single legacy environment through createBuilder", async () => {
@@ -72,6 +76,45 @@ describe("legacy Vite Builder adapter", () => {
       await expect(
         fs.promises.access(path.resolve(outDir, "partial.html")),
       ).rejects.toMatchObject({ code: "ENOENT" })
+    } finally {
+      await fs.promises.rm(root, { recursive: true, force: true })
+    }
+  })
+
+  test("writes diagnostics after a successful legacy client build", async () => {
+    const root = await fs.promises.mkdtemp(
+      path.resolve(process.env.TMPDIR || "/tmp", "minista-legacy-metadata-"),
+    )
+    try {
+      const environment = {
+        name: "client",
+        config: { root, build: { write: true, outDir: "dist" } },
+      }
+      const adapter = new LegacyViteBuilderAdapter(
+        /** @type {any} */ (async () => ({
+          environments: { client: environment },
+          async build() {
+            await fs.promises.mkdir(path.resolve(root, "dist"))
+            return { output: [] }
+          },
+        })),
+      )
+      const session = createViteBuildSession({ buildId: "build:legacy" })
+
+      await adapter.build(attachViteBuildSession(
+        { root, build: { ssr: false } },
+        session,
+      ))
+
+      const report = JSON.parse(await fs.promises.readFile(
+        path.resolve(root, ".minista/diagnostics.json"),
+        "utf8",
+      ))
+      expect(report).toMatchObject({
+        command: "build",
+        buildId: "build:legacy",
+        summary: { errors: 0 },
+      })
     } finally {
       await fs.promises.rm(root, { recursive: true, force: true })
     }

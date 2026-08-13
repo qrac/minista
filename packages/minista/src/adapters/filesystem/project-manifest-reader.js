@@ -4,6 +4,7 @@ import fs from "node:fs"
 import path from "node:path"
 
 import {
+  migrateProjectManifest,
   parseProjectManifest,
   ProjectManifestInvalidError,
 } from "../../core/manifest/index.js"
@@ -18,6 +19,13 @@ export class ProjectManifestNotFoundError extends Error {
 }
 
 export class NodeProjectManifestReader {
+  #migrations
+
+  /** @param {readonly import("../../core/manifest/index.js").ProjectManifestMigration[]} [migrations] */
+  constructor(migrations = []) {
+    this.#migrations = migrations
+  }
+
   /** @param {string} root */
   async read(root) {
     const file = path.resolve(root, ".minista/manifest.json")
@@ -35,7 +43,9 @@ export class NodeProjectManifestReader {
       throw error
     }
     try {
-      return parseProjectManifest(JSON.parse(source))
+      return parseProjectManifest(
+        migrateProjectManifest(JSON.parse(source), this.#migrations),
+      )
     } catch (error) {
       if (error instanceof SyntaxError) {
         throw new ProjectManifestInvalidError(

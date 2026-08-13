@@ -34,6 +34,10 @@ function runBuild() {
 async function removeGenerated() {
   await Promise.all([
     fs.promises.rm(distDir, { recursive: true, force: true }),
+    fs.promises.rm(path.resolve(fixtureDir, ".minista"), {
+      recursive: true,
+      force: true,
+    }),
     fs.promises.rm(path.resolve(nodeModulesDir, ".minista"), {
       recursive: true,
       force: true,
@@ -65,5 +69,28 @@ describe.sequential("config plugin mismatch fallback", () => {
       "utf8",
     )
     expect(html).toContain("<h1>Legacy plugin fallback</h1>")
+
+    const [manifest, diagnostics] = await Promise.all([
+      fs.promises.readFile(
+        path.resolve(fixtureDir, ".minista/manifest.json"),
+        "utf8",
+      ).then(JSON.parse),
+      fs.promises.readFile(
+        path.resolve(fixtureDir, ".minista/diagnostics.json"),
+        "utf8",
+      ).then(JSON.parse),
+    ])
+    expect(manifest).toMatchObject({
+      schemaVersion: "1",
+      project: { name: "plugin-mismatch" },
+    })
+    expect(diagnostics).toMatchObject({
+      command: "build",
+      summary: { warnings: 1 },
+      diagnostics: [{
+        code: "MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH",
+        severity: "warning",
+      }],
+    })
   })
 })

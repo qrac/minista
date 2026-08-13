@@ -266,10 +266,14 @@ function reportAppBuildFallback(error) {
   reportCliDiagnostic(error.diagnostic)
 }
 
-/** @param {string[]} args */
-async function runLegacyBuildLifecycle(args) {
+/**
+ * @param {string[]} args
+ * @param {import("../../core/diagnostics/index.js").Diagnostic} [fallbackDiagnostic]
+ */
+async function runLegacyBuildLifecycle(args, fallbackDiagnostic) {
   const session = createViteBuildSession()
   try {
+    if (fallbackDiagnostic) session.diagnostics.add(fallbackDiagnostic)
     await runProgrammaticBuild(args, true, session)
     await runProgrammaticBuild(args, false, session)
   } finally {
@@ -293,16 +297,21 @@ export async function runMinista(args, isOneBuild) {
     if (isBuild && !isOneBuild && canRunProgrammaticBuild(args)) {
       const session = createViteBuildSession()
       let useLegacyFallback = false
+      /** @type {import("../../core/diagnostics/index.js").Diagnostic | undefined} */
+      let fallbackDiagnostic
       try {
         await runProgrammaticAppBuild(args, session)
       } catch (error) {
         if (!(error instanceof ViteAppConfigPluginMismatchError)) throw error
         reportAppBuildFallback(error)
         useLegacyFallback = true
+        fallbackDiagnostic = error.diagnostic
       } finally {
         await disposeViteBuildSession(session)
       }
-      if (useLegacyFallback) await runLegacyBuildLifecycle(args)
+      if (useLegacyFallback) {
+        await runLegacyBuildLifecycle(args, fallbackDiagnostic)
+      }
       return
     }
     if (isBuild && !isOneBuild) {

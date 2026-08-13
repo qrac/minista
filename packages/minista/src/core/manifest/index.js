@@ -8,6 +8,11 @@ export {
   ProjectManifestVersionUnsupportedError,
 } from "./parse.js"
 export {
+  migrateProjectManifest,
+  PROJECT_MANIFEST_SCHEMA_VERSION,
+  ProjectManifestMigrationError,
+} from "./migrate.js"
+export {
   createOutputManifest,
   OutputFileConflictError,
 } from "./output.js"

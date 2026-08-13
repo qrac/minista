@@ -1,12 +1,20 @@
 // @ts-check
 
 import { createBuilder } from "vite"
+import { createRequire } from "node:module"
 
+import { NodeDiagnosticsWriter } from "../filesystem/diagnostics-writer.js"
+import { NodeProjectManifestWriter } from "../filesystem/project-manifest-writer.js"
+import { createDiagnosticsReport } from "../../core/diagnostics/index.js"
+import { createProjectManifest } from "../../core/manifest/index.js"
 import { getViteBuildSession } from "./build-session.js"
 import { ViteOutputTransaction } from "./output-transaction.js"
 
 /** @typedef {import("vite").InlineConfig} InlineConfig */
 /** @typedef {import("vite").ViteBuilder} ViteBuilder */
+
+const require = createRequire(import.meta.url)
+const { version: ministaVersion } = require("../../../package.json")
 
 export class ViteEnvironmentNotFoundError extends Error {
   code = "MINISTA_VITE_ENVIRONMENT_NOT_FOUND"
@@ -56,6 +64,35 @@ export class LegacyViteBuilderAdapter {
       throw error
     }
     await transaction?.commit()
+    if (writesClientOutput) {
+      const createdAt = new Date().toISOString()
+      const diagnostics = session?.diagnostics?.snapshot() ?? Object.freeze([])
+      const projectGraph = session?.state?.projectGraph
+      if (projectGraph) {
+        await new NodeProjectManifestWriter().write(
+          environment.config.root,
+          createProjectManifest(projectGraph, {
+            version: ministaVersion,
+            createdAt,
+            diagnostics: session?.diagnostics?.summary() ?? {
+              errors: 0,
+              warnings: 0,
+              info: 0,
+            },
+          }),
+        )
+      }
+      await new NodeDiagnosticsWriter().write(
+        environment.config.root,
+        createDiagnosticsReport({
+          version: ministaVersion,
+          command: "build",
+          ...(session?.buildId ? { buildId: session.buildId } : {}),
+          diagnostics,
+          createdAt,
+        }),
+      )
+    }
     return result
   }
 }

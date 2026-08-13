@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest"
 
 import {
   parseProjectManifest,
+  migrateProjectManifest,
   ProjectManifestInvalidError,
   ProjectManifestVersionUnsupportedError,
   serializeProjectManifest,
@@ -95,5 +96,40 @@ describe("Project manifest", () => {
     expect(report.summary).toEqual({ errors: 0, warnings: 1, info: 0 })
     expect(serializeDiagnosticsReport(report).endsWith("\n")).toBe(true)
     expect(Object.isFrozen(report.diagnostics[0])).toBe(true)
+  })
+
+  test("applies registered manifest migrations before validation", () => {
+    const v0 = {
+      schemaVersion: "0",
+      generator: { name: "minista", version: "4.0.0" },
+      project: { id: "project:fixture", name: "fixture" },
+      features: [],
+      routes: [],
+      pages: [],
+      assets: [],
+      artifacts: [],
+      diagnosticSummary: { errors: 0, warnings: 0, info: 0 },
+      createdAt: "2026-08-13T00:00:00.000Z",
+    }
+    const migrated = migrateProjectManifest(v0, [{
+      from: "0",
+      to: "1",
+      migrate(value) {
+        const project = /** @type {Record<string, unknown>} */ (value.project)
+        return {
+          ...value,
+          schemaVersion: "1",
+          project: { ...project, root: "." },
+        }
+      },
+    }])
+
+    expect(parseProjectManifest(migrated)).toMatchObject({
+      schemaVersion: "1",
+      project: { name: "fixture", root: "." },
+    })
+    expect(() => migrateProjectManifest(v0)).toThrowError(
+      ProjectManifestVersionUnsupportedError,
+    )
   })
 })
