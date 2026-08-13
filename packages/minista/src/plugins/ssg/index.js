@@ -63,6 +63,7 @@ export function pluginSsg(uOpts = {}) {
   let appEnvironmentNames
 
   let rootDir = ""
+  let projectName = "legacy-ssg"
   let tempDir = ""
   let globDir = ""
   let globFile = ""
@@ -129,8 +130,10 @@ export function pluginSsg(uOpts = {}) {
     const { LAYOUTS = {}, PAGES = {} } = await import(importUrl)
     const formatedLayout = formatLayout(LAYOUTS)
     const resolvedLayout = await resolveLayout(formatedLayout)
-    const project = await resolveLegacySsgProject(PAGES, opts)
+    const project = await resolveLegacySsgProject(PAGES, opts, projectName)
     const resolvedPages = project.pages
+
+    if (buildSession?.state) buildSession.state.projectGraph = project.graph
 
     const errors = project.diagnostics.filter(
       ({ severity }) => severity === "error",
@@ -193,6 +196,26 @@ export function pluginSsg(uOpts = {}) {
     config: async (config) => {
       buildSession = getViteBuildSession(config)
       rootDir = getRootDir(cwd, config.root || "")
+      projectName = path.basename(rootDir)
+      try {
+        const packageJson = JSON.parse(
+          await fs.promises.readFile(
+            path.resolve(rootDir, "package.json"),
+            "utf8",
+          ),
+        )
+        if (typeof packageJson.name === "string" && packageJson.name) {
+          projectName = packageJson.name
+        }
+      } catch (error) {
+        if (
+          !error ||
+          typeof error !== "object" ||
+          Reflect.get(error, "code") !== "ENOENT"
+        ) {
+          throw error
+        }
+      }
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")
       globFile = path.resolve(globDir, `${tempName}.js`)

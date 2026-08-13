@@ -34,6 +34,10 @@ function runBuild() {
 async function removeGenerated() {
   await Promise.all([
     fs.promises.rm(distDir, { recursive: true, force: true }),
+    fs.promises.rm(path.resolve(fixtureDir, ".minista"), {
+      recursive: true,
+      force: true,
+    }),
     fs.promises.rm(path.resolve(nodeModulesDir, ".minista"), {
       recursive: true,
       force: true,

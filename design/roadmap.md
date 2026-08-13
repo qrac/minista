@@ -132,10 +132,14 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 7: manifest / inspect / explain
 
-- `.minista/manifest.json` schema v1とatomic writerを実装
-- absolute path / arbitrary props / secret-like configのredaction testを追加
-- `inspect`, `inspect --json`, `explain` をCore query service上に実装
-- JSON stdoutとlog stderrを分離
+進捗: 進行中。Project Manifest schema v1、安全なallowlist projection、安定key orderのserializer、同一directory内の一時ファイルとrenameを使うatomic writerを実装し、通常のApp Buildから `.minista/manifest.json` を出力します。絶対pathとruntime-only propsを含めないprojection test、serializerとwriterのtest、実Vite fixtureのbuild出力testを追加済みです。`inspect` / `inspect --json` / `explain` とstdout／stderr分離はsource query経路で実装済みです。legacy／外部CLI fallbackからの出力、manifestを直接読むinspect経路、schema migration、unsupported version diagnostic、`diagnostics.json` は未実装です。
+
+- `.minista/manifest.json` schema v1とatomic writerを通常のApp Buildへ実装済み
+- absolute path / arbitrary props / secret-like configのredaction testを追加済み
+- `inspect`, `inspect --json`, `explain` をCore query service上に実装済み
+- JSON stdoutとlog stderrを分離済み
+- legacy／外部CLI fallbackにもProject Manifest出力を接続
+- manifestを直接読むinspect経路と `diagnostics.json` writerを実装
 - manifest migration / unsupported version diagnosticを実装
 - 将来の `@minista/mcp` が使用できるread-only query APIをinternal package boundaryとして整理
 

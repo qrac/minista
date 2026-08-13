@@ -18,6 +18,7 @@ export function createViteBuildSession(options = {}) {
     buildId: options.buildId ?? randomUUID(),
     artifacts: options.artifacts ?? new MemoryArtifactStore(),
     diagnostics: options.diagnostics ?? new DiagnosticCollector(),
+    state: {},
   })
 }
 

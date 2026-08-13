@@ -1,9 +1,12 @@
 // @ts-check
 
 import path from "node:path"
+import { createRequire } from "node:module"
 
 import { createBuilder } from "vite"
 
+import { NodeProjectManifestWriter } from "../filesystem/project-manifest-writer.js"
+import { createProjectManifest } from "../../core/manifest/index.js"
 import { loadViteAppConfig } from "./app-config-loader.js"
 import { getViteBuildSession } from "./build-session.js"
 import { prepareViteClientEnvironment } from "./environment-preparation.js"
@@ -17,6 +20,9 @@ import { ViteOutputTransaction } from "./output-transaction.js"
 /** @typedef {import("vite").InlineConfig} InlineConfig */
 /** @typedef {import("vite").ViteBuilder} ViteBuilder */
 /** @typedef {import("./app-builder.js").ViteAppBuildOptions} ViteAppBuildOptions */
+
+const require = createRequire(import.meta.url)
+const { version: ministaVersion } = require("../../../package.json")
 
 export class ViteAppEnvironmentNotFoundError extends Error {
   code = "MINISTA_VITE_APP_ENVIRONMENT_NOT_FOUND"
@@ -86,6 +92,23 @@ export class ViteAppBuilderAdapter {
       throw error
     }
     await transaction?.commit()
+
+    const projectGraph = session?.state?.projectGraph
+    if (writesOutput && projectGraph) {
+      const projectManifest = createProjectManifest(projectGraph, {
+        version: ministaVersion,
+        createdAt: new Date().toISOString(),
+        diagnostics: session?.diagnostics?.summary() ?? {
+          errors: 0,
+          warnings: 0,
+          info: 0,
+        },
+      })
+      await new NodeProjectManifestWriter().write(
+        client.config.root,
+        projectManifest,
+      )
+    }
 
     return Object.freeze({
       schemaVersion: "1",

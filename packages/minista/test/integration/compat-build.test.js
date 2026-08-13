@@ -10,6 +10,7 @@ const packageDir = path.resolve(here, "../..")
 const fixtureDir = path.resolve(here, "../fixtures/compat-basic")
 const binFile = path.resolve(packageDir, "bin/minista.js")
 const distDir = path.resolve(fixtureDir, "dist")
+const manifestDir = path.resolve(fixtureDir, ".minista")
 const tempDir = path.resolve(fixtureDir, "node_modules/.minista")
 const viteCacheDir = path.resolve(fixtureDir, "node_modules/.vite")
 const viteConfigCacheDir = path.resolve(fixtureDir, "node_modules/.vite-temp")
@@ -40,6 +41,7 @@ function runBuild() {
 async function removeGenerated() {
   await Promise.all([
     fs.promises.rm(distDir, { recursive: true, force: true }),
+    fs.promises.rm(manifestDir, { recursive: true, force: true }),
     fs.promises.rm(tempDir, { recursive: true, force: true }),
     fs.promises.rm(viteCacheDir, { recursive: true, force: true }),
     fs.promises.rm(viteConfigCacheDir, { recursive: true, force: true }),
@@ -106,5 +108,21 @@ describe.sequential("v4 compatibility build", () => {
 
     expect(source).toContain("export const ssgPages")
     expect(source).toContain("Compatibility fixture")
+  })
+
+  test("emits the public project manifest", async () => {
+    const source = await fs.promises.readFile(
+      path.resolve(manifestDir, "manifest.json"),
+      "utf8",
+    )
+    const manifest = JSON.parse(source)
+
+    expect(manifest).toMatchObject({
+      schemaVersion: "1",
+      generator: { name: "minista" },
+      project: { name: "minista-v5-compat-basic", root: "." },
+    })
+    expect(source).not.toContain(fixtureDir)
+    expect(source).not.toContain('"props"')
   })
 })

@@ -17,12 +17,15 @@ import {
 /** @typedef {import("./legacy-ssg-project.js").LegacySsgProjectResult} LegacySsgProjectResult */
 /** @typedef {import("./legacy-ssg-project.js").LegacySsgRouteEntry} LegacySsgRouteEntry */
 
-/** @param {DiagnosticCollector} diagnostics */
-function createGraph(diagnostics) {
+/**
+ * @param {DiagnosticCollector} diagnostics
+ * @param {string} projectName
+ */
+function createGraph(diagnostics, projectName) {
   const graph = new ProjectGraph(
     {
-      id: createNodeId("project", "legacy-ssg"),
-      name: "legacy-ssg",
+      id: createNodeId("project", projectName),
+      name: projectName,
       root: toProjectPath("."),
     },
     diagnostics,
@@ -76,11 +79,12 @@ export async function resolveLegacySsgRoute(sourceFile, pageModule, options) {
 
 /**
  * @param {readonly LegacySsgRouteEntry[]} entries
+ * @param {string} [projectName]
  * @returns {LegacySsgProjectResult}
  */
-export function createLegacySsgProject(entries) {
+export function createLegacySsgProject(entries, projectName = "legacy-ssg") {
   const diagnostics = new DiagnosticCollector()
-  const graph = createGraph(diagnostics)
+  const graph = createGraph(diagnostics, projectName)
   /** @type {ResolvedPage[]} */
   const pages = []
 
@@ -103,9 +107,14 @@ export function createLegacySsgProject(entries) {
  *
  * @param {ImportedPages} importedPages
  * @param {Pick<PluginOptions, "srcBases">} options
+ * @param {string} [projectName]
  * @returns {Promise<LegacySsgProjectResult>}
  */
-export async function resolveLegacySsgProject(importedPages, options) {
+export async function resolveLegacySsgProject(
+  importedPages,
+  options,
+  projectName = "legacy-ssg",
+) {
   /** @type {LegacySsgRouteEntry[]} */
   const entries = []
   for (const sourceFile of Object.keys(importedPages).sort()) {
@@ -113,5 +122,5 @@ export async function resolveLegacySsgProject(importedPages, options) {
     if (!pageModule) continue
     entries.push(await resolveLegacySsgRoute(sourceFile, pageModule, options))
   }
-  return createLegacySsgProject(entries)
+  return createLegacySsgProject(entries, projectName)
 }

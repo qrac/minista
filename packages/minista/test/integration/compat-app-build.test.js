@@ -5,7 +5,10 @@ import { fileURLToPath } from "node:url"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 
 import { ViteAppBuilderAdapter } from "../../src/adapters/vite/app-builder.js"
-import { attachViteBuildSession } from "../../src/adapters/vite/build-session.js"
+import {
+  attachViteBuildSession,
+  createViteBuildSession,
+} from "../../src/adapters/vite/build-session.js"
 import { MemoryArtifactStore } from "../../src/core/artifacts/index.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -48,7 +51,7 @@ describe.sequential("v4 compatibility App Build", () => {
           configFile: path.resolve(fixtureDir, "vite.config.js"),
           logLevel: "silent",
         },
-        { artifacts: new MemoryArtifactStore() },
+        createViteBuildSession({ artifacts: new MemoryArtifactStore() }),
       ),
     )
     environments = result.environments
@@ -108,5 +111,26 @@ describe.sequential("v4 compatibility App Build", () => {
         ),
       ),
     ).rejects.toMatchObject({ code: "ENOENT" })
+  })
+
+  test("writes a safe public project manifest atomically", async () => {
+    const manifestFile = path.resolve(fixtureDir, ".minista/manifest.json")
+    const source = await fs.promises.readFile(manifestFile, "utf8")
+    const manifest = JSON.parse(source)
+
+    expect(manifest).toMatchObject({
+      schemaVersion: "1",
+      generator: { name: "minista" },
+      project: { name: "minista-v5-compat-basic", root: "." },
+      diagnosticSummary: { errors: 0, warnings: 0, info: 0 },
+    })
+    expect(manifest.routes).not.toHaveLength(0)
+    expect(manifest.pages).not.toHaveLength(0)
+    expect(source.endsWith("\n")).toBe(true)
+    expect(source).not.toContain(fixtureDir)
+    expect(source).not.toContain('"props"')
+    await expect(
+      fs.promises.readdir(path.resolve(fixtureDir, ".minista")),
+    ).resolves.toEqual(["manifest.json"])
   })
 })

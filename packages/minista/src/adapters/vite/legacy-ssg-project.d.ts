@@ -27,9 +27,11 @@ export declare function resolveLegacySsgRoute(
 ): Promise<LegacySsgRouteEntry>
 export declare function createLegacySsgProject(
   entries: readonly LegacySsgRouteEntry[],
+  projectName?: string,
 ): LegacySsgProjectResult
 
 export declare function resolveLegacySsgProject(
   importedPages: ImportedPages,
   options: Pick<PluginOptions, "srcBases">,
+  projectName?: string,
 ): Promise<LegacySsgProjectResult>

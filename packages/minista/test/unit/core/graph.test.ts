@@ -77,7 +77,14 @@ describe("ProjectGraph", () => {
       draft: false,
     })
 
-    const manifest = createProjectManifest(graph.snapshot(), {
+    const snapshot = {
+      ...graph.snapshot(),
+      config: {
+        apiToken: "must-not-be-serialized",
+        absoluteCacheDir: process.cwd(),
+      },
+    }
+    const manifest = createProjectManifest(snapshot, {
       version: "5.0.0",
       createdAt: "2026-08-12T00:00:00.000Z",
       diagnostics: diagnostics.summary(),
@@ -93,6 +100,7 @@ describe("ProjectGraph", () => {
       draft: false,
     })
     expect(json).not.toContain("must-not-be-serialized")
+    expect(json).not.toContain("apiToken")
     expect(json).not.toContain(process.cwd())
   })
 })
