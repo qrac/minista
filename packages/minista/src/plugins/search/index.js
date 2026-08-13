@@ -18,6 +18,7 @@ import { createNodeId } from "../../core/graph/index.js"
 import {
   analyzeRenderedSearchPages,
   composeSearchOutputDocument,
+  createSearchDataArtifactId,
   getSearchPageUrl,
 } from "../../features/search/index.js"
 import { mergeObj } from "../../shared/obj.js"
@@ -73,10 +74,25 @@ export function pluginSearch(uOpts = {}) {
 
   let base = "/"
   let after = ""
+  /** @type {string[]} */
+  let outputPageUrls = []
+
+  function getOutputClaims() {
+    if (!after) return []
+    return [Object.freeze({
+      id: createSearchDataArtifactId(opts.outName),
+      kind: /** @type {const} */ ("data"),
+      owner: createNodeId("feature", "search"),
+      source: "search-data",
+      fileName: after,
+      pageUrls: Object.freeze([...outputPageUrls]),
+      dependencies: Object.freeze([]),
+    })]
+  }
 
   return {
     name: "vite-plugin:minista-search",
-    api: { minista: { feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html-documents"] } } },
+    api: { minista: { outputClaims: getOutputClaims, feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -149,6 +165,8 @@ export function pluginSearch(uOpts = {}) {
         isAppBuild &&
         this.environment.name !== appEnvironmentNames?.clientName
       ) return
+      after = ""
+      outputPageUrls = []
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
 
@@ -172,6 +190,7 @@ export function pluginSearch(uOpts = {}) {
         opts,
         analyzer,
       )
+      outputPageUrls = searchData.pages.map(({ url }) => url)
       const referenceId = this.emitFile({
         type: "asset",
         name: `${opts.outName}.json`,

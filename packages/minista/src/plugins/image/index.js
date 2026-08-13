@@ -20,6 +20,7 @@ import {
 } from "../../features/image/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
+import { getHtmlPageUrl } from "../../shared/filename.js"
 import {
   getServeBase,
   getBuildBase,
@@ -93,11 +94,14 @@ export function pluginImage(uOpts = {}) {
   let viteServer
   const devPageIndex = new DevImagePageIndex()
   const watchedSources = new Set()
+  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
+  let outputClaims = []
 
   return {
     name: "vite-plugin:minista-image",
     api: {
       minista: {
+        outputClaims: () => outputClaims,
         feature: {
           id: "image",
           apiVersion: 1,
@@ -223,6 +227,7 @@ export function pluginImage(uOpts = {}) {
           this.environment.name !== appEnvironmentNames?.clientName) ||
         !generator
       ) return
+      outputClaims = []
       const htmlItems = Object.values(filterOutputAssets(bundle)).filter(
         (item) => item.fileName.endsWith(".html"),
       )
@@ -232,10 +237,12 @@ export function pluginImage(uOpts = {}) {
           pageId: createNodeId("page", "legacy-image-build", item.fileName),
           html: String(item.source),
         }),
+        references: /** @type {import("../../features/image/index.js").ImageReference[]} */ ([]),
       }))
-      const references = pages.flatMap(({ document }) =>
-        collectImageReferences(document),
-      )
+      for (const page of pages) {
+        page.references = [...collectImageReferences(page.document)]
+      }
+      const references = pages.flatMap(({ references }) => references)
       if (references.length === 0) return
       const generated = await generator.generate(references, opts)
 
@@ -248,6 +255,19 @@ export function pluginImage(uOpts = {}) {
           source: artifact.content,
         })
         outputFiles.set(artifact.id, this.getFileName(referenceId))
+        outputClaims.push(Object.freeze({
+          id: artifact.id,
+          kind: "image",
+          owner: createNodeId("feature", "image"),
+          source: artifact.source,
+          fileName: this.getFileName(referenceId),
+          pageUrls: Object.freeze(pages
+            .filter(({ references: pageReferences }) =>
+              pageReferences.some(({ source }) => source === artifact.source)
+            )
+            .map(({ item }) => getHtmlPageUrl(item.fileName))),
+          dependencies: Object.freeze([]),
+        }))
       }
       for (const { item, document } of pages) {
         composeImageDocument(document, generated.plans, {

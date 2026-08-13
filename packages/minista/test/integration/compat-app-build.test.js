@@ -142,11 +142,58 @@ describe.sequential("v4 compatibility App Build", () => {
       owner: "feature:ssg",
       output: { fileName: "index.html", url: "/index.html" },
     })
+    expect(manifest.artifacts).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: "script",
+        owner: "feature:entry",
+        output: expect.objectContaining({ fileName: "scripts/client.js" }),
+      }),
+      expect.objectContaining({
+        kind: "style",
+        owner: "feature:entry",
+        output: expect.objectContaining({ fileName: "assets/site.css" }),
+      }),
+      expect.objectContaining({
+        kind: "image",
+        owner: "feature:image",
+        output: expect.objectContaining({ fileName: "assets/pixel-2x2.png" }),
+      }),
+      expect.objectContaining({
+        kind: "data",
+        owner: "feature:search",
+        output: expect.objectContaining({ fileName: "assets/search.json" }),
+      }),
+      expect.objectContaining({
+        kind: "sprite",
+        owner: "feature:sprite",
+        output: expect.objectContaining({ fileName: "assets/assets.svg" }),
+      }),
+    ]))
     expect(manifest.assets).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: "generated",
         consumers: [manifest.pages[0].id],
         output: expect.objectContaining({ fileName: "index.html" }),
+      }),
+      expect.objectContaining({
+        consumers: [manifest.pages[0].id],
+        output: expect.objectContaining({ fileName: "scripts/client.js" }),
+      }),
+      expect.objectContaining({
+        consumers: [manifest.pages[0].id],
+        output: expect.objectContaining({ fileName: "assets/site.css" }),
+      }),
+      expect.objectContaining({
+        consumers: [manifest.pages[0].id],
+        output: expect.objectContaining({ fileName: "assets/pixel-2x2.png" }),
+      }),
+      expect.objectContaining({
+        consumers: [manifest.pages[0].id],
+        output: expect.objectContaining({ fileName: "assets/search.json" }),
+      }),
+      expect.objectContaining({
+        consumers: [manifest.pages[0].id],
+        output: expect.objectContaining({ fileName: "assets/assets.svg" }),
       }),
     ]))
     expect(source.endsWith("\n")).toBe(true)

@@ -15,7 +15,7 @@ client pluginはoptionalな `api.minista.outputClaims()` でoutput claimを公�
 
 Vite adapterはclient build完了後にfeature descriptorとclaimを収集します。Core `applyOutputClaims()` はclaimのfile nameをOutput Manifestと照合し、存在するoutputだけをBuildArtifactとgenerated AssetとしてProject Graph snapshotへ追加します。Page URLは既存PageNode IDへ解決し、Asset consumerに保存します。存在しないoutputは `MINISTA_OUTPUT_CLAIM_NOT_FOUND`、owner descriptorがないclaimは `MINISTA_OUTPUT_CLAIM_OWNER_NOT_FOUND` とします。
 
-最初の接続対象はSSGのHTML outputです。残るcompatibility featureは、自身のgenerate／bundle処理で確定した情報から段階的にclaimを公開します。
+最初にSSGのHTML outputを接続し、Entryのscript／style、Image、Sprite、Search dataまで移行しました。残るcompatibility featureも、自身のgenerate／bundle処理で確定した情報から段階的にclaimを公開します。
 
 ## Consequences
 

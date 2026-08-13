@@ -20,6 +20,7 @@ import {
 } from "../../features/sprite/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
+import { getHtmlPageUrl } from "../../shared/filename.js"
 import {
   getBasedAssetUrl,
   getBuildBase,
@@ -54,6 +55,8 @@ export function pluginSprite(uOpts = {}) {
   /** @type {ViteDevServer | undefined} */
   let viteServer
   const devPageIndex = new DevSpritePageIndex()
+  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
+  let outputClaims = []
 
   /** @param {string} sourceDirectory */
   async function writeDevSprite(sourceDirectory) {
@@ -69,7 +72,7 @@ export function pluginSprite(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-sprite",
-    api: { minista: { feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html-documents"] } } },
+    api: { minista: { outputClaims: () => outputClaims, feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -151,6 +154,7 @@ export function pluginSprite(uOpts = {}) {
     },
     async generateBundle(options, bundle) {
       if (!builder) return
+      outputClaims = []
       const htmlItems = Object.values(filterOutputAssets(bundle)).filter((item) =>
         item.fileName.endsWith(".html"),
       )
@@ -179,6 +183,20 @@ export function pluginSprite(uOpts = {}) {
           createSpriteArtifactId(sourceDirectory),
           this.getFileName(referenceId),
         )
+        outputClaims.push(Object.freeze({
+          id: createSpriteArtifactId(sourceDirectory),
+          kind: "sprite",
+          owner: createNodeId("feature", "sprite"),
+          source: sourceDirectory,
+          fileName: this.getFileName(referenceId),
+          pageUrls: Object.freeze(pages
+            .filter(({ references }) => references.some(
+              (reference) =>
+                reference.sourceDirectory === sourceDirectory,
+            ))
+            .map(({ item }) => getHtmlPageUrl(item.fileName))),
+          dependencies: Object.freeze([]),
+        }))
       }
       for (const { item, document, references } of pages) {
         if (references.length === 0) continue

@@ -58,6 +58,10 @@ export function pluginEntry(uOpts = {}) {
   let entryIds = new Set()
   /** @type {{[entryId: string]: string}} */
   let entrySources = {}
+  /** @type {Map<string, Set<string>>} */
+  let entryPageUrls = new Map()
+  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
+  let outputClaims = []
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
   const environmentInput = new ViteEnvironmentInputAdapter()
@@ -66,6 +70,8 @@ export function pluginEntry(uOpts = {}) {
     entries = {}
     entryIds = new Set()
     entrySources = {}
+    entryPageUrls = new Map()
+    outputClaims = []
     const renderedPages = buildSession
       ? await buildSession.artifacts.get(createRenderedPagesArtifactId())
       : undefined
@@ -95,9 +101,13 @@ export function pluginEntry(uOpts = {}) {
         pageId: createNodeId("page", "legacy-entry-analysis", ssgPage.fileName),
         html: ssgPage.html,
       })
-      assetNames.push(
-        ...collectEntryReferences(document).map(({ source }) => source),
-      )
+      const references = collectEntryReferences(document)
+      assetNames.push(...references.map(({ source }) => source))
+      for (const { source } of references) {
+        const urls = entryPageUrls.get(source) ?? new Set()
+        urls.add(ssgPage.url)
+        entryPageUrls.set(source, urls)
+      }
     }
     assetNames = [...new Set(assetNames)]
 
@@ -134,7 +144,7 @@ export function pluginEntry(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-entry",
-    api: { minista: { prepareClient: prepareAppClient, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
+    api: { minista: { prepareClient: prepareAppClient, outputClaims: () => outputClaims, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -215,6 +225,52 @@ export function pluginEntry(uOpts = {}) {
       const htmlItems = Object.values(outputAssets).filter((item) => {
         return item.fileName.endsWith(".html")
       })
+
+      /** @type {Map<string, {sources: Set<string>, pageUrls: Set<string>}>} */
+      const cssClaims = new Map()
+      outputClaims = [...bundleOutputs.values()].map((output) => {
+        const extension = path.extname(output.fileName)
+        const pageUrls = entryPageUrls.get(output.source) ??
+          entryPageUrls.get(`/${output.source}`) ??
+          entryPageUrls.get(output.source.replace(/^\/+/, "")) ??
+          new Set()
+        for (const fileName of output.cssFiles) {
+          const cssClaim = cssClaims.get(fileName) ?? {
+            sources: new Set(),
+            pageUrls: new Set(),
+          }
+          cssClaim.sources.add(output.source)
+          for (const pageUrl of pageUrls) cssClaim.pageUrls.add(pageUrl)
+          cssClaims.set(fileName, cssClaim)
+        }
+        return Object.freeze({
+          id: createNodeId("artifact", "entry-output", output.source),
+          kind: /** @type {"script"|"style"|"data"} */ (
+            extension === ".js"
+              ? "script"
+              : extension === ".css"
+                ? "style"
+                : "data"
+          ),
+          owner: createNodeId("feature", "entry"),
+          source: output.source,
+          fileName: output.fileName,
+          pageUrls: Object.freeze([...pageUrls]),
+          dependencies: Object.freeze([]),
+        })
+      })
+      outputClaims.push(...[...cssClaims].map(([fileName, claim]) => {
+        const sources = [...claim.sources].sort()
+        return Object.freeze({
+          id: createNodeId("artifact", "entry-style-output", fileName),
+          kind: /** @type {const} */ ("style"),
+          owner: createNodeId("feature", "entry"),
+          source: sources.join(","),
+          fileName,
+          pageUrls: Object.freeze([...claim.pageUrls]),
+          dependencies: Object.freeze([]),
+        })
+      }))
 
       for (const item of htmlItems) {
         const document = documents.parse({
