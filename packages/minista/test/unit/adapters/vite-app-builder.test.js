@@ -1,3 +1,6 @@
+import fs from "node:fs"
+import path from "node:path"
+
 import { describe, expect, test, vi } from "vitest"
 
 import {
@@ -86,5 +89,63 @@ describe("Vite App Builder adapter", () => {
       name: ViteAppEnvironmentNotFoundError.name,
       message: expect.stringContaining("render"),
     })
+  })
+
+  test("restores the previous client output when the client build fails", async () => {
+    const root = await fs.promises.mkdtemp(
+      path.resolve(process.env.TMPDIR || "/tmp", "minista-app-rollback-"),
+    )
+    const outDir = path.resolve(root, "dist")
+    try {
+      await fs.promises.mkdir(outDir)
+      await fs.promises.writeFile(
+        path.resolve(outDir, "stable.html"),
+        "stable",
+      )
+      const render = { name: "render" }
+      const client = {
+        name: "client",
+        config: {
+          root,
+          base: "/",
+          build: { write: true, outDir: "dist" },
+        },
+      }
+      const builder = {
+        environments: { render, client },
+        /** @param {{name: string}} environment */
+        async build(environment) {
+          if (environment.name === "client") {
+            await fs.promises.mkdir(outDir)
+            await fs.promises.writeFile(
+              path.resolve(outDir, "partial.html"),
+              "partial",
+            )
+            throw new Error("client failed")
+          }
+          return { output: [] }
+        },
+      }
+      const adapter = new ViteAppBuilderAdapter(
+        /** @type {any} */ (async () => builder),
+      )
+
+      await expect(
+        adapter.build(
+          attachViteBuildSession(
+            { configFile: false },
+            createViteBuildSession({ buildId: "build:test" }),
+          ),
+        ),
+      ).rejects.toThrow("client failed")
+      await expect(
+        fs.promises.readFile(path.resolve(outDir, "stable.html"), "utf8"),
+      ).resolves.toBe("stable")
+      await expect(
+        fs.promises.access(path.resolve(outDir, "partial.html")),
+      ).rejects.toMatchObject({ code: "ENOENT" })
+    } finally {
+      await fs.promises.rm(root, { recursive: true, force: true })
+    }
   })
 })

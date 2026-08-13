@@ -11,6 +11,7 @@ import {
   createViteOutputManifest,
   reconcileViteOutputManifest,
 } from "./output-manifest.js"
+import { ViteOutputTransaction } from "./output-transaction.js"
 
 /** @typedef {import("vite").BuildEnvironment} BuildEnvironment */
 /** @typedef {import("vite").InlineConfig} InlineConfig */
@@ -57,17 +58,34 @@ export class ViteAppBuilderAdapter {
     const preparation = { builder, render, client, renderOutput }
     await prepareViteClientEnvironment(preparation)
     await options.prepareClient?.(preparation)
-    const clientOutput = await builder.build(client)
-    let outputManifest = createViteOutputManifest(clientOutput, {
-      environment: clientName,
-      base: client.config.base,
-    })
-    if (client.config.build.write !== false) {
-      outputManifest = await reconcileViteOutputManifest(outputManifest, {
-        outDir: path.resolve(client.config.root, client.config.build.outDir),
+    const writesOutput = client.config.build.write !== false
+    const transaction = writesOutput
+      ? new ViteOutputTransaction({
+          root: client.config.root,
+          outDir: client.config.build.outDir,
+          buildId: session?.buildId,
+        })
+      : undefined
+    await transaction?.begin()
+
+    let outputManifest
+    try {
+      const clientOutput = await builder.build(client)
+      outputManifest = createViteOutputManifest(clientOutput, {
+        environment: clientName,
         base: client.config.base,
       })
+      if (transaction) {
+        outputManifest = await reconcileViteOutputManifest(outputManifest, {
+          outDir: transaction.outDir,
+          base: client.config.base,
+        })
+      }
+    } catch (error) {
+      await transaction?.rollback()
+      throw error
     }
+    await transaction?.commit()
 
     return Object.freeze({
       schemaVersion: "1",

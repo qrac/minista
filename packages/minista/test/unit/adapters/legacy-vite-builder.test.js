@@ -1,3 +1,6 @@
+import fs from "node:fs"
+import path from "node:path"
+
 import { describe, expect, test, vi } from "vitest"
 
 import {
@@ -7,7 +10,7 @@ import {
 
 describe("legacy Vite Builder adapter", () => {
   test("builds the single legacy environment through createBuilder", async () => {
-    const environment = { name: "ssr" }
+    const environment = { name: "ssr", config: { build: {} } }
     const build = vi.fn(async () => ({ output: [] }))
     const factory = vi.fn(async () => ({
       environments: { ssr: environment },
@@ -33,5 +36,44 @@ describe("legacy Vite Builder adapter", () => {
       code: "MINISTA_VITE_ENVIRONMENT_NOT_FOUND",
       name: ViteEnvironmentNotFoundError.name,
     })
+  })
+
+  test("restores output when the legacy client fallback fails", async () => {
+    const root = await fs.promises.mkdtemp(
+      path.resolve(process.env.TMPDIR || "/tmp", "minista-legacy-rollback-"),
+    )
+    const outDir = path.resolve(root, "dist")
+    try {
+      await fs.promises.mkdir(outDir)
+      await fs.promises.writeFile(path.resolve(outDir, "stable.html"), "stable")
+      const environment = {
+        name: "client",
+        config: { root, build: { write: true, outDir: "dist" } },
+      }
+      const adapter = new LegacyViteBuilderAdapter(
+        /** @type {any} */ (async () => ({
+          environments: { client: environment },
+          async build() {
+            await fs.promises.mkdir(outDir)
+            await fs.promises.writeFile(
+              path.resolve(outDir, "partial.html"),
+              "partial",
+            )
+            throw new Error("legacy client failed")
+          },
+        })),
+      )
+
+      await expect(adapter.build({ build: { ssr: false } }))
+        .rejects.toThrow("legacy client failed")
+      await expect(
+        fs.promises.readFile(path.resolve(outDir, "stable.html"), "utf8"),
+      ).resolves.toBe("stable")
+      await expect(
+        fs.promises.access(path.resolve(outDir, "partial.html")),
+      ).rejects.toMatchObject({ code: "ENOENT" })
+    } finally {
+      await fs.promises.rm(root, { recursive: true, force: true })
+    }
   })
 })
