@@ -1,5 +1,4 @@
 /** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 
@@ -13,6 +12,7 @@ import { NodeImageGenerator } from "../../adapters/image/index.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
+import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
@@ -83,24 +83,35 @@ export function pluginImage(uOpts = {}) {
     path.resolve(__dirname, "components/picture.js"),
   )
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-  let isAppBuild = false
-  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
-  let appEnvironmentNames
-  let base = "/"
-  let rootDir = ""
-  let imageDir = ""
-  /** @type {NodeImageGenerator | undefined} */
-  let generator
-  /** @type {ViteDevServer | undefined} */
-  let viteServer
-  const devPageIndex = new DevImagePageIndex()
-  const watchedSources = new Set()
+  const devStates = new ViteEnvironmentState(() => ({
+    rootDir: "",
+    imageDir: "",
+    base: "/",
+    /** @type {NodeImageGenerator | undefined} */
+    generator: undefined,
+    pageIndex: new DevImagePageIndex(),
+    watchedSources: /** @type {Set<string>} */ (new Set()),
+  }))
+  const devServers = new ViteDevServerRegistry()
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
+
+  /** @param {import("vite").ViteDevServer} server */
+  function getDevState(server) {
+    const state = devStates.get(server)
+    if (!state.generator) {
+      state.rootDir = getRootDir(cwd, server.config.root || "")
+      state.imageDir = path.resolve(getTempDir(cwd, state.rootDir), "image")
+      state.base = getServeBase(server.config.base || "/")
+      state.generator = new NodeImageGenerator(
+        state.rootDir,
+        state.imageDir,
+        true,
+      )
+    }
+    return state
+  }
 
   return {
     name: "vite-plugin:minista-image",
@@ -117,23 +128,16 @@ export function pluginImage(uOpts = {}) {
       },
     },
     enforce: "pre",
-    apply(config, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      appEnvironmentNames = getViteAppEnvironmentNames(config)
-      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
-      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isAppBuild && !isSsrBuild
-      return isDev || isAppBuild || isSsr || isBuild
+    apply(_, { command }) {
+      return command === "serve" || command === "build"
     },
-    async config(config) {
-      rootDir = getRootDir(cwd, config.root || "")
+    async config(config, { command, isSsrBuild }) {
+      const rootDir = getRootDir(cwd, config.root || "")
       const tempDir = getTempDir(cwd, rootDir)
-      imageDir = path.resolve(tempDir, "image")
-      generator = new NodeImageGenerator(rootDir, imageDir, isDev)
+      const imageDir = path.resolve(tempDir, "image")
       await fs.promises.mkdir(imageDir, { recursive: true })
 
-      if (isDev) {
-        base = getServeBase(config.base || base)
+      if (command === "serve") {
         return {
           ssr: {
             noExternal: mergeSsrNoExternal(config, ["minista"]),
@@ -148,27 +152,33 @@ export function pluginImage(uOpts = {}) {
           },
         }
       }
-      if (isSsr) {
+      const isAppBuild = Boolean(getViteAppEnvironmentNames(config))
+      if (command === "build" && !isAppBuild && isSsrBuild) {
         return {
           ssr: {
             noExternal: mergeSsrNoExternal(config, ["minista"]),
           },
         }
       }
-      if (isBuild || isAppBuild) base = getBuildBase(config.base || base)
     },
-    configureServer(server) {
-      viteServer = server
+    async configureServer(server) {
+      devServers.add(server)
+      server.httpServer?.once("close", () => devServers.delete(server))
+      const state = getDevState(server)
+      await fs.promises.mkdir(state.imageDir, { recursive: true })
       const updates = new ViteDevUpdateAdapter(server)
       server.watcher.on("all", (event, filePath) => {
         if (!["add", "change", "unlink"].includes(event)) return
-        const source = normalizePath(path.relative(rootDir, filePath))
-        const pages = devPageIndex.getPages(source)
+        const source = normalizePath(path.relative(state.rootDir, filePath))
+        const pages = state.pageIndex.getPages(source)
         if (pages.length > 0) updates.reloadPages(pages)
       })
     },
     async transformIndexHtml(html, context) {
-      if (!generator) return html
+      const server = devServers.resolve(context)
+      if (!server) return html
+      const state = getDevState(server)
+      if (!state.generator) return html
       const pageId = createNodeId(
         "page",
         "legacy-image-dev",
@@ -176,32 +186,33 @@ export function pluginImage(uOpts = {}) {
       )
       const document = documents.parse({ pageId, html })
       const references = collectImageReferences(document)
-      if (isDev) {
-        const localSources = [...new Set(
-          references
-            .map(({ source }) => source)
-            .filter((source) => !source.startsWith("http")),
-        )]
-        devPageIndex.replacePage(context?.path || "/", localSources)
-        for (const source of localSources) {
-          const sourceFile = path.resolve(rootDir, source.replace(/^\//, ""))
-          if (watchedSources.has(sourceFile)) continue
-          watchedSources.add(sourceFile)
-          viteServer?.watcher.add(sourceFile)
-        }
+      const localSources = [...new Set(
+        references
+          .map(({ source }) => source)
+          .filter((source) => !source.startsWith("http")),
+      )]
+      state.pageIndex.replacePage(context?.path || "/", localSources)
+      for (const source of localSources) {
+        const sourceFile = path.resolve(
+          state.rootDir,
+          source.replace(/^\//, ""),
+        )
+        if (state.watchedSources.has(sourceFile)) continue
+        state.watchedSources.add(sourceFile)
+        server.watcher.add(sourceFile)
       }
       if (references.length === 0) return html
-      const generated = await generator.generate(references, opts)
+      const generated = await state.generator.generate(references, opts)
 
       /** @type {Map<string, string>} */
       const outputUrls = new Map()
       for (const artifact of generated.artifacts) {
-        const outputFile = path.resolve(imageDir, artifact.fileName)
+        const outputFile = path.resolve(state.imageDir, artifact.fileName)
         await fs.promises.mkdir(path.dirname(outputFile), { recursive: true })
         await fs.promises.writeFile(outputFile, artifact.content)
         outputUrls.set(
           artifact.id,
-          `${trimEndSlash(base)}${imageAlias}/${normalizePath(artifact.fileName)}`,
+          `${trimEndSlash(state.base)}${imageAlias}/${normalizePath(artifact.fileName)}`,
         )
       }
       composeImageDocument(document, generated.plans, {
@@ -210,11 +221,16 @@ export function pluginImage(uOpts = {}) {
       return document.serialize()
     },
     transform(code, id) {
+      const appEnvironmentNames = getViteAppEnvironmentNames(
+        this.environment.getTopLevelConfig(),
+      )
       const isAppRender =
-        isAppBuild &&
+        Boolean(appEnvironmentNames) &&
         this.environment.name === appEnvironmentNames?.renderName
+      const isLegacyRender = Boolean(this.environment.config.build.ssr)
+      const isDev = this.environment.config.command === "serve"
       if (
-        (isBuild || (isAppBuild && !isAppRender)) ||
+        (!isDev && !isLegacyRender && !isAppRender) ||
         ![cpImagePath, cpPicturePath].includes(id)
       ) return
 
@@ -226,12 +242,18 @@ export function pluginImage(uOpts = {}) {
         .replace(/(const defaultOptimize = )\{\}/, `$1${optimizeStr}`)
     },
     async generateBundle(_options, bundle) {
+      const appEnvironmentNames = getViteAppEnvironmentNames(
+        this.environment.getTopLevelConfig(),
+      )
       if (
-        isSsr ||
-        (isAppBuild &&
-          this.environment.name !== appEnvironmentNames?.clientName) ||
-        !generator
+        this.environment.config.build.ssr ||
+        (appEnvironmentNames &&
+          this.environment.name !== appEnvironmentNames?.clientName)
       ) return
+      const rootDir = getRootDir(cwd, this.environment.config.root || "")
+      const imageDir = path.resolve(getTempDir(cwd, rootDir), "image")
+      const generator = new NodeImageGenerator(rootDir, imageDir, false)
+      const base = getBuildBase(this.environment.config.base || "/")
       const outputClaims = claimStates.get(this.environment).claims
       outputClaims.length = 0
       const htmlItems = Object.values(filterOutputAssets(bundle)).filter(

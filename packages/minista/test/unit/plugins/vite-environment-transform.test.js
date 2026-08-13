@@ -24,8 +24,18 @@ const configEnvironment = {
  */
 async function transform(plugin, environmentName, code, id) {
   if (typeof plugin.transform !== "function") return undefined
+  const topLevelConfig = createViteAppConfig({})
   return plugin.transform.call(
-    /** @type {any} */ ({ environment: { name: environmentName } }),
+    /** @type {any} */ ({
+      environment: {
+        name: environmentName,
+        config: {
+          command: "build",
+          build: { ssr: environmentName === "render" },
+        },
+        getTopLevelConfig: () => topLevelConfig,
+      },
+    }),
     code,
     id,
   )

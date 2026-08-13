@@ -45,7 +45,7 @@ App BuildではViteが全environmentのconfigをbuild前に解決するため、
 
 `pluginSsg()` は引き続きVite middlewareを登録しますが、module評価は `ViteDevModuleEvaluator` を通じて `RunnableDevEnvironment.runner.import()` を使用します。adapterはrunnable environmentのguard、module invalidation、stacktrace補正を所有し、Core側にはViteの型を公開しません。最初のrequestでroute解決と全page renderを行い、世代管理付きの `DevPageCache` がsnapshotを後続requestで再利用します。page/layoutの依存moduleに到達するhot updateではsnapshotを破棄し、次のrequestで再評価します。`ViteDevUpdateAdapter` は変更moduleのimporter chainをroute sourceへ投影し、`LegacySsgRouteCache` は影響routeだけRouteNode／PageNodeと `getStaticData()` を再解決します。Project Graph全体はcache entryから毎回再構成し、duplicate routeなどのglobal invariantを再検証します。`DevRenderCache` も影響RouteNode配下のPageNodeだけを破棄し、layout変更またはrouteを限定できない変更では全pageを破棄します。
 
-Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置換し、開発用sourceやassetを `.minista` に生成します。Imageはdomainの参照収集とdocument composeを使い、Node adapterが生成した画像assetだけを `.minista` に保存します。IslandとSearchも共有module evaluatorから `virtual:ssg-pages` をimportし、plugin／CLIからの `ssrLoadModule()` 直接利用は除去済みです。
+Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置換し、開発用sourceやassetを `.minista` に生成します。Imageはdomainの参照収集とdocument composeを使い、Node adapterが生成した画像assetだけを `.minista` に保存します。Sprite／Imageのdev generator、watch対象、Page indexはserver identity単位に分離されています。IslandとSearchも共有module evaluatorから `virtual:ssg-pages` をimportし、plugin／CLIからの `ssrLoadModule()` 直接利用は除去済みです。
 
 `pluginSsg()` のHMRは `hotUpdate` から `ViteDevUpdateAdapter` を呼び、environment別module graphの存在確認・invalidationと `environment.hot` によるreloadをadapterへ閉じています。page固有のdocument変更ではdev HTMLへ注入したlistenerへ影響PageNodeのURLだけを送り、layout変更またはrouteを限定できない変更だけ標準full reloadを送ります。Spriteは `DevSpritePageIndex` にsource directoryと参照ページURL、Imageは `DevImagePageIndex` にlocal sourceと参照ページURLのedgeを保存し、source変更時は該当ページだけをreloadします。plugin内の `server.ws`、mixed `server.environments`、module graph直接操作は除去済みです。route source／PageNodeとSprite／Image Artifactのinvalidation対応付けは実装済みです。
 
@@ -76,7 +76,7 @@ interface RenderedPage {
 | dev feature | `transformIndexHtml()`とfeature別の差分cache／page index | productionと同じ長寿命lifecycleではない |
 | MDX | `@mdx-js/rollup`を包むcompiler adapter | document／output phaseを持たずVite transformとして残る |
 
-module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautify／Svgの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。Svgなどの `transformIndexHtml()` が使用するconfig解決値とdev cache／page indexにはplugin instance closureのmutable stateが残るため、plugin instanceを任意のenvironment間で共有する構成への対応は移行中です。
+module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautify／Svgの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。Sprite／Imageのdev stateは `ViteDevServerRegistry` が解決するserver identityごとに分離し、production generator／root／baseはbundle environment configから生成します。Svgなどの `transformIndexHtml()` が使用するconfig解決値と、その他のdev cache／page indexにはplugin instance closureのmutable stateが残るため、plugin instanceを任意のenvironment間で共有する構成への対応は移行中です。
 
 ### Diagnostics and tests
 
@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。`transformIndexHtml()` のhook contextがenvironmentを公開しない箇所を含め、plugin closureに残るconfig解決値とdev cache／page indexのenvironment分離は残存課題です。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。Sprite／Image以外で `transformIndexHtml()` が使用するconfig解決値と、plugin closureに残るdev cache／page indexのenvironment分離は残存課題です。
 
 ## CoreとFeatureの実装contract
 

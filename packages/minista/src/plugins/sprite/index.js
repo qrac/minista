@@ -1,5 +1,4 @@
 /** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
@@ -13,6 +12,7 @@ import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
+import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectSpriteReferences,
@@ -45,30 +45,39 @@ export function pluginSprite(uOpts = {}) {
   const cwd = process.cwd()
   const spriteAlias = "/@__minista-sprite"
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-  let base = "/"
-  let rootDir = ""
-  let spriteDir = ""
-  /** @type {NodeSpriteBuilder | undefined} */
-  let builder
-  /** @type {Set<string>} */
-  const watchDirectories = new Set()
-  /** @type {ViteDevServer | undefined} */
-  let viteServer
-  const devPageIndex = new DevSpritePageIndex()
+  const devStates = new ViteEnvironmentState(() => ({
+    rootDir: "",
+    spriteDir: "",
+    base: "/",
+    /** @type {NodeSpriteBuilder | undefined} */
+    builder: undefined,
+    watchDirectories: /** @type {Set<string>} */ (new Set()),
+    pageIndex: new DevSpritePageIndex(),
+  }))
+  const devServers = new ViteDevServerRegistry()
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
 
-  /** @param {string} sourceDirectory */
-  async function writeDevSprite(sourceDirectory) {
-    if (!builder) return
+  /** @param {import("vite").ViteDevServer} server */
+  function getDevState(server) {
+    const state = devStates.get(server)
+    if (!state.builder) {
+      state.rootDir = getRootDir(cwd, server.config.root || "")
+      state.spriteDir = path.resolve(getTempDir(cwd, state.rootDir), "sprite")
+      state.base = getServeBase(server.config.base || "/")
+      state.builder = new NodeSpriteBuilder(state.rootDir, opts.config)
+    }
+    return state
+  }
+
+  /** @param {ReturnType<typeof getDevState>} state @param {string} sourceDirectory */
+  async function writeDevSprite(state, sourceDirectory) {
+    if (!state.builder) return
     const name = path.basename(sourceDirectory)
-    const sprite = await builder.build(sourceDirectory)
+    const sprite = await state.builder.build(sourceDirectory)
     await fs.promises.writeFile(
-      path.resolve(spriteDir, `${name}.svg`),
+      path.resolve(state.spriteDir, `${name}.svg`),
       sprite,
       "utf8",
     )
@@ -79,52 +88,49 @@ export function pluginSprite(uOpts = {}) {
     api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isBuild
+      return command === "serve" || (command === "build" && !isSsrBuild)
     },
     applyToEnvironment: isViteAppClientEnvironment,
-    async config(config) {
-      rootDir = getRootDir(cwd, config.root || "")
-      builder = new NodeSpriteBuilder(rootDir, opts.config)
-
-      if (isDev) {
-        base = getServeBase(config.base || base)
-        spriteDir = path.resolve(getTempDir(cwd, rootDir), "sprite")
-        await fs.promises.mkdir(spriteDir, { recursive: true })
-        return {
-          resolve: {
-            alias: mergeAlias(config, [
-              {
-                find: spriteAlias,
-                replacement: normalizePath(spriteDir),
-              },
-            ]),
-          },
-        }
+    async config(config, { command }) {
+      if (command !== "serve") return
+      const rootDir = getRootDir(cwd, config.root || "")
+      const spriteDir = path.resolve(getTempDir(cwd, rootDir), "sprite")
+      await fs.promises.mkdir(spriteDir, { recursive: true })
+      return {
+        resolve: {
+          alias: mergeAlias(config, [
+            {
+              find: spriteAlias,
+              replacement: normalizePath(spriteDir),
+            },
+          ]),
+        },
       }
-      if (isBuild) base = getBuildBase(config.base || base)
     },
-    configureServer(server) {
-      viteServer = server
+    async configureServer(server) {
+      devServers.add(server)
+      server.httpServer?.once("close", () => devServers.delete(server))
+      const state = getDevState(server)
+      await fs.promises.mkdir(state.spriteDir, { recursive: true })
       const updates = new ViteDevUpdateAdapter(server)
       server.watcher.on("all", async (event, filePath) => {
         if (!filePath.endsWith(".svg")) return
         if (!["add", "change", "unlink"].includes(event)) return
         const targetDirectory = path.dirname(filePath)
-        if (!watchDirectories.has(targetDirectory)) return
+        if (!state.watchDirectories.has(targetDirectory)) return
         const sourceDirectory = normalizePath(
-          path.relative(rootDir, targetDirectory),
+          path.relative(state.rootDir, targetDirectory),
         )
-        await writeDevSprite(sourceDirectory)
-        const pages = devPageIndex.getPages(sourceDirectory)
+        await writeDevSprite(state, sourceDirectory)
+        const pages = state.pageIndex.getPages(sourceDirectory)
         if (pages.length > 0) updates.reloadPages(pages)
         else updates.fullReload()
       })
     },
     async transformIndexHtml(html, context) {
-      if (!builder) return html
+      const server = devServers.resolve(context)
+      if (!server) return html
+      const state = getDevState(server)
       const document = documents.parse({
         pageId: createNodeId("page", "legacy-sprite", context.path),
         html,
@@ -133,18 +139,18 @@ export function pluginSprite(uOpts = {}) {
       const sourceDirectories = [
         ...new Set(references.map(({ sourceDirectory }) => sourceDirectory)),
       ]
-      if (isDev) devPageIndex.replacePage(context.path, sourceDirectories)
+      state.pageIndex.replacePage(context.path, sourceDirectories)
       if (references.length === 0) return html
       for (const sourceDirectory of sourceDirectories) {
-        const watchDirectory = path.resolve(rootDir, sourceDirectory)
-        if (!watchDirectories.has(watchDirectory)) {
-          await writeDevSprite(sourceDirectory)
-          watchDirectories.add(watchDirectory)
-          viteServer?.watcher.add(watchDirectory)
+        const watchDirectory = path.resolve(state.rootDir, sourceDirectory)
+        if (!state.watchDirectories.has(watchDirectory)) {
+          await writeDevSprite(state, sourceDirectory)
+          state.watchDirectories.add(watchDirectory)
+          server.watcher.add(watchDirectory)
         }
       }
       const timestamp = Date.now()
-      const prefixBase = base.replace(/\/$/, "")
+      const prefixBase = state.base.replace(/\/$/, "")
       const outputByArtifact = new Map(
         sourceDirectories.map((sourceDirectory) => [
           createSpriteArtifactId(sourceDirectory),
@@ -157,7 +163,9 @@ export function pluginSprite(uOpts = {}) {
       return document.serialize()
     },
     async generateBundle(options, bundle) {
-      if (!builder) return
+      const rootDir = getRootDir(cwd, this.environment.config.root || "")
+      const base = getBuildBase(this.environment.config.base || "/")
+      const builder = new NodeSpriteBuilder(rootDir, opts.config)
       const outputClaims = claimStates.get(this.environment).claims
       outputClaims.length = 0
       const htmlItems = Object.values(filterOutputAssets(bundle)).filter((item) =>
