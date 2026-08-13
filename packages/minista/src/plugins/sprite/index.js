@@ -16,6 +16,7 @@ import {
   collectSpriteReferences,
   composeSpriteDocument,
   createSpriteArtifactId,
+  DevSpritePageIndex,
 } from "../../features/sprite/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
@@ -52,6 +53,7 @@ export function pluginSprite(uOpts = {}) {
   const watchDirectories = new Set()
   /** @type {ViteDevServer | undefined} */
   let viteServer
+  const devPageIndex = new DevSpritePageIndex()
 
   /** @param {string} sourceDirectory */
   async function writeDevSprite(sourceDirectory) {
@@ -105,10 +107,13 @@ export function pluginSprite(uOpts = {}) {
         if (!["add", "change", "unlink"].includes(event)) return
         const targetDirectory = path.dirname(filePath)
         if (!watchDirectories.has(targetDirectory)) return
-        await writeDevSprite(
-          normalizePath(path.relative(rootDir, targetDirectory)),
+        const sourceDirectory = normalizePath(
+          path.relative(rootDir, targetDirectory),
         )
-        updates.fullReload()
+        await writeDevSprite(sourceDirectory)
+        const pages = devPageIndex.getPages(sourceDirectory)
+        if (pages.length > 0) updates.reloadPages(pages)
+        else updates.fullReload()
       })
     },
     async transformIndexHtml(html, context) {
@@ -118,10 +123,11 @@ export function pluginSprite(uOpts = {}) {
         html,
       })
       const references = collectSpriteReferences(document)
-      if (references.length === 0) return html
       const sourceDirectories = [
         ...new Set(references.map(({ sourceDirectory }) => sourceDirectory)),
       ]
+      if (isDev) devPageIndex.replacePage(context.path, sourceDirectories)
+      if (references.length === 0) return html
       for (const sourceDirectory of sourceDirectories) {
         const watchDirectory = path.resolve(rootDir, sourceDirectory)
         if (!watchDirectories.has(watchDirectory)) {

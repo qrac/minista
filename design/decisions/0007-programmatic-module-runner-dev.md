@@ -21,7 +21,7 @@ devを次の順に段階移行します。
 
 CoreはVite server、ModuleRunner、module graphの型を持ちません。module評価は既存の `ModuleEvaluator` portを通します。
 
-手順1〜3は実装済みです。`ViteDevModuleEvaluator` は移行中の `ssr` environmentをguardし、SSG、Island、Search、project commandのmodule評価を共有します。手順4はpage snapshot cache、変更moduleからroute sourceへのimporter traversal、影響RouteNode配下のPageNode render cache invalidationまで実装しました。route discoveryの差分cacheとArtifact edgeへの拡張は未実装です。手順5は `ViteDevUpdateAdapter` がenvironment別module graphとhot channelを所有し、pluginからmixed graph／直接WebSocket操作を除去しました。page固有変更はcustom HMR eventで該当URLだけをreloadし、全体変更だけ標準full reloadへfallbackします。
+手順1〜3は実装済みです。`ViteDevModuleEvaluator` は移行中の `ssr` environmentをguardし、SSG、Island、Search、project commandのmodule評価を共有します。手順4はpage snapshot cache、変更moduleからroute sourceへのimporter traversal、影響RouteNode配下のPageNode render cache invalidationまで実装しました。Spriteはsource directoryから参照ページへのArtifact edgeも保持します。route discoveryの差分cacheと他Artifactへの拡張は未実装です。手順5は `ViteDevUpdateAdapter` がenvironment別module graphとhot channelを所有し、pluginからmixed graph／直接WebSocket操作を除去しました。page固有変更とSprite変更はcustom HMR eventで該当URLだけをreloadし、全体変更だけ標準full reloadへfallbackします。
 
 ## Consequences
 

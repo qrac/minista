@@ -147,13 +147,45 @@ export default function Other() {
           "minista:full-reload",
           { paths: ["/"] },
         )
+        hotSend.mockRestore()
         return
       }
       await new Promise((resolve) => setTimeout(resolve, 50))
     }
 
+    hotSend.mockRestore()
     throw new Error(
       "The dev page cache was not invalidated after a source change.",
     )
+  }, 15_000)
+
+  test("reloads only pages connected to a changed sprite artifact", async () => {
+    if (!running) throw new Error("The dev server is not running.")
+    const hotSend = vi.spyOn(running.server.environments.client.hot, "send")
+    const spriteFile = path.resolve(fixtureDir, "src/assets/pixel.svg")
+    const source = await fs.promises.readFile(spriteFile, "utf8")
+    await fs.promises.writeFile(
+      spriteFile,
+      source.replace("#123456", "#654321"),
+      "utf8",
+    )
+
+    const deadline = Date.now() + 10_000
+    while (Date.now() < deadline) {
+      const targetedReload = hotSend.mock.calls.find(
+        ([event, payload]) =>
+          event === "minista:full-reload" &&
+          JSON.stringify(payload) === JSON.stringify({ paths: ["/"] }),
+      )
+      if (targetedReload) {
+        expect(targetedReload[1]).not.toMatchObject({ paths: ["/other"] })
+        hotSend.mockRestore()
+        return
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+
+    hotSend.mockRestore()
+    throw new Error("The changed sprite artifact did not target its page.")
   }, 15_000)
 })
