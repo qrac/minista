@@ -11,6 +11,7 @@ import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeSpriteBuilder } from "../../adapters/sprite/index.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
@@ -57,8 +58,9 @@ export function pluginSprite(uOpts = {}) {
   /** @type {ViteDevServer | undefined} */
   let viteServer
   const devPageIndex = new DevSpritePageIndex()
-  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
-  let outputClaims = []
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
 
   /** @param {string} sourceDirectory */
   async function writeDevSprite(sourceDirectory) {
@@ -74,7 +76,7 @@ export function pluginSprite(uOpts = {}) {
 
   return {
     name: "vite-plugin:minista-sprite",
-    api: { minista: { outputClaims: () => outputClaims, feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html-documents"] } } },
+    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -156,7 +158,8 @@ export function pluginSprite(uOpts = {}) {
     },
     async generateBundle(options, bundle) {
       if (!builder) return
-      outputClaims = []
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
       const htmlItems = Object.values(filterOutputAssets(bundle)).filter((item) =>
         item.fileName.endsWith(".html"),
       )

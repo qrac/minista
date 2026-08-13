@@ -109,6 +109,7 @@ export class LegacyViteBuilderAdapter {
       if (projectGraph && outputManifest) {
         const collected = await collectViteOutputClaims(
           environment.config.plugins,
+          environment,
         )
         projectGraph = applyOutputClaims(
           projectGraph,

@@ -19,6 +19,7 @@ import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   createIslandFeature,
@@ -86,8 +87,9 @@ export function pluginIsland(uOpts = {}) {
   let entries = {}
   /** @type {import("../../features/island/index.js").IslandSourcePlan | undefined} */
   let sourcePlan
-  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
-  let outputClaims = []
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
   const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
@@ -96,7 +98,6 @@ export function pluginIsland(uOpts = {}) {
   async function prepareIslandEntries() {
     entries = {}
     sourcePlan = undefined
-    outputClaims = []
     const dataReader = new ViteBuildDataReader({
       root: rootDir,
       session: buildSession,
@@ -157,6 +158,7 @@ export function pluginIsland(uOpts = {}) {
   /** @param {ViteEnvironmentPreparation} preparation */
   async function prepareAppClient(preparation) {
     if (!isAppBuild) return
+    claimStates.delete(preparation.client)
     await prepareIslandEntries()
     environmentInput.merge(preparation.client, entries)
   }
@@ -166,7 +168,7 @@ export function pluginIsland(uOpts = {}) {
     api: {
       minista: {
         prepareClient: prepareAppClient,
-        outputClaims: () => outputClaims,
+        outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims,
         feature: {
           id: "island",
           apiVersion: 1,
@@ -301,7 +303,8 @@ export function pluginIsland(uOpts = {}) {
       if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
         return
       }
-      outputClaims = []
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
 
       const outputChunks = filterOutputChunks(bundle)
       const outputAssets = filterOutputAssets(bundle)

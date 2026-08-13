@@ -153,7 +153,10 @@ export class ViteAppBuilderAdapter {
     const collector = session?.diagnostics ?? new DiagnosticCollector()
     let projectGraph = session?.state?.projectGraph
     if (projectGraph) {
-      const collected = await collectViteOutputClaims(client.config.plugins)
+      const collected = await collectViteOutputClaims(
+        client.config.plugins,
+        client,
+      )
       projectGraph = applyOutputClaims(
         projectGraph,
         collected.claims,

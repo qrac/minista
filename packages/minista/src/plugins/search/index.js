@@ -12,6 +12,7 @@ import { NodeSearchDocumentAnalyzer } from "../../adapters/html/index.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   createSearchFeature,
@@ -69,21 +70,13 @@ export function pluginSearch(uOpts = {}) {
   let appEnvironmentNames
 
   let base = "/"
-  let after = ""
-  /** @type {string[]} */
-  let outputPageUrls = []
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
 
-  function getOutputClaims() {
-    if (!after) return []
-    return [Object.freeze({
-      id: createSearchDataArtifactId(opts.outName),
-      kind: /** @type {const} */ ("data"),
-      owner: createNodeId("feature", "search"),
-      source: "search-data",
-      fileName: after,
-      pageUrls: Object.freeze([...outputPageUrls]),
-      dependencies: Object.freeze([]),
-    })]
+  /** @param {import("vite").Environment | undefined} environment */
+  function getOutputClaims(environment) {
+    return claimStates.get(environment).claims
   }
 
   return {
@@ -161,8 +154,8 @@ export function pluginSearch(uOpts = {}) {
         isAppBuild &&
         this.environment.name !== appEnvironmentNames?.clientName
       ) return
-      after = ""
-      outputPageUrls = []
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
 
@@ -190,13 +183,22 @@ export function pluginSearch(uOpts = {}) {
       }
       /** @type {import("../../features/search/index.js").SearchData} */
       const searchData = JSON.parse(String(searchArtifact.content))
-      outputPageUrls = searchData.pages.map(({ url }) => url)
+      const outputPageUrls = searchData.pages.map(({ url }) => url)
       const referenceId = this.emitFile({
         type: "asset",
         name: `${opts.outName}.json`,
         source: JSON.stringify(searchData),
       })
-      after = this.getFileName(referenceId)
+      const after = this.getFileName(referenceId)
+      outputClaims.push(Object.freeze({
+        id: createSearchDataArtifactId(opts.outName),
+        kind: /** @type {const} */ ("data"),
+        owner: createNodeId("feature", "search"),
+        source: "search-data",
+        fileName: after,
+        pageUrls: Object.freeze(outputPageUrls),
+        dependencies: Object.freeze([]),
+      }))
 
       const fetchItems = Object.values(outputChunks).filter((item) => {
         return item.moduleIds.includes(cpSearchPath)

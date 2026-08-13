@@ -9,6 +9,7 @@ import { NodeArchiveBuilder } from "../../adapters/archive/index.js"
 import { NodeOutputWriter } from "../../adapters/filesystem/output-writer.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { processViteOutputs } from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createArchiveFeature } from "../../features/archive/index.js"
 import { getRootDir } from "../../shared/path.js"
@@ -39,13 +40,14 @@ export function pluginArchive(uOpts = {}) {
   let rootDir = ""
   /** @type {NodeArchiveBuilder | undefined} */
   let builder
-  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
-  let outputClaims = []
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
   const outputWriter = new NodeOutputWriter()
 
   return {
     name: "vite-plugin:minista-archive",
-    api: { minista: { outputClaims: () => outputClaims, feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["output-files"], optionalAfter: ["beautify"] } } },
+    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["output-files"], optionalAfter: ["beautify"] } } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -61,7 +63,8 @@ export function pluginArchive(uOpts = {}) {
     async writeBundle(options) {
       const dist = options.dir
       if (!dist || !builder) return
-      outputClaims = []
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
       const outputs = await processViteOutputs([], [
         createArchiveFeature(opts, builder),
       ])

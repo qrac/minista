@@ -1,4 +1,4 @@
-import type { Plugin } from "vite"
+import type { Environment, Plugin } from "vite"
 import type {
   FeatureNode,
   OutputClaim,
@@ -11,7 +11,7 @@ export interface MinistaOutputClaimApi {
     readonly provides: readonly string[]
     readonly requires: readonly string[]
   }
-  readonly outputClaims?: () =>
+  readonly outputClaims?: (environment?: Environment) =>
     | readonly OutputClaim[]
     | Promise<readonly OutputClaim[]>
 }
@@ -21,4 +21,5 @@ export interface ViteOutputClaimCollection {
 }
 export declare function collectViteOutputClaims(
   plugins: readonly Plugin[],
+  environment?: Environment,
 ): Promise<ViteOutputClaimCollection>

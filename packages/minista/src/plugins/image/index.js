@@ -13,6 +13,7 @@ import { NodeImageGenerator } from "../../adapters/image/index.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectImageReferences,
@@ -97,14 +98,15 @@ export function pluginImage(uOpts = {}) {
   let viteServer
   const devPageIndex = new DevImagePageIndex()
   const watchedSources = new Set()
-  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
-  let outputClaims = []
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
 
   return {
     name: "vite-plugin:minista-image",
     api: {
       minista: {
-        outputClaims: () => outputClaims,
+        outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims,
         feature: {
           id: "image",
           apiVersion: 1,
@@ -230,7 +232,8 @@ export function pluginImage(uOpts = {}) {
           this.environment.name !== appEnvironmentNames?.clientName) ||
         !generator
       ) return
-      outputClaims = []
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
       const htmlItems = Object.values(filterOutputAssets(bundle)).filter(
         (item) => item.fileName.endsWith(".html"),
       )

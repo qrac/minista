@@ -8,6 +8,7 @@ import { normalizePath } from "vite"
 
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createBundleFeature } from "../../features/bundle/index.js"
 import { getGlobImportCode } from "./utils/code.js"
@@ -55,12 +56,13 @@ export function pluginBundle(uOpts = {}) {
 
   /** @type {Set<string>} */
   let importedImageFiles = new Set()
-  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
-  let outputClaims = []
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
 
   return {
     name: "vite-plugin:minista-bundle",
-    api: { minista: { outputClaims: () => outputClaims, feature: { id: "bundle", apiVersion: 1, options: opts, provides: ["client-bundle"], requires: ["html-documents"] } } },
+    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "bundle", apiVersion: 1, options: opts, provides: ["client-bundle"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -71,7 +73,7 @@ export function pluginBundle(uOpts = {}) {
     applyToEnvironment: isViteAppClientEnvironment,
     config: async (config) => {
       importedImageFiles = new Set()
-      outputClaims = []
+      claimStates.clear()
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")
@@ -122,7 +124,8 @@ export function pluginBundle(uOpts = {}) {
       }
     },
     async generateBundle(options, bundle) {
-      outputClaims = []
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
       const outputChunks = filterOutputChunks(bundle)
       const outputAssets = filterOutputAssets(bundle)
 

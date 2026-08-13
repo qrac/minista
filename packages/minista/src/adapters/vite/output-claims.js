@@ -4,9 +4,10 @@ import { createNodeId } from "../../core/graph/index.js"
 
 /**
  * @param {readonly import("vite").Plugin[]} plugins
+ * @param {import("vite").Environment} [environment]
  * @returns {Promise<import("./output-claims.js").ViteOutputClaimCollection>}
  */
-export async function collectViteOutputClaims(plugins) {
+export async function collectViteOutputClaims(plugins, environment) {
   /** @type {import("../../core/graph/index.js").FeatureNode[]} */
   const features = []
   /** @type {import("../../core/graph/index.js").OutputClaim[]} */
@@ -25,7 +26,7 @@ export async function collectViteOutputClaims(plugins) {
       }))
     }
     if (minista?.outputClaims) {
-      claims.push(...await minista.outputClaims())
+      claims.push(...await minista.outputClaims(environment))
     }
   }
   return Object.freeze({

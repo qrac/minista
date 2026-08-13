@@ -721,6 +721,7 @@ export function pluginSsg(uOpts = {}) {
       const diagnostics = new DiagnosticCollector()
       const collected = await collectViteOutputClaims(
         externalClientPlugins,
+        this.environment,
       )
       const claimedGraph = applyOutputClaims(
         projectGraph,

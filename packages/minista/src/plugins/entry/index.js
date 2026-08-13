@@ -13,6 +13,7 @@ import { ViteBuildDataReader } from "../../adapters/vite/build-data-reader.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createEntryFeature } from "../../features/entry/index.js"
 import { getRootDir } from "../../shared/path.js"
@@ -53,8 +54,9 @@ export function pluginEntry(uOpts = {}) {
   let entrySources = {}
   /** @type {Map<string, Set<string>>} */
   let entryPageUrls = new Map()
-  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
-  let outputClaims = []
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
   const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
@@ -65,7 +67,6 @@ export function pluginEntry(uOpts = {}) {
     entryIds = new Set()
     entrySources = {}
     entryPageUrls = new Map()
-    outputClaims = []
     ssgPages = await new ViteBuildDataReader({
       root: rootDir,
       session: buildSession,
@@ -131,13 +132,14 @@ export function pluginEntry(uOpts = {}) {
   /** @param {ViteEnvironmentPreparation} preparation */
   async function prepareAppClient(preparation) {
     if (!isAppBuild) return
+    claimStates.delete(preparation.client)
     await prepareEntries()
     environmentInput.merge(preparation.client, entries)
   }
 
   return {
     name: "vite-plugin:minista-entry",
-    api: { minista: { prepareClient: prepareAppClient, outputClaims: () => outputClaims, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
+    api: { minista: { prepareClient: prepareAppClient, outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -219,7 +221,9 @@ export function pluginEntry(uOpts = {}) {
 
       /** @type {Map<string, {sources: Set<string>, pageUrls: Set<string>}>} */
       const cssClaims = new Map()
-      outputClaims = [...bundleOutputs.values()].map((output) => {
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
+      outputClaims.push(...[...bundleOutputs.values()].map((output) => {
         const extension = path.extname(output.fileName)
         const pageUrls = entryPageUrls.get(output.source) ??
           entryPageUrls.get(`/${output.source}`) ??
@@ -249,7 +253,7 @@ export function pluginEntry(uOpts = {}) {
           pageUrls: Object.freeze([...pageUrls]),
           dependencies: Object.freeze([]),
         })
-      })
+      }))
       outputClaims.push(...[...cssClaims].map(([fileName, claim]) => {
         const sources = [...claim.sources].sort()
         return Object.freeze({
