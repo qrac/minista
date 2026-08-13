@@ -145,6 +145,7 @@ export async function processViteDocuments(
       })
     })),
     artifacts: await lifecycle.artifacts.list(),
+    graph: lifecycle.graph.snapshot(),
   })
 }
 

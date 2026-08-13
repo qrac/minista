@@ -8,17 +8,15 @@ import fs from "node:fs"
 import path from "node:path"
 import { normalizePath } from "vite"
 
-import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { ViteBuildDataReader } from "../../adapters/vite/build-data-reader.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { createNodeId } from "../../core/graph/index.js"
-import {
-  collectEntryReferences,
-  composeEntryDocument,
-} from "../../features/entry/index.js"
+import { createEntryFeature } from "../../features/entry/index.js"
 import { getRootDir } from "../../shared/path.js"
+import { getHtmlPageUrl } from "../../shared/filename.js"
 import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
 import { regScript } from "../../shared/reg.js"
 import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
@@ -26,7 +24,6 @@ import { createAssetEntryId } from "../../shared/asset.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {}
-const documents = new NodeHtmlDocumentFactory()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -75,23 +72,35 @@ export function pluginEntry(uOpts = {}) {
       externalBuildId,
     }).readRenderedPages()
 
+    const analysis = await processViteDocuments(
+      ssgPages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+      [createEntryFeature(
+        opts,
+        { bundle: async () => [] },
+        { resolve: () => undefined },
+      )],
+      ["analyze"],
+    )
+    /** @type {import("../../features/entry/index.js").EntryReference[]} */
+    const references = analysis.artifacts
+      .filter((record) =>
+        record.mediaType === "application/vnd.minista.entry-references+json"
+      )
+      .flatMap((record) => JSON.parse(String(record.content)))
+    const pageUrls = new Map(
+      [...analysis.graph.pages.values()].map(({ id, url }) => [id, url]),
+    )
     /** @type {string[]} */
-    let assetNames = []
+    let assetNames = references.map(({ source }) => source)
     /** @type {{ [pathId: string]: string }} */
     const preEntries = {}
 
-    for (const ssgPage of ssgPages) {
-      const document = documents.parse({
-        pageId: createNodeId("page", "legacy-entry-analysis", ssgPage.fileName),
-        html: ssgPage.html,
-      })
-      const references = collectEntryReferences(document)
-      assetNames.push(...references.map(({ source }) => source))
-      for (const { source } of references) {
-        const urls = entryPageUrls.get(source) ?? new Set()
-        urls.add(ssgPage.url)
-        entryPageUrls.set(source, urls)
-      }
+    for (const { pageId, source } of references) {
+      const url = pageUrls.get(pageId)
+      if (!url) continue
+      const urls = entryPageUrls.get(source) ?? new Set()
+      urls.add(url)
+      entryPageUrls.set(source, urls)
     }
     assetNames = [...new Set(assetNames)]
 
@@ -159,7 +168,7 @@ export function pluginEntry(uOpts = {}) {
         },
       }
     },
-    generateBundle(options, bundle) {
+    async generateBundle(options, bundle) {
       const outputChunks = filterOutputChunks(bundle)
       const outputAssets = filterOutputAssets(bundle)
       const entryIds = Object.keys(entries)
@@ -254,16 +263,43 @@ export function pluginEntry(uOpts = {}) {
         })
       }))
 
-      for (const item of htmlItems) {
-        const document = documents.parse({
-          pageId: createNodeId("page", "legacy-entry-compose", item.fileName),
-          html: String(item.source),
-        })
-        composeEntryDocument(document, [...bundleOutputs.values()], {
-          resolve: (fileName) =>
-            getBasedAssetUrl(base, item.fileName, fileName),
-        })
-        item.source = document.serialize()
+      const pages = htmlItems.map((item) => ({
+        item,
+        fileName: item.fileName,
+        url: getHtmlPageUrl(item.fileName),
+        html: String(item.source),
+      }))
+      const pageFileNames = new Map()
+      const result = await processViteDocuments(
+        pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+        [createEntryFeature(
+          opts,
+          { bundle: async () => [...bundleOutputs.values()] },
+          {
+            resolve(fileName, pageId) {
+              const pageFileName = pageFileNames.get(pageId)
+              return pageFileName
+                ? getBasedAssetUrl(base, pageFileName, fileName)
+                : undefined
+            },
+          },
+        )],
+        ["analyze", "bundle", "compose"],
+        {
+          beforeCompose({ graph }) {
+            for (const page of graph.pages.values()) {
+              const route = graph.routes.get(page.routeId)
+              if (route) pageFileNames.set(page.id, route.pageModuleId)
+            }
+          },
+        },
+      )
+      const outputDocuments = new Map(
+        result.documents.map((document) => [document.fileName, document]),
+      )
+      for (const page of pages) {
+        const output = outputDocuments.get(page.fileName)
+        if (output && output.html !== page.html) page.item.source = output.html
       }
     },
   }

@@ -77,6 +77,9 @@ describe("Vite compatibility lifecycle", () => {
       pages: [{ url: "/guide/" }],
     })
     expect(result.documents[0].html).toContain('data-search-relative="1"')
+    expect([...result.graph.pages.values()]).toMatchObject([{
+      url: "/guide/",
+    }])
   })
 
   test("resolves generated artifact outputs before composing documents", async () => {

@@ -13,6 +13,7 @@ export interface ViteCompatibilityDocumentOutput extends ViteCompatibilityDocume
 export interface ViteCompatibilityDocumentResult {
   readonly documents: readonly ViteCompatibilityDocumentOutput[]
   readonly artifacts: readonly ArtifactRecord[]
+  readonly graph: ProjectGraphSnapshot
 }
 export interface ViteCompatibilityDocumentHooks {
   readonly beforeCompose?: (context: {
