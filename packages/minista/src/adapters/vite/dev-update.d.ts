@@ -30,4 +30,5 @@ export declare class ViteDevUpdateAdapter {
     candidateFiles: readonly string[],
   ): readonly string[]
   fullReload(environmentName?: string): void
+  reloadPages(paths: readonly string[], environmentName?: string): void
 }

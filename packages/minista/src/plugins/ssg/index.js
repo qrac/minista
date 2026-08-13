@@ -315,6 +315,29 @@ export function pluginSsg(uOpts = {}) {
       }
       return null
     },
+    transformIndexHtml: {
+      order: "pre",
+      handler() {
+        if (!isDev) return
+        return [
+          {
+            tag: "script",
+            attrs: { type: "module" },
+            children: `if (import.meta.hot) {
+  import.meta.hot.on("minista:full-reload", ({ paths }) => {
+    const base = import.meta.env.BASE_URL.replace(/\\/$/, "")
+    const pathname = decodeURI(location.pathname)
+    const routePath = base && pathname.startsWith(base)
+      ? pathname.slice(base.length) || "/"
+      : pathname
+    if (paths.includes(routePath)) location.reload()
+  })
+}`,
+            injectTo: "head",
+          },
+        ]
+      },
+    },
     configureServer(server) {
       return () => {
         const evaluator = new ViteDevModuleEvaluator(server)
@@ -451,6 +474,8 @@ export function pluginSsg(uOpts = {}) {
         )
 
         if (touchSsrHtml) {
+          /** @type {string[] | undefined} */
+          let affectedPageUrls
           const snapshot = devPageCache.peek()
           if (snapshot) {
             const routeBySourceFile = new Map(
@@ -480,6 +505,9 @@ export function pluginSsg(uOpts = {}) {
               const pageIds = [...snapshot.graph.pages.values()]
                 .filter(({ routeId }) => routeIds.has(routeId))
                 .map(({ id }) => id)
+              affectedPageUrls = [...snapshot.graph.pages.values()]
+                .filter(({ id }) => pageIds.includes(id))
+                .map(({ url }) => url)
               devRenderCache.invalidate(pageIds)
             }
           } else {
@@ -495,7 +523,11 @@ export function pluginSsg(uOpts = {}) {
               .join(" "),
             { timestamp: true, clear: false },
           )
-          updates.fullReload()
+          if (affectedPageUrls && affectedPageUrls.length > 0) {
+            updates.reloadPages(affectedPageUrls)
+          } else {
+            updates.fullReload()
+          }
           return []
         }
 

@@ -31,6 +31,7 @@ describe("Vite dev update adapter", () => {
     )).toBe(true)
     adapter.invalidateModules("client", [/** @type {any} */ (module)], 456, true)
     adapter.fullReload()
+    adapter.reloadPages(["/b", "a", "/b"])
 
     expect(invalidateModule).toHaveBeenNthCalledWith(
       1,
@@ -47,6 +48,10 @@ describe("Vite dev update adapter", () => {
       true,
     )
     expect(send).toHaveBeenCalledWith({ type: "full-reload" })
+    expect(send).toHaveBeenCalledWith(
+      "minista:full-reload",
+      { paths: ["/a", "/b"] },
+    )
   })
 
   test("reports a structured error for a missing environment", () => {

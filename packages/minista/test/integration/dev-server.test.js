@@ -2,7 +2,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { afterAll, beforeAll, describe, expect, test, vi } from "vitest"
 
 import { ViteDevServerAdapter } from "../../src/adapters/vite/dev-server.js"
 
@@ -15,6 +15,7 @@ let origin = ""
 let running
 let html = ""
 let cachedHtml = ""
+let reloadClient = ""
 /** @type {any} */
 let search
 
@@ -70,6 +71,15 @@ export default function Other() {
     })
     html = await response.text()
     expect(response.status).toBe(200)
+    const reloadClientPath = html.match(
+      /src="([^"]+html-proxy[^"]+)"/,
+    )?.[1]
+    if (!reloadClientPath) {
+      throw new Error("The targeted reload client was not injected.")
+    }
+    reloadClient = await fetch(new URL(reloadClientPath, origin), {
+      signal: AbortSignal.timeout(10_000),
+    }).then((response) => response.text())
     const cachedResponse = await fetch(
       `${origin}/`,
       { signal: AbortSignal.timeout(10_000) },
@@ -95,6 +105,7 @@ export default function Other() {
     expect(running?.server.config.appType).toBe("custom")
     expect(html).toContain("<h1>Compatibility fixture</h1>")
     expect(html).toContain("/@vite/client")
+    expect(reloadClient).toContain("minista:full-reload")
     expect(cachedHtml).toContain("<h1>Compatibility fixture</h1>")
     expect(cachedHtml).toContain("/@vite/client")
     expect(search.words).toEqual(
@@ -103,6 +114,8 @@ export default function Other() {
   })
 
   test("invalidates the cached page snapshot after a source change", async () => {
+    if (!running) throw new Error("The dev server is not running.")
+    const hotSend = vi.spyOn(running.server.environments.client.hot, "send")
     const otherBefore = await fetch(`${origin}/other`, {
       signal: AbortSignal.timeout(10_000),
     }).then((response) => response.text())
@@ -130,6 +143,10 @@ export default function Other() {
           signal: AbortSignal.timeout(10_000),
         }).then((response) => response.text())
         expect(otherAfter).toContain("<h1>Other renders: <!-- -->1</h1>")
+        expect(hotSend).toHaveBeenCalledWith(
+          "minista:full-reload",
+          { paths: ["/"] },
+        )
         return
       }
       await new Promise((resolve) => setTimeout(resolve, 50))

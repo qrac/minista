@@ -125,4 +125,19 @@ export class ViteDevUpdateAdapter {
   fullReload(environmentName = "client") {
     this.#environment(environmentName).hot.send({ type: "full-reload" })
   }
+
+  /**
+   * @param {readonly string[]} paths
+   * @param {string} [environmentName]
+   */
+  reloadPages(paths, environmentName = "client") {
+    const normalizedPaths = [...new Set(paths)]
+      .map((path) => path.startsWith("/") ? path : `/${path}`)
+      .sort()
+    if (normalizedPaths.length === 0) return
+    this.#environment(environmentName).hot.send(
+      "minista:full-reload",
+      { paths: normalizedPaths },
+    )
+  }
 }
