@@ -8,16 +8,13 @@ import { fileURLToPath } from "node:url"
 import { normalizePath } from "vite"
 
 import { getSearchData } from "./utils/data.js"
-import {
-  NodeHtmlDocumentFactory,
-  NodeSearchDocumentAnalyzer,
-} from "../../adapters/html/index.js"
+import { NodeSearchDocumentAnalyzer } from "../../adapters/html/index.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
-  analyzeRenderedSearchPages,
-  composeSearchOutputDocument,
+  createSearchFeature,
   createSearchDataArtifactId,
   getSearchPageUrl,
 } from "../../features/search/index.js"
@@ -51,7 +48,6 @@ export const defaultOptions = {
     kanji: true,
   },
 }
-const documents = new NodeHtmlDocumentFactory()
 const analyzer = new NodeSearchDocumentAnalyzer()
 
 /**
@@ -179,17 +175,21 @@ export function pluginSearch(uOpts = {}) {
           url,
           fileName: item.fileName,
           item,
-          document: documents.parse({
-            pageId: createNodeId("page", "legacy-search", url),
-            html: String(item.source),
-          }),
+          html: String(item.source),
         }
       })
-      const searchData = await analyzeRenderedSearchPages(
-        renderedPages,
-        opts,
-        analyzer,
+      const result = await processViteDocuments(
+        renderedPages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+        [createSearchFeature(opts, analyzer)],
       )
+      const searchArtifact = result.artifacts.find(
+        ({ id }) => id === createSearchDataArtifactId(opts.outName),
+      )
+      if (!searchArtifact) {
+        throw new Error("Search lifecycle did not generate search data.")
+      }
+      /** @type {import("../../features/search/index.js").SearchData} */
+      const searchData = JSON.parse(String(searchArtifact.content))
       outputPageUrls = searchData.pages.map(({ url }) => url)
       const referenceId = this.emitFile({
         type: "asset",
@@ -206,10 +206,12 @@ export function pluginSearch(uOpts = {}) {
         item.code = item.code.replace(beforeFetch, after)
       }
 
+      const outputDocuments = new Map(
+        result.documents.map((document) => [document.fileName, document]),
+      )
       for (const page of renderedPages) {
-        if (composeSearchOutputDocument(page.document, page.url, opts) > 0) {
-          page.item.source = page.document.serialize()
-        }
+        const output = outputDocuments.get(page.fileName)
+        if (output && output.html !== page.html) page.item.source = output.html
       }
     },
   }

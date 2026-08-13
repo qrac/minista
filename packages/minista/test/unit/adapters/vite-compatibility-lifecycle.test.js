@@ -2,12 +2,18 @@ import { describe, expect, test } from "vitest"
 
 import {
   composeViteHtml,
+  processViteDocuments,
   processViteOutputs,
   ViteCompatibilityLifecycleError,
 } from "../../../src/adapters/vite/compatibility-lifecycle.js"
 import { createNodeId } from "../../../src/core/graph/index.js"
 import { createBeautifyFeature } from "../../../src/features/beautify/index.js"
 import { createCommentFeature } from "../../../src/features/comment/index.js"
+import {
+  createSearchDataArtifactId,
+  createSearchFeature,
+} from "../../../src/features/search/index.js"
+import { NodeSearchDocumentAnalyzer } from "../../../src/adapters/html/index.js"
 
 describe("Vite compatibility lifecycle", () => {
   test("runs document composition through the Core lifecycle", async () => {
@@ -33,6 +39,40 @@ describe("Vite compatibility lifecycle", () => {
 
     expect(String(output.content)).not.toContain('rel="preload"')
     expect(String(output.content)).toContain("\n<body>")
+  })
+
+  test("runs batch analyze, generate, and compose phases with Page Graph nodes", async () => {
+    const options = {
+      outName: "search",
+      src: ["**/*.html"],
+      ignore: [],
+      trimTitle: "",
+      targetSelector: "[data-search]",
+      ignoreSelectors: [],
+      relativeAttr: "data-search-relative",
+      inputAttr: "data-search-input",
+      hit: {
+        minLength: 3,
+        number: false,
+        english: true,
+        hiragana: false,
+        katakana: true,
+        kanji: true,
+      },
+    }
+    const result = await processViteDocuments([{
+      fileName: "guide/index.html",
+      url: "/guide/",
+      html: "<html><head><title>Guide</title></head><body><main data-search>Search guide<input data-search-input></main></body></html>",
+    }], [createSearchFeature(options, new NodeSearchDocumentAnalyzer())])
+    const artifact = result.artifacts.find(
+      ({ id }) => id === createSearchDataArtifactId("search"),
+    )
+
+    expect(JSON.parse(String(artifact?.content))).toMatchObject({
+      pages: [{ url: "/guide/" }],
+    })
+    expect(result.documents[0].html).toContain('data-search-relative="1"')
   })
 
   test("surfaces lifecycle diagnostics with a stable adapter error", async () => {

@@ -50,6 +50,7 @@ function createLifecycle(features) {
     })
   }
   const documentStore = new MemoryHtmlDocumentStore()
+  const artifacts = new MemoryArtifactStore()
   const emitter = new MemoryEmitter()
   const inputCapabilities = /** @type {readonly import("../../core/types.js").Capability[]} */ (
     /** @type {unknown} */ (["html-documents", "output-files"])
@@ -57,7 +58,9 @@ function createLifecycle(features) {
   return {
     diagnostics,
     documents: documentStore,
+    artifacts,
     emitter,
+    graph,
     runner: new LifecycleRunner([
       Object.freeze({
         id: createNodeId("feature", "vite-compatibility-input"),
@@ -71,10 +74,65 @@ function createLifecycle(features) {
       graph,
       diagnostics,
       documents: documentStore,
-      artifacts: new MemoryArtifactStore(),
+      artifacts,
       emitter,
     }),
   }
+}
+
+/**
+ * Run document-oriented domain phases against a complete Vite HTML output set.
+ *
+ * @param {readonly import("./compatibility-lifecycle.js").ViteCompatibilityDocumentInput[]} pages
+ * @param {readonly import("../../core/lifecycle/index.js").MinistaFeature[]} features
+ * @param {readonly import("../../core/types.js").BuildPhase[]} [phases]
+ * @returns {Promise<import("./compatibility-lifecycle.js").ViteCompatibilityDocumentResult>}
+ */
+export async function processViteDocuments(
+  pages,
+  features,
+  phases = ["analyze", "generate", "compose"],
+) {
+  const lifecycle = createLifecycle(features)
+  /** @type {{input: import("./compatibility-lifecycle.js").ViteCompatibilityDocumentInput, document: import("../../core/document/index.js").HtmlDocument, before: string}[]} */
+  const states = []
+
+  for (const page of pages) {
+    const routeId = createNodeId("route", "vite-output", page.fileName)
+    const pageId = createNodeId("page", routeId, page.url)
+    lifecycle.graph.addRoute({
+      id: routeId,
+      sourceFile: toProjectPath(page.fileName),
+      pattern: page.url,
+      params: [],
+      pageModuleId: page.fileName,
+    })
+    lifecycle.graph.addPage({
+      id: pageId,
+      routeId,
+      url: page.url,
+      params: {},
+      props: {},
+      metadata: {},
+      draft: false,
+    })
+    const document = documents.parse({ pageId, html: page.html })
+    lifecycle.documents.put(document)
+    states.push({ input: page, document, before: document.serialize() })
+  }
+
+  await run(lifecycle, phases)
+  return Object.freeze({
+    documents: Object.freeze(states.map(({ input, document, before }) => {
+      const after = document.serialize()
+      return Object.freeze({
+        fileName: input.fileName,
+        url: input.url,
+        html: after === before ? input.html : after,
+      })
+    })),
+    artifacts: await lifecycle.artifacts.list(),
+  })
 }
 
 /** @param {{runner: LifecycleRunner, diagnostics: DiagnosticCollector}} lifecycle @param {readonly import("../../core/types.js").BuildPhase[]} phases */

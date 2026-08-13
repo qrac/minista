@@ -61,7 +61,7 @@ interface RenderedPage {
 }
 ```
 
-`RenderedPage`の生成元はRoute／Page Graphとrendererであり、通常buildではArtifactStore、外部fallbackではschema付きJSONに保存します。`ViteBuildDataReader`が保存方式の差を吸収し、Entry／Islandはdomain snapshotだけに依存します。SSG／Searchのdev virtual moduleも同じ型を使用し、旧`SsgPage`型は削除済みです。Project Graph、branded node ID、AssetNode、IslandNode、ImageNode、BuildArtifact、各domain featureの明示phaseも実装済みですが、compatibility facadeのVite hookをCore lifecycle runnerへ統合する作業は残っています。
+`RenderedPage`の生成元はRoute／Page Graphとrendererであり、通常buildではArtifactStore、外部fallbackではschema付きJSONに保存します。`ViteBuildDataReader`が保存方式の差を吸収し、Entry／Islandはdomain snapshotだけに依存します。SSG／Searchのdev virtual moduleも同じ型を使用し、旧`SsgPage`型は削除済みです。Project Graph、branded node ID、AssetNode、IslandNode、ImageNode、BuildArtifact、各domain featureの明示phaseも実装済みです。compatibility facadeのVite hookはfeatureごとにCore lifecycle runnerへ移行中です。
 
 各公開pluginは `api.minista.feature` に `id`, `apiVersion`, `options`, `provides`, `requires` と必要な順序制約を持つmachine-readable metadataを公開し始めています。domain phase schedulerへの接続は未完了です。
 
@@ -94,7 +94,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - Archive compatibility facadeはCore runnerのfinalize phaseを実行し、domain featureがarchiveをEmitterへ追加する。archive libraryは`NodeArchiveBuilder`、安全なrelative outputの書込みは`NodeOutputWriter` adapterに閉じ、directory逸脱を`MINISTA_OUTPUT_WRITE_UNSAFE_PATH`で拒否する
 - Searchはanalyzeでpage解析Artifact、generateでSearchData Artifactを作り、composeで相対階層属性を共有documentへ反映する
 - SearchのDOM tree走査は `NodeSearchDocumentAnalyzer` adapterへ閉じ、同じparse treeを再利用する
-- Search compatibility facadeはbuild済みdocumentからJSON assetを直接生成し、SSGのexecutable temp moduleを読まない
+- Search compatibility facadeはbuild済みHTML群を`ViteCompatibilityLifecycle` adapterでPage GraphとDocument Storeへ投影し、Core runnerのanalyze／generate／composeを一括実行する。生成されたSearchData ArtifactをJSON assetとしてViteへ戻し、SSGのexecutable temp moduleを読まない
 - Spriteはanalyzeで参照Artifact、generateでSVG sprite ArtifactとAssetNodeを作り、composeで確定URLを共有documentへ反映する
 - Spriteのfilesystem読込、SVGO、symbol生成は `NodeSpriteBuilder` adapterへ閉じ、compatibility facadeはbuild済みdocumentからSVG assetを直接emitする
 - Imageはanalyzeでmarker参照Artifact、generateで画像Artifact・plan・ImageNode、composeで `src` / `srcset` / sizeを共有documentへ反映する
