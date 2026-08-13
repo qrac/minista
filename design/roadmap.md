@@ -118,11 +118,11 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 6: ModuleRunner dev adapter
 
-進捗: `ViteDevServerAdapter` を追加し、通常のdev CLIをprogrammatic `createServer({ appType: "custom" })` へ切り替えました。adapterがlisten、URL表示、CLI shortcut、closeを所有し、root、config、mode、base、host、port、open、CORS、strict port、forceなどの一般的なflagを変換します。未対応flagだけ外部Vite CLIへfallbackします。`ViteDevModuleEvaluator` はrunnable environmentのguard、`runner.import()`、module invalidation、stacktrace補正を既存のCore portへ適合させ、SSG、Island、Search、project commandが共有します。plugin／CLIからの `server.ssrLoadModule()` 直接利用は除去済みです。compatibility fixtureをcustom app serverで起動し、HTTP経由のSSG HTML、Vite client injection、Search JSONを確認済みです。route／module単位のcacheとgraph edgeによるinvalidation、直接WebSocket reloadの隔離が残っています。
+進捗: `ViteDevServerAdapter` を追加し、通常のdev CLIをprogrammatic `createServer({ appType: "custom" })` へ切り替えました。adapterがlisten、URL表示、CLI shortcut、closeを所有し、root、config、mode、base、host、port、open、CORS、strict port、forceなどの一般的なflagを変換します。未対応flagだけ外部Vite CLIへfallbackします。`ViteDevModuleEvaluator` はrunnable environmentのguard、`runner.import()`、module invalidation、stacktrace補正を既存のCore portへ適合させ、SSG、Island、Search、project commandが共有します。plugin／CLIからの `server.ssrLoadModule()` 直接利用は除去済みです。`DevPageCache` は最初に解決・renderしたpage snapshotを後続requestで再利用し、同時loadを一本化します。page/layout依存のhot updateでcache世代を更新し、source変更後のHTML再生成を実サーバーで確認済みです。routeごとのcache、graph edge単位のinvalidation、直接WebSocket reloadの隔離が残っています。
 
 - dev CLIをprogrammatic `createServer({ appType: "custom" })` に移す。実装済み
 - `render` environmentの `RunnableDevEnvironment.runner.import()` でpage moduleを評価。移行中の `ssr` environmentに対して実装済み
-- requestごとに全pagesを再評価せず、route / module dependency単位でcache
+- requestごとの全pages再評価をsnapshot cacheで除去。route／module dependency単位への細分化は未実装
 - environmentごとのmodule graphと `hotUpdate` を使用
 - source change → affected route/page/artifact edgeをgraphで説明可能にする
 - HMR不能なdocument changeのみ明示的full reloadにする

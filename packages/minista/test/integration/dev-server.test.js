@@ -10,9 +10,11 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const packageDir = path.resolve(here, "../..")
 const sourceFixtureDir = path.resolve(here, "../fixtures/compat-basic")
 let fixtureDir = ""
+let origin = ""
 /** @type {import("../../src/adapters/vite/dev-server.js").ViteDevServerResult | undefined} */
 let running
 let html = ""
+let cachedHtml = ""
 /** @type {any} */
 let search
 
@@ -52,13 +54,20 @@ describe.sequential("programmatic custom dev server", () => {
     if (!address || typeof address === "string") {
       throw new Error("Vite dev server did not expose a TCP address.")
     }
-    const response = await fetch(`http://127.0.0.1:${address.port}/`, {
+    origin = `http://127.0.0.1:${address.port}`
+    const response = await fetch(`${origin}/`, {
       signal: AbortSignal.timeout(10_000),
     })
     html = await response.text()
     expect(response.status).toBe(200)
+    const cachedResponse = await fetch(
+      `${origin}/`,
+      { signal: AbortSignal.timeout(10_000) },
+    )
+    cachedHtml = await cachedResponse.text()
+    expect(cachedResponse.status).toBe(200)
     const searchResponse = await fetch(
-      `http://127.0.0.1:${address.port}/@__minista_search_json`,
+      `${origin}/@__minista_search_json`,
       { signal: AbortSignal.timeout(10_000) },
     )
     search = await searchResponse.json()
@@ -76,8 +85,37 @@ describe.sequential("programmatic custom dev server", () => {
     expect(running?.server.config.appType).toBe("custom")
     expect(html).toContain("<h1>Compatibility fixture</h1>")
     expect(html).toContain("/@vite/client")
+    expect(cachedHtml).toContain("<h1>Compatibility fixture</h1>")
+    expect(cachedHtml).toContain("/@vite/client")
     expect(search.words).toEqual(
       expect.arrayContaining(["Compatibility", "fixture"]),
     )
   })
+
+  test("invalidates the cached page snapshot after a source change", async () => {
+    const pageFile = path.resolve(fixtureDir, "src/pages/index.jsx")
+    const source = await fs.promises.readFile(pageFile, "utf8")
+    await fs.promises.writeFile(
+      pageFile,
+      source.replace(
+        "<h1>Compatibility fixture</h1>",
+        "<h1>Compatibility updated</h1>",
+      ),
+      "utf8",
+    )
+
+    const deadline = Date.now() + 10_000
+    while (Date.now() < deadline) {
+      const response = await fetch(`${origin}/`, {
+        signal: AbortSignal.timeout(10_000),
+      })
+      const updatedHtml = await response.text()
+      if (updatedHtml.includes("<h1>Compatibility updated</h1>")) return
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+
+    throw new Error(
+      "The dev page cache was not invalidated after a source change.",
+    )
+  }, 15_000)
 })

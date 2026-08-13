@@ -22,6 +22,7 @@ import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-inp
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
+import { DevPageCache } from "../../features/ssg/dev-page-cache.js"
 import { getGlobImportCode, getSsgExportCode } from "./utils/code.js"
 import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { transformHtml } from "./utils/html.js"
@@ -75,6 +76,8 @@ export function pluginSsg(uOpts = {}) {
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
   const environmentInput = new ViteEnvironmentInputAdapter()
+  /** @type {DevPageCache<{resolvedLayout: ResolvedLayout, resolvedPages: readonly ResolvedPage[]}>} */
+  const devPageCache = new DevPageCache()
 
   /**
    * @param {ResolvedLayout} resolvedLayout
@@ -299,6 +302,32 @@ export function pluginSsg(uOpts = {}) {
     configureServer(server) {
       return () => {
         const evaluator = new ViteDevModuleEvaluator(server)
+
+        async function loadDevPages() {
+          /** @type {{LAYOUTS?: ImportedLayouts, PAGES?: ImportedPages}} */
+          const modules = await evaluator.importModule(globFile)
+          const { LAYOUTS = {}, PAGES = {} } = modules
+          const formatedLayout = formatLayout(LAYOUTS)
+          const resolvedLayout = await resolveLayout(formatedLayout)
+          const project = await resolveLegacySsgProject(PAGES, opts)
+          const resolvedPages = project.pages
+
+          const errors = project.diagnostics.filter(
+            ({ severity }) => severity === "error",
+          )
+          if (errors.length > 0) {
+            throw new Error(
+              errors
+                .map(({ code, message }) => `[${code}] ${message}`)
+                .join("\n"),
+            )
+          }
+
+          await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
+          evaluator.invalidateModule(SSG_PAGES_VIRTUAL)
+          return { resolvedLayout, resolvedPages }
+        }
+
         server.middlewares.use(async (req, res, next) => {
           try {
             const base = server.config.base || "/"
@@ -309,29 +338,10 @@ export function pluginSsg(uOpts = {}) {
             const url = originalUrl.startsWith(normalizedBase)
               ? originalUrl.slice(normalizedBase.length) || "/"
               : originalUrl
-            /** @type {{LAYOUTS?: ImportedLayouts, PAGES?: ImportedPages}} */
-            const modules = await evaluator.importModule(globFile)
-            const { LAYOUTS = {}, PAGES = {} } = modules
-            const formatedLayout = formatLayout(LAYOUTS)
-            const resolvedLayout = await resolveLayout(formatedLayout)
-            const project = await resolveLegacySsgProject(PAGES, opts)
-            const resolvedPages = project.pages
-
-            const errors = project.diagnostics.filter(
-              ({ severity }) => severity === "error",
+            const { resolvedLayout, resolvedPages } = await devPageCache.get(
+              loadDevPages,
             )
-            if (errors.length > 0) {
-              throw new Error(
-                errors
-                  .map(({ code, message }) => `[${code}] ${message}`)
-                  .join("\n"),
-              )
-            }
             const resolvedPage = resolvedPages.find((page) => page.url === url)
-
-            await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
-
-            evaluator.invalidateModule(SSG_PAGES_VIRTUAL)
 
             let html = ""
 
@@ -421,6 +431,7 @@ export function pluginSsg(uOpts = {}) {
         }
 
         if (touchSsrHtml) {
+          devPageCache.invalidate()
           const rel = modules[0]?.id
             ? stripQuery(path.relative(server.config.root, modules[0].id))
             : ""
@@ -459,6 +470,7 @@ export function pluginSsg(uOpts = {}) {
         }
 
         if (hasSsrOnly) {
+          devPageCache.invalidate()
           const rel = stripQuery(
             path.relative(server.config.root, modules[0].id || ""),
           )

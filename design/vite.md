@@ -114,7 +114,7 @@ Viteはenvironment record順にbuildできますが、Ministaはrender結果か�
 
 通常のdev CLIは `ViteDevServerAdapter` を通じたprogrammatic `createServer({ appType: "custom" })` へ切り替え済みです。adapterはlisten、URL表示、CLI shortcut、closeを所有し、一般的なdev flagをInlineConfigへ変換します。`ViteDevModuleEvaluator` は移行中の `ssr` environmentを `isRunnableDevEnvironment()` でguardし、`runner.import()`、module invalidation、stacktrace補正をCoreの `ModuleEvaluator` portへ適合させます。SSG、Island、Search、project commandはこの境界を使用し、plugin／CLIからのlegacy `ssrLoadModule()` 直接利用は除去済みです。compatibility fixtureではSSG HTML、Vite client injection、Search JSONを実際のVite 8.2.1によるHTTP応答で確認しています。
 
-以下のlifecycleのうちModuleRunner評価まで実装済みです。request単位の全route評価、route／module cache、graph edgeに基づくinvalidation、直接WebSocket reloadの隔離は継続中です。
+以下のlifecycleのうちModuleRunner評価とdev page snapshot cacheまで実装済みです。同時requestは同じloadへ合流し、page/layout依存のhot updateで世代を更新するため、古い非同期loadが完了しても次世代のcacheへ保存しません。routeごとの個別cache、RouteNode／PageNode／Artifact edgeに基づくinvalidation、直接WebSocket reloadの隔離は継続中です。
 
 ```text
 HTTP request
