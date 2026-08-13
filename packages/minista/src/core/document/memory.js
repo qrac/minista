@@ -16,6 +16,16 @@ export class MemoryHtmlDocumentStore {
     this.#documents.set(document.pageId, document)
   }
 
+  /** @param {HtmlDocument} document */
+  replace(document) {
+    this.#documents.set(document.pageId, document)
+  }
+
+  /** @param {PageId} pageId */
+  delete(pageId) {
+    return this.#documents.delete(pageId)
+  }
+
   /** @param {PageId} pageId */
   get(pageId) {
     return this.#documents.get(pageId)

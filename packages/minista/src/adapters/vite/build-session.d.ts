@@ -2,6 +2,8 @@ import type { ArtifactStore } from "../../core/artifacts/index.js"
 import type { DiagnosticCollector } from "../../core/diagnostics/index.js"
 import type { InlineConfig } from "vite"
 import type { ProjectGraphSnapshot } from "../../core/graph/index.js"
+import type { HtmlDocumentStore } from "../../core/document/index.js"
+import type { PageId } from "../../core/graph/index.js"
 import type { PhaseTraceEvent } from "../../core/lifecycle/index.js"
 
 export interface ViteCompatibilityTraceEvent extends PhaseTraceEvent {
@@ -11,6 +13,8 @@ export interface ViteCompatibilityTraceEvent extends PhaseTraceEvent {
 export interface ViteBuildSessionState {
   projectGraph?: ProjectGraphSnapshot
   compatibilityTraces?: ViteCompatibilityTraceEvent[]
+  compatibilityDocuments?: HtmlDocumentStore
+  compatibilityDocumentIds?: Map<string, PageId>
 }
 
 export interface ViteBuildSession {

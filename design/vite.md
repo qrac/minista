@@ -102,6 +102,7 @@ Viteはenvironment record順にbuildできますが、Ministaはrender結果か�
 - orchestration state: Ministaの `ProjectContext`
 - 大きい/generated data: `ArtifactStore` のbuildId namespace
 - SSG render／compatibility phase trace: build session内のscope付きevent列
+- compatibility documents／domain artifacts: build session内の共有Store
 - client input: 解決時点でgraphを読むstable virtual entry
 - bundle result: Vite/Rolldown objectからCore `OutputManifest` schema v1へ即座に変換済み
 

@@ -19,6 +19,7 @@ export interface ViteCompatibilityDocumentResult {
 }
 export interface ViteCompatibilityRunHooks {
   readonly onTrace?: (event: PhaseTraceEvent) => void
+  readonly session?: ViteBuildSession
 }
 export interface ViteCompatibilityDocumentHooks extends ViteCompatibilityRunHooks {
   readonly inputArtifacts?: readonly ArtifactRecord[]

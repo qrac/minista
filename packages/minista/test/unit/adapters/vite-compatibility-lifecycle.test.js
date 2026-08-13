@@ -22,6 +22,79 @@ import {
 import { NodeSearchDocumentAnalyzer } from "../../../src/adapters/html/index.js"
 
 describe("Vite compatibility lifecycle", () => {
+  test("shares documents and feature artifacts across build-session runs", async () => {
+    const session = createViteBuildSession({ buildId: "store-fixture" })
+    const producerId = createNodeId("feature", "producer")
+    const consumerId = createNodeId("feature", "consumer")
+    const artifactId = createNodeId("artifact", "producer", "fixture")
+    let producedDocument
+    let consumedDocument
+    /** @type {import("../../../src/core/lifecycle/index.js").MinistaFeature} */
+    const producer = Object.freeze({
+      id: producerId,
+      apiVersion: /** @type {const} */ (1),
+      options: Object.freeze({}),
+      hooks: Object.freeze({
+        async generate(
+          /** @type {import("../../../src/core/lifecycle/index.js").PhaseContext} */
+          { artifacts },
+        ) {
+          await artifacts.put({
+            schemaVersion: "1",
+            id: artifactId,
+            owner: producerId,
+            mediaType: "text/plain",
+            content: "fixture",
+          })
+        },
+        compose(
+          /** @type {import("../../../src/core/lifecycle/index.js").PhaseContext} */
+          { documents },
+        ) {
+          producedDocument = documents.list()[0]
+        },
+      }),
+    })
+    /** @type {import("../../../src/core/lifecycle/index.js").MinistaFeature} */
+    const consumer = Object.freeze({
+      id: consumerId,
+      apiVersion: /** @type {const} */ (1),
+      options: Object.freeze({}),
+      hooks: Object.freeze({
+        async compose(
+          /** @type {import("../../../src/core/lifecycle/index.js").PhaseContext} */
+          { artifacts, documents },
+        ) {
+          consumedDocument = documents.list()[0]
+          expect(await artifacts.get(artifactId)).toMatchObject({
+            content: "fixture",
+          })
+        },
+      }),
+    })
+    const page = [{
+      fileName: "index.html",
+      url: "/",
+      html: "<main>Fixture</main>",
+    }]
+
+    await processViteDocuments(
+      page,
+      [producer],
+      ["generate", "compose"],
+      createViteCompatibilityTraceHooks(session, "producer"),
+    )
+    await processViteDocuments(
+      page,
+      [consumer],
+      ["compose"],
+      createViteCompatibilityTraceHooks(session, "consumer"),
+    )
+
+    expect(consumedDocument).toBe(producedDocument)
+    expect(session.state.compatibilityDocuments?.list()).toHaveLength(1)
+  })
+
   test("accumulates phase traces across compatibility runs in a build session", async () => {
     const session = createViteBuildSession({ buildId: "trace-fixture" })
     /** @type {string[]} */

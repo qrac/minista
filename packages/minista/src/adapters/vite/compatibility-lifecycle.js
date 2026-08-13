@@ -42,6 +42,7 @@ export function createViteCompatibilityTraceHooks(
 ) {
   return {
     ...hooks,
+    ...(session ? { session } : {}),
     /** @param {import("../../core/lifecycle/index.js").PhaseTraceEvent} event */
     onTrace(event) {
       if (session?.state) {
@@ -56,9 +57,13 @@ export function createViteCompatibilityTraceHooks(
   }
 }
 
-/** @param {readonly import("../../core/lifecycle/index.js").MinistaFeature[]} features */
-function createLifecycle(features) {
-  const diagnostics = new DiagnosticCollector()
+/**
+ * @param {readonly import("../../core/lifecycle/index.js").MinistaFeature[]} features
+ * @param {import("./compatibility-lifecycle.js").ViteCompatibilityRunHooks} [hooks]
+ */
+async function createLifecycle(features, hooks = {}) {
+  const session = hooks.session
+  const diagnostics = session?.diagnostics ?? new DiagnosticCollector()
   const graph = new ProjectGraph({
     id: createNodeId("project", "vite-compatibility"),
     name: "vite-compatibility",
@@ -78,8 +83,16 @@ function createLifecycle(features) {
       requires: feature.requires ?? [],
     })
   }
-  const documentStore = new MemoryHtmlDocumentStore()
-  const artifacts = new MemoryArtifactStore()
+  const documentStore = session?.state
+    ? session.state.compatibilityDocuments ??= new MemoryHtmlDocumentStore()
+    : new MemoryHtmlDocumentStore()
+  const artifacts = session?.artifacts ?? new MemoryArtifactStore()
+  if (session) {
+    const owners = new Set(features.map(({ id }) => id))
+    for (const artifact of await artifacts.list()) {
+      if (owners.has(artifact.owner)) await artifacts.delete(artifact.id)
+    }
+  }
   const emitter = new MemoryEmitter()
   const inputCapabilities = /** @type {readonly import("../../core/types.js").Capability[]} */ (
     /** @type {unknown} */ (["html-documents", "output-files"])
@@ -110,6 +123,31 @@ function createLifecycle(features) {
 }
 
 /**
+ * @param {ReturnType<typeof createLifecycle> extends Promise<infer T> ? T : never} lifecycle
+ * @param {import("./compatibility-lifecycle.js").ViteCompatibilityRunHooks} hooks
+ * @param {string} identity
+ * @param {import("../../core/graph/index.js").PageId} pageId
+ * @param {string} html
+ */
+function getDocument(lifecycle, hooks, identity, pageId, html) {
+  const ids = hooks.session?.state
+    ? hooks.session.state.compatibilityDocumentIds ??= new Map()
+    : undefined
+  const currentId = ids?.get(identity)
+  let document = currentId ? lifecycle.documents.get(currentId) : undefined
+  if (document && document.pageId !== pageId) {
+    lifecycle.documents.delete(document.pageId)
+    document = undefined
+  }
+  if (!document || document.serialize() !== html) {
+    document = documents.parse({ pageId, html })
+    lifecycle.documents.replace(document)
+  }
+  ids?.set(identity, pageId)
+  return document
+}
+
+/**
  * Run document-oriented domain phases against a complete Vite HTML output set.
  *
  * @param {readonly import("./compatibility-lifecycle.js").ViteCompatibilityDocumentInput[]} pages
@@ -124,7 +162,7 @@ export async function processViteDocuments(
   phases = ["analyze", "generate", "compose"],
   hooks = {},
 ) {
-  const lifecycle = createLifecycle(features)
+  const lifecycle = await createLifecycle(features, hooks)
   /** @type {{input: import("./compatibility-lifecycle.js").ViteCompatibilityDocumentInput, document: import("../../core/document/index.js").HtmlDocument, before: string}[]} */
   const states = []
 
@@ -151,8 +189,13 @@ export async function processViteDocuments(
       metadata: {},
       draft: false,
     })
-    const document = documents.parse({ pageId, html: page.html })
-    lifecycle.documents.put(document)
+    const document = getDocument(
+      lifecycle,
+      hooks,
+      page.fileName,
+      pageId,
+      page.html,
+    )
     states.push({ input: page, document, before: document.serialize() })
   }
 
@@ -201,13 +244,15 @@ async function run(lifecycle, phases, onTrace) {
  * @param {import("./compatibility-lifecycle.js").ViteCompatibilityRunHooks} [hooks]
  */
 export async function composeViteHtml(html, pageIdentity, features, hooks = {}) {
-  const lifecycle = createLifecycle(features)
-  const document = documents.parse({
-    pageId: createNodeId("page", "vite-compatibility", pageIdentity),
+  const lifecycle = await createLifecycle(features, hooks)
+  const document = getDocument(
+    lifecycle,
+    hooks,
+    pageIdentity,
+    createNodeId("page", "vite-compatibility", pageIdentity),
     html,
-  })
+  )
   const before = document.serialize()
-  lifecycle.documents.put(document)
   await run(lifecycle, ["compose"], hooks.onTrace)
   const after = document.serialize()
   return after === before ? html : after
@@ -219,7 +264,7 @@ export async function composeViteHtml(html, pageIdentity, features, hooks = {}) 
  * @param {import("./compatibility-lifecycle.js").ViteCompatibilityRunHooks} [hooks]
  */
 export async function processViteOutputs(files, features, hooks = {}) {
-  const lifecycle = createLifecycle(features)
+  const lifecycle = await createLifecycle(features, hooks)
   /** @type {Map<string, {document: import("../../core/document/index.js").HtmlDocument, before: string}>} */
   const htmlDocuments = new Map()
   for (const file of files) {
@@ -227,11 +272,13 @@ export async function processViteOutputs(files, features, hooks = {}) {
     if (!file.fileName.endsWith(".html") || typeof file.content !== "string") {
       continue
     }
-    const document = documents.parse({
-      pageId: createNodeId("page", "vite-output", file.fileName),
-      html: file.content,
-    })
-    lifecycle.documents.put(document)
+    const document = getDocument(
+      lifecycle,
+      hooks,
+      file.fileName,
+      createNodeId("page", "vite-output", file.fileName),
+      file.content,
+    )
     htmlDocuments.set(file.fileName, {
       document,
       before: document.serialize(),

@@ -3,6 +3,8 @@ import type { HtmlDocument, HtmlDocumentStore } from "./types.js"
 
 export declare class MemoryHtmlDocumentStore implements HtmlDocumentStore {
   put(document: HtmlDocument): void
+  replace(document: HtmlDocument): void
+  delete(pageId: PageId): boolean
   get(pageId: PageId): HtmlDocument | undefined
   list(): readonly HtmlDocument[]
   clear(): void
