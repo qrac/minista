@@ -26,7 +26,10 @@ import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-inp
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
-import { createViteOutputManifest } from "../../adapters/vite/output-manifest.js"
+import {
+  createViteOutputManifest,
+  reconcileViteOutputManifest,
+} from "../../adapters/vite/output-manifest.js"
 import { collectViteOutputClaims } from "../../adapters/vite/output-claims.js"
 import { DiagnosticCollector } from "../../core/diagnostics/index.js"
 import { applyOutputClaims } from "../../core/graph/index.js"
@@ -92,6 +95,11 @@ export function pluginSsg(uOpts = {}) {
   let renderer
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
+  /** @type {import("../../core/manifest/index.js").OutputManifest | undefined} */
+  let externalOutputManifest
+  let externalOutputDirectory = ""
+  /** @type {readonly import("vite").Plugin[]} */
+  let externalClientPlugins = []
   const environmentInput = new ViteEnvironmentInputAdapter()
   /** @type {DevPageCache<{graph: import("../../core/graph/index.js").ProjectGraphSnapshot, layoutSourceFiles: readonly string[], resolvedLayout: ResolvedLayout, resolvedPages: readonly ResolvedPage[]}>} */
   const devPageCache = new DevPageCache()
@@ -636,6 +644,9 @@ export function pluginSsg(uOpts = {}) {
       if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
         return
       }
+      externalOutputManifest = undefined
+      externalOutputDirectory = ""
+      externalClientPlugins = []
       if (!ssgPages.length) return
 
       await Promise.all(
@@ -660,7 +671,7 @@ export function pluginSsg(uOpts = {}) {
         }
       }
     },
-    async writeBundle(_options, bundle) {
+    writeBundle(options, bundle) {
       if (
         !isBuild ||
         buildSession ||
@@ -669,7 +680,7 @@ export function pluginSsg(uOpts = {}) {
       ) {
         return
       }
-      const outputManifest = createViteOutputManifest(
+      externalOutputManifest = createViteOutputManifest(
         /** @type {import("../../adapters/vite/app-builder.js").ViteBuildOutput} */ ({
           output: Object.values(bundle),
         }),
@@ -678,9 +689,29 @@ export function pluginSsg(uOpts = {}) {
           base: this.environment.config.base,
         },
       )
+      externalOutputDirectory = options.dir ??
+        this.environment.config.build.outDir
+      externalClientPlugins = this.environment.config.plugins
+    },
+    async closeBundle() {
+      if (
+        !externalOutputManifest ||
+        !externalOutputDirectory ||
+        !externalBuildId ||
+        !projectGraph
+      ) {
+        return
+      }
+      const outputManifest = await reconcileViteOutputManifest(
+        externalOutputManifest,
+        {
+          outDir: externalOutputDirectory,
+          base: this.environment.config.base,
+        },
+      )
       const diagnostics = new DiagnosticCollector()
       const collected = await collectViteOutputClaims(
-        this.environment.config.plugins,
+        externalClientPlugins,
       )
       const claimedGraph = applyOutputClaims(
         projectGraph,

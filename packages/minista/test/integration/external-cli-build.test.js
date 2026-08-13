@@ -9,9 +9,11 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const packageDir = path.resolve(here, "../..")
 const sourceFixtureDir = path.resolve(here, "../fixtures/check-basic")
 const sourceInvalidFixtureDir = path.resolve(here, "../fixtures/check-invalid")
+const sourceCompatFixtureDir = path.resolve(here, "../fixtures/compat-basic")
 const binFile = path.resolve(packageDir, "bin/minista.js")
 let fixtureDir = ""
 let invalidFixtureDir = ""
+let compatFixtureDir = ""
 
 /** @param {string} source @param {string} prefix */
 async function copyFixture(source, prefix) {
@@ -68,16 +70,54 @@ describe.sequential("external Vite CLI build fallback", () => {
       sourceInvalidFixtureDir,
       "external-cli-invalid-",
     )
+    compatFixtureDir = await copyFixture(
+      sourceCompatFixtureDir,
+      "external-cli-compat-",
+    )
     const result = await runBuild()
     if (result.code !== 0) {
       throw new Error(`external build exited ${result.code}\n${result.output}`)
     }
+    const compatResult = await runBuild(compatFixtureDir)
+    if (compatResult.code !== 0) {
+      throw new Error(
+        `external compatibility build exited ${compatResult.code}\n${compatResult.output}`,
+      )
+    }
   }, 60_000)
 
   afterAll(async () => {
-    await Promise.all([fixtureDir, invalidFixtureDir].map((root) =>
+    await Promise.all([fixtureDir, invalidFixtureDir, compatFixtureDir].map((root) =>
       fs.promises.rm(root, { recursive: true, force: true })
     ))
+  })
+
+  test("collects claims after archive finalization", async () => {
+    const manifest = JSON.parse(await fs.promises.readFile(
+      path.resolve(compatFixtureDir, ".minista/manifest.json"),
+      "utf8",
+    ))
+
+    expect(manifest.outputs.map(
+      (/** @type {{fileName: string}} */ { fileName }) => fileName,
+    )).toContain("dist.zip")
+    expect(manifest.artifacts).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: "archive",
+        owner: "feature:archive",
+        output: expect.objectContaining({ fileName: "dist.zip" }),
+      }),
+      expect.objectContaining({
+        kind: "script",
+        owner: "feature:island",
+        output: expect.objectContaining({ fileName: "scripts/island-1.js" }),
+      }),
+      expect.objectContaining({
+        kind: "style",
+        owner: "feature:bundle",
+        output: expect.objectContaining({ fileName: "assets/bundle.css" }),
+      }),
+    ]))
   })
 
   test("promotes metadata only after both external builds succeed", async () => {

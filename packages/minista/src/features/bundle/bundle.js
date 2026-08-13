@@ -37,6 +37,31 @@ function replaceRootAsset(value, fileName, output) {
 /**
  * @param {HtmlDocument} document
  * @param {BundlePlan} plan
+ * @returns {readonly string[]}
+ */
+export function collectBundleOutputReferences(document, plan) {
+  const references = new Set()
+  if (document.select("head")[0]) {
+    for (const fileName of plan.cssFiles) references.add(fileName)
+  }
+  if (!plan.rewriteRootImages) return Object.freeze([...references])
+  for (const fileName of plan.imageFiles) {
+    const used = document.select("*").some((element) =>
+      ["href", "src", "srcset", "content", "poster"].some((attribute) => {
+        const value = element.getAttribute(attribute)
+        return value
+          ? replaceRootAsset(value, fileName, fileName) !== value
+          : false
+      })
+    )
+    if (used) references.add(fileName)
+  }
+  return Object.freeze([...references])
+}
+
+/**
+ * @param {HtmlDocument} document
+ * @param {BundlePlan} plan
  * @param {BundleOutputResolver} outputs
  * @returns {number}
  */

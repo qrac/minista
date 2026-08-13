@@ -9,8 +9,12 @@ import { normalizePath } from "vite"
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
-import { composeBundleDocument } from "../../features/bundle/index.js"
+import {
+  collectBundleOutputReferences,
+  composeBundleDocument,
+} from "../../features/bundle/index.js"
 import { getGlobImportCode } from "./utils/code.js"
+import { getHtmlPageUrl } from "../../shared/filename.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
   getServeBase,
@@ -55,10 +59,12 @@ export function pluginBundle(uOpts = {}) {
 
   /** @type {Set<string>} */
   let importedImageFiles = new Set()
+  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
+  let outputClaims = []
 
   return {
     name: "vite-plugin:minista-bundle",
-    api: { minista: { feature: { id: "bundle", apiVersion: 1, options: opts, provides: ["client-bundle"], requires: ["html-documents"] } } },
+    api: { minista: { outputClaims: () => outputClaims, feature: { id: "bundle", apiVersion: 1, options: opts, provides: ["client-bundle"], requires: ["html-documents"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -68,6 +74,8 @@ export function pluginBundle(uOpts = {}) {
     },
     applyToEnvironment: isViteAppClientEnvironment,
     config: async (config) => {
+      importedImageFiles = new Set()
+      outputClaims = []
       rootDir = getRootDir(cwd, config.root || "")
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")
@@ -118,6 +126,7 @@ export function pluginBundle(uOpts = {}) {
       }
     },
     generateBundle(options, bundle) {
+      outputClaims = []
       const outputChunks = filterOutputChunks(bundle)
       const outputAssets = filterOutputAssets(bundle)
 
@@ -159,19 +168,41 @@ export function pluginBundle(uOpts = {}) {
       const htmlItems = Object.values(outputAssets).filter((item) => {
         return item.fileName.endsWith(".html")
       })
-
-      for (const item of htmlItems) {
+      const plan = {
+        cssFiles,
+        imageFiles,
+        rewriteRootImages: base === "./" || base === "",
+      }
+      const pages = htmlItems.map((item) => {
         const document = documents.parse({
           pageId: createNodeId("page", "legacy-bundle-compose", item.fileName),
           html: String(item.source),
         })
+        return {
+          item,
+          document,
+          references: collectBundleOutputReferences(document, plan),
+        }
+      })
+      const cssSet = new Set(cssFiles)
+      for (const fileName of [...cssFiles, ...imageFiles]) {
+        outputClaims.push(Object.freeze({
+          id: createNodeId("artifact", "bundle-output", fileName),
+          kind: cssSet.has(fileName) ? "style" : "image",
+          owner: createNodeId("feature", "bundle"),
+          source: opts.outName,
+          fileName,
+          pageUrls: Object.freeze(pages
+            .filter(({ references }) => references.includes(fileName))
+            .map(({ item }) => getHtmlPageUrl(item.fileName))),
+          dependencies: Object.freeze([]),
+        }))
+      }
+
+      for (const { item, document } of pages) {
         composeBundleDocument(
           document,
-          {
-            cssFiles,
-            imageFiles,
-            rewriteRootImages: base === "./" || base === "",
-          },
+          plan,
           {
             resolve: (fileName) =>
               getBasedAssetUrl(base, item.fileName, fileName),

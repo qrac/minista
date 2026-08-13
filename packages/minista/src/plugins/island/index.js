@@ -29,6 +29,7 @@ import {
 import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { decodeSnippet } from "./utils/snippet.js"
 import { getIslandServeCode } from "./utils/code.js"
+import { getHtmlPageUrl } from "../../shared/filename.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
 import {
   getServeBase,
@@ -90,6 +91,8 @@ export function pluginIsland(uOpts = {}) {
   let entries = {}
   /** @type {import("../../features/island/index.js").IslandSourcePlan | undefined} */
   let sourcePlan
+  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
+  let outputClaims = []
   /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
   let buildSession
   const environmentInput = new ViteEnvironmentInputAdapter()
@@ -97,6 +100,7 @@ export function pluginIsland(uOpts = {}) {
   async function prepareIslandEntries() {
     entries = {}
     sourcePlan = undefined
+    outputClaims = []
     const snippetArtifact = buildSession
       ? await buildSession.artifacts.get(createIslandSnippetsArtifactId())
       : undefined
@@ -176,6 +180,7 @@ export function pluginIsland(uOpts = {}) {
     api: {
       minista: {
         prepareClient: prepareAppClient,
+        outputClaims: () => outputClaims,
         feature: {
           id: "island",
           apiVersion: 1,
@@ -312,12 +317,14 @@ export function pluginIsland(uOpts = {}) {
       if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
         return
       }
+      outputClaims = []
 
       const outputChunks = filterOutputChunks(bundle)
       const outputAssets = filterOutputAssets(bundle)
       const entryIds = Object.keys(entries)
 
       if (entryIds.length === 0 || !sourcePlan) return
+      const activeSourcePlan = sourcePlan
 
       /** @type {import("../../features/island/index.js").IslandBundleOutput[]} */
       const bundleOutputs = []
@@ -345,15 +352,58 @@ export function pluginIsland(uOpts = {}) {
       const htmlItems = Object.values(outputAssets).filter((item) => {
         return item.fileName.endsWith(".html")
       })
-
-      for (const item of htmlItems) {
+      const pages = htmlItems.map((item) => {
         const document = documents.parse({
           pageId: createNodeId("page", "legacy-island", item.fileName),
           html: String(item.source),
         })
+        return {
+          item,
+          document,
+          patternIndex: activeSourcePlan.pagePatterns[document.pageId],
+        }
+      })
+      /** @type {Map<string, Set<string>>} */
+      const cssPageUrls = new Map()
+      for (const output of bundleOutputs) {
+        const pageUrls = pages
+          .filter(({ patternIndex }) => patternIndex === output.patternIndex)
+          .map(({ item }) => getHtmlPageUrl(item.fileName))
+        outputClaims.push(Object.freeze({
+          id: createNodeId(
+            "artifact",
+            "island-output",
+            String(output.patternIndex),
+          ),
+          kind: "script",
+          owner: createNodeId("feature", "island"),
+          source: `pattern:${output.patternIndex}`,
+          fileName: output.fileName,
+          pageUrls: Object.freeze(pageUrls),
+          dependencies: Object.freeze([]),
+        }))
+        for (const fileName of output.cssFiles) {
+          const consumers = cssPageUrls.get(fileName) ?? new Set()
+          for (const pageUrl of pageUrls) consumers.add(pageUrl)
+          cssPageUrls.set(fileName, consumers)
+        }
+      }
+      outputClaims.push(...[...cssPageUrls].map(([fileName, pageUrls]) =>
+        Object.freeze({
+          id: createNodeId("artifact", "island-style-output", fileName),
+          kind: /** @type {const} */ ("style"),
+          owner: createNodeId("feature", "island"),
+          source: "island-style",
+          fileName,
+          pageUrls: Object.freeze([...pageUrls]),
+          dependencies: Object.freeze([]),
+        })
+      ))
+
+      for (const { item, document } of pages) {
         composeIslandDocument(
           document,
-          sourcePlan,
+          activeSourcePlan,
           bundleOutputs,
           opts,
           {

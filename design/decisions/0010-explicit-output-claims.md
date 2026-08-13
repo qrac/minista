@@ -15,7 +15,7 @@ client pluginはoptionalな `api.minista.outputClaims()` でoutput claimを公�
 
 Vite adapterはclient build完了後にfeature descriptorとclaimを収集します。Core `applyOutputClaims()` はclaimのfile nameをOutput Manifestと照合し、存在するoutputだけをBuildArtifactとgenerated AssetとしてProject Graph snapshotへ追加します。Page URLは既存PageNode IDへ解決し、Asset consumerに保存します。存在しないoutputは `MINISTA_OUTPUT_CLAIM_NOT_FOUND`、owner descriptorがないclaimは `MINISTA_OUTPUT_CLAIM_OWNER_NOT_FOUND` とします。
 
-最初にSSGのHTML outputを接続し、Entryのscript／style、Image、Sprite、Search dataまで移行しました。残るcompatibility featureも、自身のgenerate／bundle処理で確定した情報から段階的にclaimを公開します。
+最初にSSGのHTML outputを接続し、Entry、Island、Image、Sprite、Search、Archive、Bundleまで移行しました。generate／bundle時に確定する出力は各pluginのclosureから収集し、filesystemへfinalizeするArchiveは全`writeBundle`完了後の`closeBundle`でOutput Manifestと再照合します。
 
 ## Consequences
 
@@ -23,7 +23,7 @@ Vite adapterはclient build完了後にfeature descriptorとclaimを収集しま
 - plugin間でHTML文字列、一時file、module global stateを共有しない
 - claimは実在outputとの照合後だけGraphへ入る
 - 同じprotocolをApp Build、programmatic legacy、外部CLI handoffで使用できる
-- 未移行featureのoutputはcatalogには現れるがowner／consumer edgeを持たない
+- outputを生成しないdocument変換featureはclaimを持たない
 
 ## Rejected alternatives
 

@@ -19,6 +19,10 @@ export interface BundleOutputResolver {
   resolve(fileName: string, pageId: PageId): string | undefined
 }
 export declare const BUNDLE_FEATURE_ID: FeatureId
+export declare function collectBundleOutputReferences(
+  document: HtmlDocument,
+  plan: BundlePlan,
+): readonly string[]
 export declare function composeBundleDocument(
   document: HtmlDocument,
   plan: BundlePlan,

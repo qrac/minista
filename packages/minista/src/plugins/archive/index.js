@@ -8,6 +8,7 @@ import pc from "picocolors"
 
 import { NodeArchiveBuilder } from "../../adapters/archive/index.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
+import { createNodeId } from "../../core/graph/index.js"
 import { getRootDir } from "../../shared/path.js"
 
 /** @type {PluginOptions} */
@@ -36,10 +37,12 @@ export function pluginArchive(uOpts = {}) {
   let rootDir = ""
   /** @type {NodeArchiveBuilder | undefined} */
   let builder
+  /** @type {import("../../core/graph/index.js").OutputClaim[]} */
+  let outputClaims = []
 
   return {
     name: "vite-plugin:minista-archive",
-    api: { minista: { feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["output-files"], optionalAfter: ["beautify"] } } },
+    api: { minista: { outputClaims: () => outputClaims, feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["output-files"], optionalAfter: ["beautify"] } } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       isDev = command === "serve"
@@ -55,6 +58,7 @@ export function pluginArchive(uOpts = {}) {
     async writeBundle(options) {
       const dist = options.dir
       if (!dist || !builder) return
+      outputClaims = []
       const archiveBuilder = builder
 
       await Promise.all(
@@ -69,6 +73,16 @@ export function pluginArchive(uOpts = {}) {
               finalPath,
               await archiveBuilder.build(archive),
             )
+            const fileName = path.relative(dist, finalPath).replaceAll("\\", "/")
+            outputClaims.push(Object.freeze({
+              id: createNodeId("artifact", "archive-output", fileName),
+              kind: "archive",
+              owner: createNodeId("feature", "archive"),
+              source: archive.srcDir,
+              fileName,
+              pageUrls: Object.freeze([]),
+              dependencies: Object.freeze([]),
+            }))
 
             const rel = path.relative(rootDir, path.dirname(finalPath))
             console.log(

@@ -82,6 +82,7 @@ describe.sequential("v4 compatibility App Build", () => {
     expect(files).toEqual(
       expect.arrayContaining([
         "assets/assets.svg",
+        "assets/bundle.css",
         "assets/pixel-2x2.png",
         "assets/search.json",
         "assets/site.css",
@@ -100,6 +101,7 @@ describe.sequential("v4 compatibility App Build", () => {
     expect(html).toContain('src="/scripts/client.js"')
     expect(html).toContain('src="/scripts/island-1.js"')
     expect(html).toContain('href="/assets/site.css"')
+    expect(html).toContain('href="/assets/bundle.css"')
   })
 
   test("does not run client-only output hooks in render", async () => {
@@ -159,6 +161,11 @@ describe.sequential("v4 compatibility App Build", () => {
         output: expect.objectContaining({ fileName: "assets/pixel-2x2.png" }),
       }),
       expect.objectContaining({
+        kind: "script",
+        owner: "feature:island",
+        output: expect.objectContaining({ fileName: "scripts/island-1.js" }),
+      }),
+      expect.objectContaining({
         kind: "data",
         owner: "feature:search",
         output: expect.objectContaining({ fileName: "assets/search.json" }),
@@ -167,6 +174,16 @@ describe.sequential("v4 compatibility App Build", () => {
         kind: "sprite",
         owner: "feature:sprite",
         output: expect.objectContaining({ fileName: "assets/assets.svg" }),
+      }),
+      expect.objectContaining({
+        kind: "archive",
+        owner: "feature:archive",
+        output: expect.objectContaining({ fileName: "dist.zip" }),
+      }),
+      expect.objectContaining({
+        kind: "style",
+        owner: "feature:bundle",
+        output: expect.objectContaining({ fileName: "assets/bundle.css" }),
       }),
     ]))
     expect(manifest.assets).toEqual(expect.arrayContaining([
@@ -189,11 +206,23 @@ describe.sequential("v4 compatibility App Build", () => {
       }),
       expect.objectContaining({
         consumers: [manifest.pages[0].id],
+        output: expect.objectContaining({ fileName: "scripts/island-1.js" }),
+      }),
+      expect.objectContaining({
+        consumers: [manifest.pages[0].id],
         output: expect.objectContaining({ fileName: "assets/search.json" }),
       }),
       expect.objectContaining({
         consumers: [manifest.pages[0].id],
         output: expect.objectContaining({ fileName: "assets/assets.svg" }),
+      }),
+      expect.objectContaining({
+        consumers: [],
+        output: expect.objectContaining({ fileName: "dist.zip" }),
+      }),
+      expect.objectContaining({
+        consumers: [manifest.pages[0].id],
+        output: expect.objectContaining({ fileName: "assets/bundle.css" }),
       }),
     ]))
     expect(source.endsWith("\n")).toBe(true)

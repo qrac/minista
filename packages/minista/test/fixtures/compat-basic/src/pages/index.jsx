@@ -2,6 +2,7 @@ import { Comment, Image, Search, Sprite, Svg } from "minista/assets"
 import { Head } from "minista/head"
 
 import { Counter } from "../components/counter.jsx"
+import "../assets/bundle.css"
 
 export default function Index() {
   return (

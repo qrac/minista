@@ -13,6 +13,7 @@ import {
 } from "../../../src/core/index.js"
 import {
   BUNDLE_FEATURE_ID,
+  collectBundleOutputReferences,
   createBundleFeature,
 } from "../../../src/features/bundle/index.js"
 
@@ -53,6 +54,11 @@ describe("bundle feature", () => {
       pageId,
       html: '<html><head><link rel="preload" as="image" href="/assets/photo.png"></head><body><img src="/assets/photo.png"><source srcset="/assets/photo.png 1x"></body></html>',
     })
+    expect(collectBundleOutputReferences(document, {
+      cssFiles: ["assets/bundle.css"],
+      imageFiles: ["assets/photo.png", "assets/unused.png"],
+      rewriteRootImages: true,
+    })).toEqual(["assets/bundle.css", "assets/photo.png"])
     documents.put(document)
     const builder = {
       bundle: vi.fn(async () => ({
