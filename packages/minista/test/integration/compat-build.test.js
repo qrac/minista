@@ -16,9 +16,12 @@ const viteConfigCacheDir = path.resolve(fixtureDir, "node_modules/.vite-temp")
 
 function runBuild() {
   return new Promise((resolve, reject) => {
+    /** @type {NodeJS.ProcessEnv} */
+    const env = { ...process.env, NO_COLOR: "1" }
+    delete env.NODE_ENV
     const child = spawn(process.execPath, [binFile, "build", fixtureDir], {
       cwd: packageDir,
-      env: { ...process.env, NO_COLOR: "1" },
+      env,
       stdio: ["ignore", "pipe", "pipe"],
     })
 

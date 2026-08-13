@@ -118,15 +118,15 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 6: ModuleRunner dev adapter
 
-進捗: `ViteDevServerAdapter` を追加し、通常のdev CLIをprogrammatic `createServer({ appType: "custom" })` へ切り替えました。adapterがlisten、URL表示、CLI shortcut、closeを所有し、root、config、mode、base、host、port、open、CORS、strict port、forceなどの一般的なflagを変換します。未対応flagだけ外部Vite CLIへfallbackします。compatibility fixtureをcustom app serverで起動し、HTTP経由のSSG HTMLとVite client injectionを確認済みです。module評価はまだlegacy `ssrLoadModule()` のため、route cacheとModuleRunner移行が残っています。
+進捗: `ViteDevServerAdapter` を追加し、通常のdev CLIをprogrammatic `createServer({ appType: "custom" })` へ切り替えました。adapterがlisten、URL表示、CLI shortcut、closeを所有し、root、config、mode、base、host、port、open、CORS、strict port、forceなどの一般的なflagを変換します。未対応flagだけ外部Vite CLIへfallbackします。`ViteDevModuleEvaluator` はrunnable environmentのguard、`runner.import()`、module invalidation、stacktrace補正を既存のCore portへ適合させ、SSG、Island、Search、project commandが共有します。plugin／CLIからの `server.ssrLoadModule()` 直接利用は除去済みです。compatibility fixtureをcustom app serverで起動し、HTTP経由のSSG HTML、Vite client injection、Search JSONを確認済みです。route／module単位のcacheとgraph edgeによるinvalidation、直接WebSocket reloadの隔離が残っています。
 
 - dev CLIをprogrammatic `createServer({ appType: "custom" })` に移す。実装済み
-- `render` environmentの `RunnableDevEnvironment.runner.import()` でpage moduleを評価
+- `render` environmentの `RunnableDevEnvironment.runner.import()` でpage moduleを評価。移行中の `ssr` environmentに対して実装済み
 - requestごとに全pagesを再評価せず、route / module dependency単位でcache
 - environmentごとのmodule graphと `hotUpdate` を使用
 - source change → affected route/page/artifact edgeをgraphで説明可能にする
 - HMR不能なdocument changeのみ明示的full reloadにする
-- `server.ssrLoadModule`, mixed `server.moduleGraph`, `server.ws` 直接利用をadapterから削除
+- `server.ssrLoadModule` のplugin／CLI直接利用を削除。mixed module graphと `server.ws` の隔離は未実装
 
 完了条件: build用render bundleを生成せずにdev renderingが動作し、page/layout/static dataの変更が該当graph nodeをinvalidationする。
 

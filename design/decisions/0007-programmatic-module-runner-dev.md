@@ -21,11 +21,13 @@ devを次の順に段階移行します。
 
 CoreはVite server、ModuleRunner、module graphの型を持ちません。module評価は既存の `ModuleEvaluator` portを通します。
 
+手順1〜3は実装済みです。`ViteDevModuleEvaluator` は移行中の `ssr` environmentをguardし、SSG、Island、Search、project commandのmodule評価を共有します。手順4と、手順5に含まれるmixed module graph／直接WebSocket reloadの除去は未実装です。
+
 ## Consequences
 
 - Ministaがdev middleware orderとserver shutdownを管理できる
 - build用render bundleなしでproductionと同じroute/page graphへ近づけられる
-- 移行中はprogrammatic serverとlegacy SSG middlewareが一時的に共存する
+- 移行中はprogrammatic server／ModuleRunner evaluatorとrequest単位のlegacy SSG middlewareが一時的に共存する
 - 未対応CLI flagでは従来の外部Vite processが残る
 
 ## Rejected alternatives

@@ -43,11 +43,11 @@ App BuildではViteが全environmentのconfigをbuild前に解決するため、
 
 通常のdev CLIは外部Vite processを起動せず、`ViteDevServerAdapter` が `createServer({ appType: "custom" })`、listen、URL表示、CLI shortcut、closeを所有します。root、config、mode、base、host、port、open、CORSなどの一般的なdev flagはprogrammatic configへ変換し、未対応flagだけ外部Vite CLIへfallbackします。
 
-`pluginSsg()` は引き続きVite middlewareを登録し、requestごとに `server.ssrLoadModule(globFile)` で全page/layout moduleを評価します。その後にrouteと一致するpageを `renderToString()` し、`server.transformIndexHtml()` へ渡します。server lifecycleは移行済みですが、module evaluationとroute cacheはlegacyです。
+`pluginSsg()` は引き続きVite middlewareを登録しますが、module評価は `ViteDevModuleEvaluator` を通じて `RunnableDevEnvironment.runner.import()` を使用します。adapterはrunnable environmentのguard、module invalidation、stacktrace補正を所有し、Core側にはViteの型を公開しません。requestごとに全page/layout moduleを評価してrouteと一致するpageをrenderし、`server.transformIndexHtml()` へ渡す流れは残っているため、route単位のcacheは未実装です。
 
-Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置換し、開発用sourceやassetを `.minista` に生成します。Imageはdomainの参照収集とdocument composeを使い、Node adapterが生成した画像assetだけを `.minista` に保存します。Islandは `virtual:ssg-pages` を `ssrLoadModule()` して、SSG pluginのclosure内にあるHTML配列を取得します。
+Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置換し、開発用sourceやassetを `.minista` に生成します。Imageはdomainの参照収集とdocument composeを使い、Node adapterが生成した画像assetだけを `.minista` に保存します。IslandとSearchも共有module evaluatorから `virtual:ssg-pages` をimportし、plugin／CLIからの `ssrLoadModule()` 直接利用は除去済みです。
 
-`pluginSsg()` のHMRは既に `this.environment`, environment module graph, `hotUpdate` を一部使用しますが、module evaluationは旧 `ssrLoadModule()`、reloadは多くの場合full reloadです。
+`pluginSsg()` のHMRは既に `this.environment`, environment module graph, `hotUpdate` を一部使用しますが、route／page／artifactとのinvalidation対応付けは未実装で、reloadは多くの場合full reloadです。SSGとSpriteには直接WebSocket操作やenvironment間のmodule graph参照が残っています。
 
 ### Current data model
 
@@ -122,7 +122,7 @@ packages/minista/src/
    ├─ image/               # Node.js画像読込・Sharp変換・cache
    ├─ react/               # renderToString / prerenderToNodeStream
    ├─ sprite/              # Node.js SVG sprite生成
-   └─ vite/                # project query、legacy SSG projection、Vite Builder adapter
+   └─ vite/                # project query、SSG projection、Vite build/dev adapter
 ```
 
 Core用 `tsconfig.core.json` はJavaScript + JSDocと隣接 `.d.ts` をstrict modeで直接型検査します。repository全体の `tsc --noEmit` でも同じsourceを検査します。

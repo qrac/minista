@@ -1,5 +1,4 @@
 /** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('../ssg/types').SsgPage} SsgPage */
@@ -17,6 +16,7 @@ import {
   SwcIslandSourceTransformer,
 } from "../../adapters/island/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -81,8 +81,8 @@ export function pluginIsland(uOpts = {}) {
   let snippetList = []
   /** @type {Set<string>} */
   let uniqueSnippets = new Set()
-  /** @type {ViteDevServer} */
-  let viteServer
+  /** @type {ViteDevModuleEvaluator | undefined} */
+  let moduleEvaluator
   let ssgDir = ""
   /** @type {SsgPage[]} */
   let ssgPages = []
@@ -240,12 +240,15 @@ export function pluginIsland(uOpts = {}) {
       }
     },
     configureServer(server) {
-      viteServer = server
+      return () => {
+        moduleEvaluator = new ViteDevModuleEvaluator(server)
+      }
     },
     async transformIndexHtml(html) {
-      if (viteServer) {
-        const mod = await viteServer.ssrLoadModule("virtual:ssg-pages")
-        ssgPages = mod.default ?? mod
+      if (moduleEvaluator) {
+        /** @type {{default?: SsgPage[]}} */
+        const mod = await moduleEvaluator.importModule("virtual:ssg-pages")
+        ssgPages = mod.default ?? []
 
         if (ssgPages && ssgPages.length > 0) {
           uniqueSnippets = new Set(

@@ -1,5 +1,4 @@
 /** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('../ssg/types').SsgPage} SsgPage */
@@ -14,6 +13,7 @@ import {
   NodeSearchDocumentAnalyzer,
 } from "../../adapters/html/index.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   analyzeRenderedSearchPages,
@@ -104,11 +104,14 @@ export function pluginSearch(uOpts = {}) {
       }
     },
     configureServer(server) {
+      /** @type {ViteDevModuleEvaluator | undefined} */
+      let evaluator
       server.middlewares.use(async (req, res, next) => {
         if (req.url === "/@__minista_search_json") {
-          const mod = await server.ssrLoadModule("virtual:ssg-pages")
-          /** @type {SsgPage[]} */
-          const ssgPages = mod.default ?? mod
+          evaluator ??= new ViteDevModuleEvaluator(server)
+          /** @type {{default?: SsgPage[]}} */
+          const mod = await evaluator.importModule("virtual:ssg-pages")
+          const ssgPages = mod.default ?? []
           const searchData = await getSearchData(ssgPages, opts)
 
           res.setHeader("Content-Type", "application/json")

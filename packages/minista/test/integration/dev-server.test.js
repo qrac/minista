@@ -13,6 +13,8 @@ let fixtureDir = ""
 /** @type {import("../../src/adapters/vite/dev-server.js").ViteDevServerResult | undefined} */
 let running
 let html = ""
+/** @type {any} */
+let search
 
 describe.sequential("programmatic custom dev server", () => {
   beforeAll(async () => {
@@ -55,6 +57,12 @@ describe.sequential("programmatic custom dev server", () => {
     })
     html = await response.text()
     expect(response.status).toBe(200)
+    const searchResponse = await fetch(
+      `http://127.0.0.1:${address.port}/@__minista_search_json`,
+      { signal: AbortSignal.timeout(10_000) },
+    )
+    search = await searchResponse.json()
+    expect(searchResponse.status).toBe(200)
   }, 60_000)
 
   afterAll(async () => {
@@ -68,5 +76,8 @@ describe.sequential("programmatic custom dev server", () => {
     expect(running?.server.config.appType).toBe("custom")
     expect(html).toContain("<h1>Compatibility fixture</h1>")
     expect(html).toContain("/@vite/client")
+    expect(search.words).toEqual(
+      expect.arrayContaining(["Compatibility", "fixture"]),
+    )
   })
 })

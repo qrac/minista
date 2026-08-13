@@ -5,6 +5,8 @@
 /** @typedef {import('./types').SsgPage} SsgPage */
 /** @typedef {import('./types').ResolvedLayout} ResolvedLayout */
 /** @typedef {import('./types').ResolvedPage} ResolvedPage */
+/** @typedef {import('./types').ImportedLayouts} ImportedLayouts */
+/** @typedef {import('./types').ImportedPages} ImportedPages */
 /** @typedef {import('../../adapters/vite/environment-preparation.js').ViteEnvironmentPreparation} ViteEnvironmentPreparation */
 
 import fs from "node:fs"
@@ -15,6 +17,7 @@ import pc from "picocolors"
 import { resolveLegacySsgProject } from "../../adapters/vite/legacy-ssg-project.js"
 import { createViteReactRenderer } from "../../adapters/vite/react-renderer.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -295,6 +298,7 @@ export function pluginSsg(uOpts = {}) {
     },
     configureServer(server) {
       return () => {
+        const evaluator = new ViteDevModuleEvaluator(server)
         server.middlewares.use(async (req, res, next) => {
           try {
             const base = server.config.base || "/"
@@ -305,8 +309,9 @@ export function pluginSsg(uOpts = {}) {
             const url = originalUrl.startsWith(normalizedBase)
               ? originalUrl.slice(normalizedBase.length) || "/"
               : originalUrl
-            const ssr = server.ssrLoadModule
-            const { LAYOUTS = {}, PAGES = {} } = await ssr(globFile)
+            /** @type {{LAYOUTS?: ImportedLayouts, PAGES?: ImportedPages}} */
+            const modules = await evaluator.importModule(globFile)
+            const { LAYOUTS = {}, PAGES = {} } = modules
             const formatedLayout = formatLayout(LAYOUTS)
             const resolvedLayout = await resolveLayout(formatedLayout)
             const project = await resolveLegacySsgProject(PAGES, opts)
@@ -326,8 +331,7 @@ export function pluginSsg(uOpts = {}) {
 
             await selfUpdateResolvedToSsgPages(resolvedLayout, resolvedPages)
 
-            const mod = server.moduleGraph.getModuleById(SSG_PAGES_VIRTUAL)
-            if (mod) server.moduleGraph.invalidateModule(mod)
+            evaluator.invalidateModule(SSG_PAGES_VIRTUAL)
 
             let html = ""
 
@@ -343,7 +347,7 @@ export function pluginSsg(uOpts = {}) {
               next()
             }
           } catch (e) {
-            if (e instanceof Error) server.ssrFixStacktrace(e)
+            if (e instanceof Error) evaluator.fixStacktrace(e)
             next(e)
           }
         })

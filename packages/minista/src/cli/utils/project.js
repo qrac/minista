@@ -2,11 +2,10 @@ import path from "node:path"
 import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 
-import {
-  createServer,
-  isRunnableDevEnvironment,
-} from "vite"
+import { createServer } from "vite"
 import { glob } from "tinyglobby"
+
+import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 
 /** @typedef {"check"|"inspect"|"explain"} ProjectCommand */
 /** @typedef {{command: ProjectCommand, target: string, root: string, json: boolean}} ParsedProjectCommand */
@@ -107,13 +106,10 @@ export async function runProjectCommand(parsed, configFile) {
     )
     const patterns = options.src.map((pattern) => pattern.replace(/^\/+/, ""))
     const sourceFiles = await glob(patterns, { cwd: rootDir })
-    const environment = server.environments.ssr
-    if (!isRunnableDevEnvironment(environment)) {
-      throw new Error("The Vite render environment is not runnable.")
-    }
+    const evaluator = new ViteDevModuleEvaluator(server)
     /** @type {{analyzeProject(input: unknown): Promise<ProjectCommandResult>}} */
     const service = /** @type {{analyzeProject(input: unknown): Promise<ProjectCommandResult>}} */ (
-      await environment.runner.import(serviceFile)
+      await evaluator.importModule(serviceFile)
     )
     const packageFile = path.resolve(rootDir, "package.json")
     let projectName = path.basename(rootDir)
@@ -128,10 +124,7 @@ export async function runProjectCommand(parsed, configFile) {
       sourceFiles,
       srcBases: options.srcBases,
       target: parsed.target,
-      evaluator: {
-        importModule: (/** @type {string} */ moduleId) =>
-          environment.runner.import(moduleId),
-      },
+      evaluator,
     })
 
     if (parsed.json) console.log(JSON.stringify(result, null, 2))
