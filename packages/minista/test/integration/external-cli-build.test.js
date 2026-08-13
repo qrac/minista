@@ -104,6 +104,13 @@ describe.sequential("external Vite CLI build fallback", () => {
     )).toContain(
       "index.html",
     )
+    expect(manifest.artifacts).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: "html",
+        owner: "feature:ssg",
+        output: expect.objectContaining({ fileName: "index.html" }),
+      }),
+    ]))
     expect(diagnostics).toMatchObject({
       schemaVersion: "1",
       command: "build",

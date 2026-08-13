@@ -8,6 +8,8 @@ import { createBuilder } from "vite"
 import { NodeProjectManifestWriter } from "../filesystem/project-manifest-writer.js"
 import { NodeDiagnosticsWriter } from "../filesystem/diagnostics-writer.js"
 import { createDiagnosticsReport } from "../../core/diagnostics/index.js"
+import { DiagnosticCollector } from "../../core/diagnostics/index.js"
+import { applyOutputClaims } from "../../core/graph/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
 import { loadViteAppConfig } from "./app-config-loader.js"
 import { getViteBuildSession } from "./build-session.js"
@@ -17,6 +19,7 @@ import {
   reconcileViteOutputManifest,
 } from "./output-manifest.js"
 import { ViteOutputTransaction } from "./output-transaction.js"
+import { collectViteOutputClaims } from "./output-claims.js"
 
 /** @typedef {import("vite").BuildEnvironment} BuildEnvironment */
 /** @typedef {import("vite").InlineConfig} InlineConfig */
@@ -96,17 +99,24 @@ export class ViteAppBuilderAdapter {
     await transaction?.commit()
 
     const createdAt = new Date().toISOString()
-    const diagnostics = session?.diagnostics?.snapshot() ?? Object.freeze([])
-    const projectGraph = session?.state?.projectGraph
+    const collector = session?.diagnostics ?? new DiagnosticCollector()
+    let projectGraph = session?.state?.projectGraph
+    if (projectGraph) {
+      const collected = await collectViteOutputClaims(client.config.plugins)
+      projectGraph = applyOutputClaims(
+        projectGraph,
+        collected.claims,
+        collected.features,
+        outputManifest,
+        collector,
+      )
+    }
+    const diagnostics = collector.snapshot()
     if (writesOutput && projectGraph) {
       const projectManifest = createProjectManifest(projectGraph, {
         version: ministaVersion,
         createdAt,
-        diagnostics: session?.diagnostics?.summary() ?? {
-          errors: 0,
-          warnings: 0,
-          info: 0,
-        },
+        diagnostics: collector.summary(),
         outputManifest,
       })
       await new NodeProjectManifestWriter().write(

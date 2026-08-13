@@ -6,11 +6,14 @@ import { createRequire } from "node:module"
 import { NodeDiagnosticsWriter } from "../filesystem/diagnostics-writer.js"
 import { NodeProjectManifestWriter } from "../filesystem/project-manifest-writer.js"
 import { createDiagnosticsReport } from "../../core/diagnostics/index.js"
+import { DiagnosticCollector } from "../../core/diagnostics/index.js"
+import { applyOutputClaims } from "../../core/graph/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
 import {
   createViteOutputManifest,
   reconcileViteOutputManifest,
 } from "./output-manifest.js"
+import { collectViteOutputClaims } from "./output-claims.js"
 import { getViteBuildSession } from "./build-session.js"
 import { ViteOutputTransaction } from "./output-transaction.js"
 
@@ -83,19 +86,28 @@ export class LegacyViteBuilderAdapter {
     await transaction?.commit()
     if (writesClientOutput) {
       const createdAt = new Date().toISOString()
-      const diagnostics = session?.diagnostics?.snapshot() ?? Object.freeze([])
-      const projectGraph = session?.state?.projectGraph
+      const collector = session?.diagnostics ?? new DiagnosticCollector()
+      let projectGraph = session?.state?.projectGraph
+      if (projectGraph && outputManifest) {
+        const collected = await collectViteOutputClaims(
+          environment.config.plugins,
+        )
+        projectGraph = applyOutputClaims(
+          projectGraph,
+          collected.claims,
+          collected.features,
+          outputManifest,
+          collector,
+        )
+      }
+      const diagnostics = collector.snapshot()
       if (projectGraph) {
         await new NodeProjectManifestWriter().write(
           environment.config.root,
           createProjectManifest(projectGraph, {
             version: ministaVersion,
             createdAt,
-            diagnostics: session?.diagnostics?.summary() ?? {
-              errors: 0,
-              warnings: 0,
-              info: 0,
-            },
+            diagnostics: collector.summary(),
             ...(outputManifest ? { outputManifest } : {}),
           }),
         )

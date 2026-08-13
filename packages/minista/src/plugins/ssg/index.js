@@ -27,6 +27,9 @@ import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
 import { createViteOutputManifest } from "../../adapters/vite/output-manifest.js"
+import { collectViteOutputClaims } from "../../adapters/vite/output-claims.js"
+import { DiagnosticCollector } from "../../core/diagnostics/index.js"
+import { applyOutputClaims } from "../../core/graph/index.js"
 import { createRenderedPagesArtifactId } from "../../features/ssg/index.js"
 import { DevPageCache } from "../../features/ssg/dev-page-cache.js"
 import { DevRenderCache } from "../../features/ssg/dev-render-cache.js"
@@ -181,11 +184,28 @@ export function pluginSsg(uOpts = {}) {
     environmentInput.merge(preparation.client, { [tempName]: throughFile })
   }
 
+  function getOutputClaims() {
+    if (!projectGraph) return []
+    const emittedUrls = new Set(ssgPages.map(({ url }) => url))
+    return [...projectGraph.pages.values()]
+      .filter(({ url }) => emittedUrls.has(url))
+      .map((page) => Object.freeze({
+        id: createNodeId("artifact", "ssg-output", page.id),
+        kind: /** @type {const} */ ("html"),
+        owner: createNodeId("feature", "ssg"),
+        source: `page:${page.id}`,
+        fileName: getHtmlFileName(page.url),
+        pageUrls: Object.freeze([page.url]),
+        dependencies: Object.freeze([]),
+      }))
+  }
+
   return {
     name: "vite-plugin:minista-ssg",
     api: {
       minista: {
         prepareClient: prepareAppClient,
+        outputClaims: getOutputClaims,
         feature: {
           id: "ssg",
           apiVersion: 1,
@@ -649,22 +669,34 @@ export function pluginSsg(uOpts = {}) {
       ) {
         return
       }
+      const outputManifest = createViteOutputManifest(
+        /** @type {import("../../adapters/vite/app-builder.js").ViteBuildOutput} */ ({
+          output: Object.values(bundle),
+        }),
+        {
+          environment: this.environment.name,
+          base: this.environment.config.base,
+        },
+      )
+      const diagnostics = new DiagnosticCollector()
+      const collected = await collectViteOutputClaims(
+        this.environment.config.plugins,
+      )
+      const claimedGraph = applyOutputClaims(
+        projectGraph,
+        collected.claims,
+        collected.features,
+        outputManifest,
+        diagnostics,
+      )
       await new NodeExternalBuildHandoff().write(
         rootDir,
         externalBuildId,
-        createProjectManifest(projectGraph, {
+        createProjectManifest(claimedGraph, {
           version: ministaVersion,
           createdAt: new Date().toISOString(),
-          diagnostics: { errors: 0, warnings: 0, info: 0 },
-          outputManifest: createViteOutputManifest(
-            /** @type {import("../../adapters/vite/app-builder.js").ViteBuildOutput} */ ({
-              output: Object.values(bundle),
-            }),
-            {
-              environment: this.environment.name,
-              base: this.environment.config.base,
-            },
-          ),
+          diagnostics: diagnostics.summary(),
+          outputManifest,
         }),
       )
     },

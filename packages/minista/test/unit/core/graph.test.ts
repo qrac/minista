@@ -5,6 +5,7 @@ import {
   ProjectGraph,
   createNodeId,
   createOutputManifest,
+  applyOutputClaims,
   createProjectManifest,
   toProjectPath,
 } from "../../../src/core/index.js"
@@ -118,5 +119,80 @@ describe("ProjectGraph", () => {
     expect(json).not.toContain("must-not-be-serialized")
     expect(json).not.toContain("apiToken")
     expect(json).not.toContain(process.cwd())
+  })
+
+  test("materializes verified output claims as graph edges", () => {
+    const { graph, diagnostics } = createGraph()
+    const featureId = createNodeId("feature", "ssg")
+    const routeId = createNodeId("route", "src/pages/index.tsx")
+    const pageId = createNodeId("page", "/")
+    graph.addFeature({
+      id: featureId,
+      apiVersion: 1,
+      provides: ["pages"],
+      requires: [],
+    })
+    graph.addRoute({
+      id: routeId,
+      sourceFile: toProjectPath("src/pages/index.tsx"),
+      pattern: "/",
+      params: [],
+      pageModuleId: "/src/pages/index.tsx",
+    })
+    graph.addPage({
+      id: pageId,
+      routeId,
+      url: "/",
+      params: {},
+      props: {},
+      metadata: {},
+      draft: false,
+    })
+    const outputs = createOutputManifest("client", [{
+      logicalId: "index.html",
+      kind: "asset",
+      fileName: "index.html",
+      url: "/index.html",
+      byteSize: 10,
+    }])
+    const artifactId = createNodeId("artifact", "ssg-output", pageId)
+    const claimed = applyOutputClaims(
+      graph.snapshot(),
+      [{
+        id: artifactId,
+        kind: "html",
+        owner: featureId,
+        source: `page:${pageId}`,
+        fileName: "index.html",
+        pageUrls: ["/"],
+        dependencies: [],
+      }],
+      [],
+      outputs,
+      diagnostics,
+    )
+
+    expect(claimed.artifacts.get(artifactId)?.output).toEqual({
+      fileName: "index.html",
+      url: "/index.html",
+    })
+    expect([...claimed.assets.values()][0]?.consumers).toEqual([pageId])
+    applyOutputClaims(
+      graph.snapshot(),
+      [{
+        id: createNodeId("artifact", "missing"),
+        kind: "data",
+        owner: featureId,
+        source: "missing",
+        fileName: "missing.json",
+        pageUrls: [],
+        dependencies: [],
+      }],
+      [],
+      outputs,
+      diagnostics,
+    )
+    expect(diagnostics.byCode("MINISTA_OUTPUT_CLAIM_NOT_FOUND"))
+      .toHaveLength(1)
   })
 })

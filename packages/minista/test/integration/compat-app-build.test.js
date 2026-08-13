@@ -135,6 +135,20 @@ describe.sequential("v4 compatibility App Build", () => {
     )).toEqual(
       outputManifest?.files.map(({ fileName }) => fileName),
     )
+    const pageArtifact = manifest.artifacts.find(
+      (/** @type {{kind: string}} */ item) => item.kind === "html",
+    )
+    expect(pageArtifact).toMatchObject({
+      owner: "feature:ssg",
+      output: { fileName: "index.html", url: "/index.html" },
+    })
+    expect(manifest.assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: "generated",
+        consumers: [manifest.pages[0].id],
+        output: expect.objectContaining({ fileName: "index.html" }),
+      }),
+    ]))
     expect(source.endsWith("\n")).toBe(true)
     expect(source).not.toContain(fixtureDir)
     expect(source).not.toContain('"props"')

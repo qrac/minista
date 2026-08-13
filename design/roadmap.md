@@ -132,7 +132,7 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 7: manifest / inspect / explain
 
-進捗: 進行中。Project Manifest schema v1、安全なallowlist projection、安定key orderのserializer、同一directory内の一時ファイルとrenameを使うatomic writerを実装し、通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` を出力します。外部fallbackはbuildId付きprivate handoffを両build成功後だけ公開metadataへ昇格し、失敗時に候補を残しません。絶対pathとruntime-only propsを含めないprojection test、serializerとwriterのtest、実Vite fixtureのbuild出力testを追加済みです。Project Manifestは全client outputのsafe catalogとPage→HTML output edgeを持ち、`inspect --manifest` のcountsからoutput数を取得できます。`inspect` / `inspect --json` / `explain` とstdout／stderr分離はsource query経路で実装済みです。`inspect --manifest` はVite serverとuser moduleを起動せず公開manifestだけを読み、missing、invalid、unsupported versionをstructured diagnosticとして返します。schema migration registryとmigration failure diagnosticも実装済みです。v1が最初の公開schemaのためbuilt-in migrationはまだありません。`.minista/diagnostics.json` schema v1とatomic writerも実装し、`check` の成功／失敗と全build compatibility経路の成功時に保存します。各compatibility featureが生成するAsset／Artifactのowner・consumer・dependency edgeを共通Project Graphへ統合する処理とread-only query APIのpackage boundary整理は継続します。
+進捗: 進行中。Project Manifest schema v1、安全なallowlist projection、安定key orderのserializer、同一directory内の一時ファイルとrenameを使うatomic writerを実装し、通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` を出力します。外部fallbackはbuildId付きprivate handoffを両build成功後だけ公開metadataへ昇格し、失敗時に候補を残しません。絶対pathとruntime-only propsを含めないprojection test、serializerとwriterのtest、実Vite fixtureのbuild出力testを追加済みです。Project Manifestは全client outputのsafe catalogとPage→HTML output edgeを持ち、`inspect --manifest` のcountsからoutput数を取得できます。明示的な `api.minista.outputClaims()` protocol、Vite collector、Core graph materializerを追加し、SSGのHTML Artifact owner、generated Asset、Page consumer、output locationを全build経路でGraphへ統合しました。存在しないoutput／feature ownerへのclaimはstable diagnosticにします。`inspect` / `inspect --json` / `explain` とstdout／stderr分離はsource query経路で実装済みです。`inspect --manifest` はVite serverとuser moduleを起動せず公開manifestだけを読み、missing、invalid、unsupported versionをstructured diagnosticとして返します。schema migration registryとmigration failure diagnosticも実装済みです。v1が最初の公開schemaのためbuilt-in migrationはまだありません。`.minista/diagnostics.json` schema v1とatomic writerも実装し、`check` の成功／失敗と全build compatibility経路の成功時に保存します。残るcompatibility featureのoutput claim接続とread-only query APIのpackage boundary整理は継続します。
 
 - `.minista/manifest.json` schema v1とatomic writerを通常のApp Buildへ実装済み
 - absolute path / arbitrary props / secret-like configのredaction testを追加済み
@@ -144,7 +144,8 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 - manifest migration registryとfailure diagnosticを実装済み
 - 別processの外部Vite CLI fallbackへprivate handoff経由のmetadata出力を接続済み
 - 全client output catalogとPage→HTML output edgeをProject Manifestへ反映済み
-- compatibility featureのAsset／Artifact owner・consumer・dependency edgeを共通Project Graphへ統合
+- output claim protocolとSSGのAsset／Artifact owner・consumer edgeを共通Project Graphへ統合済み
+- Entry／Island／Image／Sprite／Search／Archive／Bundleのoutput claimを接続
 - 将来の `@minista/mcp` が使用できるread-only query APIをinternal package boundaryとして整理
 
 完了条件: source全体を解析しなくてもroute → page → generated asset → outputの関係をJSONから追える。
