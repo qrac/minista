@@ -1,14 +1,12 @@
 import {
   findRootArg,
-  checkOneBuildArg,
   resolveConfigArg,
-  resolveOneBuildArg,
   resolveSsrArg,
 } from "./utils/arg.js"
 import { findConfigFile } from "./utils/file.js"
 import { runMinista } from "./utils/command.js"
 import {
-  createOneBuildDeprecationDiagnostic,
+  createRemovedOptionDiagnostic,
   reportCliDiagnostic,
 } from "./utils/diagnostic.js"
 import {
@@ -28,18 +26,18 @@ async function main() {
     return
   }
 
-  const rootArg = findRootArg(args)
-  const isOneBuild = checkOneBuildArg(args)
-  if (isOneBuild) {
-    reportCliDiagnostic(createOneBuildDeprecationDiagnostic())
+  if (args.includes("--oneBuild")) {
+    reportCliDiagnostic(createRemovedOptionDiagnostic("--oneBuild"))
+    process.exitCode = 1
+    return
   }
+  const rootArg = findRootArg(args)
   const configFile = findConfigFile(rootArg)
 
   args = resolveConfigArg(args, configFile)
-  args = resolveOneBuildArg(args, isOneBuild)
-  args = resolveSsrArg(args, isOneBuild)
+  args = resolveSsrArg(args)
 
-  await runMinista(args, isOneBuild)
+  await runMinista(args)
 }
 
 main().catch((error) => {

@@ -3,7 +3,6 @@ import { describe, it, expect } from "vitest"
 import {
   findRootArg,
   resolveConfigArg,
-  resolveOneBuildArg,
   resolveSsrArg,
 } from "../../src/cli/utils/arg.js"
 
@@ -48,31 +47,10 @@ describe("resolveConfigArg", () => {
   })
 })
 
-describe("resolveOneBuildArg", () => {
-  it("isOneBuildがtrueの場合は引数から--oneBuildを削除する", () => {
-    const args = ["build", "--oneBuild", "--config", "minista.config.ts"]
-    expect(resolveOneBuildArg(args, true)).toEqual([
-      "build",
-      "--config",
-      "minista.config.ts",
-    ])
-  })
-
-  it("isOneBuildがfalseの場合は引数を変更せず返す", () => {
-    const args = ["build", "--oneBuild"]
-    expect(resolveOneBuildArg(args, false)).toEqual(["build", "--oneBuild"])
-  })
-
-  it("--oneBuildが含まれていない場合は引数を変更せず返す", () => {
-    const args = ["build"]
-    expect(resolveOneBuildArg(args, true)).toEqual(["build"])
-  })
-})
-
 describe("resolveSsrArg", () => {
-  it("isOneBuildがfalseで、--ssrとその値がある場合はそれらを削除する", () => {
+  it("--ssrとその値がある場合はそれらを削除する", () => {
     const args = ["build", "--ssr", "entry.js", "--config", "minista.config.ts"]
-    expect(resolveSsrArg(args, false)).toEqual([
+    expect(resolveSsrArg(args)).toEqual([
       "build",
       "--config",
       "minista.config.ts",
@@ -81,20 +59,15 @@ describe("resolveSsrArg", () => {
 
   it("値が続かない場合は--ssrのみを削除する", () => {
     const args = ["build", "--ssr", "--config", "minista.config.ts"]
-    expect(resolveSsrArg(args, false)).toEqual([
+    expect(resolveSsrArg(args)).toEqual([
       "build",
       "--config",
       "minista.config.ts",
     ])
   })
 
-  it("isOneBuildがtrueの場合は引数を変更しない", () => {
-    const args = ["build", "--ssr", "entry.js"]
-    expect(resolveSsrArg(args, true)).toEqual(args)
-  })
-
   it("ビルドコマンドでない場合は引数を変更しない", () => {
     const args = ["dev", "--ssr", "entry.js"]
-    expect(resolveSsrArg(args, false)).toEqual(args)
+    expect(resolveSsrArg(args)).toEqual(args)
   })
 })

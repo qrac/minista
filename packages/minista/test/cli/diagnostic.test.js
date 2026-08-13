@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url"
 import { describe, expect, test, vi } from "vitest"
 
 import {
-  createOneBuildDeprecationDiagnostic,
+  createRemovedOptionDiagnostic,
   reportCliDiagnostic,
 } from "../../src/cli/utils/diagnostic.js"
 
@@ -31,35 +31,35 @@ function runCli(args) {
 }
 
 describe("CLI diagnostics", () => {
-  test("creates and reports a structured --oneBuild deprecation", () => {
-    const diagnostic = createOneBuildDeprecationDiagnostic()
-    const warning = vi.spyOn(console, "warn").mockImplementation(() => {})
+  test("creates and reports a structured removed option error", () => {
+    const diagnostic = createRemovedOptionDiagnostic("--oneBuild")
+    const output = vi.spyOn(console, "error").mockImplementation(() => {})
 
     reportCliDiagnostic(diagnostic)
 
     expect(diagnostic).toEqual({
-      code: "MINISTA_CLI_ONE_BUILD_DEPRECATED",
-      severity: "warning",
+      code: "MINISTA_CLI_OPTION_REMOVED",
+      severity: "error",
       message: expect.stringContaining("--oneBuild"),
       hint: expect.stringContaining("minista build"),
     })
-    expect(warning).toHaveBeenCalledWith(
-      expect.stringContaining("[MINISTA_CLI_ONE_BUILD_DEPRECATED]"),
+    expect(output).toHaveBeenCalledWith(
+      expect.stringContaining("[MINISTA_CLI_OPTION_REMOVED]"),
     )
-    warning.mockRestore()
+    output.mockRestore()
   })
 
-  test("prints the warning only when --oneBuild is specified", async () => {
-    const deprecated = await runCli(["--version", "--oneBuild"])
+  test("rejects --oneBuild and keeps the current CLI path unchanged", async () => {
+    const removed = await runCli(["--version", "--oneBuild"])
     const current = await runCli(["--version"])
 
-    expect(deprecated).toMatchObject({ code: 0 })
-    expect(deprecated.stderr).toContain(
-      "[MINISTA_CLI_ONE_BUILD_DEPRECATED]",
+    expect(removed).toMatchObject({ code: 1 })
+    expect(removed.stderr).toContain(
+      "[MINISTA_CLI_OPTION_REMOVED]",
     )
     expect(current).toMatchObject({ code: 0 })
     expect(current.stderr).not.toContain(
-      "MINISTA_CLI_ONE_BUILD_DEPRECATED",
+      "MINISTA_CLI_OPTION_REMOVED",
     )
   })
 })

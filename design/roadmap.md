@@ -100,7 +100,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 
 ## Stage 5: Vite app build adapter
 
-進捗: 完了。通常buildは単一 `createBuilder(config, false)` で `render → prepareClient → client` を実行する `ViteAppBuilderAdapter` を既定経路として使用します。render/client environmentを明示する `createViteAppConfig()`、解決済みclient configにlate named inputを合成する `ViteEnvironmentInputAdapter`、feature descriptorの依存に従って明示hookを実行する `prepareViteClientEnvironment()` を接続済みです。SSG、Entry、IslandはApp Build用のenvironment configとlate preparationへ移行し、Comment、Svg、Sprite、Beautify、Archive、Bundleのoutput hookはclient environmentだけに制限し、ImageとSearchのsource transformもrender/clientへ分離しました。legacy render envでconfigを再評価するloaderはenvironment対応optionをrenderへ投影し、client限定のPreact aliasはrender bundleのReact関連importをexternalizeして分離します。plugin名と順序がrender/clientで異なるconfigはstable diagnosticを出して同一processの `LegacyViteBuilderAdapter` へfallbackします。未対応CLI flagのみ二processのVite CLI fallbackを使用します。build sessionはbuildId、ArtifactStore、diagnostic collectorを持ち、CLIは成功、失敗、fallbackの全経路でArtifactStoreをclearします。App Builderはclient outputをCore `OutputManifest` schema v1へ変換し、raw Vite outputやBuilderを公開resultへ含めません。programmatic App／legacy client buildはoutDir transactionを使い、失敗時にpartial outputを以前の正常な出力へrollbackします。`--oneBuild` はstable deprecation warningを出しながら移行期間中だけ受理します。全compatibility plugin、Preact、plugin mismatchのCLI fixtureで出力とfallbackを確認済みです。
+進捗: 完了。通常buildは単一 `createBuilder(config, false)` で `render → prepareClient → client` を実行する `ViteAppBuilderAdapter` を既定経路として使用します。render/client environmentを明示する `createViteAppConfig()`、解決済みclient configにlate named inputを合成する `ViteEnvironmentInputAdapter`、feature descriptorの依存に従って明示hookを実行する `prepareViteClientEnvironment()` を接続済みです。SSG、Entry、IslandはApp Build用のenvironment configとlate preparationへ移行し、Comment、Svg、Sprite、Beautify、Archive、Bundleのoutput hookはclient environmentだけに制限し、ImageとSearchのsource transformもrender/clientへ分離しました。legacy render envでconfigを再評価するloaderはenvironment対応optionをrenderへ投影し、client限定のPreact aliasはrender bundleのReact関連importをexternalizeして分離します。plugin名と順序がrender/clientで異なるconfigはstable diagnosticを出して同一processの `LegacyViteBuilderAdapter` へfallbackします。未対応CLI flagのみ二processのVite CLI fallbackを使用します。build sessionはbuildId、ArtifactStore、diagnostic collectorを持ち、CLIは成功、失敗、fallbackの全経路でArtifactStoreをclearします。App Builderはclient outputをCore `OutputManifest` schema v1へ変換し、raw Vite outputやBuilderを公開resultへ含めません。programmatic App／legacy client buildはoutDir transactionを使い、失敗時にpartial outputを以前の正常な出力へrollbackします。全compatibility plugin、Preact、plugin mismatchのCLI fixtureで出力とfallbackを確認済みです。
 
 - CLIを `spawn("vite")` 二回からprogrammatic Minista application runnerへ変更
 - Vite configに `render` / `client` environmentを構成
@@ -110,7 +110,7 @@ React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeSt
 - client environmentは安定したvirtual entryをinputとし、graph planからisland / asset entryを解決
 - output manifestをCoreのcompose / emitへ返す
 - failure時のbuildId cleanupとpartial output policyを追加。programmatic pathは実装済み
-- `--oneBuild` にdeprecation diagnosticを出す。`MINISTA_CLI_ONE_BUILD_DEPRECATED` を実装済み
+- `--oneBuild` はv5で削除し、指定時に`MINISTA_CLI_OPTION_REMOVED` errorを返す
 
 Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上experimentalです。そのためadapterのcompatibility testとVite minor pinning policyを設け、旧二回buildを一つのminor releaseのfallbackとして残してから削除します。
 
@@ -151,9 +151,11 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 8: compatibility facade cleanup
 
+進捗: 進行中。runtime implementationのJavaScript + JSDoc移行と隣接`.d.ts`は完了済みです。`--oneBuild`と専用分岐を削除し、旧option指定時はstable diagnosticで拒否します。外部Vite CLI fallbackのexecutable temp module、compatibility plugin facade、公開docsとCurrent／Target整理は継続します。
+
 - runtime implementationを `.js` / `.jsx` + JSDocに統一
 - public APIの隣接 `.d.ts` とinternal JSDoc typeを整理
-- old `src/plugins` implementation、`--oneBuild`、executable temp moduleを削除
+- old `src/plugins` implementationとexecutable temp moduleを削除
 - public docsをv5 lifecycleとcommandに更新
 - `architecture.md` のTargetをCurrentに統合
 - roadmapから完了済みの詳細をrelease note / ADRへ移す

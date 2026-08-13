@@ -317,10 +317,9 @@ async function runLegacyBuildLifecycle(args, fallbackDiagnostic) {
 
 /**
  * @param {string[]} args
- * @param {boolean} [isOneBuild]
  * @returns {Promise<void>}
  */
-export async function runMinista(args, isOneBuild) {
+export async function runMinista(args) {
   const isBuild = args.includes("build")
 
   try {
@@ -328,7 +327,7 @@ export async function runMinista(args, isOneBuild) {
       await runProgrammaticDev(args)
       return
     }
-    if (isBuild && !isOneBuild && canRunProgrammaticBuild(args)) {
+    if (isBuild && canRunProgrammaticBuild(args)) {
       const session = createViteBuildSession()
       let useLegacyFallback = false
       /** @type {import("../../core/diagnostics/index.js").Diagnostic | undefined} */
@@ -348,7 +347,7 @@ export async function runMinista(args, isOneBuild) {
       }
       return
     }
-    if (isBuild && !isOneBuild) {
+    if (isBuild) {
       const buildId = randomUUID()
       const environment = { MINISTA_EXTERNAL_BUILD_ID: buildId }
       const root = createProgrammaticConfig(args).root || process.cwd()

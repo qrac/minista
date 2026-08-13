@@ -7,12 +7,14 @@ export function reportCliDiagnostic(diagnostic) {
   if (diagnostic.hint) stream(`  hint: ${diagnostic.hint}`)
 }
 
-/** @returns {import("../../core/diagnostics/index.js").Diagnostic} */
-export function createOneBuildDeprecationDiagnostic() {
+/** @param {string} option @returns {import("../../core/diagnostics/index.js").Diagnostic} */
+export function createRemovedOptionDiagnostic(option) {
   return Object.freeze({
-    code: "MINISTA_CLI_ONE_BUILD_DEPRECATED",
-    severity: "warning",
-    message: "The --oneBuild option is deprecated and will be removed in the next major version.",
-    hint: "Remove --oneBuild. The default minista build already uses one App Build lifecycle.",
+    code: "MINISTA_CLI_OPTION_REMOVED",
+    severity: "error",
+    message: `The ${option} option was removed in minista v5.`,
+    hint: option === "--oneBuild"
+      ? "Remove --oneBuild. The default minista build uses one App Build lifecycle."
+      : `Remove ${option} from the command.`,
   })
 }

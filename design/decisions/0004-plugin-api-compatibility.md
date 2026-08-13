@@ -16,7 +16,7 @@
 - `pluginMdx()` の配列returnを含む現行runtime shapeは移行期間のcompatibility testで保護する
 - accidental internal contract (`.minista` path、virtual ID、plugin name、generated source name) は互換対象外
 - documented output URL / HTML semanticsの変更はmigration noteとdiagnosticを必要とする
-- `--oneBuild` は `MINISTA_CLI_ONE_BUILD_DEPRECATED` warningを出し、次majorで削除する
+- `--oneBuild` はv5で削除し、指定時は `MINISTA_CLI_OPTION_REMOVED` errorを返す
 
 ## Consequences
 
