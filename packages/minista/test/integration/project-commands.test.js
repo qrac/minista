@@ -129,6 +129,27 @@ describe.sequential("machine-readable project commands", () => {
     })
   }, 30_000)
 
+  test("programmatic build saves a structured failure snapshot", async () => {
+    const result = await run(["build", invalidFixtureDir])
+
+    expect(result.code).toBe(1)
+    expect(result.stderr).toContain("[MINISTA_VITE_BUILD_FAILED]")
+    const report = JSON.parse(await fs.promises.readFile(
+      path.resolve(invalidFixtureDir, ".minista/diagnostics.json"),
+      "utf8",
+    ))
+    expect(report).toMatchObject({
+      command: "build",
+      buildId: expect.any(String),
+      summary: { errors: 1 },
+      diagnostics: [{
+        code: "MINISTA_VITE_BUILD_FAILED",
+        severity: "error",
+        phase: "generate",
+      }],
+    })
+  }, 30_000)
+
   test("inspect reads a manifest without starting a source project", async () => {
     const testTempDir = path.resolve(packageDir, "test/.tmp")
     await fs.promises.mkdir(testTempDir, { recursive: true })

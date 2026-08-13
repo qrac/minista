@@ -109,6 +109,50 @@ describe("Vite App Builder adapter", () => {
     }])
   })
 
+  test("normalizes client preparation failures", async () => {
+    const render = { name: "render", config: { root: "/project" } }
+    const client = {
+      name: "client",
+      config: {
+        root: "/project",
+        base: "/",
+        build: { write: false },
+      },
+      plugins: [{
+        name: "fixture",
+        api: {
+          minista: {
+            feature: { id: "fixture", apiVersion: 1 },
+            async prepareClient() {
+              throw new Error("prepare failed")
+            },
+          },
+        },
+      }],
+    }
+    const session = createViteBuildSession({ buildId: "build:prepare" })
+    const adapter = new ViteAppBuilderAdapter(
+      /** @type {any} */ (async () => ({
+        environments: { render, client },
+        async build() {
+          return { output: [] }
+        },
+      })),
+    )
+
+    await expect(adapter.build(attachViteBuildSession({
+      configFile: false,
+    }, session))).rejects.toMatchObject({
+      code: "MINISTA_VITE_BUILD_FAILED",
+      environment: "client",
+      diagnostic: { phase: "generate" },
+    })
+    expect(session.diagnostics.snapshot()).toMatchObject([{
+      code: "MINISTA_VITE_BUILD_FAILED",
+      phase: "generate",
+    }])
+  })
+
   test("restores the previous client output when the client build fails", async () => {
     const root = await fs.promises.mkdtemp(
       path.resolve(process.env.TMPDIR || "/tmp", "minista-app-rollback-"),

@@ -1,8 +1,10 @@
 import type { Diagnostic } from "../../core/diagnostics/index.js"
+import type { BuildPhase } from "../../core/types.js"
 
 export interface ViteBuildErrorOptions {
   readonly environment: string
   readonly root: string
+  readonly phase?: BuildPhase
 }
 
 export declare class ViteBuildError extends Error {

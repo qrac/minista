@@ -77,7 +77,7 @@ export class ViteBuildError extends Error {
       code: this.code,
       severity: "error",
       message,
-      phase: "bundle",
+      phase: options.phase ?? "bundle",
       ...(location ? { location } : {}),
       hint: "Review the referenced module and the preceding Vite log.",
     })

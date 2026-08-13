@@ -49,6 +49,19 @@ describe("Vite build error adapter", () => {
     expect(Reflect.get(error, "diagnostic")).not.toHaveProperty("location")
   })
 
+  test("records a more specific adapter phase", () => {
+    const error = normalizeViteBuildError(new Error("preparation failed"), {
+      environment: "client",
+      root: "/project",
+      phase: "generate",
+    })
+
+    expect(Reflect.get(error, "diagnostic")).toMatchObject({
+      code: "MINISTA_VITE_BUILD_FAILED",
+      phase: "generate",
+    })
+  })
+
   test("preserves errors from an existing Minista boundary", () => {
     const error = Object.assign(new Error("known failure"), {
       code: "MINISTA_KNOWN_FAILURE",

@@ -23,6 +23,83 @@ import { reportCliDiagnostic } from "./diagnostic.js"
 const require = createRequire(import.meta.url)
 const { version: ministaVersion } = require("../../../package.json")
 
+/** @param {unknown} value */
+function isDiagnostic(value) {
+  return Boolean(
+    value && typeof value === "object" &&
+    typeof Reflect.get(value, "code") === "string" &&
+    Reflect.get(value, "code").startsWith("MINISTA_") &&
+    ["error", "warning", "info"].includes(Reflect.get(value, "severity")),
+  )
+}
+
+/**
+ * @param {ViteBuildSession} session
+ * @param {unknown} error
+ */
+function collectBuildFailureDiagnostics(session, error) {
+  /** @type {import("../../core/diagnostics/index.js").Diagnostic[]} */
+  const diagnostics = [...(session.diagnostics?.snapshot() ?? [])]
+  if (error && typeof error === "object") {
+    const items = Reflect.get(error, "diagnostics")
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (isDiagnostic(item)) diagnostics.push(item)
+      }
+    }
+    const diagnostic = Reflect.get(error, "diagnostic")
+    if (isDiagnostic(diagnostic)) diagnostics.push(diagnostic)
+    if (
+      !isDiagnostic(diagnostic) &&
+      error instanceof Error &&
+      typeof Reflect.get(error, "code") === "string" &&
+      Reflect.get(error, "code").startsWith("MINISTA_")
+    ) {
+      diagnostics.push({
+        code: Reflect.get(error, "code"),
+        severity: "error",
+        message: error.message,
+      })
+    }
+  }
+  const seen = new Set()
+  return Object.freeze(diagnostics.filter((diagnostic) => {
+    const key = [
+      diagnostic.code,
+      diagnostic.severity,
+      diagnostic.message,
+      diagnostic.phase ?? "",
+      diagnostic.location?.file ?? "",
+      diagnostic.location?.line ?? "",
+      diagnostic.location?.column ?? "",
+    ].join("\0")
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  }))
+}
+
+/**
+ * @param {string[]} args
+ * @param {ViteBuildSession} session
+ * @param {unknown} error
+ */
+async function writeProgrammaticBuildFailure(args, session, error) {
+  const diagnostics = collectBuildFailureDiagnostics(session, error)
+  if (diagnostics.length === 0) return
+  const root = createProgrammaticConfig(args).root || process.cwd()
+  await new NodeDiagnosticsWriter().write(
+    root,
+    createDiagnosticsReport({
+      version: ministaVersion,
+      command: "build",
+      ...(session.buildId ? { buildId: session.buildId } : {}),
+      diagnostics,
+      createdAt: new Date().toISOString(),
+    }),
+  )
+}
+
 const viteCli = new ViteCliProcessAdapter()
 
 /** @param {string[]} args @param {string} buildId */
@@ -290,6 +367,9 @@ async function runLegacyBuildLifecycle(args, fallbackDiagnostic) {
     if (fallbackDiagnostic) session.diagnostics.add(fallbackDiagnostic)
     await runProgrammaticBuild(args, true, session)
     await runProgrammaticBuild(args, false, session)
+  } catch (error) {
+    await writeProgrammaticBuildFailure(args, session, error)
+    throw error
   } finally {
     await disposeViteBuildSession(session)
   }
@@ -315,10 +395,14 @@ export async function runMinista(args) {
       try {
         await runProgrammaticAppBuild(args, session)
       } catch (error) {
-        if (!(error instanceof ViteAppConfigPluginMismatchError)) throw error
-        reportAppBuildFallback(error)
-        useLegacyFallback = true
-        fallbackDiagnostic = error.diagnostic
+        if (error instanceof ViteAppConfigPluginMismatchError) {
+          reportAppBuildFallback(error)
+          useLegacyFallback = true
+          fallbackDiagnostic = error.diagnostic
+        } else {
+          await writeProgrammaticBuildFailure(args, session, error)
+          throw error
+        }
       } finally {
         await disposeViteBuildSession(session)
       }

@@ -80,7 +80,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 
 ### Diagnostics and tests
 
-- Core lifecycle、project command、manifest、主要adapterはstructured diagnosticを生成する。programmatic buildのVite／Rolldown errorは `MINISTA_VITE_BUILD_FAILED`、外部CLI fallbackのprocess errorは `MINISTA_VITE_CLI_FAILED` へadapterで正規化する。一部の外部library errorと外部process内の詳細は例外またはsubprocess stderrとして伝播する
+- Core lifecycle、project command、manifest、主要adapterはstructured diagnosticを生成する。programmatic buildのVite／Rolldown errorは `MINISTA_VITE_BUILD_FAILED`、外部CLI fallbackのprocess errorは `MINISTA_VITE_CLI_FAILED` へadapterで正規化する。programmatic build失敗時はsessionとerrorが持つdiagnosticを重複排除し、build ID付きworkspace snapshotへ保存する。一部の外部library errorと外部process内の詳細は例外またはsubprocess stderrとして伝播する
 - Coreの `DiagnosticCollector` とstable diagnostic codeは実装済み
 - `check [--json]`, `inspect [--json]`, `explain [--json]` は実装済みで、Vite ModuleRunnerによりpage moduleと `getStaticData()` を評価する
 - public manifestの型、安全なprojection、安定serializer、atomic filesystem writerは実装済み。通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` とbuild diagnosticsを出力し、`check` の成功／失敗時にも `.minista/diagnostics.json` を出力する

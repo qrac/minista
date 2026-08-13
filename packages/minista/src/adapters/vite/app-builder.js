@@ -58,10 +58,21 @@ export class ViteAppBuilderAdapter {
     const session = getViteBuildSession(config)
     const renderName = options.renderName ?? "render"
     const clientName = options.clientName ?? "client"
-    const appConfig = await loadViteAppConfig(config, {
-      renderName,
-      clientName,
-    })
+    let appConfig
+    try {
+      appConfig = await loadViteAppConfig(config, {
+        renderName,
+        clientName,
+      })
+    } catch (error) {
+      const normalized = normalizeViteBuildError(error, {
+        environment: "application",
+        root: config.root ?? process.cwd(),
+      })
+      const diagnostic = Reflect.get(normalized, "diagnostic")
+      if (diagnostic) session?.diagnostics?.add(diagnostic)
+      throw normalized
+    }
     let builder
     try {
       builder = await this.#createBuilder(appConfig, false)
@@ -90,8 +101,19 @@ export class ViteAppBuilderAdapter {
       throw normalized
     }
     const preparation = { builder, render, client, renderOutput }
-    await prepareViteClientEnvironment(preparation)
-    await options.prepareClient?.(preparation)
+    try {
+      await prepareViteClientEnvironment(preparation)
+      await options.prepareClient?.(preparation)
+    } catch (error) {
+      const normalized = normalizeViteBuildError(error, {
+        environment: clientName,
+        root: client.config.root ?? appConfig.root ?? process.cwd(),
+        phase: "generate",
+      })
+      const diagnostic = Reflect.get(normalized, "diagnostic")
+      if (diagnostic) session?.diagnostics?.add(diagnostic)
+      throw normalized
+    }
     const writesOutput = client.config.build.write !== false
     const transaction = writesOutput
       ? new ViteOutputTransaction({
