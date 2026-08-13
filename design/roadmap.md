@@ -118,7 +118,9 @@ Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上ex
 
 ## Stage 6: ModuleRunner dev adapter
 
-- dev CLIをprogrammatic `createServer({ appType: "custom" })` に移す
+進捗: `ViteDevServerAdapter` を追加し、通常のdev CLIをprogrammatic `createServer({ appType: "custom" })` へ切り替えました。adapterがlisten、URL表示、CLI shortcut、closeを所有し、root、config、mode、base、host、port、open、CORS、strict port、forceなどの一般的なflagを変換します。未対応flagだけ外部Vite CLIへfallbackします。compatibility fixtureをcustom app serverで起動し、HTTP経由のSSG HTMLとVite client injectionを確認済みです。module評価はまだlegacy `ssrLoadModule()` のため、route cacheとModuleRunner移行が残っています。
+
+- dev CLIをprogrammatic `createServer({ appType: "custom" })` に移す。実装済み
 - `render` environmentの `RunnableDevEnvironment.runner.import()` でpage moduleを評価
 - requestごとに全pagesを再評価せず、route / module dependency単位でcache
 - environmentごとのmodule graphと `hotUpdate` を使用

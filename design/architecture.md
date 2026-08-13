@@ -41,7 +41,9 @@ App BuildではViteが全environmentのconfigをbuild前に解決するため、
 
 ### Current dev lifecycle
 
-`pluginSsg()` がVite middlewareを登録し、requestごとに `server.ssrLoadModule(globFile)` で全page/layout moduleを評価します。その後にrouteと一致するpageを `renderToString()` し、`server.transformIndexHtml()` へ渡します。
+通常のdev CLIは外部Vite processを起動せず、`ViteDevServerAdapter` が `createServer({ appType: "custom" })`、listen、URL表示、CLI shortcut、closeを所有します。root、config、mode、base、host、port、open、CORSなどの一般的なdev flagはprogrammatic configへ変換し、未対応flagだけ外部Vite CLIへfallbackします。
+
+`pluginSsg()` は引き続きVite middlewareを登録し、requestごとに `server.ssrLoadModule(globFile)` で全page/layout moduleを評価します。その後にrouteと一致するpageを `renderToString()` し、`server.transformIndexHtml()` へ渡します。server lifecycleは移行済みですが、module evaluationとroute cacheはlegacyです。
 
 Image / Sprite / Islandなども `transformIndexHtml()` でHTMLを解析・置換し、開発用sourceやassetを `.minista` に生成します。Imageはdomainの参照収集とdocument composeを使い、Node adapterが生成した画像assetだけを `.minista` に保存します。Islandは `virtual:ssg-pages` を `ssrLoadModule()` して、SSG pluginのclosure内にあるHTML配列を取得します。
 

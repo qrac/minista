@@ -34,3 +34,4 @@
 - [ADR-0004: 公開plugin APIをcompatibility facadeとして維持](decisions/0004-plugin-api-compatibility.md)
 - [ADR-0005: React static rendererを交換可能にする](decisions/0005-react-static-renderer.md)
 - [ADR-0006: ランタイム実装をJavaScript + JSDocに統一する](decisions/0006-javascript-jsdoc-runtime.md)
+- [ADR-0007: programmatic custom serverからModuleRunner devへ移行する](decisions/0007-programmatic-module-runner-dev.md)

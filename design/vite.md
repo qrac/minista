@@ -112,6 +112,8 @@ Viteはenvironment record順にbuildできますが、Ministaはrender結果か�
 
 ## Target dev
 
+最初の移行として、通常のdev CLIは `ViteDevServerAdapter` を通じたprogrammatic `createServer({ appType: "custom" })` へ切り替え済みです。adapterはlisten、URL表示、CLI shortcut、closeを所有し、一般的なdev flagをInlineConfigへ変換します。compatibility fixtureのHTTP応答は実際のVite 8.2.1で確認済みです。現在のSSG middlewareはまだlegacy `ssrLoadModule()` を使用するため、以下のModuleRunner lifecycleへの置換は継続中です。
+
 ```text
 HTTP request
   -> Core route match

@@ -9,6 +9,7 @@ import {
   disposeViteBuildSession,
 } from "../../adapters/vite/build-session.js"
 import { LegacyViteBuilderAdapter } from "../../adapters/vite/legacy-builder.js"
+import { ViteDevServerAdapter } from "../../adapters/vite/dev-server.js"
 import { reportCliDiagnostic } from "./diagnostic.js"
 
 /** @typedef {import("../../adapters/vite/build-session.js").ViteBuildSession} ViteBuildSession */
@@ -40,6 +41,22 @@ const supportedBuildFlags = new Set([
   "--logLevel",
   "--clearScreen",
 ])
+const requiredDevValueFlags = new Set([
+  "--config",
+  "-c",
+  "--mode",
+  "-m",
+  "--base",
+  "--port",
+  "--logLevel",
+])
+const optionalDevValueFlags = new Set(["--host", "--open"])
+const booleanDevFlags = new Set([
+  "--cors",
+  "--strictPort",
+  "--force",
+  "--clearScreen",
+])
 
 /**
  * @param {string[]} args
@@ -52,6 +69,43 @@ export function canRunProgrammaticBuild(args) {
     const [flag] = arg.split("=", 1)
     if (!supportedBuildFlags.has(flag)) return false
     if (!arg.includes("=") && flag !== "--clearScreen") index += 1
+  }
+  return true
+}
+
+/** @param {string[]} args */
+export function isDevCommand(args) {
+  if (args.some((arg) => ["--version", "-v", "--help", "-h"].includes(arg))) {
+    return false
+  }
+  const first = args[0]
+  return !first || first === "dev" || first.startsWith("-") ||
+    !["build", "preview", "optimize"].includes(first)
+}
+
+/** @param {string[]} args */
+export function canRunProgrammaticDev(args) {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index]
+    if (!arg?.startsWith("-")) continue
+    const [flag] = arg.split("=", 1)
+    if (requiredDevValueFlags.has(flag)) {
+      if (!arg.includes("=")) index += 1
+      continue
+    }
+    if (optionalDevValueFlags.has(flag)) {
+      if (!arg.includes("=") && args[index + 1] && !args[index + 1].startsWith("-")) {
+        index += 1
+      }
+      continue
+    }
+    if (booleanDevFlags.has(flag)) {
+      if (!arg.includes("=") && ["true", "false"].includes(args[index + 1])) {
+        index += 1
+      }
+      continue
+    }
+    return false
   }
   return true
 }
@@ -81,6 +135,32 @@ function readRoot(args) {
   return candidate && !candidate.startsWith("-") ? candidate : ""
 }
 
+/** @param {string[]} args */
+function readDevRoot(args) {
+  const candidate = args[0] === "dev" ? args[1] : args[0]
+  return candidate && !candidate.startsWith("-") ? candidate : ""
+}
+
+/**
+ * @param {string[]} args
+ * @param {string} name
+ * @returns {string | boolean | undefined}
+ */
+function readOptionalOption(args, name) {
+  const index = args.findIndex((arg) => arg === name || arg.startsWith(`${name}=`))
+  if (index < 0) return undefined
+  const arg = args[index]
+  if (arg.includes("=")) return arg.slice(name.length + 1) || true
+  const next = args[index + 1]
+  return next && !next.startsWith("-") ? next : true
+}
+
+/** @param {string[]} args @param {string} name */
+function readBooleanOption(args, name) {
+  const value = readOptionalOption(args, name)
+  return value === undefined ? undefined : value !== "false"
+}
+
 /**
  * @param {string[]} args
  * @param {boolean} [isRender]
@@ -108,6 +188,56 @@ function createProgrammaticConfig(args, isRender) {
         : clearScreenValue !== "false",
     ...(isRender === undefined ? {} : { build: { ssr: isRender } }),
   }
+}
+
+/** @param {string[]} args @returns {import("vite").InlineConfig} */
+function createProgrammaticDevConfig(args) {
+  const root = readDevRoot(args)
+  const configFile = readOption(args, "--config", "-c")
+  const mode = readOption(args, "--mode", "-m")
+  const base = readOption(args, "--base")
+  const logLevel = readOption(args, "--logLevel")
+  const portValue = readOption(args, "--port")
+  const host = readOptionalOption(args, "--host")
+  const open = readOptionalOption(args, "--open")
+  const cors = readBooleanOption(args, "--cors")
+  const strictPort = readBooleanOption(args, "--strictPort")
+  const force = readBooleanOption(args, "--force")
+  const clearScreen = readBooleanOption(args, "--clearScreen")
+
+  return {
+    root: root ? path.resolve(process.cwd(), root) : process.cwd(),
+    configFile: configFile ? path.resolve(process.cwd(), configFile) : undefined,
+    mode,
+    base,
+    logLevel: ["info", "warn", "error", "silent"].includes(logLevel || "")
+      ? /** @type {import("vite").LogLevel} */ (logLevel)
+      : undefined,
+    clearScreen,
+    server: {
+      ...(host !== undefined ? { host } : {}),
+      ...(portValue !== undefined ? { port: Number(portValue) } : {}),
+      ...(open !== undefined ? { open } : {}),
+      ...(cors !== undefined ? { cors } : {}),
+      ...(strictPort !== undefined ? { strictPort } : {}),
+    },
+    ...(force !== undefined ? { optimizeDeps: { force } } : {}),
+  }
+}
+
+/** @param {string[]} args */
+export async function runProgrammaticDev(args) {
+  const running = await new ViteDevServerAdapter().start(
+    createProgrammaticDevConfig(args),
+  )
+  const shutdown = () => {
+    process.off("SIGINT", shutdown)
+    process.off("SIGTERM", shutdown)
+    void running.close().catch((error) => console.error(error))
+  }
+  process.once("SIGINT", shutdown)
+  process.once("SIGTERM", shutdown)
+  return running
 }
 
 /**
@@ -156,6 +286,10 @@ export async function runMinista(args, isOneBuild) {
   const isBuild = args.includes("build")
 
   try {
+    if (!isBuild && isDevCommand(args) && canRunProgrammaticDev(args)) {
+      await runProgrammaticDev(args)
+      return
+    }
     if (isBuild && !isOneBuild && canRunProgrammaticBuild(args)) {
       const session = createViteBuildSession()
       let useLegacyFallback = false
