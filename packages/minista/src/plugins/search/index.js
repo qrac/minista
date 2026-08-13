@@ -13,6 +13,7 @@ import {
   NodeHtmlDocumentFactory,
   NodeSearchDocumentAnalyzer,
 } from "../../adapters/html/index.js"
+import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   analyzeRenderedSearchPages,
@@ -66,6 +67,9 @@ export function pluginSearch(uOpts = {}) {
   let isDev = false
   let isSsr = false
   let isBuild = false
+  let isAppBuild = false
+  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
+  let appEnvironmentNames
 
   let base = "/"
   let after = ""
@@ -74,11 +78,13 @@ export function pluginSearch(uOpts = {}) {
     name: "vite-plugin:minista-search",
     api: { minista: { feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html-documents"] } } },
     enforce: "pre",
-    apply(_, { command, isSsrBuild }) {
+    apply(config, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isBuild
+      appEnvironmentNames = getViteAppEnvironmentNames(config)
+      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
+      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
+      isBuild = command === "build" && !isAppBuild && !isSsrBuild
+      return isDev || isAppBuild || isBuild
     },
     config: async (config) => {
       if (isDev) {
@@ -125,7 +131,10 @@ export function pluginSearch(uOpts = {}) {
       if (isDev) {
         newCode = newCode.replace(regBase, `$1"${base}"`)
       }
-      if (isBuild) {
+      const isAppClient =
+        isAppBuild &&
+        this.environment.name === appEnvironmentNames?.clientName
+      if (isBuild || isAppClient) {
         newCode = newCode.replace(regApply, `$1"build"`)
         newCode = newCode.replace(regRelativeAttr, `$1"${opts.relativeAttr}"`)
       }
@@ -133,6 +142,10 @@ export function pluginSearch(uOpts = {}) {
       return newCode
     },
     async generateBundle(options, bundle) {
+      if (
+        isAppBuild &&
+        this.environment.name !== appEnvironmentNames?.clientName
+      ) return
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
 

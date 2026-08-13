@@ -9,6 +9,7 @@ import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeImageGenerator } from "../../adapters/image/index.js"
+import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectImageReferences,
@@ -77,6 +78,9 @@ export function pluginImage(uOpts = {}) {
   let isDev = false
   let isSsr = false
   let isBuild = false
+  let isAppBuild = false
+  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
+  let appEnvironmentNames
   let base = "/"
   let imageDir = ""
   /** @type {NodeImageGenerator | undefined} */
@@ -96,11 +100,13 @@ export function pluginImage(uOpts = {}) {
       },
     },
     enforce: "pre",
-    apply(_, { command, isSsrBuild }) {
+    apply(config, { command, isSsrBuild }) {
       isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isSsr || isBuild
+      appEnvironmentNames = getViteAppEnvironmentNames(config)
+      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
+      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
+      isBuild = command === "build" && !isAppBuild && !isSsrBuild
+      return isDev || isAppBuild || isSsr || isBuild
     },
     async config(config) {
       const rootDir = getRootDir(cwd, config.root || "")
@@ -132,7 +138,7 @@ export function pluginImage(uOpts = {}) {
           },
         }
       }
-      if (isBuild) base = getBuildBase(config.base || base)
+      if (isBuild || isAppBuild) base = getBuildBase(config.base || base)
     },
     async transformIndexHtml(html, context) {
       if (!generator) return html
@@ -163,7 +169,13 @@ export function pluginImage(uOpts = {}) {
       return document.serialize()
     },
     transform(code, id) {
-      if (isBuild || ![cpImagePath, cpPicturePath].includes(id)) return
+      const isAppRender =
+        isAppBuild &&
+        this.environment.name === appEnvironmentNames?.renderName
+      if (
+        (isBuild || (isAppBuild && !isAppRender)) ||
+        ![cpImagePath, cpPicturePath].includes(id)
+      ) return
 
       const { decoding, loading, optimize } = opts
       const optimizeStr = `JSON.parse(\`${JSON.stringify(optimize)}\`)`
@@ -173,7 +185,12 @@ export function pluginImage(uOpts = {}) {
         .replace(/(const defaultOptimize = )\{\}/, `$1${optimizeStr}`)
     },
     async generateBundle(_options, bundle) {
-      if (isSsr || !generator) return
+      if (
+        isSsr ||
+        (isAppBuild &&
+          this.environment.name !== appEnvironmentNames?.clientName) ||
+        !generator
+      ) return
       const htmlItems = Object.values(filterOutputAssets(bundle)).filter(
         (item) => item.fileName.endsWith(".html"),
       )

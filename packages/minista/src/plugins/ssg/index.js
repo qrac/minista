@@ -251,7 +251,15 @@ export function pluginSsg(uOpts = {}) {
             rolldownOptions: {
               external: mergeRolldownExternal(
                 config.build?.rolldownOptions?.external,
-                ["minista/context", "minista/head"],
+                [
+                  "minista/context",
+                  "minista/head",
+                  "react",
+                  "react/jsx-runtime",
+                  "react/jsx-dev-runtime",
+                  "react-dom",
+                  "react-dom/server",
+                ],
               ),
               input: { [tempName]: globFile },
               output: {

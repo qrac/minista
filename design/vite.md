@@ -54,7 +54,7 @@ Stage 5の最初の変更として、通常の `minista build` はVite CLI proce
 
 これは最終構造ではありません。EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。また、一つの `createBuilder(config, false)` が持つrender/client environmentを `render → prepareClient → client` の順でbuildする `ViteAppBuilderAdapter` を追加しました。`createViteAppConfig()` はrenderをserver consumerかつSSR build、clientをclient consumerかつnon-SSR buildとして構成します。`ViteEnvironmentInputAdapter` は `prepareClient` 時に解決済みRolldown optionを保ったままinputを差し替えます。このlate inputが実際のVite 8.2.1 client buildに反映されることはintegration testで確認済みです。
 
-一方、App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。そのため `prepareViteClientEnvironment()` が `api.minista.prepareClient` をfeature descriptorのcapability / `after` でscheduleし、late preparationをconfig hookから分離します。SSG pluginは `configEnvironment()` でrender/clientの静的設定を返し、`prepareClient` でrender bundle評価、page render、Artifact生成を行います。Islandはsnippet Artifactをrenderで保存し、client preparationでsource planとentryを生成します。Entryもrendered page Artifactを解析してentryを生成し、両者は `ViteEnvironmentInputAdapter.merge()` でSSGのthrough inputを消さずnamed inputを合成します。render bundleでHead contextをrendererと共有するため、`minista/context` と `minista/head` はuserのRolldown external設定を保ったままexternalizeします。Minista専用config markerかenvironment名も伝播するため、通常のVite `builder` optionをApp Buildと誤認しません。Comment、Svg、Sprite、Beautify、Archive、Bundleは `applyToEnvironment` でclientだけにoutput hookを登録し、render側でHTML変更やarchive生成を行いません。全compatibility plugin fixtureの単一Builder buildは成功済みです。ImageとSearchのenvironment別source transformを分離し、result / cleanup lifecycleを接続してから、以下のlifecycleへdefaultを切り替えます。
+一方、App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。そのため `prepareViteClientEnvironment()` が `api.minista.prepareClient` をfeature descriptorのcapability / `after` でscheduleし、late preparationをconfig hookから分離します。SSG pluginは `configEnvironment()` でrender/clientの静的設定を返し、`prepareClient` でrender bundle評価、page render、Artifact生成を行います。Islandはsnippet Artifactをrenderで保存し、client preparationでsource planとentryを生成します。Entryもrendered page Artifactを解析してentryを生成し、両者は `ViteEnvironmentInputAdapter.merge()` でSSGのthrough inputを消さずnamed inputを合成します。render bundleでHead contextをrendererと共有するため、`minista/context` と `minista/head` はuserのRolldown external設定を保ったままexternalizeします。React関連importもrenderでexternalizeし、client限定のPreact aliasから分離します。Minista専用config markerかenvironment名も伝播するため、通常のVite `builder` optionをApp Buildと誤認しません。Comment、Svg、Sprite、Beautify、Archive、Bundleは `applyToEnvironment` でclientだけにoutput hookを登録し、ImageとSearchもenvironment別source transformを使うため、render側でclient用HTML変更やarchive生成を行いません。全compatibility plugin fixtureとPreact fixtureの単一Builder buildは成功済みです。result / cleanup lifecycleとconfig plugin構成の互換判定を接続してから、以下のlifecycleへdefaultを切り替えます。
 
 ### Environments
 
@@ -104,9 +104,9 @@ Viteはenvironment record順にbuildできますが、Ministaはrender結果か�
 
 ### User config compatibility
 
-`defineConfig(({ command, isSsrBuild }) => ...)` を利用する既存projectが存在します。v5は一移行期間、render environment解決時にcompatibility config envを提供します。ただし新documentationはenvironment-aware helperを案内し、`isSsrBuild` 分岐を推奨しません。
+`defineConfig(({ command, isSsrBuild }) => ...)` を利用する既存projectが存在します。App Build adapterはconfig関数をlegacy render envでも評価し、`build`、`define`、environment対応の `resolve` optionなどをrender environmentへ投影します。`resolve.alias` はViteのenvironment optionではないため投影せず、Preact互換ではrender bundleのReact関連importをexternalizeしてclient aliasの影響を遮断します。この挙動はPreactとIslandを含むApp Build fixtureで固定しています。
 
-注意点として、現在 `isBuild` 時だけPreact aliasを設定する例があります。renderとclientでalias意図が異なるため、fixtureでcurrent behaviorを固定し、必要なら `minista.environment === "client"` のtyped helperを追加します。
+`isSsrBuild` でplugin配列そのものを変えるconfigは、Viteがroot pluginを全environmentへ先に解決する制約があるため未対応です。default切替前に差分を検出し、stable diagnosticでlegacy adapterへfallbackする条件を定義します。新documentationはenvironment-aware helperを案内し、`isSsrBuild` 分岐を推奨しません。
 
 ## Target dev
 

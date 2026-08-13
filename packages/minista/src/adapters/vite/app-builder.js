@@ -2,7 +2,7 @@
 
 import { createBuilder } from "vite"
 
-import { createViteAppConfig } from "./app-config.js"
+import { loadViteAppConfig } from "./app-config-loader.js"
 import { prepareViteClientEnvironment } from "./environment-preparation.js"
 
 /** @typedef {import("vite").BuildEnvironment} BuildEnvironment */
@@ -37,7 +37,10 @@ export class ViteAppBuilderAdapter {
   async build(config, options = {}) {
     const renderName = options.renderName ?? "render"
     const clientName = options.clientName ?? "client"
-    const appConfig = createViteAppConfig(config, { renderName, clientName })
+    const appConfig = await loadViteAppConfig(config, {
+      renderName,
+      clientName,
+    })
     const builder = await this.#createBuilder(appConfig, false)
     const render = this.#environment(builder, renderName)
     const client = this.#environment(builder, clientName)
