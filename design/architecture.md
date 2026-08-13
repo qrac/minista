@@ -76,7 +76,7 @@ interface RenderedPage {
 | dev feature | `transformIndexHtml()`とfeature別の差分cache／page index | productionと同じ長寿命lifecycleではない |
 | MDX | `@mdx-js/rollup`を包むcompiler adapter | document／output phaseを持たずVite transformとして残る |
 
-module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautifyの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。Sprite／Image／Islandのdev stateとSvg source resolverは `ViteDevServerRegistry` が解決するserver identityごとに分離し、production generator／resolver／root／baseはbundle environment configから生成します。Searchはmode／baseをsource transformのenvironment configから判定し、Bundleのimported image集合、Entryのentry計画、Islandのsnippet／source planもenvironment identity単位に保持します。SSGのdev cache／page indexにはplugin instance closureのmutable stateが残るため、plugin instanceを任意のenvironment間で共有する構成への対応は移行中です。
+module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Bundle、Image、Entry、Island、Searchのclaim stateはadapter所有の `ViteEnvironmentState` でenvironment単位に分離済みです。Archiveはwrite hookのenvironment configからrootとbuilderを生成し、Comment／Beautifyの適用判定とEntryのlegacy mode判定は不要なclosure flagを保存しません。SSG／Sprite／Image／Islandのdev stateとSvg source resolverは `ViteDevServerRegistry` が解決するserver identityごとに分離し、production generator／resolver／root／baseはbundle environment configから生成します。Searchはmode／baseをsource transformのenvironment configから判定し、Bundleのimported image集合、Entryのentry計画、Islandのsnippet／source plan、SSGのrendered pages／Project Graph／manifest候補もenvironment identity単位に保持します。SSGの `configEnvironment()` にtop-level rootが渡されないため、named environmentの静的input／outDirだけはplugin instanceのconfig-time planとして保持します。
 
 ### Diagnostics and tests
 
@@ -130,7 +130,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。SSG plugin closureに残るconfig解決値とdev cache／page indexのserver／environment分離は残存課題です。
+production featureのdomain phaseはCore runnerへ接続済みですが、compatibility facadeはVite hookごとに独立した短命lifecycleを作ります。そのためbuild全体を通じた単一のDocument Store、Artifact Store、traceにはまだなっていません。devもfeature別cacheと`transformIndexHtml()`を使用します。SSGのnamed environment用config-time planをVite App Build adapter側の静的environment生成へ統合する作業が残っています。
 
 ## CoreとFeatureの実装contract
 

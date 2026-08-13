@@ -32,4 +32,19 @@ export class ViteDevServerRegistry {
     })
     return candidates.length === 1 ? candidates[0] : undefined
   }
+
+  /** @param {import("vite").Environment} environment */
+  resolveEnvironment(environment) {
+    const servers = [...this.#servers]
+    const exact = servers.filter((server) =>
+      /** @type {object[]} */ (Object.values(server.environments ?? {}))
+        .includes(environment)
+    )
+    if (exact.length === 1) return exact[0]
+    const root = path.resolve(environment.config.root)
+    const candidates = servers.filter((server) =>
+      path.resolve(server.config.root) === root
+    )
+    return candidates.length === 1 ? candidates[0] : undefined
+  }
 }

@@ -163,11 +163,13 @@ Searchはmode／baseをsource transformのenvironment configから判定し、Bu
 
 EntryはApp Buildのentry計画をclient environment identity単位へ分離し、root／base／build sessionをhook実行時のconfigから取得するように変更しました。Islandはdevのsnippet集合／module evaluatorをserver identity単位、productionのsnippet集合／entry／source planをenvironment identity単位へ分離し、mode／root／base／build sessionをenvironment configから判定します。
 
+SSGはdevのpage／render／route cache、renderer、rendered pagesをserver identity単位へ分離しました。productionのrendered pages、Project Graph、外部fallback manifest候補はclient environment identity単位に保持し、build hookのmode／root／build sessionはenvironment configから判定します。`configEnvironment()` にtop-level rootが渡されないため、named environmentの静的input／outDir planだけは互換facadeのconfig-time stateとして残しています。
+
 残るcleanupは次です。
 
 - Vite hookごとの短命lifecycleをbuild全体のDocument Store／Artifact Store／traceへ統合する
 - devのfeature別cacheと`transformIndexHtml()`をproductionと共通の長寿命lifecycleへ寄せる
-- SSG plugin closureに残るconfig解決値とdev cache／page indexをserver／environment単位に分離する
+- SSGのnamed environment用config-time planをApp Build adapterの静的environment生成へ統合する
 - programmatic／外部CLI fallbackを縮退する
 - plugin個別docsの内部挙動説明をv5 terminologyへ順次更新する
 

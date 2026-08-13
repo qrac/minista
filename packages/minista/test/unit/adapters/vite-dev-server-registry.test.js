@@ -43,4 +43,21 @@ describe("Vite dev server registry", () => {
       filename: "/projects/second/src/pages/index.jsx",
     })).toBe(second)
   })
+
+  test("resolves the server that owns an environment", () => {
+    const registry = new ViteDevServerRegistry()
+    const environment = { config: { root: "/projects/first" } }
+    const first = /** @type {import("vite").ViteDevServer} */ (
+      /** @type {unknown} */ ({
+        config: { root: "/projects/first" },
+        environments: { ssr: environment },
+      })
+    )
+    registry.add(first)
+    registry.add(server("/projects/second"))
+
+    expect(registry.resolveEnvironment(
+      /** @type {import("vite").Environment} */ (environment),
+    )).toBe(first)
+  })
 })

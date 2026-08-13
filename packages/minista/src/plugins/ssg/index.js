@@ -21,8 +21,10 @@ import { LegacySsgRouteCache } from "../../adapters/vite/legacy-ssg-route-cache.
 import { createViteReactRenderer } from "../../adapters/vite/react-renderer.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
+import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { renderViteSsgPages } from "../../adapters/vite/ssg-render-lifecycle.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -69,50 +71,45 @@ export function pluginSsg(uOpts = {}) {
   const SSG_PAGES_VIRTUAL = "\0" + SSG_PAGES_ID
   const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-  let isAppBuild = false
-  /** @type {Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames> | undefined} */
-  let appEnvironmentNames
-
-  let rootDir = ""
-  let projectName = "legacy-ssg"
-  /** @type {import("../../core/graph/index.js").ProjectGraphSnapshot | undefined} */
-  let projectGraph
-  let tempDir = ""
-  let globDir = ""
-  let globFile = ""
-  let ssrDir = ""
-  let ssrFile = ""
-  /** @type {RenderedPage[]} */
-  let ssgPages = []
-  let throughDir = ""
-  let throughFile = ""
-  /** @type {import("../../core/ports/index.js").StaticRenderer<import("react").ReactNode> | undefined} */
-  let renderer
-  /** @type {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} */
-  let buildSession
-  /** @type {import("../../core/manifest/index.js").OutputManifest | undefined} */
-  let externalOutputManifest
-  let externalOutputDirectory = ""
-  /** @type {readonly import("vite").Plugin[]} */
-  let externalClientPlugins = []
+  const createBuildState = () => ({
+    ssgPages: /** @type {RenderedPage[]} */ ([]),
+    projectGraph: /** @type {import("../../core/graph/index.js").ProjectGraphSnapshot | undefined} */ (undefined),
+    externalOutputManifest: /** @type {import("../../core/manifest/index.js").OutputManifest | undefined} */ (undefined),
+    externalOutputDirectory: "",
+    externalClientPlugins: /** @type {readonly import("vite").Plugin[]} */ ([]),
+  })
+  const buildStates = new ViteEnvironmentState(createBuildState)
+  const legacyState = createBuildState()
+  const devServers = new ViteDevServerRegistry()
+  const devStates = new ViteEnvironmentState(() => ({
+    rootDir: "",
+    globFile: "",
+    renderer: /** @type {import("../../core/ports/index.js").StaticRenderer<import("react").ReactNode> | undefined} */ (undefined),
+    ssgPages: /** @type {RenderedPage[]} */ ([]),
+    pageCache: /** @type {DevPageCache<{graph: import("../../core/graph/index.js").ProjectGraphSnapshot, layoutSourceFiles: readonly string[], resolvedLayout: ResolvedLayout, resolvedPages: readonly ResolvedPage[]}>} */ (new DevPageCache()),
+    renderCache: /** @type {DevRenderCache<RenderedPage>} */ (new DevRenderCache()),
+    routeCache: new LegacySsgRouteCache(),
+  }))
+  /**
+   * Vite configEnvironment does not expose the top-level root. Keep only the
+   * deterministic config-time paths needed to configure named environments.
+   * @type {{names?: Required<import("../../adapters/vite/app-config.js").ViteAppEnvironmentNames>, globFile: string, ssrDir: string, throughFile: string}}
+   */
+  let appConfigPlan = { globFile: "", ssrDir: "", throughFile: "" }
   const environmentInput = new ViteEnvironmentInputAdapter()
-  /** @type {DevPageCache<{graph: import("../../core/graph/index.js").ProjectGraphSnapshot, layoutSourceFiles: readonly string[], resolvedLayout: ResolvedLayout, resolvedPages: readonly ResolvedPage[]}>} */
-  const devPageCache = new DevPageCache()
-  /** @type {DevRenderCache<RenderedPage>} */
-  const devRenderCache = new DevRenderCache()
-  const devRouteCache = new LegacySsgRouteCache()
 
   /**
+   * @param {ReturnType<typeof devStates.get>} state
    * @param {ResolvedLayout} resolvedLayout
    * @param {readonly ResolvedPage[]} resolvedPages
+   * @param {import("../../core/ports/index.js").StaticRenderer<import("react").ReactNode> | undefined} renderer
    * @param {DevRenderCache<RenderedPage>} [renderCache]
    */
   async function updateRenderedPages(
+    state,
     resolvedLayout,
     resolvedPages,
+    renderer,
     renderCache,
   ) {
     const activePageIds = resolvedPages
@@ -137,14 +134,40 @@ export function pluginSsg(uOpts = {}) {
         return renderCache ? renderCache.get(pageId, render) : render()
       }),
     )
-    ssgPages = pages.filter(
+    state.ssgPages = pages.filter(
         /** @type {(page: RenderedPage | null) => page is RenderedPage} */
         (page) => page !== null,
       )
   }
 
-  /** Render the production pages after the render bundle is available. */
-  async function prepareClientPages() {
+  /**
+   * Render the production pages after the render bundle is available.
+   * @param {ReturnType<typeof createBuildState>} state
+   * @param {import("vite").ResolvedConfig | import("vite").InlineConfig} config
+   */
+  async function prepareClientPages(state, config) {
+    const rootDir = getRootDir(cwd, config.root || "")
+    const tempDir = getTempDir(cwd, rootDir)
+    const ssrFile = path.resolve(tempDir, "ssr", `${tempName}.mjs`)
+    const throughDir = path.resolve(tempDir, "through")
+    const throughFile = path.resolve(throughDir, `${tempName}.js`)
+    const buildSession = getViteBuildSession(config)
+    const renderer = await createViteReactRenderer({ resolve: config.resolve })
+    let projectName = path.basename(rootDir)
+    try {
+      const packageJson = JSON.parse(
+        await fs.promises.readFile(path.resolve(rootDir, "package.json"), "utf8"),
+      )
+      if (typeof packageJson.name === "string" && packageJson.name) {
+        projectName = packageJson.name
+      }
+    } catch (error) {
+      if (
+        !error ||
+        typeof error !== "object" ||
+        Reflect.get(error, "code") !== "ENOENT"
+      ) throw error
+    }
     const importUrl = pathToFileURL(ssrFile).href
     const { LAYOUTS = {}, PAGES = {} } = await import(importUrl)
     const formatedLayout = formatLayout(LAYOUTS)
@@ -180,8 +203,8 @@ export function pluginSsg(uOpts = {}) {
         diagnostics: buildSession?.diagnostics,
       },
     )
-    ssgPages = [...rendered.pages]
-    projectGraph = rendered.graph
+    state.ssgPages = [...rendered.pages]
+    state.projectGraph = rendered.graph
 
     if (buildSession?.state) buildSession.state.projectGraph = rendered.graph
 
@@ -189,7 +212,7 @@ export function pluginSsg(uOpts = {}) {
       await new NodeExternalBuildHandoff().writeRenderedPages(
         rootDir,
         externalBuildId,
-        ssgPages,
+        state.ssgPages,
       )
     }
     await fs.promises.mkdir(throughDir, { recursive: true })
@@ -198,15 +221,32 @@ export function pluginSsg(uOpts = {}) {
 
   /** @param {ViteEnvironmentPreparation} preparation */
   async function prepareAppClient(preparation) {
-    if (!isAppBuild) return
-    await prepareClientPages()
+    const config = preparation.client.getTopLevelConfig()
+    if (!getViteAppEnvironmentNames(config)) return
+    const state = buildStates.get(preparation.client)
+    await prepareClientPages(state, config)
+    const rootDir = getRootDir(cwd, preparation.client.config.root || "")
+    const throughFile = path.resolve(
+      getTempDir(cwd, rootDir),
+      "through",
+      `${tempName}.js`,
+    )
     environmentInput.merge(preparation.client, { [tempName]: throughFile })
   }
 
-  function getOutputClaims() {
-    if (!projectGraph) return []
-    const emittedUrls = new Set(ssgPages.map(({ url }) => url))
-    return [...projectGraph.pages.values()]
+  /** @param {import("vite").Environment} environment */
+  function getBuildState(environment) {
+    return getViteAppEnvironmentNames(environment.getTopLevelConfig())
+      ? buildStates.get(environment)
+      : legacyState
+  }
+
+  /** @param {import("vite").Environment | undefined} environment */
+  function getOutputClaims(environment) {
+    const state = environment ? getBuildState(environment) : legacyState
+    if (!state.projectGraph) return []
+    const emittedUrls = new Set(state.ssgPages.map(({ url }) => url))
+    return [...state.projectGraph.pages.values()]
       .filter(({ url }) => emittedUrls.has(url))
       .map((page) => Object.freeze({
         id: createNodeId("artifact", "ssg-output", page.id),
@@ -236,53 +276,27 @@ export function pluginSsg(uOpts = {}) {
     },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      appEnvironmentNames = getViteAppEnvironmentNames(config)
-      isAppBuild = command === "build" && Boolean(appEnvironmentNames)
-      isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isAppBuild && !isSsrBuild
-      return isDev || isAppBuild || isSsr || isBuild
+      return command === "serve" || command === "build"
     },
-    config: async (config) => {
-      buildSession = getViteBuildSession(config)
-      rootDir = getRootDir(cwd, config.root || "")
-      projectName = path.basename(rootDir)
-      try {
-        const packageJson = JSON.parse(
-          await fs.promises.readFile(
-            path.resolve(rootDir, "package.json"),
-            "utf8",
-          ),
-        )
-        if (typeof packageJson.name === "string" && packageJson.name) {
-          projectName = packageJson.name
-        }
-      } catch (error) {
-        if (
-          !error ||
-          typeof error !== "object" ||
-          Reflect.get(error, "code") !== "ENOENT"
-        ) {
-          throw error
-        }
-      }
-      tempDir = getTempDir(cwd, rootDir)
-      globDir = path.resolve(tempDir, "glob")
-      globFile = path.resolve(globDir, `${tempName}.js`)
-      ssrDir = path.resolve(tempDir, "ssr")
-      ssrFile = path.resolve(ssrDir, `${tempName}.mjs`)
-      throughDir = path.resolve(tempDir, "through")
-      throughFile = path.resolve(throughDir, `${tempName}.js`)
+    config: async (config, { command, isSsrBuild }) => {
+      const names = getViteAppEnvironmentNames(config)
+      const isAppBuild = command === "build" && Boolean(names)
+      const isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
+      const isBuild = command === "build" && !isAppBuild && !isSsrBuild
+      const rootDir = getRootDir(cwd, config.root || "")
+      const tempDir = getTempDir(cwd, rootDir)
+      const globDir = path.resolve(tempDir, "glob")
+      const globFile = path.resolve(globDir, `${tempName}.js`)
+      const ssrDir = path.resolve(tempDir, "ssr")
+      const throughFile = path.resolve(tempDir, "through", `${tempName}.js`)
 
-      if (isDev || isSsr || isAppBuild) {
+      if (command === "serve" || isSsr || isAppBuild) {
         const code = getGlobImportCode(opts)
         await fs.promises.mkdir(globDir, { recursive: true })
         await fs.promises.writeFile(globFile, code, "utf8")
       }
-      if (isDev || isBuild || isAppBuild) {
-        renderer = await createViteReactRenderer(config)
-      }
       if (isAppBuild) {
+        appConfigPlan = { names, globFile, ssrDir, throughFile }
         return {
           ssr: {
             external: mergeSsrExternal(config, [
@@ -292,7 +306,7 @@ export function pluginSsg(uOpts = {}) {
           },
         }
       }
-      if (isDev) {
+      if (command === "serve") {
         return {
           ssr: {
             external: mergeSsrExternal(config, [
@@ -325,7 +339,7 @@ export function pluginSsg(uOpts = {}) {
         }
       }
       if (isBuild) {
-        await prepareClientPages()
+        await prepareClientPages(legacyState, config)
 
         return {
           build: {
@@ -339,8 +353,8 @@ export function pluginSsg(uOpts = {}) {
       }
     },
     configEnvironment(name, config) {
-      if (!isAppBuild) return
-      if (name === appEnvironmentNames?.renderName) {
+      if (!appConfigPlan.names) return
+      if (name === appConfigPlan.names.renderName) {
         return {
           build: {
             rolldownOptions: {
@@ -356,21 +370,21 @@ export function pluginSsg(uOpts = {}) {
                   "react-dom/server",
                 ],
               ),
-              input: { [tempName]: globFile },
+              input: { [tempName]: appConfigPlan.globFile },
               output: {
                 chunkFileNames: "[name].mjs",
                 entryFileNames: "[name].mjs",
               },
             },
-            outDir: ssrDir,
+            outDir: appConfigPlan.ssrDir,
           },
         }
       }
-      if (name === appEnvironmentNames?.clientName) {
+      if (name === appConfigPlan.names.clientName) {
         return {
           build: {
             rolldownOptions: {
-              input: { [tempName]: throughFile },
+              input: { [tempName]: appConfigPlan.throughFile },
             },
           },
         }
@@ -384,14 +398,16 @@ export function pluginSsg(uOpts = {}) {
     },
     load(id) {
       if (id === SSG_PAGES_VIRTUAL) {
-        return `export default ${JSON.stringify(ssgPages)};`
+        const server = devServers.resolveEnvironment(this.environment)
+        const pages = server ? devStates.get(server).ssgPages : []
+        return `export default ${JSON.stringify(pages)};`
       }
       return null
     },
     transformIndexHtml: {
       order: "pre",
-      handler() {
-        if (!isDev) return
+      handler(_html, context) {
+        if (!devServers.resolve(context)) return
         return [
           {
             tag: "script",
@@ -411,17 +427,29 @@ export function pluginSsg(uOpts = {}) {
         ]
       },
     },
-    configureServer(server) {
+    async configureServer(server) {
+      devServers.add(server)
+      server.httpServer?.once("close", () => devServers.delete(server))
+      const state = devStates.get(server)
+      state.rootDir = getRootDir(cwd, server.config.root || "")
+      state.globFile = path.resolve(
+        getTempDir(cwd, state.rootDir),
+        "glob",
+        `${tempName}.js`,
+      )
+      state.renderer = await createViteReactRenderer({
+        resolve: server.config.resolve,
+      })
       return () => {
         const evaluator = new ViteDevModuleEvaluator(server)
 
         async function loadDevPages() {
           /** @type {{LAYOUTS?: ImportedLayouts, PAGES?: ImportedPages}} */
-          const modules = await evaluator.importModule(globFile)
+          const modules = await evaluator.importModule(state.globFile)
           const { LAYOUTS = {}, PAGES = {} } = modules
           const formatedLayout = formatLayout(LAYOUTS)
           const resolvedLayout = await resolveLayout(formatedLayout)
-          const project = await devRouteCache.resolve(PAGES, opts)
+          const project = await state.routeCache.resolve(PAGES, opts)
           const resolvedPages = project.pages
 
           const errors = project.diagnostics.filter(
@@ -436,13 +464,15 @@ export function pluginSsg(uOpts = {}) {
           }
 
           await updateRenderedPages(
+            state,
             resolvedLayout,
             resolvedPages,
-            devRenderCache,
+            state.renderer,
+            state.renderCache,
           )
           evaluator.invalidateModule(SSG_PAGES_VIRTUAL)
           const layoutSourceFiles = Object.keys(LAYOUTS).map((sourceFile) =>
-            path.resolve(rootDir, sourceFile.replace(/^\/+/, "")),
+            path.resolve(state.rootDir, sourceFile.replace(/^\/+/, "")),
           )
           return {
             graph: project.graph,
@@ -462,7 +492,7 @@ export function pluginSsg(uOpts = {}) {
             const url = originalUrl.startsWith(normalizedBase)
               ? originalUrl.slice(normalizedBase.length) || "/"
               : originalUrl
-            const { resolvedLayout, resolvedPages } = await devPageCache.get(
+            const { resolvedLayout, resolvedPages } = await state.pageCache.get(
               loadDevPages,
             )
             const resolvedPage = resolvedPages.find((page) => page.url === url)
@@ -471,8 +501,12 @@ export function pluginSsg(uOpts = {}) {
 
             if (resolvedPage) {
               html =
-                ssgPages.find((page) => page.url === resolvedPage.url)?.html ??
-                (await transformHtml({ resolvedLayout, resolvedPage }, renderer))
+                state.ssgPages.find((page) => page.url === resolvedPage.url)
+                  ?.html ??
+                (await transformHtml(
+                  { resolvedLayout, resolvedPage },
+                  state.renderer,
+                ))
               html = await server.transformIndexHtml(originalUrl, html)
               res.statusCode = 200
               res.setHeader("Content-Type", "text/html")
@@ -491,6 +525,12 @@ export function pluginSsg(uOpts = {}) {
       order: "pre",
       handler({ modules, server, timestamp }) {
         if (this.environment.name !== "ssr") return
+        const ownerServer = devServers.resolve({
+          path: "",
+          filename: modules[0]?.id ?? "",
+          server,
+        }) ?? server
+        const state = devStates.get(ownerServer)
         const updates = new ViteDevUpdateAdapter(server)
 
         /**
@@ -536,7 +576,7 @@ export function pluginSsg(uOpts = {}) {
         }
 
         const touchSsrHtml = modules.some((m) =>
-          isReachableFromGlob(m, globFile, SSG_PAGES_VIRTUAL),
+          isReachableFromGlob(m, state.globFile, SSG_PAGES_VIRTUAL),
         )
 
         updates.invalidateModuleById(
@@ -549,11 +589,11 @@ export function pluginSsg(uOpts = {}) {
         if (touchSsrHtml) {
           /** @type {string[] | undefined} */
           let affectedPageUrls
-          const snapshot = devPageCache.peek()
+          const snapshot = state.pageCache.peek()
           if (snapshot) {
             const routeBySourceFile = new Map(
               [...snapshot.graph.routes.values()].map((route) => [
-                path.resolve(rootDir, route.sourceFile),
+                path.resolve(state.rootDir, route.sourceFile),
                 route,
               ]),
             )
@@ -568,8 +608,8 @@ export function pluginSsg(uOpts = {}) {
             )
 
             if (affectedLayouts.length > 0 || affectedRouteFiles.length === 0) {
-              devRenderCache.invalidate()
-              if (affectedLayouts.length === 0) devRouteCache.clear()
+              state.renderCache.invalidate()
+              if (affectedLayouts.length === 0) state.routeCache.clear()
             } else {
               const affectedRoutes = affectedRouteFiles.flatMap(
                 (sourceFile) => {
@@ -577,7 +617,7 @@ export function pluginSsg(uOpts = {}) {
                   return route ? [route] : []
                 },
               )
-              devRouteCache.invalidate(
+              state.routeCache.invalidate(
                 affectedRoutes.map(({ sourceFile }) => sourceFile),
               )
               const routeIds = new Set(affectedRoutes.map(({ id }) => id))
@@ -587,12 +627,12 @@ export function pluginSsg(uOpts = {}) {
               affectedPageUrls = [...snapshot.graph.pages.values()]
                 .filter(({ id }) => pageIds.includes(id))
                 .map(({ url }) => url)
-              devRenderCache.invalidate(pageIds)
+              state.renderCache.invalidate(pageIds)
             }
           } else {
-            devRenderCache.invalidate()
+            state.renderCache.invalidate()
           }
-          devPageCache.invalidate()
+          state.pageCache.invalidate()
           const rel = modules[0]?.id
             ? stripQuery(path.relative(server.config.root, modules[0].id))
             : ""
@@ -634,9 +674,9 @@ export function pluginSsg(uOpts = {}) {
             timestamp,
             true,
           )
-          devRouteCache.clear()
-          devRenderCache.invalidate()
-          devPageCache.invalidate()
+          state.routeCache.clear()
+          state.renderCache.invalidate()
+          state.pageCache.invalidate()
           const rel = stripQuery(
             path.relative(server.config.root, modules[0].id || ""),
           )
@@ -650,16 +690,15 @@ export function pluginSsg(uOpts = {}) {
       },
     },
     async buildStart() {
-      if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
-        return
-      }
-      externalOutputManifest = undefined
-      externalOutputDirectory = ""
-      externalClientPlugins = []
-      if (!ssgPages.length) return
+      if (this.environment.config.build.ssr) return
+      const state = getBuildState(this.environment)
+      state.externalOutputManifest = undefined
+      state.externalOutputDirectory = ""
+      state.externalClientPlugins = []
+      if (!state.ssgPages.length) return
 
       await Promise.all(
-        ssgPages.map((ssgPage) => {
+        state.ssgPages.map((ssgPage) => {
           this.emitFile({
             type: "asset",
             source: ssgPage.html,
@@ -669,9 +708,7 @@ export function pluginSsg(uOpts = {}) {
       )
     },
     generateBundle(options, bundle) {
-      if (isSsr || this.environment.name === appEnvironmentNames?.renderName) {
-        return
-      }
+      if (this.environment.config.build.ssr) return
 
       for (const [key, item] of Object.entries(bundle)) {
         if (item.name === tempName && item.type === "chunk") {
@@ -681,15 +718,19 @@ export function pluginSsg(uOpts = {}) {
       }
     },
     writeBundle(options, bundle) {
+      const state = getBuildState(this.environment)
+      const buildSession = getViteBuildSession(
+        this.environment.getTopLevelConfig(),
+      )
       if (
-        !isBuild ||
+        this.environment.config.build.ssr ||
         buildSession ||
         !externalBuildId ||
-        !projectGraph
+        !state.projectGraph
       ) {
         return
       }
-      externalOutputManifest = createViteOutputManifest(
+      state.externalOutputManifest = createViteOutputManifest(
         /** @type {import("../../adapters/vite/app-builder.js").ViteBuildOutput} */ ({
           output: Object.values(bundle),
         }),
@@ -698,38 +739,40 @@ export function pluginSsg(uOpts = {}) {
           base: this.environment.config.base,
         },
       )
-      externalOutputDirectory = options.dir ??
+      state.externalOutputDirectory = options.dir ??
         this.environment.config.build.outDir
-      externalClientPlugins = this.environment.config.plugins
+      state.externalClientPlugins = this.environment.config.plugins
     },
     async closeBundle() {
+      const state = getBuildState(this.environment)
       if (
-        !externalOutputManifest ||
-        !externalOutputDirectory ||
+        !state.externalOutputManifest ||
+        !state.externalOutputDirectory ||
         !externalBuildId ||
-        !projectGraph
+        !state.projectGraph
       ) {
         return
       }
       const outputManifest = await reconcileViteOutputManifest(
-        externalOutputManifest,
+        state.externalOutputManifest,
         {
-          outDir: externalOutputDirectory,
+          outDir: state.externalOutputDirectory,
           base: this.environment.config.base,
         },
       )
       const diagnostics = new DiagnosticCollector()
       const collected = await collectViteOutputClaims(
-        externalClientPlugins,
+        state.externalClientPlugins,
         this.environment,
       )
       const claimedGraph = applyOutputClaims(
-        projectGraph,
+        state.projectGraph,
         collected.claims,
         collected.features,
         outputManifest,
         diagnostics,
       )
+      const rootDir = getRootDir(cwd, this.environment.config.root || "")
       await new NodeExternalBuildHandoff().write(
         rootDir,
         externalBuildId,
