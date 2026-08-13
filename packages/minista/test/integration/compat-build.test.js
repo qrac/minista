@@ -124,5 +124,15 @@ describe.sequential("v4 compatibility build", () => {
     })
     expect(source).not.toContain(fixtureDir)
     expect(source).not.toContain('"props"')
+
+    const diagnostics = JSON.parse(await fs.promises.readFile(
+      path.resolve(manifestDir, "diagnostics.json"),
+      "utf8",
+    ))
+    expect(diagnostics).toMatchObject({
+      schemaVersion: "1",
+      command: "build",
+      summary: { errors: 0, warnings: 0, info: 0 },
+    })
   })
 })

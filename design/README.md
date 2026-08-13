@@ -36,3 +36,4 @@
 - [ADR-0006: ランタイム実装をJavaScript + JSDocに統一する](decisions/0006-javascript-jsdoc-runtime.md)
 - [ADR-0007: programmatic custom serverからModuleRunner devへ移行する](decisions/0007-programmatic-module-runner-dev.md)
 - [ADR-0008: 公開Project Manifestを安全かつ原子的に出力する](decisions/0008-public-project-manifest.md)
+- [ADR-0009: 直近のstructured diagnosticsをworkspace snapshotへ保存する](decisions/0009-diagnostics-workspace-snapshot.md)

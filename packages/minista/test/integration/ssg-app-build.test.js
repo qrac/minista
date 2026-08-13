@@ -19,6 +19,10 @@ const viteConfigCacheDir = path.resolve(fixtureDir, "node_modules/.vite-temp")
 async function removeGenerated() {
   await Promise.all([
     fs.promises.rm(distDir, { recursive: true, force: true }),
+    fs.promises.rm(path.resolve(fixtureDir, ".minista"), {
+      recursive: true,
+      force: true,
+    }),
     fs.promises.rm(tempDir, { recursive: true, force: true }),
     fs.promises.rm(viteCacheDir, { recursive: true, force: true }),
     fs.promises.rm(viteConfigCacheDir, { recursive: true, force: true }),

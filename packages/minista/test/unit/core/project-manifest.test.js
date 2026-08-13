@@ -7,6 +7,10 @@ import {
   serializeProjectManifest,
 } from "../../../src/core/manifest/index.js"
 import { inspectProjectManifest } from "../../../src/core/query/index.js"
+import {
+  createDiagnosticsReport,
+  serializeDiagnosticsReport,
+} from "../../../src/core/diagnostics/index.js"
 
 describe("Project manifest", () => {
   test("serializes object keys deterministically with a trailing newline", () => {
@@ -74,5 +78,22 @@ describe("Project manifest", () => {
       .toThrowError(ProjectManifestVersionUnsupportedError)
     expect(() => parseProjectManifest({ schemaVersion: "1" }))
       .toThrowError(ProjectManifestInvalidError)
+  })
+
+  test("creates a stable diagnostics report", () => {
+    const report = createDiagnosticsReport({
+      version: "5.0.0",
+      command: "check",
+      diagnostics: [{
+        code: "MINISTA_EXAMPLE",
+        severity: "warning",
+        message: "Example warning.",
+      }],
+      createdAt: "2026-08-13T00:00:00.000Z",
+    })
+
+    expect(report.summary).toEqual({ errors: 0, warnings: 1, info: 0 })
+    expect(serializeDiagnosticsReport(report).endsWith("\n")).toBe(true)
+    expect(Object.isFrozen(report.diagnostics[0])).toBe(true)
   })
 })

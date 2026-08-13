@@ -131,6 +131,17 @@ describe.sequential("v4 compatibility App Build", () => {
     expect(source).not.toContain('"props"')
     await expect(
       fs.promises.readdir(path.resolve(fixtureDir, ".minista")),
-    ).resolves.toEqual(["manifest.json"])
+    ).resolves.toEqual(["diagnostics.json", "manifest.json"])
+    const diagnostics = JSON.parse(await fs.promises.readFile(
+      path.resolve(fixtureDir, ".minista/diagnostics.json"),
+      "utf8",
+    ))
+    expect(diagnostics).toMatchObject({
+      schemaVersion: "1",
+      command: "build",
+      summary: { errors: 0, warnings: 0, info: 0 },
+      diagnostics: [],
+    })
+    expect(diagnostics.createdAt).toBe(manifest.createdAt)
   })
 })

@@ -84,7 +84,7 @@ module-level global variableはほぼ使われていませんが、plugin instan
 - legacy build pluginのerrorはまだthrow、`console.error`、警告文字列が中心
 - Coreの `DiagnosticCollector` とstable diagnostic codeは実装済み
 - `check [--json]`, `inspect [--json]`, `explain [--json]` は実装済みで、Vite ModuleRunnerによりpage moduleと `getStaticData()` を評価する
-- public manifestの型、安全なprojection、安定serializer、atomic filesystem writerは実装済み。通常のApp Buildから `.minista/manifest.json` を出力する
+- public manifestの型、安全なprojection、安定serializer、atomic filesystem writerは実装済み。通常のApp Buildから `.minista/manifest.json`、通常のApp Build成功時と `check` の成功／失敗時に `.minista/diagnostics.json` を出力する
 - representative fixture build、project command、Core/feature/adapterのunit testを追加済み
 - legacy SSGはReact 19で `ReactStaticRenderer`、Preact aliasまたはReact 18で `ReactRenderToStringRenderer` を選択し、Headを含むpage treeを1回だけrenderする
 - parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを実装し、markerとgraph node IDをbindできる
@@ -307,7 +307,7 @@ Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 ```text
 .minista/
 ├─ manifest.json           # public machine-readable snapshot
-├─ diagnostics.json        # last check/build diagnostics
+├─ diagnostics.json        # 直近のcheckまたは成功したApp Buildのdiagnostics snapshot
 └─ work/                   # private, buildId単位、削除可能
    └─ <buildId>/
       ├─ render/
@@ -316,6 +316,8 @@ Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 ```
 
 `manifest.json` はJSON dataのみで、JavaScript moduleをimportしません。最低限 `schemaVersion`, `generator`, `project`, `features`, `routes`, `pages`, `assets`, `artifacts`, `diagnosticSummary`, `createdAt` を持ちます。絶対path、秘密情報、page propsの任意データは既定で出力しません。manifest writerは安定key orderとatomic replaceを使います。
+
+`diagnostics.json` は `schemaVersion`, `generator`, `command`, `buildId`, `summary`, `diagnostics`, `createdAt` を持つworkspace snapshotです。`check` はvalidation errorを含む終了結果を保存し、App Buildは成功時のsession diagnosticsを保存します。公開Project Manifestとは異なり配布用artifactではありません。両writerは共通のstable JSON serializerとatomic workspace writerを使います。
 
 `work/<buildId>` はphase間の明示的ArtifactStoreです。producer、content hash、media type、schema versionをmetadataに記録し、別buildの残骸を読みません。
 

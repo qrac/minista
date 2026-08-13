@@ -6,6 +6,8 @@ import { createRequire } from "node:module"
 import { createBuilder } from "vite"
 
 import { NodeProjectManifestWriter } from "../filesystem/project-manifest-writer.js"
+import { NodeDiagnosticsWriter } from "../filesystem/diagnostics-writer.js"
+import { createDiagnosticsReport } from "../../core/diagnostics/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
 import { loadViteAppConfig } from "./app-config-loader.js"
 import { getViteBuildSession } from "./build-session.js"
@@ -93,11 +95,13 @@ export class ViteAppBuilderAdapter {
     }
     await transaction?.commit()
 
+    const createdAt = new Date().toISOString()
+    const diagnostics = session?.diagnostics?.snapshot() ?? Object.freeze([])
     const projectGraph = session?.state?.projectGraph
     if (writesOutput && projectGraph) {
       const projectManifest = createProjectManifest(projectGraph, {
         version: ministaVersion,
-        createdAt: new Date().toISOString(),
+        createdAt,
         diagnostics: session?.diagnostics?.summary() ?? {
           errors: 0,
           warnings: 0,
@@ -109,12 +113,24 @@ export class ViteAppBuilderAdapter {
         projectManifest,
       )
     }
+    if (writesOutput) {
+      await new NodeDiagnosticsWriter().write(
+        client.config.root,
+        createDiagnosticsReport({
+          version: ministaVersion,
+          command: "build",
+          ...(session?.buildId ? { buildId: session.buildId } : {}),
+          diagnostics,
+          createdAt,
+        }),
+      )
+    }
 
     return Object.freeze({
       schemaVersion: "1",
       status: "success",
       ...(session?.buildId ? { buildId: session.buildId } : {}),
-      diagnostics: session?.diagnostics?.snapshot() ?? Object.freeze([]),
+      diagnostics,
       environments: Object.freeze({
         render: Object.freeze({ name: renderName, status: "built" }),
         client: Object.freeze({ name: clientName, status: "built" }),

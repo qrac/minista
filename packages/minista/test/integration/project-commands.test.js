@@ -40,6 +40,14 @@ afterAll(async () => {
       ),
     ),
   )
+  await Promise.all(
+    [fixtureDir, invalidFixtureDir].map((root) =>
+      fs.promises.rm(path.resolve(root, ".minista"), {
+        recursive: true,
+        force: true,
+      }),
+    ),
+  )
   if (manifestFixtureDir) {
     await fs.promises.rm(manifestFixtureDir, { recursive: true, force: true })
   }
@@ -60,6 +68,16 @@ describe.sequential("machine-readable project commands", () => {
       diagnostics: [],
     })
     expect(fs.existsSync(path.resolve(fixtureDir, "dist"))).toBe(false)
+    const report = JSON.parse(await fs.promises.readFile(
+      path.resolve(fixtureDir, ".minista/diagnostics.json"),
+      "utf8",
+    ))
+    expect(report).toMatchObject({
+      schemaVersion: "1",
+      command: "check",
+      summary: { errors: 0, warnings: 0, info: 0 },
+      diagnostics: [],
+    })
   }, 30_000)
 
   test("inspect and explain use the same graph service", async () => {
@@ -99,6 +117,15 @@ describe.sequential("machine-readable project commands", () => {
       code: "MINISTA_ROUTE_MISSING_PARAM",
       severity: "error",
       phase: "resolve",
+    })
+    const report = JSON.parse(await fs.promises.readFile(
+      path.resolve(invalidFixtureDir, ".minista/diagnostics.json"),
+      "utf8",
+    ))
+    expect(report).toMatchObject({
+      command: "check",
+      summary: { errors: 1 },
+      diagnostics: [{ code: "MINISTA_ROUTE_MISSING_PARAM" }],
     })
   }, 30_000)
 

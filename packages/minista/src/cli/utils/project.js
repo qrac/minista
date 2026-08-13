@@ -1,14 +1,17 @@
 import path from "node:path"
 import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
+import { createRequire } from "node:module"
 
 import { createServer } from "vite"
 import { glob } from "tinyglobby"
 
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { NodeProjectManifestReader } from "../../adapters/filesystem/project-manifest-reader.js"
+import { NodeDiagnosticsWriter } from "../../adapters/filesystem/diagnostics-writer.js"
 import {
   createCommandResult,
+  createDiagnosticsReport,
   createNodeId,
   DiagnosticCollector,
   inspectProjectManifest,
@@ -19,12 +22,14 @@ import {
 /** @typedef {{command: ProjectCommand, target: string, root: string, json: boolean, manifest: boolean}} ParsedProjectCommand */
 /** @typedef {{id: string, apiVersion: 1, options: {src: string[], srcBases: string[]}, provides: string[], requires: string[]}} FeatureMetadata */
 /** @typedef {import("vite").Plugin & {api?: {minista?: {feature?: FeatureMetadata}}}} MinistaVitePlugin */
-/** @typedef {{code: string, severity: "error"|"warning"|"info", message: string, hint?: string}} ProjectDiagnostic */
+/** @typedef {import("../../core/diagnostics/index.js").Diagnostic} ProjectDiagnostic */
 /** @typedef {{command: ProjectCommand, ok: boolean, data: {summary?: string, relatedNodeIds?: readonly string[], counts?: Readonly<Record<string, number>>}, diagnostics: readonly ProjectDiagnostic[]}} ProjectCommandResult */
 
 const serviceFile = fileURLToPath(
   new URL("../../adapters/vite/project-service.js", import.meta.url),
 )
+const require = createRequire(import.meta.url)
+const { version: ministaVersion } = require("../../../package.json")
 
 const projectCommands = new Set(["check", "inspect", "explain"])
 
@@ -198,6 +203,18 @@ export async function runProjectCommand(parsed, configFile) {
       target: parsed.target,
       evaluator,
     })
+
+    if (parsed.command === "check") {
+      await new NodeDiagnosticsWriter().write(
+        rootDir,
+        createDiagnosticsReport({
+          version: ministaVersion,
+          command: "check",
+          diagnostics: result.diagnostics,
+          createdAt: new Date().toISOString(),
+        }),
+      )
+    }
 
     printProjectResult(result, parsed.json)
   } finally {
