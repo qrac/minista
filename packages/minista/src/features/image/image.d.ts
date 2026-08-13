@@ -29,6 +29,12 @@ export interface GeneratedImageArtifact {
   readonly mediaType: string
   readonly content: string | Uint8Array
 }
+export interface GeneratedImageOutput {
+  readonly id: ArtifactId
+  readonly source: string
+  readonly fileName: string
+  readonly mediaType: string
+}
 export interface GeneratedImagePlan {
   readonly key: string
   readonly src?: ArtifactId
@@ -66,6 +72,7 @@ export interface ImageMutableElement {
   removeAttribute(name: string): void
 }
 export declare const IMAGE_FEATURE_ID: FeatureId
+export declare function createImageOutputsArtifactId(): ArtifactId
 export declare function createImagePlansArtifactId(): ArtifactId
 export declare function collectImageReferences(
   document: HtmlDocument,

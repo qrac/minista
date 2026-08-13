@@ -31,6 +31,10 @@ export function createImagePlansArtifactId() {
   return createNodeId("artifact", "image-plans")
 }
 
+export function createImageOutputsArtifactId() {
+  return createNodeId("artifact", "image-outputs")
+}
+
 /**
  * @param {HtmlDocument} document
  * @returns {readonly ImageReference[]}
@@ -182,6 +186,19 @@ export function createImageFeature(options, generator, outputs) {
           mediaType: "application/vnd.minista.image-plans+json",
           content: JSON.stringify(generated.plans),
         })
+        const outputsId = createImageOutputsArtifactId()
+        await context.artifacts.put({
+          schemaVersion: "1",
+          id: outputsId,
+          owner: IMAGE_FEATURE_ID,
+          mediaType: "application/vnd.minista.image-outputs+json",
+          content: JSON.stringify(generated.artifacts.map((artifact) => ({
+            id: artifact.id,
+            source: artifact.source,
+            fileName: artifact.fileName,
+            mediaType: artifact.mediaType,
+          }))),
+        })
         if (context.graph.snapshot().features.has(IMAGE_FEATURE_ID)) {
           const sourcePages = new Map()
           for (const reference of references) {
@@ -222,6 +239,13 @@ export function createImageFeature(options, generator, outputs) {
             kind: "data",
             owner: IMAGE_FEATURE_ID,
             source: "image-plans",
+            dependencies: generated.artifacts.map(({ id }) => id),
+          })
+          context.graph.addArtifact({
+            id: outputsId,
+            kind: "data",
+            owner: IMAGE_FEATURE_ID,
+            source: "image-outputs",
             dependencies: generated.artifacts.map(({ id }) => id),
           })
         }

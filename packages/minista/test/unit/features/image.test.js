@@ -14,6 +14,7 @@ import {
 import {
   IMAGE_FEATURE_ID,
   createImageFeature,
+  createImageOutputsArtifactId,
   createImagePlansArtifactId,
 } from "../../../src/features/image/index.js"
 
@@ -137,6 +138,14 @@ describe("image feature", () => {
       mediaType: "image/webp",
     })
     expect(await artifacts.get(createImagePlansArtifactId())).toBeDefined()
+    expect(JSON.parse(String(
+      (await artifacts.get(createImageOutputsArtifactId()))?.content,
+    ))).toEqual([{
+      id: generatedId,
+      source: "/images/photo.png",
+      fileName: "photo-640.webp",
+      mediaType: "image/webp",
+    }])
     expect(document.serialize()).toContain('src="/assets/photo-640.webp"')
     expect(document.serialize()).toContain(
       'srcset="/assets/photo-640.webp 640w" sizes="100vw" width="640" height="360"',

@@ -11,11 +11,14 @@ import { normalizePath } from "vite"
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { NodeImageGenerator } from "../../adapters/image/index.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { processViteDocuments } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   collectImageReferences,
   composeImageDocument,
+  createImageFeature,
+  createImageOutputsArtifactId,
   DevImagePageIndex,
 } from "../../features/image/index.js"
 import { mergeObj } from "../../shared/obj.js"
@@ -233,52 +236,82 @@ export function pluginImage(uOpts = {}) {
       )
       const pages = htmlItems.map((item) => ({
         item,
-        document: documents.parse({
-          pageId: createNodeId("page", "legacy-image-build", item.fileName),
-          html: String(item.source),
-        }),
-        references: /** @type {import("../../features/image/index.js").ImageReference[]} */ ([]),
+        fileName: item.fileName,
+        url: getHtmlPageUrl(item.fileName),
+        html: String(item.source),
       }))
-      for (const page of pages) {
-        page.references = [...collectImageReferences(page.document)]
-      }
-      const references = pages.flatMap(({ references }) => references)
-      if (references.length === 0) return
-      const generated = await generator.generate(references, opts)
-
       /** @type {Map<string, string>} */
       const outputFiles = new Map()
-      for (const artifact of generated.artifacts) {
-        const referenceId = this.emitFile({
-          type: "asset",
-          name: path.basename(artifact.fileName),
-          source: artifact.content,
-        })
-        outputFiles.set(artifact.id, this.getFileName(referenceId))
-        outputClaims.push(Object.freeze({
-          id: artifact.id,
-          kind: "image",
-          owner: createNodeId("feature", "image"),
-          source: artifact.source,
-          fileName: this.getFileName(referenceId),
-          pageUrls: Object.freeze(pages
-            .filter(({ references: pageReferences }) =>
-              pageReferences.some(({ source }) => source === artifact.source)
+      const pageFileNames = new Map()
+      const feature = createImageFeature(opts, generator, {
+        resolve(artifactId, pageId) {
+          const outputFile = outputFiles.get(artifactId)
+          const pageFileName = pageFileNames.get(pageId)
+          return outputFile && pageFileName
+            ? getBasedAssetUrl(base, pageFileName, outputFile)
+            : undefined
+        },
+      })
+      const result = await processViteDocuments(
+        pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+        [feature],
+        undefined,
+        {
+          beforeCompose: async ({ artifacts, graph }) => {
+            for (const page of graph.pages.values()) {
+              const route = graph.routes.get(page.routeId)
+              if (route) pageFileNames.set(page.id, route.pageModuleId)
+            }
+            /** @type {import("../../features/image/index.js").ImageReference[]} */
+            const references = artifacts
+              .filter((record) =>
+                record.owner === feature.id &&
+                record.mediaType ===
+                  "application/vnd.minista.image-references+json"
+              )
+              .flatMap((record) => JSON.parse(String(record.content)))
+            const outputsRecord = artifacts.find(
+              ({ id }) => id === createImageOutputsArtifactId(),
             )
-            .map(({ item }) => getHtmlPageUrl(item.fileName))),
-          dependencies: Object.freeze([]),
-        }))
-      }
-      for (const { item, document } of pages) {
-        composeImageDocument(document, generated.plans, {
-          resolve: (artifactId) => {
-            const outputFile = outputFiles.get(artifactId)
-            return outputFile
-              ? getBasedAssetUrl(base, item.fileName, outputFile)
-              : undefined
+            /** @type {import("../../features/image/index.js").GeneratedImageOutput[]} */
+            const outputs = outputsRecord
+              ? JSON.parse(String(outputsRecord.content))
+              : []
+            const records = new Map(artifacts.map((record) => [record.id, record]))
+            for (const output of outputs) {
+              const artifact = records.get(output.id)
+              if (!artifact) continue
+              const referenceId = this.emitFile({
+                type: "asset",
+                name: path.basename(output.fileName),
+                source: artifact.content,
+              })
+              const fileName = this.getFileName(referenceId)
+              outputFiles.set(output.id, fileName)
+              outputClaims.push(Object.freeze({
+                id: output.id,
+                kind: "image",
+                owner: feature.id,
+                source: output.source,
+                fileName,
+                pageUrls: Object.freeze([
+                  ...new Set(references
+                    .filter(({ source }) => source === output.source)
+                    .map(({ pageId }) => graph.pages.get(pageId)?.url)
+                    .filter((url) => url !== undefined)),
+                ]),
+                dependencies: Object.freeze([]),
+              }))
+            }
           },
-        })
-        item.source = document.serialize()
+        },
+      )
+      const outputDocuments = new Map(
+        result.documents.map((document) => [document.fileName, document]),
+      )
+      for (const page of pages) {
+        const output = outputDocuments.get(page.fileName)
+        if (output && output.html !== page.html) page.item.source = output.html
       }
     },
   }

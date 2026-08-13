@@ -6,6 +6,7 @@ export {
   collectImageReferences,
   composeImageDocument,
   createImageFeature,
+  createImageOutputsArtifactId,
   createImagePlansArtifactId,
 } from "./image.js"
 export { DevImagePageIndex } from "./dev-page-index.js"
