@@ -212,7 +212,7 @@ interface BuildArtifact {
 
 `PageNode.props` と `metadata` はuser moduleを実行するbuild session内だけのruntime valueで、manifestへ直列化しません。これにより、現行APIで利用できるJSON以外のpropsも維持します。JSON境界では別のallowlist projectionを定義します。
 
-HTMLを扱うfeatureは`HtmlDocument` portを通してmarkerとgraph node IDを対応付け、各compatibility lifecycle内の共有Document Storeをcompose phaseで更新します。Vite hookをまたぐ場合は次のfacadeが更新済みHTMLを再parseします。
+HTMLを扱うfeatureは`HtmlDocument` portを通してmarkerとgraph node IDを対応付け、build sessionまたはdev server sessionの共有Document Storeをcompose phaseで更新します。同じfile identityのDocumentはhookをまたいで再利用し、外部hookが入力HTMLを変更した場合だけ再parseします。
 
 ### Feature contract
 

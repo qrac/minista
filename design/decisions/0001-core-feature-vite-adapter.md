@@ -22,7 +22,7 @@ Public API、Minista Feature、Minista Core、Adapterの四境界を採用しま
 - graphとfeature logicをViteなしでunit testできる
 - CLI / JSON / future MCPが同じquery serviceを利用できる
 - adapter interfaceとtranslation codeが増える
-- 移行中は旧Vite pluginと新featureの二系統を短期間保守する
+- 公開Vite pluginはcompatibility facadeとして残るが、domain処理はCore featureへ一本化する
 
 ## Rejected alternatives
 
