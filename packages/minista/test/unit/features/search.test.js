@@ -92,7 +92,7 @@ describe("search feature", () => {
     const document = new NodeHtmlDocumentFactory().parse({
       pageId,
       html:
-        '<html><head><title>Fixture | Site</title></head><body><main data-search><h1 id="intro">Hello World</h1><p>Search content</p><p data-search-ignore>Hidden</p><input data-search-input></main></body></html>',
+        '<html><head><title>Fixture | Site</title></head><body><main data-search><h1 id="intro">Hello World</h1><pre><code>const hiddenCode = &quot;raw&quot;</code></pre><p>Search content</p><p data-search-ignore>Hidden</p><input data-search-input></main></body></html>',
     })
     documents.put(document)
 
@@ -129,6 +129,9 @@ describe("search feature", () => {
       { url: "/", toc: [[0, "intro"]] },
     ])
     expect(data.pages[0].content).not.toContain(data.words.indexOf("Hidden"))
+    expect(data.words).not.toContain("hiddenCode")
+    expect(data.words).not.toContain("raw")
+    expect(data.words).not.toContain("code")
     expect(document.serialize()).toContain('data-search-relative="0"')
     expect(graph.snapshot().artifacts.get(record.id)).toMatchObject({
       kind: "data",

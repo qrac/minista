@@ -16,6 +16,8 @@ const BLOCK_TAGS = new Set([
   "th", "ul",
 ])
 
+const EXCLUDED_CONTENT_TAGS = new Set(["pre", "script", "style"])
+
 /**
  * @param {HTMLElement} root
  * @returns {string}
@@ -28,7 +30,7 @@ export function getSpacedRawText(root) {
   function walk(node) {
     if (!node) return
     const tag = node.tagName ? String(node.tagName).toLowerCase() : ""
-    if (tag === "script" || tag === "style") return
+    if (EXCLUDED_CONTENT_TAGS.has(tag)) return
     if (tag && BLOCK_TAGS.has(tag)) output.push(" ")
     if (typeof node.rawText === "string" && !node.childNodes?.length) {
       output.push(node.rawText)
@@ -73,6 +75,10 @@ function extractPage(pageElement, ignoreSelectors) {
 
   /** @param {HTMLElement & {_rawText?: string}} element */
   function walk(element) {
+    const tag = element.tagName
+      ? String(element.tagName).toLowerCase()
+      : ""
+    if (EXCLUDED_CONTENT_TAGS.has(tag)) return
     if (isIgnored(element, ignoreSelectors)) return
     if (element.id) toc.push([contentCount, element.id])
     if (element._rawText) {
