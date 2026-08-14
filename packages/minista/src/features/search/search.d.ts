@@ -77,12 +77,3 @@ export declare function createSearchFeature(
   options: SearchFeatureOptions,
   analyzer: SearchDocumentAnalyzer,
 ): MinistaFeature<SearchFeatureOptions>
-export declare function analyzeRenderedSearchPages(
-  pages: readonly {
-    url: string
-    fileName: string
-    document: HtmlDocument
-  }[],
-  options: SearchFeatureOptions,
-  analyzer: SearchDocumentAnalyzer,
-): Promise<SearchData>

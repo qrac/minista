@@ -2,7 +2,6 @@
 
 export {
   SEARCH_FEATURE_ID,
-  analyzeRenderedSearchPages,
   composeSearchDocument,
   composeSearchOutputDocument,
   createSearchData,

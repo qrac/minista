@@ -135,6 +135,7 @@ export default function Other() {
     expect(running?.server.config.appType).toBe("custom")
     expect(html).toContain("<h1>Compatibility fixture</h1>")
     expect(html).toContain("/@vite/client")
+    expect(html).toContain("/@__minista-bundle-glob")
     expect(reloadClient).toContain("minista:full-reload")
     expect(cachedHtml).toContain("<h1>Compatibility fixture</h1>")
     expect(cachedHtml).toContain("/@vite/client")
@@ -146,9 +147,11 @@ export default function Other() {
       : undefined
     const scopes = session?.state?.compatibilityTraces?.map(({ scope }) => scope)
     expect(scopes).toEqual(expect.arrayContaining([
+      "bundle:dev",
       "comment:dev",
       "image:dev",
       "island:dev",
+      "search:dev",
       "sprite:dev",
       "ssg:dev-render",
       "svg:dev",

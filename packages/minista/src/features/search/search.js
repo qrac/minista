@@ -9,7 +9,6 @@ import { createNodeId } from "../../core/graph/index.js"
 /** @typedef {import("../../core/types.js").Capability} Capability */
 /** @typedef {import("../../core/lifecycle/index.js").PhaseContext} PhaseContext */
 /** @typedef {import("./search.js").SearchData} SearchData */
-/** @typedef {import("./search.js").SearchDocumentAnalysis} SearchDocumentAnalysis */
 /** @typedef {import("./search.js").SearchDocumentAnalyzer} SearchDocumentAnalyzer */
 /** @typedef {import("./search.js").SearchFeatureOptions} SearchFeatureOptions */
 /** @typedef {import("./search.js").SearchPageAnalysis} SearchPageAnalysis */
@@ -157,6 +156,7 @@ export function createSearchFeature(options, analyzer) {
             owner: SEARCH_FEATURE_ID,
             mediaType: "application/vnd.minista.search-page+json",
             content: JSON.stringify(record),
+            scope: { kind: "page", pageId: page.id },
           })
           if (context.graph.snapshot().features.has(SEARCH_FEATURE_ID)) {
             context.graph.addArtifact({
@@ -165,6 +165,7 @@ export function createSearchFeature(options, analyzer) {
               owner: SEARCH_FEATURE_ID,
               source: `page:${page.id}`,
               dependencies: [],
+              scope: { kind: "page", pageId: page.id },
             })
           }
         }
@@ -208,29 +209,4 @@ export function createSearchFeature(options, analyzer) {
       },
     }),
   })
-}
-
-/**
- * Compatibility helper for already-rendered pages.
- *
- * @param {readonly {url: string, fileName: string, document: HtmlDocument}[]} pages
- * @param {SearchFeatureOptions} options
- * @param {SearchDocumentAnalyzer} analyzer
- */
-export async function analyzeRenderedSearchPages(pages, options, analyzer) {
-  /** @type {SearchPageAnalysis[]} */
-  const analyses = []
-  for (const page of pages) {
-    if (
-      !picomatch.isMatch(page.fileName, [...options.src], {
-        ignore: [...options.ignore],
-      })
-    ) {
-      continue
-    }
-    /** @type {SearchDocumentAnalysis} */
-    const analysis = await analyzer.analyze(page.document, options)
-    analyses.push({ ...analysis, url: page.url })
-  }
-  return createSearchData(analyses, options.hit)
 }

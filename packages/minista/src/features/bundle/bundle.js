@@ -95,6 +95,44 @@ export function composeBundleDocument(document, plan, outputs) {
 }
 
 /**
+ * @param {HtmlDocument} document
+ * @param {string} scriptSrc
+ * @returns {number}
+ */
+export function composeBundleBootstrapDocument(document, scriptSrc) {
+  const head = document.select("head")[0]
+  if (!head) return 0
+  const exists = document.select('script[type="module"]').some(
+    (element) => element.getAttribute("src") === scriptSrc,
+  )
+  if (exists) return 0
+  head.appendHtml(`<script type="module" src="${scriptSrc}"></script>`)
+  return 1
+}
+
+/**
+ * @param {string} scriptSrc
+ * @returns {import("../../core/lifecycle/index.js").MinistaFeature<{scriptSrc: string}>}
+ */
+export function createBundleBootstrapFeature(scriptSrc) {
+  return Object.freeze({
+    id: BUNDLE_FEATURE_ID,
+    apiVersion: 1,
+    options: Object.freeze({ scriptSrc }),
+    requires: [capability("html-documents")],
+    provides: [capability("client-bundle")],
+    hooks: Object.freeze({
+      /** @param {PhaseContext} context */
+      compose(context) {
+        for (const document of context.documents.list()) {
+          composeBundleBootstrapDocument(document, scriptSrc)
+        }
+      },
+    }),
+  })
+}
+
+/**
  * @param {BundleFeatureOptions} options
  * @param {BundleBuilder} builder
  * @param {BundleOutputResolver} outputs

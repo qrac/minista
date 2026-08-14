@@ -9,12 +9,17 @@ import { normalizePath } from "vite"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import {
+  composeViteHtml,
   createViteCompatibilityTraceHooks,
   processViteDocuments,
 } from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
-import { createBundleFeature } from "../../features/bundle/index.js"
+import {
+  createBundleBootstrapFeature,
+  createBundleFeature,
+} from "../../features/bundle/index.js"
 import { getGlobImportCode } from "./utils/code.js"
 import { getHtmlPageUrl } from "../../shared/filename.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
@@ -54,6 +59,7 @@ export function pluginBundle(uOpts = {}) {
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
+  const devServers = new ViteDevServerRegistry()
 
   return {
     name: "vite-plugin:minista-bundle",
@@ -99,12 +105,24 @@ export function pluginBundle(uOpts = {}) {
         }
       }
     },
-    transformIndexHtml(html, context) {
-      if (!context.server) return html
-      const base = getServeBase(context.server.config.base || "/")
+    configureServer(server) {
+      devServers.add(server)
+      server.httpServer?.once("close", () => devServers.delete(server))
+    },
+    async transformIndexHtml(html, context) {
+      const server = devServers.resolve(context)
+      if (!server) return html
+      const base = getServeBase(server.config.base || "/")
       const prefixBase = base.replace(/\/$/, "")
-      const scriptTag = `<script type="module" src="${prefixBase}${aliasGlob}"></script>`
-      return html.replace("</head>", `${scriptTag}</head>`)
+      return composeViteHtml(
+        html,
+        context.path,
+        [createBundleBootstrapFeature(`${prefixBase}${aliasGlob}`)],
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(server.config),
+          "bundle:dev",
+        ),
+      )
     },
     buildStart() {
       bundleStates.get(this.environment).importedImageFiles.clear()

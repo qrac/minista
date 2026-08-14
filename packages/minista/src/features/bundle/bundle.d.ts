@@ -32,6 +32,13 @@ export declare function composeBundleDocument(
   plan: BundlePlan,
   outputs: BundleOutputResolver,
 ): number
+export declare function composeBundleBootstrapDocument(
+  document: HtmlDocument,
+  scriptSrc: string,
+): number
+export declare function createBundleBootstrapFeature(
+  scriptSrc: string,
+): MinistaFeature<{ readonly scriptSrc: string }>
 export declare function createBundleFeature(
   options: BundleFeatureOptions,
   builder: BundleBuilder,

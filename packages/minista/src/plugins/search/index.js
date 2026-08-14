@@ -7,7 +7,6 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { normalizePath } from "vite"
 
-import { getSearchData } from "./utils/data.js"
 import { NodeSearchDocumentAnalyzer } from "../../adapters/html/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
@@ -108,18 +107,43 @@ export function pluginSearch(uOpts = {}) {
       /** @type {ViteDevModuleEvaluator | undefined} */
       let evaluator
       server.middlewares.use(async (req, res, next) => {
-        if (req.url === "/@__minista_search_json") {
+        if (req.url !== "/@__minista_search_json") {
+          next()
+          return
+        }
+        try {
           evaluator ??= new ViteDevModuleEvaluator(server)
           /** @type {{default?: RenderedPage[]}} */
           const mod = await evaluator.importModule("virtual:ssg-pages")
           const ssgPages = mod.default ?? []
-          const searchData = await getSearchData(ssgPages, opts)
+          const result = await processViteDocuments(
+            ssgPages.map(({ url, html }) => ({
+              fileName: url,
+              url,
+              html,
+            })),
+            [createSearchFeature(opts, analyzer)],
+            ["analyze", "generate"],
+            createViteCompatibilityTraceHooks(
+              getViteBuildSession(server.config),
+              "search:dev",
+            ),
+          )
+          const searchArtifact = result.artifacts.find(
+            ({ id }) => id === createSearchDataArtifactId(opts.outName),
+          )
+          if (!searchArtifact) {
+            throw new Error("Search lifecycle did not generate search data.")
+          }
+          /** @type {import("../../features/search/index.js").SearchData} */
+          const searchData = JSON.parse(String(searchArtifact.content))
 
           res.setHeader("Content-Type", "application/json")
           res.end(JSON.stringify(searchData))
           return
+        } catch (error) {
+          next(error)
         }
-        next()
       })
     },
     transform(code, id) {
