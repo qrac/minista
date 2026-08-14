@@ -28,7 +28,7 @@
     "minista"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "dependencies": {
     "cac": "^7.0.0",

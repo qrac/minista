@@ -22,6 +22,8 @@ minista（ミニスタ）は、ReactのJSXとViteで100%静的なサイトを作
 
 ## Setup
 
+Node.js 20.19以上または22.12以上とVite 8.2.1以上が必要です。
+
 ### Automatic
 
 ```sh
