@@ -11,6 +11,10 @@ layout: docs
 
 contents list
 
+## v5での処理
+
+画像参照を`analyze`、変換planとbinary Artifactを`generate`、確定URLを`compose` phaseで反映します。devではpage scope付き参照Artifactをserver lifetimeのsessionに保持するため、変更画像を参照するページだけを更新できます。
+
 ## How To Use
 
 ```js title="./minista.config.js"

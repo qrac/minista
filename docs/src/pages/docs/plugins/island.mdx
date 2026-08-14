@@ -11,6 +11,10 @@ layout: docs
 
 contents list
 
+## v5での処理
+
+client directiveのsource transformはSWC adapter、参照収集は`analyze`、snippet／entry source planは`generate`、Vite outputの対応付けは`bundle`、markerとscript／CSS URLの反映は`compose` phaseが担当します。build sessionではArtifact Store、dev sessionではpage scope付きArtifactを使います。
+
 ## How To Use
 
 動作させるには以下パッケージのいずれが必要です。

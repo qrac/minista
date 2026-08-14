@@ -4,17 +4,19 @@
 
 ## 読む順番
 
-1. [`architecture.md`](architecture.md): 現行v4由来実装の事実と、v5で採用する目標構造
+1. [`architecture.md`](architecture.md): v5に実装されている現在の構造
 2. [`vite.md`](vite.md): Viteとの境界、APIの安定度、build / dev方針
-3. [`roadmap.md`](roadmap.md): 段階移行、完了条件、上流待ち
-4. [`decisions/`](decisions/): 重要な設計判断と却下案
+3. [`release-notes-v5.md`](release-notes-v5.md): v5再設計で完了した変更の要約
+4. [`roadmap.md`](roadmap.md): Stageの完了状態、experimental、上流待ち
+5. [`decisions/`](decisions/): 重要な設計判断と却下案
 
 ## 文書の状態
 
 | 文書 | 扱う内容 | Futureを含めるか |
 | --- | --- | --- |
-| `architecture.md` | Currentの事実。移行期間中のみTargetを明示分離して併記 | 移行完了まで限定的に含む |
-| `roadmap.md` | 未実装、experimental、上流待ち、移行条件 | 含む |
+| `architecture.md` | Currentの実装済み事実 | 含まない |
+| `release-notes-v5.md` | v5 Stage 0〜8で完了した変更 | 含まない |
+| `roadmap.md` | Stageの完了状態、experimental、上流待ち、再検討条件 | 含む |
 | `vite.md` | Vite境界とAPI採用レベル | 含む |
 | ADR | 採用理由、却下案、再検討条件 | 含む |
 

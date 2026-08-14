@@ -1,223 +1,128 @@
 # v5 roadmap
 
-最終確認日: 2026-08-13
+最終確認日: 2026-08-14
 
-この文書には未実装の計画、上流待ち、experimental機能、移行完了条件を記載します。各段階は小さくmerge可能にし、公開APIと出力互換性をfixtureで固定してから内部を差し替えます。
+v5のStage 0〜8は完了しました。この文書は各Stageの完了状態と、v5の完了後も独立して追跡するexperimental項目を記録します。実装済みの詳細は [`release-notes-v5.md`](release-notes-v5.md)、現在の構造は [`architecture.md`](architecture.md)、Vite境界とfallback条件は [`vite.md`](vite.md) を参照してください。
 
 ## Guiding constraints
 
-- 一度に全pluginを書き換えない
-- 現行buildとv5 lifecycleをfixtureごとに比較できる期間を持つ
-- public facadeとinternal feature contractを同じcommitで切り替えない
-- Vite experimental APIが変わってもCore / graph schemaを変更せずadapterだけで追従できる状態を保つ
-- manifest schemaはcode internal typeより小さく、秘密情報とarbitrary propsを含めない
+- 公開plugin APIと内部feature contractを分離する
+- Coreとgraph schemaをViteの変更から隔離する
+- feature間の受け渡しにはProject Graph、Artifact Store、明示phaseを使う
+- manifest schemaをinternal typeより小さく保ち、秘密情報とarbitrary propsを含めない
+- 通常の開発、CLI、testに事前buildを要求しない
 
 ## Stage 0: baselineを固定する
 
-進捗: representative fixtureにSSG、Head、Image、Entry、Island、Searchをまとめ、現行HTML / asset / executable temp handoffをintegration testで固定しました。全pluginのruntime exportとfeature metadataも検証しています。公開optionのcompile-time type testとfailure fixtureの拡充は継続します。
+進捗: 完了。
 
-最初に実装すべき段階です。
+代表fixtureでSSG、Head、Image、Entry、Island、SearchのHTML、asset、failureを固定しました。全公開pluginのruntime export、feature metadata、公開option type、build／dev compatibility経路をtestで検証します。
 
-- playgroundから代表fixtureを選び `test/fixtures` に固定する
-- current buildのHTML、asset、island、image、search outputをgolden dataとして記録する
-- `pluginXXX()` のexport / option type / defaultをtype testにする
-- 二回buildとdev requestのintegration harnessを追加する
-- current `.minista` producer / consumerをtest名とmatrixに明記する
-- build failure、dynamic route param不足、重複routeの現状挙動を記録する
-
-完了条件: 内部変更なしでもcompatibility suiteがcurrent outputを再現し、差分をレビューできる。
+完了条件: compatibility suiteが公開出力と主要failureを再現し、内部変更との差分をレビューできる。
 
 ## Stage 1: Core skeletonとJavaScript + JSDoc移行
 
-進捗: 完了。diagnostics、graph、lifecycle scheduler/runner、memory ArtifactStore/Emitter、manifest projection、query service、port interfaceをJavaScript + JSDocで実装しました。Core、SSG feature、React/Vite adapterのruntime `.ts` は残っておらず、事前buildなしでCLIとunit/integration testを実行できます。
+進捗: 完了。
 
-- `core/diagnostics`, `core/graph`, `core/lifecycle`, `core/artifacts` を追加
-- branded ID、ProjectPath、JsonValue、Diagnostic、phase eventを実装
-- graph invariantとphase schedulerのpure unit testを追加
-- `MemoryArtifactStore` とtest用 `MemoryEmitter` を先に作る
-- runtime sourceを直接実行し、JSDocと隣接 `.d.ts` を `tsc --noEmit` で検査する方針を確立
-- 初期TypeScript prototypeをJavaScript + JSDocへ移行
+diagnostics、graph、lifecycle scheduler／runner、Artifact Store、Emitter、manifest、query service、portをJavaScript + JSDocで実装しました。必要なpublic typeは隣接`.d.ts`に分離し、package entry、CLI、testは`src/`を直接参照します。
 
-この段階では現行pluginのoutputを変更しません。Coreをside-by-sideで構築します。
+完了条件: Vite、React、filesystemをimportしないCore testと型検査が事前buildなしで通り、runtime implementationに`.ts`が残らない。
 
-完了条件: Vite / React / filesystemをimportしないCore unit testが事前buildなしで通り、runtime implementationに `.ts` が残っていない。
+## Stage 2: discovery／route／page graph
 
-## Stage 2: discovery / route / page graph
+進捗: 完了。
 
-進捗: 完了。route discovery、param parser、PageNode resolution、`getStaticData()` error/missing param diagnostics、ModuleEvaluator portを実装しました。CLIの `check`, `inspect`, `explain` はVite ModuleRunner adapterを通じて実際のpage moduleを評価します。legacy SSG build/devもcompatibility adapterを通じてRoute/Page Graphから現行renderer用pageへ投影します。
+route discovery、param parser、PageNode resolution、`getStaticData()`診断、ModuleEvaluator portを実装しました。`check`、`inspect`、`explain`はVite ModuleRunner adapterを通じて実際のpage moduleを評価します。
 
-- SSGのglob code generationをroute discovery serviceへ移す
-- route pattern parserとparam validationをpure function化
-- `getStaticData` の実行を `ModuleEvaluator` portへ分離
-- RouteNodeとPageNodeを生成し、最小の`RenderedPage`へcompatibility projectionする
-- `minista check` と `check --json` をdiscovery / resolve範囲で追加
-- duplicate route、missing param、invalid static dataをstructured diagnostic化
-
-完了条件: current rendererを使ったまま、全pageがgraphから列挙される。現行URLとdraft挙動がfixtureで一致する。
+完了条件: 全pageがProject Graphから列挙され、URL、draft、重複route、missing paramの挙動をfixtureで確認できる。
 
 ## Stage 3: rendererとdocument composition
 
-進捗: 完了。async `StaticRenderer` port、compatibility用 `ReactRenderToStringRenderer`、React 19 `prerenderToNodeStream()` を使う `ReactStaticRenderer` を追加しました。React 19ではstatic rendererをdefaultとし、Preact aliasを検出した場合とReact 18で `react-dom/static` を読み込めない場合はcompatibility rendererへ戻します。Suspense、`useId`、画像preload、render error、Head、doctype、実際のPreact aliasとIsland buildのfixtureを実装済みです。parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを追加し、markerとgraph node IDをbindしてから1回serializeできるcomposition入口を実装しました。
+進捗: 完了。
 
-- `StaticRenderer` portを追加し、まずcurrent `renderToString` adapterを移設
-- Head / html / body attributeのcompatibility testを拡充
-- React 19の `prerenderToNodeStream` adapterを追加
-- Suspense、error、preload、doctype、`useId`、Preact aliasの差分をfixtureで検証
-- feature markerとgraph node IDを対応させる `HtmlDocument` abstractionを追加
+交換可能な`StaticRenderer` port、React 19の`prerenderToNodeStream()` adapter、Preact／React 18向けcompatibility rendererを実装しました。`HtmlDocument`、`HtmlDocumentStore`、node-html-parser adapterにより、featureはparser非依存のDocumentを共有します。
 
-default rendererの切替条件:
-
-1. React 19 fixtureのoutputが互換policy内である
-2. `Head` の一回render semanticsが維持される
-3. Preact alias使用時はcurrent fallbackが明示される
-4. stream errorが `MINISTA_RENDER_FAILED` に変換される
-
-React公式はNode.jsではWeb Stream版 `prerender()` より `prerenderToNodeStream()` を推奨しているため、Node adapterは後者を第一候補にします。API名を `ReactSsrRenderer` にはせず、SSGの実態に合わせ `ReactStaticRenderer` とします。
+完了条件: Headを含むpage treeを1回だけrenderし、Suspense、`useId`、preload、doctype、Preact alias、render errorを互換fixtureで検証できる。
 
 ## Stage 4: featureを明示phaseへ移す
 
-進捗: 全公開pluginにmachine-readable feature metadataを追加しました。Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、Bundleに加え、Islandも明示phaseへ分離しました。IslandはSWC source transformをadapterへ分離し、snippet参照を `analyze`、snippet／entry source planを `generate`、bundler portの結果を `bundle`、markerとCSS／script URLの反映を `compose` で扱います。EntryとIslandの通常のprogrammatic buildはrendered page／snippet Artifactをbuild-session `MemoryArtifactStore`から読み、domain処理へ委譲します。別processのVite CLI fallbackもbuildId scopeのschema付きJSON snapshotを使用し、SSG／snippetのexecutable temp module importを削除しました。production SSGもPage Graphを入力とするCore render phaseへ接続し、`RenderedPage` Artifactを生成します。Stage 4のdomain feature分離は完了し、fallback廃止とdevを含む単一の長寿命lifecycle化は未完了です。
+進捗: 完了。
 
-移行順はdependencyが少ないものから進めます。
+全公開pluginにmachine-readable feature metadataを追加しました。SSG、Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、Bundle、IslandをCore lifecycleへ接続し、MDXはcompiler adapterとしてVite境界に残しました。productionとdevは同じdomain featureを使用します。
 
-1. Comment / Svg: compose phase
-2. Beautify / Archive: finalize phase
-3. Search: analyze + generate
-4. Sprite / Image: analyze + generate + compose
-5. Entry / Bundle: analyze + bundle + compose
-6. Island: source transform + analyze + generate + bundle + compose
-
-各featureで行うこと:
-
-- current optionをそのまま受けるpublic facadeを維持
-- closure stateをphase context / graph nodeへ移す
-- `.minista/ssg/*.mjs` の読込を削除
-- HTMLの再parseを一つのdocument composition pipelineに統合
-- capabilityとartifact ownershipを宣言
-- current output比較testとfeature unit testを追加
-
-完了条件: featureがrendered page dataを実行可能temp moduleからimportしない。
+完了条件: featureがrendered page dataを実行可能temp moduleからimportせず、依存、capability、Artifact ownership、phaseを明示する。
 
 ## Stage 5: Vite app build adapter
 
-進捗: 完了。通常buildは単一 `createBuilder(config, false)` で `render → prepareClient → client` を実行する `ViteAppBuilderAdapter` を既定経路として使用します。render/client environmentを明示する `createViteAppConfig()`、解決済みclient configにlate named inputを合成する `ViteEnvironmentInputAdapter`、feature descriptorの依存に従って明示hookを実行する `prepareViteClientEnvironment()` を接続済みです。SSG、Entry、IslandはApp Build用のenvironment configとlate preparationへ移行し、Comment、Svg、Sprite、Beautify、Archive、Bundleのoutput hookはclient environmentだけに制限し、ImageとSearchのsource transformもrender/clientへ分離しました。legacy render envでconfigを再評価するloaderはenvironment対応optionをrenderへ投影し、client限定のPreact aliasはrender bundleのReact関連importをexternalizeして分離します。plugin名と順序がrender/clientで異なるconfigはstable diagnosticを出して同一processの `LegacyViteBuilderAdapter` へfallbackします。未対応CLI flagのみ二processのVite CLI fallbackを使用します。build sessionはbuildId、ArtifactStore、diagnostic collectorを持ち、CLIは成功、失敗、fallbackの全経路でArtifactStoreをclearします。App Builderはclient outputをCore `OutputManifest` schema v1へ変換し、raw Vite outputやBuilderを公開resultへ含めません。programmatic App／legacy client buildはoutDir transactionを使い、失敗時にpartial outputを以前の正常な出力へrollbackします。全compatibility plugin、Preact、plugin mismatchのCLI fixtureで出力とfallbackを確認済みです。
+進捗: 完了。
 
-- CLIを `spawn("vite")` 二回からprogrammatic Minista application runnerへ変更
-- Vite configに `render` / `client` environmentを構成
-- 単一の `createBuilder()` で一つのlifecycleを開始し、environmentを明示的に順次build
-- render environmentを先にbuildし、native importでbuild-time moduleを評価
-- graph / generated entry planを明示ArtifactStoreに保存
-- client environmentは安定したvirtual entryをinputとし、graph planからisland / asset entryを解決
-- output manifestをCoreのcompose / emitへ返す
-- failure時のbuildId cleanupとpartial output policyを追加。programmatic pathは実装済み
-- `--oneBuild` はv5で削除し、指定時に`MINISTA_CLI_OPTION_REMOVED` errorを返す
+通常buildは`ViteAppBuilderAdapter`が一つの`createBuilder()`からrender、client、compose、emitを実行します。environment間のplugin構成差はprogrammatic legacy adapter、programmatic configへ安全に変換できないCLI flagだけは外部Vite CLIへfallbackします。fallbackの発動条件と削除条件は [`vite.md`](vite.md#retained-compatibility-fallbacks) に固定しています。
 
-Environment APIはRC、`createBuilder` / `buildApp` hookはVite 8.2.1の型上experimentalです。そのためadapterのcompatibility testとVite minor pinning policyを設け、旧二回buildを一つのminor releaseのfallbackとして残してから削除します。
+`--oneBuild`は削除し、指定時は`MINISTA_CLI_OPTION_REMOVED`を返します。programmatic buildはoutDir transactionを使用し、失敗時に以前の正常な出力へrollbackします。
 
-完了条件: `minista build` がVite CLIを二回spawnせず、render → client → compose → emitを一つのresult / diagnostic collectionで返す。
+完了条件: 通常の`minista build`がVite CLIを二回spawnせず、一つのresult、diagnostic collection、build sessionで完結する。
 
 ## Stage 6: ModuleRunner dev adapter
 
-進捗: 完了。`ViteDevServerAdapter` で通常のdev CLIをprogrammatic custom serverへ切り替え、create／listen／起動後設定／closeのerrorをoperation付きstable diagnosticへ変換しました。`ViteDevModuleEvaluator` がModuleRunner評価をCore portへ適合させ、import errorをenvironment／module ID／安全なsource location付きdiagnosticへ変換します。`DevPageCache` はsnapshotと同時load、`LegacySsgRouteCache` はrouteごとのdiscovery／`getStaticData()`／PageNode解決、`DevRenderCache` はPageNodeごとのHTMLを保持します。変更moduleはenvironment graphのimporter traversalから影響RouteNodeへ投影し、未影響routeのresolveとrenderを再実行しません。Project Graph全体はcache entryから再構成してglobal invariantを毎回検証します。`ViteDevUpdateAdapter` はenvironment別module graphとhot channelを所有し、plugin／CLIからlegacy `ssrLoadModule()`、mixed graph、`server.ws` 直接利用を除去しました。page固有変更とSprite／Image Artifact変更は該当URLだけをreloadし、layoutなど全体変更だけ標準full reloadへfallbackします。2ページfixtureで未影響pageの`getStaticData()`とrenderが再実行されず、page／Sprite／Image変更で影響URLだけを通知することを確認済みです。
+進捗: 完了。
 
-- dev CLIをprogrammatic `createServer({ appType: "custom" })` に移す。実装済み
-- `render` environmentの `RunnableDevEnvironment.runner.import()` でpage moduleを評価。移行中の `ssr` environmentに対して実装済み
-- requestごとの全pages再評価をsnapshot cacheで除去し、route／module dependency単位のresolve cacheを実装済み
-- environmentごとのmodule graphと `hotUpdate` を使用
-- source change → affected RouteNode／PageNodeを特定済み。Sprite／Image Artifact edgeも実装済み
-- page固有document変更とSprite／Image Artifact変更は該当URLだけreloadし、layoutなど全体変更だけ標準full reloadを使用
-- `server.ssrLoadModule`、mixed module graph、`server.ws` のplugin／CLI直接利用を削除済み
+`ViteDevServerAdapter`がprogrammatic custom serverを所有し、`ViteDevModuleEvaluator`がModuleRunnerをCore portへ適合させます。route／render cache、module dependencyからRouteNodeへの投影、URL単位reload、Sprite／Image Artifactのtargeted reloadを実装しました。
 
-完了条件: build用render bundleを生成せずにdev renderingが動作し、page/layout/static dataの変更が該当graph nodeをinvalidationする。
+HTTP、module評価、watch／HMR、Vite URL解決はadapterに残し、HTML、Artifact、render、検索dataはCore featureが所有します。責務表は [`vite.md`](vite.md#dev-adapter-ownership) を参照してください。
 
-## Stage 7: manifest / inspect / explain
+完了条件: build用render bundleなしでdev renderingが動作し、page、layout、static data、参照assetの変更が対応するgraph nodeをinvalidationする。
 
-進捗: 完了。Project Manifest schema v1、安全なallowlist projection、安定key orderのserializer、同一directory内の一時ファイルとrenameを使うatomic writerを実装し、通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` を出力します。外部fallbackはbuildId付きprivate handoffを両build成功後だけ公開metadataへ昇格し、失敗時に候補を残しません。絶対pathとruntime-only propsを含めないprojection test、serializerとwriterのtest、実Vite fixtureのbuild出力testを追加済みです。Project Manifestは全client outputのsafe catalogとPage→HTML output edgeを持ち、`inspect --manifest` のcountsからoutput数を取得できます。明示的な `api.minista.outputClaims()` protocol、Vite collector、Core graph materializerを追加し、SSG、Entry、Island、Image、Sprite、Search、Archive、BundleのArtifact owner、generated Asset、Page consumer、output locationを全build経路でGraphへ統合しました。各featureがgenerate／bundle／finalize時に確定したfile nameと解析済みPage参照をclaimに使い、存在しないoutput／feature ownerへのclaimはstable diagnosticにします。外部fallbackも`closeBundle`でfilesystem上の最終出力と再照合するため、Archive出力を含めて公開manifestへ反映します。`inspect` / `inspect --json` / `explain` とstdout／stderr分離はsource query経路で実装済みです。`inspect --manifest` はVite serverとuser moduleを起動せず公開manifestだけを読み、missing、invalid、unsupported versionをstructured diagnosticとして返します。schema migration registryとmigration failure diagnosticも実装済みです。v1が最初の公開schemaのためbuilt-in migrationはまだありません。`.minista/diagnostics.json` schema v1とatomic writerも実装し、`check` の成功／失敗と全build compatibility経路の成功時に保存します。将来のtool adapter向けに`minista/internal/query` subpathを追加し、manifestだけを対象とする`inspect`／`trace-page` requestをCLIと共有します。
+## Stage 7: manifest／inspect／explain
 
-- `.minista/manifest.json` schema v1とatomic writerを通常のApp Buildへ実装済み
-- absolute path / arbitrary props / secret-like configのredaction testを追加済み
-- `inspect`, `inspect --json`, `explain` をCore query service上に実装済み
-- JSON stdoutとlog stderrを分離済み
-- manifestを直接読む `inspect --manifest` とunsupported version diagnosticを実装済み
-- `.minista/diagnostics.json` schema v1を `check` と通常のApp Buildへ実装済み
-- programmatic legacy fallbackへProject Manifest／diagnostics出力を接続済み
-- manifest migration registryとfailure diagnosticを実装済み
-- 別processの外部Vite CLI fallbackへprivate handoff経由のmetadata出力を接続済み
-- 全client output catalogとPage→HTML output edgeをProject Manifestへ反映済み
-- output claim protocolとSSG／Entry／Island／Image／Sprite／Search／Archive／BundleのAsset／Artifact owner・consumer edgeを共通Project Graphへ統合済み
-- 将来の `@minista/mcp` が使用できるread-only query APIを`minista/internal/query` boundaryとして実装済み
+進捗: 完了。
 
-完了条件: source全体を解析しなくてもroute → page → generated asset → outputの関係をJSONから追える。
+Project Manifest schema v1、diagnostics snapshot、atomic writer、migration registry、output claim protocolを実装しました。通常buildと両fallbackが`.minista/manifest.json`と`.minista/diagnostics.json`を生成します。`inspect --manifest`とinternal query boundaryはVite serverやuser moduleを起動せず、安全なread modelだけを扱います。
+
+完了条件: source全体を解析しなくてもroute、page、generated asset、outputの関係をJSONから追える。
 
 ## Stage 8: compatibility facade cleanup
 
-進捗: 進行中。runtime implementationのJavaScript + JSDoc移行と隣接`.d.ts`は完了済みです。`--oneBuild`と専用分岐を削除し、旧option指定時はstable diagnosticで拒否します。外部Vite CLI fallbackのrendered pages／Island snippetsをbuildId scopeのschema付きJSONへ移行し、Entry／Islandによるexecutable data module importも削除しました。`ViteBuildDataReader`へArtifactStore／外部JSONの選択とdomain parserを集約し、全compatibility pluginから旧`SsgPage`型を除去してdomainの`RenderedPage`へ統一しました。Comment／Svg／Beautify／Archiveは`ViteCompatibilityLifecycle` adapterを介してCore runnerのcompose／finalize phaseへ接続済みです。Searchもbuild済みHTML群をPage GraphとDocument Storeへ一括投影し、同adapterからanalyze／generate／composeを実行してSearchData Artifactと変更済みHTMLをVite bundleへ戻します。Spriteはgenerate後・compose前の出力解決境界を同adapterへ追加し、SVG ArtifactのVite asset登録と確定URLをCore composeへ返します。Imageも画像binaryとsource／file nameを分離した出力計画ArtifactをCore generateで作り、Vite asset登録後の確定URLをCore composeへ返すbuild lifecycleへ接続済みです。Entryはrendered pageのroot asset収集をCore analyzeへ、Vite bundle結果と確定script／CSS URLの反映をCore bundle／composeへ接続済みです。BundleもViteで確定したplanをCore bundleへ返し、ページ別output参照ArtifactからclaimとCore composeを生成します。Islandはsnippet handoff ArtifactをCore analyze／generateへ注入してsource planを作り、Vite bundle結果と確定URLをCore bundle／composeへ返す経路へ接続済みです。production SSGはPage Graph snapshotをCore render phaseへ渡し、`RenderedPage` Artifactとstructured render diagnosticを生成します。Archiveのbinary出力はdirectory逸脱を拒否する`NodeOutputWriter`だけがfilesystemへ反映し、Archiver errorは `MINISTA_ARCHIVE_FAILED` diagnosticへ変換します。Imageのmissing source、remote download、Sharp metadata／transform、cache errorと、Spriteのsource探索、filesystem読込、SVG／symbol parse、SVGO errorもoperation別のstable diagnosticへ変換します。共有HTML document adapterはparse、selector query、mutation、serializeのerrorをpage node ID付きのstable diagnosticへ変換し、Svg source resolverもmissing source以外のread／SVGO／parse errorを正規化します。Core runnerはadapter由来のstable diagnosticを汎用phase errorへ潰さず保持します。programmatic App／legacy buildの任意のVite／Rolldown errorは `MINISTA_VITE_BUILD_FAILED`、外部CLI processの起動／終了errorは `MINISTA_VITE_CLI_FAILED` へ正規化します。全build経路の失敗diagnosticはbuild ID付きworkspace snapshotへ保存します。production outputを持つfeature facadeのphase接続は完了しました。公開CLI／Config／Migration／package READMEをv5 lifecycleとmachine-readable commandへ更新し、`architecture.md`から旧Targetと未実装構造を除去しました。
+進捗: 完了。
 
-output claim collectorはenvironment identityをproviderへ渡し、Archive／Sprite／Bundle／Image／Entry／Island／Searchのclaim stateをadapter storeへ分離しました。
+- runtime implementationをJavaScript + JSDocへ統一し、public typeを隣接`.d.ts`へ分離
+- production／devの全domain featureをCore lifecycleの明示phaseへ接続
+- build sessionとdev server sessionでDocument、Graph、Artifact、Emitter、diagnostics、traceを共有
+- page scope付きArtifactと入力Document限定phaseにより、devの集約出力をincrementalに再生成
+- executable temp module handoffと旧`SsgPage`型を削除し、`RenderedPage`とschema付きJSONへ統一
+- Vite／filesystem／parser／画像／archive errorをstable code付きstructured diagnosticへ正規化
+- programmatic／外部CLI fallbackを2つの明示的な互換経路に限定し、発動条件と削除条件を文書化
+- 公開CLI、Config、Migration、package README、plugin個別docsをv5 lifecycleとcommandへ更新
+- `architecture.md`の旧TargetをCurrentへ統合し、完了済みの移行記録をrelease notesへ移動
 
-Archiveはwrite hookのenvironment configからrootとbuilderを生成するように変更し、Comment／Beautify／Svgの適用判定とEntryのlegacy mode判定から不要なclosure flagを削除しました。environmentを公開しない `transformIndexHtml()` は登録server identityをadapterで解決します。
-
-Sprite／Imageはdev generator、watch対象、Page indexをserver identity単位へ分離し、production generator／root／baseをbundle environment configから生成するように変更しました。カスタムSSG経路のoptionalまたはwrapper HTML context serverは `ViteDevServerRegistry` が登録済みserverへ解決します。build中のdev用asset生成は除去し、production処理をgenerate lifecycleへ一本化しました。
-
-Searchはmode／baseをsource transformのenvironment configから判定し、Bundleはroot／base／glob entryをbundle environment configから再構成してimported image集合をenvironment identity単位へ分離しました。Svg resolverもdev serverまたはproduction bundle environment identity単位へ分離し、build中のHTML変換をbundle hookへ一本化しました。
-
-EntryはApp Buildのentry計画をclient environment identity単位へ分離し、root／base／build sessionをhook実行時のconfigから取得するように変更しました。Islandはdevのsnippet集合／module evaluatorをserver identity単位、productionのsnippet集合／entry／source planをenvironment identity単位へ分離し、mode／root／base／build sessionをenvironment configから判定します。
-
-SSGはdevのpage／render／route cache、renderer、rendered pagesをserver identity単位へ分離しました。productionのrendered pages、Project Graph、外部fallback manifest候補はclient environment identity単位に保持し、build hookのmode／root／build sessionはenvironment configから判定します。named environmentの静的input／outDirは通常の `config()` hookから既存environment optionへ合成し、`configEnvironment()` とconfig-time closure stateを削除しました。
-
-長寿命lifecycleへの移行入口として、lifecycleのphase eventをscope付きでbuild sessionへ集約するtrace protocolを追加しました。SSG render、Search／Sprite／Image／Bundle、Comment／Svg／Beautify／Archiveに加え、EntryとIslandはprepareのanalyze／generateからclient bundleのbundle／composeまで同じsession traceへ記録します。production featureのtrace接続は完了しました。
-
-compatibility lifecycleのDocument Storeとdomain Artifact Storeもbuild session単位に共有しました。同一output pageはfile identityから既存Documentを再利用し、入力HTMLが外部hookで変わった場合だけ再parseします。Artifactはfeature実行前に同じownerの以前の生成物だけを削除するため、再実行時のcontent conflictを避けながらSSG／Islandなど他featureのhandoffを保持します。Project GraphとEmitterはまだhook単位です。
-
-Project GraphとEmitterもbuild session workspaceへ移し、全production compatibility LifecycleRunnerが同じmutable instanceを直接操作するようにしました。同一node登録は冪等とし、同一Assetのconsumer、Island／Imageのpage／generated asset関係は登録時にmergeします。共有Emitterを使うoutput APIは開始時snapshotとの差分と今回のinputだけを返すため、hookのローカル返却値には他hookのoutputを混入させません。build session disposalはDocument／Graph／Emitter／trace参照とArtifactを明示的に解放します。
-
-dev server adapterもserver lifetimeのlifecycle sessionを所有し、create／listen／configure失敗と通常closeの全経路で破棄するようにしました。Comment／Svgのdev HTML composeは登録serverから同じsessionを取得し、page Document、Graph、diagnostics、scope付きtraceを共有します。Artifact RecordとGraph nodeに明示的なpage scopeを追加し、compatibility lifecycleは入力ページに属するArtifactと集約生成物だけを置換できます。Sprite、Image、Islandのdev domain phaseはこのincremental更新protocolへ接続済みです。phaseへ渡すDocument Storeを今回の入力ページへ限定するため、変換済みの過去ページを再analyzeせず、保持した参照Artifactから全ページのsprite、image plan、Island source planを再生成します。Bundleのdev bootstrapもURL解決とHTML composeを分離し、共有Document上のCore compose phaseへ接続しました。SSGのdev renderもproductionと同じCore render featureへ接続し、server sessionのArtifact／diagnostics／traceと既存のページ単位render cacheを併用します。Search JSON middlewareはRenderedPage群を同じDocument／Graphへ投影してSearch featureのanalyze／generateを実行し、手動parse helperを削除しました。
-
-残るcleanupは次です。
-
-- dev adapterに残るHTTP配信／watch／HMR／module評価／URL解決のcontractを整理する
-- programmatic／外部CLI fallbackを縮退する
-- plugin個別docsの内部挙動説明をv5 terminologyへ順次更新する
-
-- runtime implementationを `.js` / `.jsx` + JSDocに統一
-- public APIの隣接 `.d.ts` とinternal JSDoc typeを整理
-- old `src/plugins` compatibility implementationを段階的に薄くする
-- public docsをv5 lifecycleとcommandに更新
-- `architecture.md` のTargetをCurrentに統合
-- roadmapから完了済みの詳細をrelease note / ADRへ移す
+完了条件: compatibility facadeが公開APIとVite hookへの適合だけを担当し、domain処理、状態共有、feature順序、diagnosticsがCore contractで説明できる。
 
 ## Experimental tracks
 
+以下はStage 8の未完了項目ではなく、上流APIの安定化後に個別判断する将来候補です。
+
 ### Bundled Dev
 
-stable dev pathの完了後に別matrixで試します。
-
-- user opt-inの `experimental.bundledDev: true` をclient environmentへだけ渡す
-- Coreはbundled / unbundledを知らず、Vite adapterのcapabilityとして扱う
-- render environmentは初期状態で `isBundled: false`
-- third-party plugin、virtual entry、Island HMR、custom HTML transformを重点検証
+- user opt-inの`experimental.bundledDev: true`をclient environmentへだけ渡す
+- Coreはbundled／unbundledを知らず、Vite adapterのcapabilityとして扱う
+- third-party plugin、virtual entry、Island HMR、custom HTML transformを重点検証する
 
 default化条件: Viteがstableと宣言し、主要fixtureとthird-party plugin matrixが通常devと同じcontractを満たすこと。
 
-### shared plugins / shared config build
+### shared plugins／shared config build
 
-`builder.sharedPlugins` / `sharedConfigBuild` は初期実装では使用しません。phase間共有はProject Graph / ArtifactStoreの明示protocolで行います。Viteがstable化し、process内cacheが実測で必要になった場合だけadapter optimizationとして再検討します。
+`builder.sharedPlugins`／`sharedConfigBuild`は使用しません。phase間共有はProject GraphとArtifact Storeの明示protocolで行います。Viteがstable化し、process内cacheが実測で必要になった場合だけadapter optimizationとして再検討します。
 
 ### MCP
 
-v5初期要件ではありません。CLI / JSONと同じread-only query serviceが安定し、manifest schema v1を少なくとも一つのminor release維持した後に検討します。
+v5初期要件には含めません。CLI／JSONと同じread-only query serviceが安定し、manifest schema v1を少なくとも一つのminor release維持した後に検討します。
 
 ## Risk register
 
 | Risk | Mitigation |
 | --- | --- |
-| Vite RC / experimental APIの破壊的変更 | adapter隔離、minor matrix、fallback lifecycle、CoreにVite typeを入れない |
-| HeadとReact static APIの一回render semantics | renderer contract、専用fixture、default切替gate |
-| plugin outputの微妙な順序差 | golden integration outputとphase dependencyの明文化 |
-| manifestにuser data / absolute pathが漏れる | allowlist serializerとredaction test |
-| graphが巨大化する | read model分割、ID reference、inspect projection、content hash cacheは後段 |
-| dual implementation期間の保守負担 | feature単位の短い移行、compatibility projection、削除条件を各stageに設定 |
-
-## First implementation step
-
-最初のcode changeはStage 0のcompatibility harnessです。特に `pluginSsg + pluginImage + pluginIsland + pluginEntry + pluginSearch` を含むfixtureで、現行二回buildのoutputと `.minista` handoffを固定します。これがないままCore skeletonから始めると、「内部改善」と「利用者から見た破壊」を区別できません。
+| Vite RC／experimental APIの破壊的変更 | adapter隔離、minor matrix、明示条件付きfallback、CoreにVite typeを入れない |
+| HeadとReact static APIの一回render semantics | renderer contractと専用fixture |
+| plugin outputの順序差 | golden integration outputとphase dependencyの明文化 |
+| manifestにuser data／絶対pathが漏れる | allowlist serializerとredaction test |
+| graphが巨大化する | read model分割、ID reference、inspect projection |
+| compatibility fallbackの長期残存 | 2経路以外の追加を禁止し、`vite.md`の削除条件で再評価 |

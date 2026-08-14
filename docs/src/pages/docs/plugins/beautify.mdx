@@ -11,6 +11,10 @@ layout: docs
 
 contents list
 
+## v5での処理
+
+Viteの出力を共有Emitterへ投影し、`finalize` phaseでHTML・CSS・JavaScriptを整形します。HTMLは同じbuild sessionのDocument Storeを利用し、他pluginの変更後に確定します。
+
 ## How To Use
 
 ```js title="./minista.config.js"

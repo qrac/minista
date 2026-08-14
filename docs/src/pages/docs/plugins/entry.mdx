@@ -11,6 +11,10 @@ layout: docs
 
 contents list
 
+## v5での処理
+
+render済みページからルートassetを`analyze` phaseで収集し、Viteが確定したoutputを`bundle`／`compose` phaseでHTMLへ反映します。renderとclient間のdataは実行可能な一時moduleではなく、build sessionのArtifact Storeで受け渡します。
+
 ## How To Use
 
 ```js title="./minista.config.js"

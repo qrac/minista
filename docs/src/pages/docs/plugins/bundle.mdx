@@ -11,6 +11,10 @@ JSX内でimportしたCSS・画像を出力するプラグイン。
 
 contents list
 
+## v5での処理
+
+buildではページ参照を`analyze`、Viteの確定outputを`bundle`、CSS linkと画像URLを`compose` phaseで反映します。devではVite adapterが解決したbootstrap URLだけを受け取り、共有Documentの`compose` phaseでmodule scriptを追加します。
+
 ## How To Use
 
 ```js title="./minista.config.js"

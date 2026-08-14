@@ -11,6 +11,10 @@ layout: docs
 
 contents list
 
+## v5での処理
+
+圧縮対象と出力はArtifact ownershipを持つ`finalize` phaseで確定します。filesystemへの書込はCoreではなくNode adapterが担当し、失敗時は`MINISTA_ARCHIVE_FAILED` diagnosticを返します。
+
 ## How To Use
 
 ```js title="./minista.config.js"

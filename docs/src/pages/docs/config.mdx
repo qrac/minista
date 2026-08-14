@@ -57,7 +57,9 @@ export default defineConfig(({ command, isSsrBuild }) => {
 })
 ```
 
-render／clientでpluginの名前や順序が変わるconfigはApp Buildで共有できません。この場合ministaはstructured diagnosticを記録し、同一processのcompatibility builderへfallbackします。CoreはViteのenvironment型やhookには依存しません。
+render／clientでpluginの名前や順序が変わるconfigはApp Buildで共有できません。この場合ministaは`MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH`を記録し、同一processのcompatibility builderへfallbackします。新しいconfigでは両environmentのplugin構成を揃え、plugin内部でenvironmentごとの処理を分けることを推奨します。
+
+通常のbuild／devはprogrammatic Vite adapterを使用します。programmatic configへ安全に変換できないVite CLI flagを指定した場合だけ外部CLIへfallbackします。Coreはどちらの経路でもViteのenvironment型やhookに依存しません。
 
 ### Bundle error
 

@@ -11,6 +11,10 @@ ReactのJSX・TSXファイルを静的なHTMLに変換するプラグイン。
 
 contents list
 
+## v5での処理
+
+page moduleの探索と`getStaticData()`評価からRoute／Page Graphを作り、React static rendererをportとして`render` phaseを実行します。通常buildはVite App Buildのrender／client environmentを1つのbuild sessionで処理し、devはModuleRunnerとPage単位のrender cacheを使います。
+
 ## How To Use
 
 ```js title="./minista.config.js"

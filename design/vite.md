@@ -1,6 +1,6 @@
 # Vite boundary
 
-最終確認日: 2026-08-13
+最終確認日: 2026-08-14
 
 確認対象: repository lockfileのVite 8.2.1、およびVite / React公式資料
 
@@ -48,9 +48,9 @@ Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvir
 - [React DOM static APIs](https://react.dev/reference/react-dom/static)
 - [React `prerender`](https://react.dev/reference/react-dom/static/prerender)
 
-## Target build
+## Build adapter
 
-### 移行中のcurrent adapter
+### Current adapter
 
 通常の `minista build` はVite CLI processを二回spawnせず、同じNode.js processで `ViteAppBuilderAdapter` が一つのBuilderからrender/clientを順にbuildします。config plugin構成がenvironment間で異なる場合は `LegacyViteBuilderAdapter`、任意のVite CLI flagをprogrammatic configへ変換できない場合は従来のCLIへ段階的にfallbackします。
 
@@ -115,11 +115,24 @@ Viteはenvironment record順にbuildできますが、Ministaはrender結果か�
 
 `isSsrBuild` でplugin配列そのものを変えるconfigは、Viteがroot pluginを全environmentへ先に解決する制約があるため、plugin名と順序の差分をbuild開始前に検出します。`MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH` warningを出し、同一processのlegacy adapterへfallbackします。新documentationはenvironment-aware helperを案内し、`isSsrBuild` 分岐を推奨しません。
 
-## Target dev
+## Dev adapter
 
 通常のdev CLIは `ViteDevServerAdapter` を通じたprogrammatic `createServer({ appType: "custom" })` へ切り替え済みです。adapterはserver lifetimeのlifecycle session、listen、URL表示、CLI shortcut、closeを所有し、一般的なdev flagをInlineConfigへ変換します。sessionはcreate／listen／configure失敗と通常closeの全経路で破棄します。create、listen、起動後設定、closeの任意errorはoperationを持つ `MINISTA_VITE_DEV_SERVER_FAILED` へ正規化し、CLIは同じstructured diagnostic formatterで表示します。`ViteDevModuleEvaluator` は移行中の `ssr` environmentを `isRunnableDevEnvironment()` でguardし、`runner.import()`、module invalidation、stacktrace補正をCoreの `ModuleEvaluator` portへ適合させます。ModuleRunner import失敗はstacktrace補正後に `MINISTA_VITE_DEV_MODULE_FAILED` へ正規化し、environment、module ID、project root内だけのsource locationを返します。build adapterと共有するlocation変換はvirtual module、query、project外pathを公開Diagnosticから除外します。SSG、Island、Search、project commandはこの境界を使用し、plugin／CLIからのlegacy `ssrLoadModule()` 直接利用は除去済みです。Comment／Svg／Sprite／Image／Island／Bundleはdev sessionのDocument／Graph／Artifact／traceを共有します。Sprite、Image、Islandのpage scope付き参照Artifactは別ページのrequest間でも保持し、入力ページ限定のphaseから集約出力を再生成します。Bundle bootstrapはadapterで解決したalias URLをCore composeへ渡します。SSG devも同じsessionのArtifact／diagnostics／traceを使うCore render phaseへ接続済みです。Search JSON endpointもRenderedPage群を同じsessionへ投影してCore analyze／generateを実行し、失敗をVite middleware error chainへ渡します。compatibility fixtureではSSG HTML、Vite client injection、Search JSONと各dev lifecycle scopeを実際のVite 8.2.1によるHTTP応答で確認しています。
 
 ModuleRunner評価、dev page snapshot cache、route単位のdiscovery／resolve cache、RouteNode／PageNode単位のrender invalidationとtargeted page reloadまで実装済みです。同時requestは同じloadへ合流し、page/layout依存のhot updateで世代を更新するため、古い非同期loadが完了しても次世代のcacheへ保存しません。`ViteDevUpdateAdapter` はenvironment別module graphの照会・invalidation、変更moduleのimporter chainからroute sourceへの投影、`environment.hot.send()` を所有し、SSG／Sprite pluginからmixed graphと直接WebSocket操作を除去しました。`LegacySsgRouteCache` は影響routeだけ `getStaticData()` とPageNode解決を再実行し、cache entryからProject Graph全体を再構成してglobal invariantを維持します。page固有の変更では影響RouteNode配下のrender cacheだけを破棄し、dev HTMLのHMR listenerへ該当URLだけを送ります。layoutまたは影響routeを限定できない変更では全page cacheと標準full reloadへfallbackします。SSGのpage／render／route cacheとrenderer、Sprite／Imageのgenerator、watch対象、Page indexはVite server identity単位に保持します。`ViteDevServerRegistry` はHTML contextのserverが未指定またはwrapper identityの場合とenvironment hook contextから、登録済みの所有serverを解決します。Spriteはsource directory、Imageはlocal sourceからpage URLへのArtifact edgeを保持し、source変更時に参照ページだけをreloadします。
+
+### Dev adapter ownership
+
+| 責務 | 所有者 | contract |
+| --- | --- | --- |
+| HTTP request／response、middleware error伝播 | Vite adapter | domain errorをViteのerror chainへ渡し、CoreはHTTP objectを受け取らない |
+| module評価 | `ViteDevModuleEvaluator` | Coreの`ModuleEvaluator` portへ適合し、失敗をstructured diagnosticへ変換 |
+| watch／HMR | `ViteDevUpdateAdapter` | environment graphから影響Pageを解決し、URL単位reloadまたはfull reloadを送信 |
+| Vite alias／base／asset URL | plugin adapter | 確定URLだけをfeatureのoutput resolverへ渡す |
+| HTML／Artifactのdomain処理 | Core feature | server lifetimeのDocument／Graph／Artifact／traceを共有してphaseを実行 |
+| server単位cache／generator | adapter state | `ViteEnvironmentState`／`ViteDevServerRegistry`でidentityを明示し、module global stateを使わない |
+
+この分離により、HTTP配信、watch、HMR、module評価、URL解決はVite adapterに残します。HTML文字列の解析・置換、参照収集、生成plan、検索data、renderはCore featureへ接続済みです。
 
 ```text
 HTTP request
@@ -198,3 +211,14 @@ Headはrender中のside effectで収集されるため、page treeを二重rende
 - experimental APIのshape changeはadapterのminor releaseで吸収
 - fallbackは「旧二回CLI build」全体ではなく、可能な限り `LegacyViteBuilderAdapter` として隔離
 - upstream APIがstableになった時点でstatusと再検討日をこの文書に更新する
+
+### Retained compatibility fallbacks
+
+Stage 8完了時点でfallbackは次の2経路だけです。
+
+| 経路 | 発動条件 | 削除条件 |
+| --- | --- | --- |
+| `LegacyViteBuilderAdapter` | legacy render／client config評価でplugin名または順序が異なる | environment-aware configへの移行期間を1 minor設け、警告利用状況を確認後に削除 |
+| 外部Vite CLI | programmatic configへ安全に変換できないCLI flagを指定 | 対応flagを明示的に変換するか、unsupported optionのstable diagnosticへ移行したmajorで削除 |
+
+通常のbuild／dev、公開plugin、Core lifecycleはfallback実装へ依存しません。`createBuilder()`とApp Build関連APIがexperimentalである間は安全網として保持し、fallbackの追加は禁止します。再検討日はVite Environment APIまたは`createBuilder()`のstable化を確認した最初のMinista minor releaseです。

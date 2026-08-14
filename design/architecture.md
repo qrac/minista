@@ -1,6 +1,6 @@
 # Architecture
 
-最終確認日: 2026-08-13
+最終確認日: 2026-08-14
 
 > この文書は現在の`v5` branchに実装されている事実だけを記載します。未実装、上流待ち、experimental、移行条件は`roadmap.md`を参照してください。
 
@@ -72,7 +72,7 @@ interface RenderedPage {
 | CLI → SSG | App Build。非対応config／flagではprogrammaticまたは外部CLI fallback | fallbackではrender/client lifecycleが分かれる |
 | SSG → fallback時のEntry／Island | buildId scopeのschema付きJSON snapshot | lifecycleとdiagnosticsはrender/client processに分かれる |
 | Page → feature | source transformが付けるHTML markerとDocument Store | markerはcompatibility facade内の非公開protocolとして残る |
-| Vite output → feature | facadeごとの`ViteCompatibilityLifecycle`へoutputを投影 | Vite hookごとにHTMLを再parseし、build全体で単一のDocument Storeではない |
+| Vite output → feature | build sessionのDocument Store／Graph／Artifact／Emitterを共有 | Vite outputからCore inputへの投影はhook境界に残る |
 | dev feature | server lifetimeのsession、入力ページ限定Document phase、page scope付きArtifact更新 | HTTP配信、watch、HMR、module評価、URL解決はVite adapterに残る |
 | MDX | `@mdx-js/rollup`を包むcompiler adapter | document／output phaseを持たずVite transformとして残る |
 

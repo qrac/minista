@@ -11,6 +11,10 @@ HTMLにコメントを出力するプラグイン。
 
 contents list
 
+## v5での処理
+
+JSXが出力したmarkerを共有Documentの`compose` phaseでHTMLコメントへ変換します。buildとdevは同じfeatureを使用し、devではserver lifetimeのDocument／Graph／traceを共有します。
+
 ## How To Use
 
 ```js title="./minista.config.js"
