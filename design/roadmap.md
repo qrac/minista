@@ -126,3 +126,4 @@ v5初期要件には含めません。CLI／JSONと同じread-only query service
 | manifestにuser data／絶対pathが漏れる | allowlist serializerとredaction test |
 | graphが巨大化する | read model分割、ID reference、inspect projection |
 | compatibility fallbackの長期残存 | 2経路以外の追加を禁止し、`vite.md`の削除条件で再評価 |
+| Image buildの性能低下 | [v4.0.8比較](benchmarks/v4-v5-2026-08-14.md)をbaselineにphase別計測し、画像変換とcompatibility lifecycleのコストを分離 |
