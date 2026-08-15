@@ -26,6 +26,7 @@
 - module graphから影響RouteNodeを解決し、URL単位reloadを実装
 - server lifetimeのDocument、Graph、Artifact、diagnostics、traceをfeature間で共有
 - page scope付きArtifactによりSprite、Image、Islandの集約出力をincrementalに再生成
+- Imageのremote source cache、HTTP validator再検証、source準備／Sharp変換のbounded concurrency
 
 ## Feature migration
 

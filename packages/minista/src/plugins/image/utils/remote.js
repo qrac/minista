@@ -15,14 +15,36 @@ export function getRemoteExt(url) {
  * @param {string} url
  * @param {string} remoteName
  * @param {number} remoteIndex
- * @returns {Promise<{ fileName: string, data: Buffer }>}
+ * @param {{etag?: string, lastModified?: string}} [validators]
+ * @returns {Promise<
+ *   | {status: "not-modified", etag?: string, lastModified?: string}
+ *   | {status: "downloaded", fileName: string, data: Buffer, etag?: string, lastModified?: string}
+ * >}
  */
-export async function getRemote(url, remoteName, remoteIndex) {
+export async function getRemote(url, remoteName, remoteIndex, validators = {}) {
   let fileName = ""
   let extName = ""
   let contentType = ""
 
-  const res = await fetch(url)
+  const headers = {}
+  if (validators.etag) headers["If-None-Match"] = validators.etag
+  if (validators.lastModified) {
+    headers["If-Modified-Since"] = validators.lastModified
+  }
+  const res = await fetch(url, {
+    ...(Object.keys(headers).length > 0 ? { headers } : {}),
+  })
+
+  const etag = res.headers.get("etag") || validators.etag
+  const lastModified = res.headers.get("last-modified") ||
+    validators.lastModified
+  if (res.status === 304) {
+    return {
+      status: "not-modified",
+      ...(etag ? { etag } : {}),
+      ...(lastModified ? { lastModified } : {}),
+    }
+  }
 
   if (!res.ok || !res.body) {
     throw new Error(
@@ -40,5 +62,11 @@ export async function getRemote(url, remoteName, remoteIndex) {
 
   const arrayBuffer = await res.arrayBuffer()
   const data = Buffer.from(arrayBuffer)
-  return { fileName, data }
+  return {
+    status: "downloaded",
+    fileName,
+    data,
+    ...(etag ? { etag } : {}),
+    ...(lastModified ? { lastModified } : {}),
+  }
 }

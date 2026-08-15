@@ -42,6 +42,7 @@ export type ImagesOptimize = Omit<ImageOptimize, "format"> & {
 
 type PluginOptionBase = {
   useCache: boolean
+  remoteCache: "immutable" | { maxAge: number }
   decoding: HTMLImageElement["decoding"]
   loading: HTMLImageElement["loading"]
 }

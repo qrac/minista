@@ -38,6 +38,7 @@ export default function () {
 ```js title="Default"
 pluginImage({
   useCache: true,
+  remoteCache: "immutable",
   optimize: {
     outName: "[name]-[width]x[height]",
     remoteName: "remote-[index]",
@@ -63,6 +64,13 @@ pluginImage({
 - デフォルト: `true`
 
 開発・ビルド中にキャッシュを利用します。
+
+### remoteCache
+
+- 型: `"immutable" | { maxAge: number }`
+- デフォルト: `"immutable"`
+
+リモート画像のsource cache方針です。`"immutable"`はキャッシュを削除するまで同じURLのsourceを再取得しません。`{ maxAge }`はミリ秒単位の有効期間を指定し、期限後はETagまたはLast-Modifiedがあれば条件付きrequestで再検証します。`useCache: false`の場合は使用されません。
 
 ### optimize.outName
 

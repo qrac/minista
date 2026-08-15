@@ -8,6 +8,7 @@ import type { MinistaFeature } from "../../core/lifecycle/index.js"
 
 export interface ImageFeatureOptions {
   readonly useCache: boolean
+  readonly remoteCache?: "immutable" | { readonly maxAge: number }
   readonly optimize: Readonly<Record<string, unknown>>
   readonly decoding: string
   readonly loading: string

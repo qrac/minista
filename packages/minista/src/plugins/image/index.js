@@ -42,6 +42,7 @@ const __dirname = path.dirname(__filename)
 /** @type {PluginOptions} */
 export const defaultOptions = {
   useCache: true,
+  remoteCache: "immutable",
   optimize: {
     outName: "[name]-[width]x[height]",
     remoteName: "remote-[index]",

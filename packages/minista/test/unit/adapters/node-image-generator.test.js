@@ -48,6 +48,16 @@ function createOptions() {
   }
 }
 
+async function createRemoteImageResponse(headers = {}) {
+  const data = await fs.promises.readFile(
+    path.resolve(fixtureDir, "src/assets/pixel.svg"),
+  )
+  return new Response(data, {
+    status: 200,
+    headers: { "content-type": "image/svg+xml", ...headers },
+  })
+}
+
 beforeAll(async () => {
   cacheDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "minista-image-"))
 })
@@ -162,6 +172,128 @@ describe("Node image generator", () => {
         beforeManifest.artifacts["pixel-2x2.png"],
       )
     } finally {
+      await fs.promises.rm(rootDir, { recursive: true, force: true })
+    }
+  })
+
+  test("reuses an immutable remote source without another request", async () => {
+    const rootDir = await fs.promises.mkdtemp(
+      path.join(os.tmpdir(), "minista-image-remote-cache-"),
+    )
+    const source = "https://images.example.test/pixel.svg?token=secret"
+    const fetchMock = vi.fn(() => createRemoteImageResponse({ etag: '"v1"' }))
+    vi.stubGlobal("fetch", fetchMock)
+    try {
+      const generator = new NodeImageGenerator(
+        rootDir,
+        path.resolve(rootDir, "cache"),
+      )
+      const options = {
+        ...createOptions(),
+        useCache: true,
+        remoteCache: /** @type {const} */ ("immutable"),
+      }
+
+      const first = await generator.generate([createReference(source)], options)
+      const second = await generator.generate([createReference(source)], options)
+      const manifestText = await fs.promises.readFile(
+        path.resolve(rootDir, "cache/cache.json"),
+        "utf8",
+      )
+      const manifest = JSON.parse(manifestText)
+
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(second).toEqual(first)
+      expect(manifest).toMatchObject({ version: 2, nextRemoteIndex: 2 })
+      expect(Object.keys(manifest.remoteSources)).toHaveLength(1)
+      expect(manifestText).not.toContain("token=secret")
+      expect(manifestText).not.toContain(source)
+    } finally {
+      vi.unstubAllGlobals()
+      await fs.promises.rm(rootDir, { recursive: true, force: true })
+    }
+  })
+
+  test("revalidates an expired remote source with HTTP validators", async () => {
+    const rootDir = await fs.promises.mkdtemp(
+      path.join(os.tmpdir(), "minista-image-remote-revalidate-"),
+    )
+    const source = "https://images.example.test/pixel.svg"
+    const fetchMock = vi.fn()
+      .mockImplementationOnce(() =>
+        createRemoteImageResponse({
+          etag: '"v1"',
+          "last-modified": "Fri, 15 Aug 2026 00:00:00 GMT",
+        })
+      )
+      .mockImplementationOnce(async () => new Response(null, {
+        status: 304,
+        headers: { etag: '"v1"' },
+      }))
+    vi.stubGlobal("fetch", fetchMock)
+    try {
+      const generator = new NodeImageGenerator(
+        rootDir,
+        path.resolve(rootDir, "cache"),
+      )
+      const options = {
+        ...createOptions(),
+        useCache: true,
+        remoteCache: { maxAge: 0 },
+      }
+
+      const first = await generator.generate([createReference(source)], options)
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      const second = await generator.generate([createReference(source)], options)
+
+      expect(second).toEqual(first)
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+      expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({
+        headers: {
+          "If-None-Match": '"v1"',
+          "If-Modified-Since": "Fri, 15 Aug 2026 00:00:00 GMT",
+        },
+      })
+    } finally {
+      vi.unstubAllGlobals()
+      await fs.promises.rm(rootDir, { recursive: true, force: true })
+    }
+  })
+
+  test("starts independent remote downloads concurrently", async () => {
+    const rootDir = await fs.promises.mkdtemp(
+      path.join(os.tmpdir(), "minista-image-remote-concurrency-"),
+    )
+    /** @type {(value?: unknown) => void} */
+    let release = () => {}
+    const gate = new Promise((resolve) => {
+      release = resolve
+    })
+    const fetchMock = vi.fn(async () => {
+      await gate
+      return createRemoteImageResponse()
+    })
+    vi.stubGlobal("fetch", fetchMock)
+    try {
+      const generator = new NodeImageGenerator(
+        rootDir,
+        path.resolve(rootDir, "cache"),
+      )
+      const pending = generator.generate(
+        [1, 2, 3].map((index) =>
+          createReference(`https://images.example.test/pixel-${index}.svg`)
+        ),
+        /** @type {any} */ (createOptions()),
+      )
+
+      await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3))
+      release()
+      const result = await pending
+
+      expect(result.artifacts).toHaveLength(3)
+    } finally {
+      release()
+      vi.unstubAllGlobals()
       await fs.promises.rm(rootDir, { recursive: true, force: true })
     }
   })
