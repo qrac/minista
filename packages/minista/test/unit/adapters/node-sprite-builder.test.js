@@ -46,6 +46,45 @@ describe("Node sprite builder", () => {
     )
   })
 
+  test("optimizes SVG fragments containing sibling elements and text", async () => {
+    await fs.promises.writeFile(
+      path.resolve(sourceDir, "label.svg"),
+      [
+        '<svg viewBox="0 0 24 24">',
+        '<path d="M4 4h16v16H4z" fill="#eee"/>',
+        '<text x="12" y="15" text-anchor="middle">Hi</text>',
+        "</svg>",
+      ].join(""),
+    )
+
+    const sprite = await new NodeSpriteBuilder(rootDir).build("src/icons")
+
+    expect(sprite).toContain('<symbol id="label" viewBox="0 0 24 24">')
+    expect(sprite).toContain("<path")
+    expect(sprite).toContain(
+      '<text x="12" y="15" text-anchor="middle">Hi</text>',
+    )
+  })
+
+  test("optimizes text content in existing symbol elements", async () => {
+    await fs.promises.writeFile(
+      path.resolve(sourceDir, "symbols.svg"),
+      [
+        "<svg>",
+        '<symbol id="label" viewBox="0 0 24 24">',
+        '<path d="M4 4h16v16H4z"/>',
+        "<text>Hi</text>",
+        "</symbol>",
+        "</svg>",
+      ].join(""),
+    )
+
+    const sprite = await new NodeSpriteBuilder(rootDir).build("src/icons")
+
+    expect(sprite).toContain('<symbol id="label" viewBox="0 0 24 24">')
+    expect(sprite).toContain("<text>Hi</text>")
+  })
+
   test("reports invalid SVG roots with a project-relative location", async () => {
     await fs.promises.writeFile(
       path.resolve(sourceDir, "invalid.svg"),

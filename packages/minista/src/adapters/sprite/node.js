@@ -81,6 +81,24 @@ async function runSpriteOperation(operation, rootDir, source, task) {
   }
 }
 
+/**
+ * @param {string} fragment
+ * @param {SvgoConfig} [config]
+ * @returns {string}
+ */
+function optimizeSvgFragment(fragment, config) {
+  const document = [
+    '<svg xmlns="http://www.w3.org/2000/svg"',
+    ' xmlns:xlink="http://www.w3.org/1999/xlink">',
+    fragment,
+    "</svg>",
+  ].join("")
+  const { data } = optimize(document, config)
+  const element = parse(data).querySelector("svg")
+  if (!element) throw new Error("Expected an optimized <svg> root element.")
+  return element.innerHTML
+}
+
 export class NodeSpriteBuilder {
   #rootDir
   #config
@@ -131,11 +149,11 @@ export class NodeSpriteBuilder {
         for (const element of elements) {
           const id = element.getAttribute("id")
           const viewBox = element.getAttribute("viewBox")
-          const { data: content } = await runSpriteOperation(
+          const content = await runSpriteOperation(
             "optimize",
             this.#rootDir,
             source,
-            () => optimize(element.innerHTML, this.#config),
+            () => optimizeSvgFragment(element.innerHTML, this.#config),
           )
           if (id && viewBox && content) symbols.set(id, { viewBox, content })
         }
@@ -149,11 +167,11 @@ export class NodeSpriteBuilder {
         }
         const id = path.parse(svgName).name
         const viewBox = element.getAttribute("viewBox")
-        const { data: content } = await runSpriteOperation(
+        const content = await runSpriteOperation(
           "optimize",
           this.#rootDir,
           source,
-          () => optimize(element.innerHTML, this.#config),
+          () => optimizeSvgFragment(element.innerHTML, this.#config),
         )
         if (id && viewBox && content) symbols.set(id, { viewBox, content })
       }
