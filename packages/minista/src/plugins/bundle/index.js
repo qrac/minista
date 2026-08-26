@@ -65,7 +65,7 @@ export function pluginBundle(uOpts = {}) {
       tempDir = getTempDir(cwd, rootDir)
       globDir = path.resolve(tempDir, "glob")
 
-      const code = getGlobImportCode(opts)
+      const code = getGlobImportCode(opts, isBuild)
       await fs.promises.mkdir(globDir, { recursive: true })
 
       if (isDev) {
