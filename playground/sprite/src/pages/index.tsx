@@ -20,6 +20,9 @@ export default function () {
           <Sprite src="/src/assets/sprite/square-trim.svg" />
         </div>
         <div>
+          <Sprite src="/src/assets/sprite/text.svg" />
+        </div>
+        <div>
           <Sprite
             src="/src/assets/sprite/common-sprite.svg"
             symbolId="common-square"
