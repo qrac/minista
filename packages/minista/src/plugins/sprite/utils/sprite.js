@@ -7,6 +7,27 @@ import { optimize } from "svgo"
 import { parse as parseHtml } from "node-html-parser"
 
 /**
+ * SVGO expects a single well-formed XML document with exactly one root
+ * element. The inner content of a <symbol> or <svg> can legally contain
+ * several sibling elements (<path>, <rect>, <text>, ...), so passing that
+ * fragment straight to `optimize()` makes its strict SAX parser throw
+ * (e.g. "Text data outside of root node.") once it sees content after
+ * the first sibling closes. Wrap the fragment in a throwaway <svg> root
+ * before optimizing, then unwrap it again from the result.
+ *
+ * @param {string} innerHtml
+ * @param {string} viewBox
+ * @param {Config} [config]
+ * @returns {string}
+ */
+function optimizeFragment(innerHtml, viewBox, config) {
+  const wrapped = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="${viewBox}">${innerHtml}</svg>`
+  const { data } = optimize(wrapped, config)
+  const el = parseHtml(data).querySelector("svg")
+  return el?.innerHTML || ""
+}
+
+/**
  * @param {string} targetDir
  * @param {Config} [config]
  * @returns {Promise<string>}
@@ -31,8 +52,9 @@ export async function generateSprite(targetDir, config) {
       for (const el of els) {
         const id = el.getAttribute("id")
         const viewBox = el.getAttribute("viewBox")
-        const { data: content } = optimize(el.innerHTML, config)
-        if (!id || !viewBox || !content) continue
+        if (!id || !viewBox) continue
+        const content = optimizeFragment(el.innerHTML, viewBox, config)
+        if (!content) continue
         symbols[id] = { viewBox, content }
       }
     } else {
@@ -40,8 +62,9 @@ export async function generateSprite(targetDir, config) {
       const el = doc.querySelector("svg")
       const id = path.parse(svgName).name
       const viewBox = el?.getAttribute("viewBox")
-      const { data: content } = optimize(el?.innerHTML || "", config)
-      if (!id || !viewBox || !content) continue
+      if (!id || !viewBox) continue
+      const content = optimizeFragment(el?.innerHTML || "", viewBox, config)
+      if (!content) continue
       symbols[id] = { viewBox, content }
     }
   }
