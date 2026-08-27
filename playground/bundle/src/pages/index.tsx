@@ -1,10 +1,11 @@
 import { Button } from "../components/button"
 import iconUrl from "../assets/image.png"
+import styles from "./index.module.css"
 
 export default function () {
   return (
     <>
-      <h1>Index</h1>
+      <h1 className={styles.heading}>Index</h1>
       <ul>
         <li>
           <a href="/nest/">Nest</a>
