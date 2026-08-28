@@ -72,7 +72,7 @@
     "vite": "^8.2.1"
   },
   "dependencies": {
-    "@mdx-js/rollup": "^3.1.1",
+    "@mdx-js/mdx": "^3.1.1",
     "@swc/core": "^1.15.47",
     "archiver": "^8.0.0",
     "cross-spawn": "^7.0.6",
@@ -85,6 +85,7 @@
     "remark-frontmatter": "^5.0.0",
     "remark-mdx-frontmatter": "^5.2.0",
     "sharp": "^0.35.3",
+    "source-map": "^0.7.6",
     "svgo": "^4.0.2",
     "tinyglobby": "^0.2.17"
   }

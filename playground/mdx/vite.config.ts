@@ -1,5 +1,5 @@
-import { defineConfig, pluginSsg, pluginMdx } from "minista"
+import { defineConfig, pluginSsg } from "minista"
 
 export default defineConfig({
-  plugins: [pluginSsg(), pluginMdx()],
+  plugins: [pluginSsg()],
 })

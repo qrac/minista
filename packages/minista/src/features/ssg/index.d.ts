@@ -5,4 +5,6 @@ export { createRenderedPagesArtifactId, parseRenderedPages } from "./rendered-pa
 export type { RenderedPage } from "./rendered-pages.js"
 export { SSG_FEATURE_ID, createSsgRenderFeature } from "./render.js"
 export type { SsgPageRenderer } from "./render.js"
+export { collectSsgAssetOutputReferences, composeSsgAssetDocument } from "./assets.js"
+export type { SsgAssetOutputResolver, SsgAssetPlan } from "./assets.js"
 export type { DiscoveredRoute, GetStaticData, PageModule, SsgDiscoveryOptions, StaticData, } from "./types.js"

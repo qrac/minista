@@ -8,13 +8,16 @@
 /** @typedef {import('./types').ImportedLayouts} ImportedLayouts */
 /** @typedef {import('./types').ImportedPages} ImportedPages */
 /** @typedef {import('../../adapters/vite/environment-preparation.js').ViteEnvironmentPreparation} ViteEnvironmentPreparation */
+/** @typedef {{fileName: string, source: string | Uint8Array, originalFileNames: readonly string[]}} RenderAsset */
 
 import fs from "node:fs"
 import path from "node:path"
 import { pathToFileURL } from "url"
 import { createRequire } from "node:module"
 import pc from "picocolors"
+import { normalizePath } from "vite"
 
+import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
 import { resolveLegacySsgProject } from "../../adapters/vite/legacy-ssg-project.js"
 import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
 import { LegacySsgRouteCache } from "../../adapters/vite/legacy-ssg-route-cache.js"
@@ -26,6 +29,7 @@ import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.j
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
+import { createViteMdxTransformer } from "../../adapters/vite/mdx-transform.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { renderViteSsgPages } from "../../adapters/vite/ssg-render-lifecycle.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -44,7 +48,18 @@ import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { transformHtml } from "./utils/html.js"
 import { getHtmlFileName } from "../../shared/filename.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
+import { regImage, regStyle } from "../../shared/reg.js"
 import {
+  collectSsgAssetOutputReferences,
+  composeSsgAssetDocument,
+} from "../../features/ssg/index.js"
+import {
+  getBasedAssetUrl,
+  getBuildBase,
+  getServeBase,
+} from "../../shared/url.js"
+import {
+  mergeAlias,
   mergeRolldownExternal,
   mergeSsrExternal,
 } from "../../shared/vite.js"
@@ -54,6 +69,13 @@ export const defaultOptions = {
   layout: "/src/layouts/index.{tsx,jsx}",
   src: ["/src/pages/**/*.{tsx,jsx,mdx,md}"],
   srcBases: ["/src/pages"],
+  bundle: {
+    outName: "bundle",
+  },
+  mdx: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
 }
 
 const require = createRequire(import.meta.url)
@@ -65,12 +87,28 @@ const { version: ministaVersion } = require("../../../package.json")
  */
 export function pluginSsg(uOpts = {}) {
   /** @type {PluginOptions} */
-  const opts = { ...defaultOptions, ...uOpts }
+  const opts = {
+    ...defaultOptions,
+    ...uOpts,
+    bundle: { ...defaultOptions.bundle, ...uOpts.bundle },
+    mdx: uOpts.mdx === false
+      ? false
+      : { ...defaultOptions.mdx, ...uOpts.mdx },
+    src: uOpts.src ?? (
+      uOpts.mdx === false
+        ? ["/src/pages/**/*.{tsx,jsx}"]
+        : defaultOptions.src
+    ),
+  }
   const cwd = process.cwd()
   const tempName = "__minista-ssg"
+  const assetEntryId = "/@__minista-ssg-assets"
   const SSG_PAGES_ID = "virtual:ssg-pages"
   const SSG_PAGES_VIRTUAL = "\0" + SSG_PAGES_ID
   const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
+  const mdxTransformer = opts.mdx === false
+    ? undefined
+    : createViteMdxTransformer(opts.mdx)
 
   const createBuildState = () => ({
     ssgPages: /** @type {RenderedPage[]} */ ([]),
@@ -78,6 +116,10 @@ export function pluginSsg(uOpts = {}) {
     externalOutputManifest: /** @type {import("../../core/manifest/index.js").OutputManifest | undefined} */ (undefined),
     externalOutputDirectory: "",
     externalClientPlugins: /** @type {readonly import("vite").Plugin[]} */ ([]),
+    renderAssets: /** @type {RenderAsset[]} */ ([]),
+    bundlePlan: /** @type {import("../../features/ssg/index.js").SsgAssetPlan | undefined} */ (undefined),
+    bundleReferences: /** @type {Map<string, readonly string[]>} */ (new Map()),
+    routeSourceAssets: /** @type {Map<string, readonly string[]>} */ (new Map()),
   })
   const buildStates = new ViteEnvironmentState(createBuildState)
   const legacyState = createBuildState()
@@ -232,15 +274,245 @@ export function pluginSsg(uOpts = {}) {
     await fs.promises.writeFile(throughFile, `console.log("")`, "utf8")
   }
 
+  /**
+   * Preserve the assets produced by the render environment. CSS Modules used
+   * by the rendered HTML must not be compiled a second time in the client
+   * environment because environment-specific transforms can change class names.
+   *
+   * @param {ReturnType<typeof createBuildState>} state
+   * @param {any} renderOutput Vite build output at the adapter boundary.
+   * @param {string} globFile
+   * @param {import("vite").ResolvedConfig | import("vite").InlineConfig} config
+   */
+  function collectRenderAssets(state, renderOutput, globFile, config) {
+    const output = /** @type {(import("vite").Rollup.OutputChunk | import("vite").Rollup.OutputAsset)[]} */ (Array.isArray(renderOutput)
+      ? renderOutput.flatMap((result) => result.output)
+      : renderOutput.output)
+    const normalizedGlobFile = normalizePath(globFile)
+    const entry = output.find(
+      (item) =>
+        item.type === "chunk" &&
+        item.facadeModuleId === normalizedGlobFile,
+    )
+    const cssFiles = entry?.type === "chunk" && entry.viteMetadata?.importedCss
+      ? [...entry.viteMetadata.importedCss]
+      : []
+    const imageFiles = entry?.type === "chunk" && entry.viteMetadata?.importedAssets
+      ? [...entry.viteMetadata.importedAssets]
+      : []
+    const assetFiles = new Set([...cssFiles, ...imageFiles])
+
+    state.renderAssets = output.filter(
+      /** @returns {item is import("vite").Rollup.OutputAsset} */
+      (item) => item.type === "asset" && assetFiles.has(item.fileName),
+    ).map((asset) => ({
+      fileName: asset.fileName,
+      source: asset.source,
+      originalFileNames: Object.freeze([...asset.originalFileNames]),
+    }))
+    state.bundlePlan = Object.freeze({
+      cssFiles: Object.freeze(cssFiles),
+      imageFiles: Object.freeze(imageFiles),
+      rewriteRootImages:
+        getBuildBase(config.base || "/") === "./" ||
+        getBuildBase(config.base || "/") === "",
+    })
+  }
+
+  /**
+   * The external Vite CLI fallback runs render and client as separate
+   * processes. Restore canonical render assets from the render output folder.
+   *
+   * @param {ReturnType<typeof createBuildState>} state
+   * @param {import("vite").ResolvedConfig | import("vite").InlineConfig} config
+   */
+  async function collectLegacyRenderAssets(state, config) {
+    const rootDir = getRootDir(cwd, config.root || "")
+    const renderDir = path.resolve(getTempDir(cwd, rootDir), "ssr")
+    /** @type {string[]} */
+    const files = []
+
+    /** @param {string} directory */
+    async function visit(directory) {
+      let entries
+      try {
+        entries = await fs.promises.readdir(directory, { withFileTypes: true })
+      } catch (error) {
+        if (error && typeof error === "object" &&
+          Reflect.get(error, "code") === "ENOENT") return
+        throw error
+      }
+      await Promise.all(entries.map(async (entry) => {
+        const target = path.resolve(directory, entry.name)
+        if (entry.isDirectory()) await visit(target)
+        else if (entry.isFile()) files.push(target)
+      }))
+    }
+
+    await visit(renderDir)
+    const assetFiles = files.filter((file) => !/\.m?js(?:\.map)?$/i.test(file))
+    state.renderAssets = await Promise.all(assetFiles.map(async (file) => ({
+      fileName: normalizePath(path.relative(renderDir, file)),
+      source: await fs.promises.readFile(file),
+      originalFileNames: Object.freeze([]),
+    })))
+    state.bundlePlan = Object.freeze({
+      cssFiles: Object.freeze(
+        state.renderAssets
+          .filter(({ fileName }) => regStyle.test(fileName))
+          .map(({ fileName }) => fileName),
+      ),
+      imageFiles: Object.freeze(
+        state.renderAssets
+          .filter(({ fileName }) => regImage.test(fileName))
+          .map(({ fileName }) => fileName),
+      ),
+      rewriteRootImages:
+        getBuildBase(config.base || "/") === "./" ||
+        getBuildBase(config.base || "/") === "",
+    })
+  }
+
+  /**
+   * Compose canonical render assets into HTML and retain route-to-output edges
+   * for output claims and the public project manifest.
+   *
+   * @param {ReturnType<typeof createBuildState>} state
+   * @param {import("vite").ResolvedConfig | import("vite").InlineConfig} config
+   */
+  async function composeClientAssets(state, config) {
+    const plan = state.bundlePlan
+    if (!plan || !state.projectGraph) return
+    const base = getBuildBase(config.base || "/")
+    const factory = new NodeHtmlDocumentFactory()
+    const pageIds = new Map(
+      [...state.projectGraph.pages.values()].map((page) => [page.url, page.id]),
+    )
+    const session = getViteBuildSession(config)
+    const moduleGraph = session?.state?.renderModuleGraph
+    const rootDir = getRootDir(cwd, config.root || "")
+    state.bundleReferences.clear()
+    state.routeSourceAssets.clear()
+
+    if (moduleGraph) {
+      const emittedSources = new Set(
+        state.renderAssets.flatMap((asset) =>
+          asset.originalFileNames.map((sourceFile) =>
+            normalizePath(path.resolve(rootDir, sourceFile))
+          )
+        ),
+      )
+      const assetModules = [...moduleGraph.keys()].filter(
+        (id) => regStyle.test(id) || emittedSources.has(id),
+      )
+      const routeClosures = new Map()
+      const claimedAssets = new Set()
+
+      for (const route of state.projectGraph.routes.values()) {
+        const entry = normalizePath(path.resolve(
+          rootDir,
+          route.sourceFile.replace(/^\/+/, ""),
+        ))
+        const seen = new Set()
+        const pending = [entry]
+        while (pending.length > 0) {
+          const current = pending.pop()
+          if (!current || seen.has(current)) continue
+          seen.add(current)
+          for (const dependency of moduleGraph.get(current) ?? []) {
+            pending.push(dependency)
+          }
+        }
+        const assets = assetModules.filter((id) => seen.has(id))
+        for (const id of assets) claimedAssets.add(id)
+        routeClosures.set(route.id, assets)
+      }
+
+      // Layout and other modules imported by the SSG root but not by an
+      // individual page are shared by every route.
+      const sharedAssets = assetModules.filter((id) => !claimedAssets.has(id))
+      for (const page of state.projectGraph.pages.values()) {
+        state.routeSourceAssets.set(
+          page.url,
+          Object.freeze([
+            ...new Set([
+              ...(routeClosures.get(page.routeId) ?? []),
+              ...sharedAssets,
+            ]),
+          ]),
+        )
+      }
+    }
+
+    const assetOutputs = new Map()
+    for (const asset of state.renderAssets) {
+      for (const sourceFile of asset.originalFileNames) {
+        assetOutputs.set(
+          normalizePath(path.resolve(rootDir, sourceFile)),
+          asset.fileName,
+        )
+      }
+    }
+
+    state.ssgPages = await Promise.all(state.ssgPages.map(async (page) => {
+      const pageId = pageIds.get(page.url) ?? createNodeId("page", page.url)
+      const document = factory.parse({ pageId, html: page.html })
+      const sourceFiles = state.routeSourceAssets.get(page.url) ?? []
+      const graphReferences = sourceFiles.flatMap((sourceFile) =>
+        regStyle.test(sourceFile)
+          ? plan.cssFiles
+          : assetOutputs.has(sourceFile)
+            ? [/** @type {string} */ (assetOutputs.get(sourceFile))]
+            : [],
+      )
+      const references = Object.freeze([
+        ...new Set([
+          ...collectSsgAssetOutputReferences(document, plan),
+          ...graphReferences,
+        ]),
+      ])
+      state.bundleReferences.set(page.url, references)
+      composeSsgAssetDocument(document, plan, {
+        resolve(fileName) {
+          return getBasedAssetUrl(base, page.fileName, fileName)
+        },
+      })
+      await session?.artifacts.put({
+        schemaVersion: "1",
+        id: createNodeId("artifact", "route-assets", pageId),
+        owner: createNodeId("feature", "ssg"),
+        mediaType: "application/vnd.minista.route-assets+json",
+        content: JSON.stringify({
+          pageId,
+          url: page.url,
+          sourceFiles,
+          fileNames: references,
+        }),
+      })
+      return Object.freeze({ ...page, html: document.serialize() })
+    }))
+  }
+
   /** @param {ViteEnvironmentPreparation} preparation */
   async function prepareAppClient(preparation) {
     const config = preparation.client.getTopLevelConfig()
     if (!getViteAppEnvironmentNames(config)) return
     const state = buildStates.get(preparation.client)
-    await prepareClientPages(state, config)
-    const rootDir = getRootDir(cwd, preparation.client.config.root || "")
-    const throughFile = path.resolve(
+    const rootDir = getRootDir(cwd, preparation.render.config.root || "")
+    const globFile = path.resolve(
       getTempDir(cwd, rootDir),
+      "glob",
+      `${tempName}.js`,
+    )
+    collectRenderAssets(state, preparation.renderOutput, globFile, config)
+    await prepareClientPages(state, config)
+    await composeClientAssets(state, config)
+    const clientRootDir = getRootDir(
+      cwd,
+      preparation.client.config.root || "",
+    )
+    const throughFile = path.resolve(
+      getTempDir(cwd, clientRootDir),
       "through",
       `${tempName}.js`,
     )
@@ -254,12 +526,15 @@ export function pluginSsg(uOpts = {}) {
       : legacyState
   }
 
-  /** @param {import("vite").Environment | undefined} environment */
+  /**
+   * @param {import("vite").Environment | undefined} environment
+   * @returns {import("../../core/graph/index.js").OutputClaim[]}
+   */
   function getOutputClaims(environment) {
     const state = environment ? getBuildState(environment) : legacyState
     if (!state.projectGraph) return []
     const emittedUrls = new Set(state.ssgPages.map(({ url }) => url))
-    return [...state.projectGraph.pages.values()]
+    const htmlClaims = [...state.projectGraph.pages.values()]
       .filter(({ url }) => emittedUrls.has(url))
       .map((page) => Object.freeze({
         id: createNodeId("artifact", "ssg-output", page.id),
@@ -270,6 +545,27 @@ export function pluginSsg(uOpts = {}) {
         pageUrls: Object.freeze([page.url]),
         dependencies: Object.freeze([]),
       }))
+    const cssFiles = new Set(state.bundlePlan?.cssFiles ?? [])
+    const assetClaims = state.renderAssets.map((asset) => Object.freeze({
+      id: createNodeId("artifact", "ssg-asset-output", asset.fileName),
+      kind: /** @type {"style" | "image" | "data"} */ (
+        cssFiles.has(asset.fileName)
+          ? "style"
+          : regImage.test(asset.fileName)
+            ? "image"
+            : "data"
+      ),
+      owner: createNodeId("feature", "ssg"),
+      source: asset.originalFileNames[0] ?? opts.bundle.outName,
+      fileName: asset.fileName,
+      pageUrls: Object.freeze(
+        [...state.bundleReferences.entries()]
+          .filter(([, files]) => files.includes(asset.fileName))
+          .map(([url]) => url),
+      ),
+      dependencies: Object.freeze([]),
+    }))
+    return [...htmlClaims, ...assetClaims]
   }
 
   return {
@@ -282,7 +578,14 @@ export function pluginSsg(uOpts = {}) {
           id: "ssg",
           apiVersion: 1,
           options: opts,
-          provides: ["routes", "pages", "html", "html-documents"],
+          provides: [
+            "routes",
+            "pages",
+            "html",
+            "html-documents",
+            "client-bundle",
+            ...(opts.mdx === false ? [] : ["mdx-modules"]),
+          ],
           requires: [],
         },
       },
@@ -291,7 +594,8 @@ export function pluginSsg(uOpts = {}) {
     apply(config, { command, isSsrBuild }) {
       return command === "serve" || command === "build"
     },
-    config: async (config, { command, isSsrBuild }) => {
+    config: async (config, { command, isSsrBuild, mode }) => {
+      mdxTransformer?.setDevelopment(mode === "development")
       const names = getViteAppEnvironmentNames(config)
       const isAppBuild = command === "build" && Boolean(names)
       const isSsr = command === "build" && !isAppBuild && Boolean(isSsrBuild)
@@ -331,13 +635,14 @@ export function pluginSsg(uOpts = {}) {
                       "react-dom/server",
                     ],
                   ),
-                  input: { [tempName]: globFile },
+                  input: { [opts.bundle.outName]: globFile },
                   output: {
                     chunkFileNames: "[name].mjs",
-                    entryFileNames: "[name].mjs",
+                    entryFileNames: `${tempName}.mjs`,
                   },
                 },
                 outDir: ssrDir,
+                emitAssets: true,
               },
             },
             [clientName]: {
@@ -358,6 +663,11 @@ export function pluginSsg(uOpts = {}) {
       }
       if (command === "serve") {
         return {
+          resolve: {
+            alias: mergeAlias(config, [
+              { find: assetEntryId, replacement: globFile },
+            ]),
+          },
           ssr: {
             external: mergeSsrExternal(config, [
               "minista/context",
@@ -371,14 +681,15 @@ export function pluginSsg(uOpts = {}) {
           build: {
             rolldownOptions: {
               input: {
-                [tempName]: globFile,
+                [opts.bundle.outName]: globFile,
               },
               output: {
                 chunkFileNames: "[name].mjs",
-                entryFileNames: "[name].mjs",
+                entryFileNames: `${tempName}.mjs`,
               },
             },
             outDir: ssrDir,
+            emitAssets: true,
           },
           ssr: {
             external: mergeSsrExternal(config, [
@@ -390,6 +701,8 @@ export function pluginSsg(uOpts = {}) {
       }
       if (isBuild) {
         await prepareClientPages(legacyState, config)
+        await collectLegacyRenderAssets(legacyState, config)
+        await composeClientAssets(legacyState, config)
 
         return {
           build: {
@@ -416,11 +729,32 @@ export function pluginSsg(uOpts = {}) {
       }
       return null
     },
+    async transform(value, id) {
+      const result = await mdxTransformer?.transform(value, id)
+      if (!result) return
+      for (const message of result.messages) {
+        this.warn({
+          id,
+          message: String(message),
+        })
+      }
+      return { code: result.code, map: result.map }
+    },
     transformIndexHtml: {
       order: "pre",
       handler(_html, context) {
-        if (!devServers.resolve(context)) return
+        const server = devServers.resolve(context)
+        if (!server) return
+        const base = getServeBase(server.config.base || "/").replace(/\/$/, "")
         return [
+          {
+            tag: "script",
+            attrs: {
+              type: "module",
+              src: `${base}${assetEntryId}`,
+            },
+            injectTo: "head",
+          },
           {
             tag: "script",
             attrs: { type: "module" },
@@ -709,20 +1043,52 @@ export function pluginSsg(uOpts = {}) {
       state.externalOutputManifest = undefined
       state.externalOutputDirectory = ""
       state.externalClientPlugins = []
-      if (!state.ssgPages.length) return
+      if (!state.ssgPages.length && !state.renderAssets.length) return
 
       await Promise.all(
-        state.ssgPages.map((ssgPage) => {
+        [
+          ...state.ssgPages.map((ssgPage) => ({
+            fileName: ssgPage.fileName,
+            source: ssgPage.html,
+          })),
+          ...state.renderAssets.map((asset) => ({
+            fileName: asset.fileName,
+            source: asset.source,
+          })),
+        ].map((asset) => {
           this.emitFile({
             type: "asset",
-            source: ssgPage.html,
-            fileName: ssgPage.fileName,
+            source: asset.source,
+            fileName: asset.fileName,
           })
         }),
       )
     },
     generateBundle(options, bundle) {
-      if (this.environment.config.build.ssr) return
+      if (this.environment.config.build.ssr) {
+        const session = getViteBuildSession(
+          this.environment.getTopLevelConfig(),
+        )
+        if (session?.state) {
+          const moduleGraph = new Map()
+          for (const id of this.getModuleIds()) {
+            const info = this.getModuleInfo(id)
+            if (!info) continue
+            const moduleId = normalizePath(id.split("?")[0])
+            moduleGraph.set(
+              moduleId,
+              Object.freeze([
+                ...info.importedIds,
+                ...info.dynamicallyImportedIds,
+              ].map((dependency) =>
+                normalizePath(dependency.split("?")[0])
+              )),
+            )
+          }
+          session.state.renderModuleGraph = moduleGraph
+        }
+        return
+      }
 
       for (const [key, item] of Object.entries(bundle)) {
         if (item.name === tempName && item.type === "chunk") {

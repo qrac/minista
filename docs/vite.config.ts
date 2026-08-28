@@ -1,8 +1,6 @@
 import {
   defineConfig,
   pluginSsg,
-  pluginMdx,
-  pluginBundle,
   pluginEntry,
   pluginSvg,
   pluginIsland,
@@ -40,16 +38,16 @@ export default defineConfig(({ command, isSsrBuild }) => {
   const isBuild = command === "build" && !isSsrBuild
   return {
     plugins: [
-      pluginSsg(),
-      pluginMdx({
-        remarkPlugins: [remarkGfm, [remarkToc, remarkTocOptions]],
-        rehypePlugins: [
-          rehypeSlug,
-          rehypeAutolinkHeadings,
-          [rehypePrettyCode, rehypePrettyCodeOptions],
-        ],
+      pluginSsg({
+        mdx: {
+          remarkPlugins: [remarkGfm, [remarkToc, remarkTocOptions]],
+          rehypePlugins: [
+            rehypeSlug,
+            rehypeAutolinkHeadings,
+            [rehypePrettyCode, rehypePrettyCodeOptions],
+          ],
+        },
       }),
-      pluginBundle(),
       pluginEntry(),
       pluginSvg(),
       pluginIsland(),

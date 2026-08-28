@@ -4,12 +4,10 @@ import {
   defineConfig,
   pluginArchive,
   pluginBeautify,
-  pluginBundle,
   pluginComment,
   pluginEntry,
   pluginImage,
   pluginIsland,
-  pluginMdx,
   pluginSearch,
   pluginSprite,
   pluginSsg,
@@ -20,9 +18,7 @@ describe("public API compatibility", () => {
   test("exports every documented plugin factory", () => {
     const factories = [
       pluginSsg,
-      pluginBundle,
       pluginEntry,
-      pluginMdx,
       pluginImage,
       pluginSvg,
       pluginSprite,
@@ -37,14 +33,28 @@ describe("public API compatibility", () => {
     expect(defineConfig({ plugins: [] })).toEqual({ plugins: [] })
   })
 
-  test("keeps plugin names and the pluginMdx array return", () => {
+  test("keeps plugin names", () => {
     expect(pluginSsg().name).toBe("vite-plugin:minista-ssg")
     expect(pluginImage().name).toBe("vite-plugin:minista-image")
     expect(pluginIsland().name).toBe("vite-plugin:minista-island")
+  })
 
-    const mdx = pluginMdx()
-    expect(Array.isArray(mdx)).toBe(true)
-    expect(mdx[0].name).toBe("vite-plugin:minista-mdx")
+  test("integrates bundle and lazy MDX configuration into pluginSsg", () => {
+    const defaults = pluginSsg().api.minista.feature
+    expect(defaults.options.bundle).toEqual({ outName: "bundle" })
+    expect(defaults.options.mdx).toMatchObject({
+      remarkPlugins: [],
+      rehypePlugins: [],
+    })
+    expect(defaults.options.src).toEqual([
+      "/src/pages/**/*.{tsx,jsx,mdx,md}",
+    ])
+
+    const withoutMdx = pluginSsg({ mdx: false }).api.minista.feature
+    expect(withoutMdx.options.src).toEqual([
+      "/src/pages/**/*.{tsx,jsx}",
+    ])
+    expect(withoutMdx.provides).not.toContain("mdx-modules")
   })
 
   test("exposes machine-readable feature metadata without changing Vite usage", () => {
@@ -77,7 +87,14 @@ describe("public API compatibility", () => {
     ])
     expect(plugins[0].api.minista.feature).toMatchObject({
       apiVersion: 1,
-      provides: ["routes", "pages", "html", "html-documents"],
+      provides: [
+        "routes",
+        "pages",
+        "html",
+        "html-documents",
+        "client-bundle",
+        "mdx-modules",
+      ],
       requires: [],
     })
     expect(plugins[5].api.minista.feature.requires).toEqual(["html-documents"])
@@ -93,9 +110,6 @@ describe("public API compatibility", () => {
     expect(plugins[8].api.minista.feature.optionalAfter).toEqual(["beautify"])
     expect(plugins[9].api.minista.feature.requires).toEqual(["html-documents"])
     expect(pluginEntry().api.minista.feature.requires).toEqual([
-      "html-documents",
-    ])
-    expect(pluginBundle().api.minista.feature.requires).toEqual([
       "html-documents",
     ])
   })

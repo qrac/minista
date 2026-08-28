@@ -36,6 +36,7 @@ export async function disposeViteBuildSession(session) {
   delete state.compatibilityGraph
   delete state.compatibilityEmitter
   delete state.projectGraph
+  delete state.renderModuleGraph
 }
 
 /**

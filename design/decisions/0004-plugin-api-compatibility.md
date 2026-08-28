@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-12
+- Amended: 2026-08-28 by [ADR-0013](0013-ssg-page-formats-and-render-assets.md)
 
 ## Context
 
@@ -13,7 +14,7 @@
 
 - userの配列順はVite source transformの通常semanticsには従う
 - Minista domain phaseの順序はfeature dependency graphで決める
-- `pluginMdx()` の配列returnを含む現行runtime shapeは移行期間のcompatibility testで保護する
+- v5でSSGの入力形式とrender asset保証へ統合された`pluginMdx()`／`pluginBundle()`は例外として削除する
 - accidental internal contract (`.minista` path、virtual ID、plugin name、generated source name) は互換対象外
 - documented output URL / HTML semanticsの変更はmigration noteとdiagnosticを必要とする
 - `--oneBuild` はv5で削除し、指定時は `MINISTA_CLI_OPTION_REMOVED` errorを返す

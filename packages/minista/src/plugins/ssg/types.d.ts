@@ -1,11 +1,25 @@
 import type { PageId } from "../../core/graph/index.js"
+import type { CompileOptions } from "@mdx-js/mdx"
+
+export type PluginSsgBundleOptions = {
+  outName: string
+}
+
+export type PluginSsgMdxOptions = Omit<
+  CompileOptions,
+  "development" | "format" | "SourceMapGenerator"
+>
 
 export type PluginOptions = {
   layout: string
   src: string[]
   srcBases: string[]
+  bundle: PluginSsgBundleOptions
+  mdx: false | PluginSsgMdxOptions
 }
-export type UserPluginOptions = Partial<PluginOptions>
+export type UserPluginOptions = Omit<Partial<PluginOptions>, "bundle"> & {
+  bundle?: Partial<PluginSsgBundleOptions>
+}
 
 export interface Metadata {
   title?: string

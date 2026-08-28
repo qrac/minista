@@ -58,7 +58,7 @@ describe("SSG App Build environment config", () => {
             "react",
           ]),
           input: {
-            "__minista-ssg": path.resolve(
+            "bundle": path.resolve(
               root,
               "node_modules/.minista/glob/__minista-ssg.js",
             ),

@@ -8,3 +8,7 @@ export {
   parseRenderedPages,
 } from "./rendered-pages.js"
 export { SSG_FEATURE_ID, createSsgRenderFeature } from "./render.js"
+export {
+  collectSsgAssetOutputReferences,
+  composeSsgAssetDocument,
+} from "./assets.js"

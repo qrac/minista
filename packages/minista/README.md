@@ -112,9 +112,7 @@ export default defineConfig(({ command, isSsrBuild }) => {
 
 ministaの各機能は同封されているプラグインをコンフィグに登録することで動作します。
 
-- [pluginSsg](https://minista.qranoko.jp/docs/plugins/ssg): ReactのJSXを静的なHTMLに変換
-- [pluginMdx](https://minista.qranoko.jp/docs/plugins/mdx): MDX・MarkdownをHTMLの変換に対応させる
-- [pluginBundle](https://minista.qranoko.jp/docs/plugins/bundle): JSX内でimportしたCSS・画像を出力
+- [pluginSsg](https://minista.qranoko.jp/docs/plugins/ssg): JSX・MDXを静的なHTMLへ変換し、参照されたCSS・画像を出力
 - [pluginEntry](https://minista.qranoko.jp/docs/plugins/entry): CSS・JS・画像をビルドプロセスに乗せる
 - [pluginImage](https://minista.qranoko.jp/docs/plugins/image):画像を最適化・リモート画像をダウンロード
 - [pluginSvg](https://minista.qranoko.jp/docs/plugins/svg): SVGファイルをHTMLにインライン展開

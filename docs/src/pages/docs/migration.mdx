@@ -315,16 +315,18 @@ Viteの `build.rolldownOptions` で設定する必要があります。後述の
 
 #### outName
 
-ministaのプラグイン `pluginBundle` のオプションに変更してください。
+`pluginSsg`の`bundle.outName`に変更してください。
 
 ```ts title="Before"
 export default { assets: { bundle: { outName: "bundle" } } }
 ```
 
 ```ts title="After"
-import { pluginBundle } from "minista"
+import { pluginSsg } from "minista"
 
-export default { plugins: [pluginBundle({ outName: "bundle" })] }
+export default {
+  plugins: [pluginSsg({ bundle: { outName: "bundle" } })],
+}
 ```
 
 ### assets.partial
@@ -479,7 +481,7 @@ export default function () {
 
 ### markdown
 
-Viteプラグイン `pluginMdx` のオプションに変更となります。v3でministaが用意していた `useRemarkGfm` `useRehypeHighlight` は廃止されたため、必要なRemark / Rehypeプラグインをインストールして `remarkPlugins` `rehypePlugins` に渡してください。
+`pluginSsg`の`mdx`オプションに変更となります。v3でministaが用意していた `useRemarkGfm` `useRehypeHighlight` は廃止されたため、必要なRemark / Rehypeプラグインをインストールして `remarkPlugins` `rehypePlugins` に渡してください。
 
 #### useRemarkGfm, remarkGfmOptions
 
@@ -495,11 +497,11 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginMdx } from "minista"
+import { pluginSsg } from "minista"
 import remarkGfm from "remark-gfm"
 
 export default {
-  plugins: [pluginMdx({ remarkPlugins: [[remarkGfm, {}]] })],
+  plugins: [pluginSsg({ mdx: { remarkPlugins: [[remarkGfm, {}]] } })],
 }
 ```
 
@@ -517,17 +519,17 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginMdx } from "minista"
+import { pluginSsg } from "minista"
 import rehypeHighlight from "rehype-highlight"
 
 export default {
-  plugins: [pluginMdx({ rehypePlugins: [[rehypeHighlight, {}]] })],
+  plugins: [pluginSsg({ mdx: { rehypePlugins: [[rehypeHighlight, {}]] } })],
 }
 ```
 
 #### mdxOptions
 
-`mdxOptions` の中身は `pluginMdx` の直下に移動してください。
+`mdxOptions`の中身は`pluginSsg.mdx`に移動してください。
 
 ```ts title="Before"
 export default {
@@ -541,10 +543,10 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginMdx } from "minista"
+import { pluginSsg } from "minista"
 
 export default {
-  plugins: [pluginMdx({ remarkPlugins: [], rehypePlugins: [] })],
+  plugins: [pluginSsg({ mdx: { remarkPlugins: [], rehypePlugins: [] } })],
 }
 ```
 

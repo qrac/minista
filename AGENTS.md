@@ -4,7 +4,7 @@
 
 ## 変更時の原則
 
-- 公開API (`pluginSsg()`, `pluginMdx()`, `pluginImage()`, `pluginIsland()`, その他の `pluginXXX()`, `defineConfig()`) と内部実装を分けて考える。
+- 公開API (`pluginSsg()`, `pluginImage()`, `pluginIsland()`, その他の `pluginXXX()`, `defineConfig()`) と内部実装を分けて考える。
 - Minista CoreにViteの型やhookを持ち込まない。Vite固有処理はadapterに閉じ込める。
 - feature間でHTML文字列、一時ファイル、global stateを非公開プロトコルとして使わない。Project Graph、Artifact Store、明示的なphaseを使用する。
 - 新しい順序依存を作らない。依存はfeature descriptorの `requires` / `after` とcapabilityで宣言する。

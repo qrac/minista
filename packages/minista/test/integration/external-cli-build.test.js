@@ -114,7 +114,7 @@ describe.sequential("external Vite CLI build fallback", () => {
       }),
       expect.objectContaining({
         kind: "style",
-        owner: "feature:bundle",
+        owner: "feature:ssg",
         output: expect.objectContaining({ fileName: "assets/bundle.css" }),
       }),
     ]))

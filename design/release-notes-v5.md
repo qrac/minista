@@ -30,9 +30,9 @@
 
 ## Feature migration
 
-SSG、Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、Bundle、Islandは、公開`pluginXXX()`を維持したままCore featureとVite adapterへ分離しました。domain処理は`analyze`、`generate`、`render`、`bundle`、`compose`、`finalize`の明示phaseで実行します。
+SSG、Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、IslandはCore featureとVite adapterへ分離しました。domain処理は`analyze`、`generate`、`render`、`bundle`、`compose`、`finalize`の明示phaseで実行します。従来のBundleはSSGのrender asset出力へ統合しました。
 
-MDXはHTML／outputを扱わないため、`@mdx-js/rollup`を包むcompiler adapterとしてVite境界に残します。
+MDXは`pluginSsg().mdx`へ統合し、`@mdx-js/mdx`を直接使う遅延compiler adapterとしてVite境界に置きます。
 
 ## Dataとdiagnostics
 

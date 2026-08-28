@@ -21,6 +21,8 @@ describe.sequential("v4 compatibility App Build", () => {
   let environments
   /** @type {import("../../src/core/manifest/index.js").OutputManifest | undefined} */
   let outputManifest
+  /** @type {MemoryArtifactStore | undefined} */
+  let artifacts
 
   beforeAll(async () => {
     const testTempDir = path.resolve(packageDir, "test/.tmp")
@@ -44,6 +46,7 @@ describe.sequential("v4 compatibility App Build", () => {
       ),
     ])
 
+    artifacts = new MemoryArtifactStore()
     const result = await new ViteAppBuilderAdapter().build(
       attachViteBuildSession(
         {
@@ -51,7 +54,7 @@ describe.sequential("v4 compatibility App Build", () => {
           configFile: path.resolve(fixtureDir, "vite.config.js"),
           logLevel: "silent",
         },
-        createViteBuildSession({ artifacts: new MemoryArtifactStore() }),
+        createViteBuildSession({ artifacts }),
       ),
     )
     environments = result.environments
@@ -113,6 +116,23 @@ describe.sequential("v4 compatibility App Build", () => {
         ),
       ),
     ).rejects.toMatchObject({ code: "ENOENT" })
+  })
+
+  test("records route-to-asset dependencies from the render graph", async () => {
+    const records = await artifacts?.list() ?? []
+    const routeAssets = records.find(
+      ({ mediaType }) =>
+        mediaType === "application/vnd.minista.route-assets+json",
+    )
+    const content = JSON.parse(String(routeAssets?.content))
+
+    expect(content).toMatchObject({
+      url: "/",
+      fileNames: expect.arrayContaining(["assets/bundle.css"]),
+    })
+    expect(content.sourceFiles).toEqual(expect.arrayContaining([
+      expect.stringMatching(/src\/assets\/bundle\.css$/),
+    ]))
   })
 
   test("writes a safe public project manifest atomically", async () => {
@@ -182,7 +202,7 @@ describe.sequential("v4 compatibility App Build", () => {
       }),
       expect.objectContaining({
         kind: "style",
-        owner: "feature:bundle",
+        owner: "feature:ssg",
         output: expect.objectContaining({ fileName: "assets/bundle.css" }),
       }),
     ]))

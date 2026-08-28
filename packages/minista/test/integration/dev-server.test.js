@@ -17,6 +17,7 @@ let running
 let html = ""
 let cachedHtml = ""
 let reloadClient = ""
+let assetEntry = ""
 /** @type {any} */
 let search
 
@@ -110,6 +111,12 @@ export default function Other() {
     reloadClient = await fetch(new URL(reloadClientPath, origin), {
       signal: AbortSignal.timeout(10_000),
     }).then((response) => response.text())
+    const assetEntryResponse = await fetch(
+      `${origin}/@__minista-ssg-assets`,
+      { signal: AbortSignal.timeout(10_000) },
+    )
+    assetEntry = await assetEntryResponse.text()
+    expect(assetEntryResponse.status).toBe(200)
     const cachedResponse = await fetch(
       `${origin}/`,
       { signal: AbortSignal.timeout(10_000) },
@@ -135,7 +142,8 @@ export default function Other() {
     expect(running?.server.config.appType).toBe("custom")
     expect(html).toContain("<h1>Compatibility fixture</h1>")
     expect(html).toContain("/@vite/client")
-    expect(html).toContain("/@__minista-bundle-glob")
+    expect(html).toContain("/@__minista-ssg-assets")
+    expect(assetEntry).toContain("/src/pages/index.jsx")
     expect(reloadClient).toContain("minista:full-reload")
     expect(cachedHtml).toContain("<h1>Compatibility fixture</h1>")
     expect(cachedHtml).toContain("/@vite/client")
@@ -147,7 +155,6 @@ export default function Other() {
       : undefined
     const scopes = session?.state?.compatibilityTraces?.map(({ scope }) => scope)
     expect(scopes).toEqual(expect.arrayContaining([
-      "bundle:dev",
       "comment:dev",
       "image:dev",
       "island:dev",

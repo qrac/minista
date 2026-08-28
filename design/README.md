@@ -44,3 +44,4 @@
 - [ADR-0010: feature output ownershipを明示的なclaimでGraphへ統合する](decisions/0010-explicit-output-claims.md)
 - [ADR-0011: read-only queryをinternal package boundaryとして公開する](decisions/0011-internal-read-only-query-boundary.md)
 - [ADR-0012: 外部buildのdata handoffをschema付きJSONにする](decisions/0012-json-external-build-handoff.md)
+- [ADR-0013: SSGをpage formatとrender assetのcomposition rootにする](decisions/0013-ssg-page-formats-and-render-assets.md)

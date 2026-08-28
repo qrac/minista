@@ -64,14 +64,6 @@ export default {
             url: "/docs/plugins/ssg",
           },
           {
-            name: "pluginMdx",
-            url: "/docs/plugins/mdx",
-          },
-          {
-            name: "pluginBundle",
-            url: "/docs/plugins/bundle",
-          },
-          {
             name: "pluginEntry",
             url: "/docs/plugins/entry",
           },

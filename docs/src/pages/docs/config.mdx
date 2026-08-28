@@ -30,10 +30,10 @@ ministaはv4以降、すべての機能をViteプラグイン化しています�
 例えば、基本のSSGに加えてMDXやアセットのエントリー機能を追加する場合は以下のように記述を増やします。プラグインの使い方は各ページを参照ください。
 
 ```ts title="./vite.config.ts"
-import { defineConfig, pluginSsg, pluginMdx, pluginEntry } from "minista"
+import { defineConfig, pluginSsg, pluginEntry } from "minista"
 
 export default defineConfig({
-  plugins: [pluginSsg(), pluginMdx(), pluginEntry()],
+  plugins: [pluginSsg(), pluginEntry()],
 })
 ```
 
@@ -61,9 +61,9 @@ render／clientでpluginの名前や順序が変わるconfigはApp Buildで共�
 
 通常のbuild／devはprogrammatic Vite adapterを使用します。programmatic configへ安全に変換できないVite CLI flagを指定した場合だけ外部CLIへfallbackします。Coreはどちらの経路でもViteのenvironment型やhookに依存しません。
 
-### Bundle error
+### Asset inline error
 
-`pluginBundle`を使って画像をバンドルした際にビルドが失敗する場合があります。これは主にViteが小さい画像をclientではインライン判定したものの、Node.js向けrender environmentでは同じ形に変換されないことが原因です。
+pageからimportした画像をバンドルした際にビルドが失敗する場合があります。これは主にViteが小さい画像をclientではインライン判定したものの、Node.js向けrender environmentでは同じ形に変換されないことが原因です。
 
 対策の一つとしては、`build.assetsInlineLimit` を `0` に設定し、インライン化を無効化する方法があります。納品時には特にこの対策が効果的です。
 

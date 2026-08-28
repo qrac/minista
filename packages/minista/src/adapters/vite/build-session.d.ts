@@ -12,6 +12,7 @@ export interface ViteCompatibilityTraceEvent extends PhaseTraceEvent {
 
 export interface ViteBuildSessionState {
   projectGraph?: ProjectGraphSnapshot
+  renderModuleGraph?: ReadonlyMap<string, readonly string[]>
   compatibilityTraces?: ViteCompatibilityTraceEvent[]
   compatibilityDocuments?: HtmlDocumentStore
   compatibilityDocumentIds?: Map<string, PageId>

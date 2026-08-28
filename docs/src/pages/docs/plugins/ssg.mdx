@@ -5,7 +5,7 @@ layout: docs
 
 # pluginSsg
 
-ReactのJSX・TSXファイルを静的なHTMLに変換するプラグイン。
+ReactのJSX・TSX・MDX・Markdownファイルを静的なHTMLに変換し、ページから参照されたCSS・画像を出力するプラグイン。
 
 ## Table of Contents
 
@@ -38,6 +38,13 @@ pluginSsg({
   layout: "/src/layouts/index.{tsx,jsx}",
   src: ["/src/pages/**/*.{tsx,jsx,mdx,md}"],
   srcBases: ["/src/pages"],
+  bundle: {
+    outName: "bundle",
+  },
+  mdx: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
 })
 ```
 
@@ -61,6 +68,20 @@ pluginSsg({
 - デフォルト: `["/src/pages"]`
 
 ページテンプレートをURLに変換する際に省くパス。前方一致で削除されます。
+
+### bundle
+
+- 型: `{ outName: string }`
+- デフォルト: `{ outName: "bundle" }`
+
+pageとlayoutから参照されたCSS・画像をrender結果と同じ変換結果から出力します。`outName`はCSSをまとめるentry名に使用されます。
+
+### mdx
+
+- 型: `false | CompileOptions`
+- デフォルト: `{ remarkPlugins: [], rehypePlugins: [] }`
+
+MDX・Markdownの変換設定です。デフォルトで有効ですが、`@mdx-js/mdx`とprocessorは最初の`.md`または`.mdx`が読み込まれるまでロードされません。無効にする場合は`mdx: false`を指定します。`src`を省略している場合、無効化に合わせてdefaultの探索対象もJSX・TSXだけになります。
 
 ## Head
 

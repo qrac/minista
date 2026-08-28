@@ -1,7 +1,6 @@
 import {
   defineConfig,
   pluginSsg,
-  pluginBundle,
   pluginEntry,
   pluginBeautify,
 } from "minista"
@@ -16,5 +15,5 @@ export default defineConfig({
       },
     },
   },
-  plugins: [pluginSsg(), pluginBundle(), pluginEntry(), pluginBeautify()],
+  plugins: [pluginSsg(), pluginEntry(), pluginBeautify()],
 })

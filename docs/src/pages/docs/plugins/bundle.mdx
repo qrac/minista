@@ -1,27 +1,23 @@
 ---
-title: pluginBundle
+title: CSS・画像の出力
 layout: docs
 ---
 
-# pluginBundle
+# CSS・画像の出力
 
-JSX内でimportしたCSS・画像を出力するプラグイン。
+pageとlayout内でimportしたCSS・画像は`pluginSsg`が自動的に出力します。
 
 ## Table of Contents
 
 contents list
 
-## v5での処理
-
-buildではページ参照を`analyze`、Viteの確定outputを`bundle`、CSS linkと画像URLを`compose` phaseで反映します。devではVite adapterが解決したbootstrap URLだけを受け取り、共有Documentの`compose` phaseでmodule scriptを追加します。
-
 ## How To Use
 
 ```js title="./minista.config.js"
-import { pluginBundle } from "minista"
+import { pluginSsg } from "minista"
 
 export default {
-  plugins: [pluginBundle()],
+  plugins: [pluginSsg({ bundle: { outName: "bundle" } })],
 }
 ```
 
@@ -37,30 +33,16 @@ export default function () {
 ## Options
 
 ```js title="Default"
-pluginBundle({
-  src: ["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"],
-  outName: "bundle",
-  useExportCss: true,
+pluginSsg({
+  bundle: {
+    outName: "bundle",
+  },
 })
 ```
-
-### src
-
-- 型: `string[]`
-- デフォルト: `["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"]`
-
-CSS・画像を検出するテンプレートをglob形式で指定します。対象ファイルはViteの機能でglob importされます。
 
 ### outName
 
 - 型: `string`
 - デフォルト: `"bundle"`
 
-JSX内でimportしたCSSを結合出力する場合のファイル名（拡張子なし）。
-
-### useExportCss
-
-- 型: `boolean`
-- デフォルト: `true`
-
-JSX内でimportしたCSSを結合出力します。
+pageとlayoutから参照されたCSSを結合出力する場合のentry名（拡張子なし）。CSS ModulesはHTMLを生成したrender environmentの変換結果をそのまま使用します。
