@@ -10,11 +10,12 @@
 
 ## Decision
 
-既存の `pluginXXX()` 名、主要option shape、default、component import、`defineConfig()` を維持します。戻り値は引き続きViteが受け取れる `PluginOption` ですが、内部ではmarker付きfeature descriptorと薄いadapterを生成します。
+既存の `pluginXXX()` 名、主要option shape、component import、`defineConfig()` を維持します。戻り値は引き続きViteが受け取れる `PluginOption` ですが、内部ではmarker付きfeature descriptorと薄いadapterを生成します。
 
 - userの配列順はVite source transformの通常semanticsには従う
 - Minista domain phaseの順序はfeature dependency graphで決める
 - v5でSSGの入力形式とrender asset保証へ統合された`pluginMdx()`／`pluginBundle()`は例外として削除する
+- `pluginSsg()`のpath optionはproject root相対のslashなしをdefaultとし、従来の先頭slash付き表記もVite adapter境界で同じroot pathへ変換する
 - accidental internal contract (`.minista` path、virtual ID、plugin name、generated source name) は互換対象外
 - documented output URL / HTML semanticsの変更はmigration noteとdiagnosticを必要とする
 - `--oneBuild` はv5で削除し、指定時は `MINISTA_CLI_OPTION_REMOVED` errorを返す

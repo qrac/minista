@@ -359,10 +359,10 @@ manifest snapshotだけに依存せず、graph invariant、diagnostic code、dis
 | API | 現在のv5実装 | compatibility note |
 | --- | --- | --- |
 | `defineConfig()` | Viteの`defineConfig`を再export | minista固有wrapperを持たない |
-| `pluginSsg()` | lifecycle coordinator、MDX page format、render asset出力を含むVite Plugin | `bundle.outName`と遅延`mdx` compilerを所有 |
+| `pluginSsg()` | lifecycle coordinator、MDX page format、render asset出力を含むVite Plugin | path optionはproject root相対をdefaultとし、先頭slash付きもVite境界で同じpathへ変換する |
 | Image/Island/Entry/Sprite/Search | optionとcomponent importを維持 | temp path、marker、output hashの非公開挙動は保証しない |
 | Svg/Comment/Beautify/Archive | facadeからCore phase hookを実行 | user plugin配列順による偶発的順序は保証しない |
 | `Metadata`, `PageProps`, `LayoutProps`, `StaticData` | exportとmodule augmentationを維持 | 一部のruntime互換境界には`any`が残る |
 | `--oneBuild` | v5で削除し、`MINISTA_CLI_OPTION_REMOVED` errorを返す | 既定buildが単一App Build lifecycleを使用するため代替optionは不要 |
 
-互換性の基準はdocumented API、option default、page/layout contract、出力URLです。`node_modules/.minista` の配置、virtual module ID、Vite plugin name、生成source名、plugin closure stateは非公開であり互換対象にしません。
+互換性の基準はdocumented API、option semantics、page/layout contract、出力URLです。`node_modules/.minista` の配置、virtual module ID、Vite plugin name、生成source名、plugin closure stateは非公開であり互換対象にしません。

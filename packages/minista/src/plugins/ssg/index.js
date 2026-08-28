@@ -66,9 +66,9 @@ import {
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
-  layout: "/src/layouts/index.{tsx,jsx}",
-  src: ["/src/pages/**/*.{tsx,jsx,mdx,md}"],
-  srcBases: ["/src/pages"],
+  layout: "src/layouts/index.{tsx,jsx}",
+  src: ["src/pages/**/*.{tsx,jsx,mdx,md}"],
+  srcBases: ["src/pages"],
   bundle: {
     outName: "bundle",
   },
@@ -96,7 +96,7 @@ export function pluginSsg(uOpts = {}) {
       : { ...defaultOptions.mdx, ...uOpts.mdx },
     src: uOpts.src ?? (
       uOpts.mdx === false
-        ? ["/src/pages/**/*.{tsx,jsx}"]
+        ? ["src/pages/**/*.{tsx,jsx}"]
         : defaultOptions.src
     ),
   }

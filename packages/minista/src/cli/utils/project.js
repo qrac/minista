@@ -73,8 +73,8 @@ function getSsgOptions(plugins) {
     .map((plugin) => plugin?.api?.minista?.feature)
     .find((item) => item?.id === "ssg")
   return feature?.options ?? {
-    src: ["/src/pages/**/*.{tsx,jsx,mdx,md}"],
-    srcBases: ["/src/pages"],
+    src: ["src/pages/**/*.{tsx,jsx,mdx,md}"],
+    srcBases: ["src/pages"],
   }
 }
 

@@ -47,12 +47,14 @@ describe("public API compatibility", () => {
       rehypePlugins: [],
     })
     expect(defaults.options.src).toEqual([
-      "/src/pages/**/*.{tsx,jsx,mdx,md}",
+      "src/pages/**/*.{tsx,jsx,mdx,md}",
     ])
+    expect(defaults.options.layout).toBe("src/layouts/index.{tsx,jsx}")
+    expect(defaults.options.srcBases).toEqual(["src/pages"])
 
     const withoutMdx = pluginSsg({ mdx: false }).api.minista.feature
     expect(withoutMdx.options.src).toEqual([
-      "/src/pages/**/*.{tsx,jsx}",
+      "src/pages/**/*.{tsx,jsx}",
     ])
     expect(withoutMdx.provides).not.toContain("mdx-modules")
   })

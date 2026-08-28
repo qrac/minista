@@ -44,7 +44,7 @@ MDXは`pluginSsg().mdx`へ統合し、`@mdx-js/mdx`を直接使う遅延compiler
 
 ## Compatibility policy
 
-公開plugin API、option default、page／layout contract、出力URLを互換対象として維持します。旧`--oneBuild`は削除し、指定時は`MINISTA_CLI_OPTION_REMOVED`を返します。
+公開plugin API、option semantics、page／layout contract、出力URLを互換対象として維持します。`pluginSsg()`のpath optionはproject root相対のslashなしをdefaultとし、従来の先頭slash付き表記も同じpathとして扱います。旧`--oneBuild`は削除し、指定時は`MINISTA_CLI_OPTION_REMOVED`を返します。
 
 互換fallbackはViteのexperimental API変更に備えた2経路だけを保持します。新規fallbackは追加せず、発動条件と削除条件は [`vite.md`](vite.md#retained-compatibility-fallbacks) で管理します。
 

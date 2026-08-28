@@ -35,9 +35,9 @@ export default function () {
 
 ```js title="Default"
 pluginSsg({
-  layout: "/src/layouts/index.{tsx,jsx}",
-  src: ["/src/pages/**/*.{tsx,jsx,mdx,md}"],
-  srcBases: ["/src/pages"],
+  layout: "src/layouts/index.{tsx,jsx}",
+  src: ["src/pages/**/*.{tsx,jsx,mdx,md}"],
+  srcBases: ["src/pages"],
   bundle: {
     outName: "bundle",
   },
@@ -51,23 +51,23 @@ pluginSsg({
 ### layout
 
 - 型: `string`
-- デフォルト: `"/src/layouts/index.{tsx,jsx}"`
+- デフォルト: `"src/layouts/index.{tsx,jsx}"`
 
-すべてのページテンプレートをラップするコンポーネントの場所を指定します。対象ファイルはViteの機能でglob importされ最初に見つかったファイルが使用されます。
+すべてのページテンプレートをラップするコンポーネントの場所をproject root相対で指定します。対象ファイルはViteの機能でglob importされ最初に見つかったファイルが使用されます。従来の先頭slash付きpathも同じ場所として扱われます。
 
 ### src
 
 - 型: `string[]`
-- デフォルト: `["/src/pages/**/*.{tsx,jsx,mdx,md}"]`
+- デフォルト: `["src/pages/**/*.{tsx,jsx,mdx,md}"]`
 
-ページテンプレートをglob形式で指定します。対象ファイルはViteの機能でglob importされます。
+ページテンプレートをproject root相対のglob形式で指定します。対象ファイルはViteの機能でglob importされます。従来の先頭slash付きpathも同じ場所として扱われます。
 
 ### srcBases
 
 - 型: `string[]`
-- デフォルト: `["/src/pages"]`
+- デフォルト: `["src/pages"]`
 
-ページテンプレートをURLに変換する際に省くパス。前方一致で削除されます。
+ページテンプレートをURLに変換する際に省くproject root相対path。前方一致で削除されます。従来の先頭slash付きpathも同じ場所として扱われます。
 
 ### bundle
 
@@ -115,7 +115,7 @@ export default function () {
 
 すべてのページテンプレートをラップするJSX形式のテンプレート。
 
-- `/src/layouts/index.{tsx,jsx}`:デフォルトで使用されるファイル
+- `src/layouts/index.{tsx,jsx}`:デフォルトで使用されるファイル
 - `export default`:使用されるコンポーネント
 - `export const metadata`:ページとマージして使えるデータ
 - `props: LayoutProps`:ページとマージされたデータ
@@ -143,7 +143,7 @@ export default function (props: LayoutProps) {
 
 各HTMLページの元となるJSX形式のテンプレート。
 
-- `/src/pages/**/*.{tsx,jsx}`:デフォルトで使用されるファイル
+- `src/pages/**/*.{tsx,jsx}`:デフォルトで使用されるファイル
 - `export default`:使用されるコンポーネント
 - `export const metadata`:レイアウトとマージして使えるデータ
 - `props: PageProps`:レイアウトとマージされたデータ
@@ -172,7 +172,7 @@ export default function (props: PageProps) {
 リモートのデータを取得してページを生成することが可能です。
 
 - `getStaticData()`:ページ生成前に非同期処理を実行
-- `/src/pages/[foo]/[bar].{tsx,jsx}`:動的ルーティング
+- `src/pages/[foo]/[bar].{tsx,jsx}`:動的ルーティング
 
 ```tsx title="./src/pages/index.tsx"
 import type { StaticData, PageProps } from "minista/types"

@@ -20,6 +20,13 @@ describe("SSG route discovery", () => {
     ).toBe("/docs/*")
   })
 
+  test("treats srcBases with and without a leading slash equally", () => {
+    const sourceFile = "/src/pages/blog/index.tsx"
+    expect(
+      sourceFileToRoutePattern(sourceFile, { srcBases: ["src/pages"] }),
+    ).toBe(sourceFileToRoutePattern(sourceFile, options))
+  })
+
   test("discovers stable route IDs independent of input order", () => {
     const first = discoverRoutes(
       ["src/pages/z.tsx", "src/pages/index.tsx"],
