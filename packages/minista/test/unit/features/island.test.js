@@ -1,7 +1,9 @@
 import { describe, expect, test, vi } from "vitest"
+import { parseAst } from "rolldown/parseAst"
 
 import { NodeHtmlDocumentFactory } from "../../../src/adapters/html/index.js"
-import { SwcIslandSourceTransformer } from "../../../src/adapters/island/index.js"
+import { RolldownIslandSourceTransformer } from "../../../src/adapters/island/index.js"
+import { decodeSnippet } from "../../../src/plugins/island/utils/snippet.js"
 import {
   DiagnosticCollector,
   LifecycleRunner,
@@ -36,8 +38,10 @@ const options = {
 }
 
 describe("island feature", () => {
-  test("transforms client directives through the SWC adapter", () => {
-    const transformed = new SwcIslandSourceTransformer().transform(
+  test("transforms client directives through the Rolldown adapter", () => {
+    const transformed = new RolldownIslandSourceTransformer(
+      (code, parserOptions) => parseAst(code, parserOptions),
+    ).transform(
       'import { Counter } from "./counter.jsx"\nexport default () => <Counter initial={2} client:load />',
       "/project/src/page.jsx",
       options,
@@ -46,6 +50,61 @@ describe("island feature", () => {
     expect(transformed.snippets).toHaveLength(1)
     expect(transformed.code).toContain('data-island-client-directive="load"')
     expect(transformed.code).toContain("data-island-client-snippet=")
+    expect(transformed.map).toBeTruthy()
+  })
+
+  test("preserves source text and extracts client-only fallback", () => {
+    const source = `
+import Wrapper from "./wrapper.jsx"
+import { Counter as Count } from "./counter.jsx"
+
+export default () => (
+  <Wrapper client:only={{ timeout: 10 }}>
+    <Count slot="fallback">Loading...</Count>
+    {/* keep this comment */}
+    <Count initial={2} />
+  </Wrapper>
+)
+`
+    const transformed = new RolldownIslandSourceTransformer(
+      (code, parserOptions) => parseAst(code, parserOptions),
+    ).transform(source, "/project/src/page.jsx", options)
+
+    expect(() => parseAst(transformed.code, { lang: "tsx" })).not.toThrow()
+    expect(transformed.code).toContain("<Count slot=\"fallback\">Loading...</Count>")
+    expect(transformed.code).not.toContain("<Wrapper client:only")
+    expect(transformed.code).toContain(
+      'data-island-client-directive-params={"{\\\"timeout\\\":10}"}',
+    )
+    const snippet = decodeSnippet(transformed.snippets[0])
+    expect(snippet).toContain('import Wrapper from "/project/src/wrapper.jsx"')
+    expect(snippet).toContain(
+      'import { Counter as Count } from "/project/src/counter.jsx"',
+    )
+    expect(snippet).toContain("{/* keep this comment */}")
+    expect(snippet).not.toContain("Loading...")
+    expect(snippet).not.toContain("client:only")
+  })
+
+  test("transforms directives nested in JSX expressions", () => {
+    const source = `
+import { Counter } from "./counter.jsx"
+export default ({ show }) => (
+  <main>
+    <Counter client:load />
+    {show && <Counter client:visible />}
+  </main>
+)
+`
+    const transformed = new RolldownIslandSourceTransformer(
+      (code, parserOptions) => parseAst(code, parserOptions),
+    ).transform(source, "/project/src/page.jsx", options)
+
+    expect(transformed.snippets).toHaveLength(2)
+    expect(transformed.code.match(/data-island-client-directive=/g)).toHaveLength(2)
+    expect(transformed.code).not.toContain("client:load")
+    expect(transformed.code).not.toContain("client:visible")
+    expect(() => parseAst(transformed.code, { lang: "tsx" })).not.toThrow()
   })
 
   test("analyzes snippets, generates entries, bundles, and composes documents", async () => {

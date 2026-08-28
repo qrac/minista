@@ -10,7 +10,7 @@ import { normalizePath } from "vite"
 
 import {
   NodeIslandEntryGenerator,
-  SwcIslandSourceTransformer,
+  RolldownIslandSourceTransformer,
 } from "../../adapters/island/index.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { ViteBuildDataReader } from "../../adapters/vite/build-data-reader.js"
@@ -52,7 +52,6 @@ export const defaultOptions = {
   rootStyle: { display: "contents" },
 }
 const entryGenerator = new NodeIslandEntryGenerator()
-const sourceTransformer = new SwcIslandSourceTransformer()
 
 /**
  * @param {UserPluginOptions} uOpts
@@ -339,14 +338,16 @@ export function pluginIsland(uOpts = {}) {
       if (!isDev && !environment.config.build.ssr) return null
 
       let newCode = code
+      let sourceMap = null
 
       if (code.includes("client:")) {
-        const { code: transformdCode, snippets } = sourceTransformer.transform(
-          code,
-          id,
-          opts,
+        const sourceTransformer = new RolldownIslandSourceTransformer(
+          (source, options) => this.parse(source, options),
         )
+        const { code: transformdCode, map, snippets } =
+          sourceTransformer.transform(code, id, opts)
         newCode = transformdCode
+        sourceMap = map
 
         const server = isDev
           ? devServers.resolve({ path: "", filename: id })
@@ -360,7 +361,7 @@ export function pluginIsland(uOpts = {}) {
       }
       return {
         code: newCode,
-        map: null,
+        map: sourceMap,
       }
     },
     async generateBundle(_options, bundle) {

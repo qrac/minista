@@ -8,6 +8,9 @@ const preactAlias = {
 
 export default defineConfig(({ command, isSsrBuild }) => ({
   plugins: [pluginSsg(), pluginIsland(), react()],
+  build: {
+    assetsInlineLimit: 0,
+  },
   resolve: {
     alias: command === "build" && !isSsrBuild ? preactAlias : undefined,
   },

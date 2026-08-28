@@ -73,10 +73,10 @@
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
-    "@swc/core": "^1.15.47",
     "archiver": "^8.0.0",
     "cross-spawn": "^7.0.6",
     "js-beautify": "^2.0.3",
+    "magic-string": "^0.30.21",
     "mime-types": "^3.0.2",
     "mojigiri": "^0.3.0",
     "node-html-parser": "^9.0.1",

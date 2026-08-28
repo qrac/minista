@@ -69,5 +69,6 @@ describe.sequential("Preact compatibility App Build", () => {
     expect(
       files.some((file) => /^assets\/island-1-.+\.js$/.test(file)),
     ).toBe(true)
+    expect(files.filter((file) => /thumb-.+\.svg$/.test(file))).toHaveLength(1)
   })
 })

@@ -64,6 +64,21 @@ import {
   mergeSsrExternal,
 } from "../../shared/vite.js"
 
+/**
+ * @param {string | Uint8Array} left
+ * @param {string | Uint8Array} right
+ */
+function assetSourcesEqual(left, right) {
+  if (typeof left === "string" && typeof right === "string") {
+    return left === right
+  }
+  const encoder = new TextEncoder()
+  const leftBytes = typeof left === "string" ? encoder.encode(left) : left
+  const rightBytes = typeof right === "string" ? encoder.encode(right) : right
+  if (leftBytes.byteLength !== rightBytes.byteLength) return false
+  return leftBytes.every((value, index) => value === rightBytes[index])
+}
+
 /** @type {PluginOptions} */
 export const defaultOptions = {
   layout: "src/layouts/index.{tsx,jsx}",
@@ -1043,23 +1058,14 @@ export function pluginSsg(uOpts = {}) {
       state.externalOutputManifest = undefined
       state.externalOutputDirectory = ""
       state.externalClientPlugins = []
-      if (!state.ssgPages.length && !state.renderAssets.length) return
+      if (!state.ssgPages.length) return
 
       await Promise.all(
-        [
-          ...state.ssgPages.map((ssgPage) => ({
-            fileName: ssgPage.fileName,
-            source: ssgPage.html,
-          })),
-          ...state.renderAssets.map((asset) => ({
-            fileName: asset.fileName,
-            source: asset.source,
-          })),
-        ].map((asset) => {
+        state.ssgPages.map((ssgPage) => {
           this.emitFile({
             type: "asset",
-            source: asset.source,
-            fileName: asset.fileName,
+            source: ssgPage.html,
+            fileName: ssgPage.fileName,
           })
         }),
       )
@@ -1095,6 +1101,20 @@ export function pluginSsg(uOpts = {}) {
           delete bundle[key]
           break
         }
+      }
+
+      const state = getBuildState(this.environment)
+      for (const asset of state.renderAssets) {
+        const bundled = bundle[asset.fileName]
+        if (bundled?.type === "asset" &&
+          assetSourcesEqual(bundled.source, asset.source)) {
+          continue
+        }
+        this.emitFile({
+          type: "asset",
+          source: asset.source,
+          fileName: asset.fileName,
+        })
       }
     },
     writeBundle(options, bundle) {

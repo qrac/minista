@@ -1,2 +1,2 @@
 export { NodeIslandEntryGenerator } from "./node.js"
-export { SwcIslandSourceTransformer } from "./swc.js"
+export { RolldownIslandSourceTransformer } from "./rolldown.js"

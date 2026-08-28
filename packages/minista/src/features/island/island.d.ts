@@ -45,6 +45,7 @@ export interface IslandEntryGenerator {
 }
 export interface IslandSourceTransformResult {
   readonly code: string
+  readonly map?: string | null
   readonly snippets: readonly string[]
 }
 export interface IslandSourceTransformer {

@@ -201,6 +201,7 @@ Headはrender中のside effectで収集されるため、page treeを二重rende
 ## Rolldown boundary
 
 - Vite 8のproduction outputはRolldownだが、featureはRolldown `OutputBundle` を直接変更しない
+- Islandのsource transformはVite plugin contextのstableな`this.parse()`をadapterへ注入し、`lang: "tsx"`のESTree互換ASTを読み取り専用で使用する。変更はMagicStringによるsource range編集に限定する
 - adapterがchunk/asset metadataをnormalized `OutputManifest` に変換する。schema v1は実装済み
 - asset entryはlogical ArtifactIdで宣言し、file name matchingや `originalFileNames` scanはadapter内に限定
 - `generateBundle` で複数featureがHTMLを順番に変更するcurrent patternを廃止
