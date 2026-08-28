@@ -139,6 +139,26 @@ export default function (props: LayoutProps) {
 }
 ```
 
+Layoutは完全なHTML documentを返すこともできます。rootに`html`がある場合はMinistaの既定document wrapperを使わず、Layoutの`html`／`head`／`body`をそのまま使用します。
+
+```tsx title="./src/layouts/index.tsx"
+import type { LayoutProps } from "minista/types"
+
+export default function ({ children }: LayoutProps) {
+  return (
+    <html lang="ja">
+      <head>
+        <meta charSet="UTF-8" />
+        <link rel="icon" href="/favicon.svg" />
+      </head>
+      <body className="site">{children}</body>
+    </html>
+  )
+}
+```
+
+document Layoutでも既存の`Head`コンポーネントを併用できます。`Head`の属性とhead要素はLayoutに後から適用されます。`title`、charset、viewportが重複する場合は`Head`側が優先されます。どちらにもcharsetまたはviewportがない場合はMinistaが既定値を補います。出力時はcharsetをheadの先頭、viewportをその次へ配置します。
+
 ## Page
 
 各HTMLページの元となるJSX形式のテンプレート。

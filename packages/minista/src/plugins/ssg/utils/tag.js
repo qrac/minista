@@ -36,10 +36,27 @@ export function filterHeadTags(tags) {
   let autoKey = 0
 
   for (const item of tags) {
-    const key = item?.key != null ? item.key : `__auto_${autoKey++}`
+    const semanticKey = getSemanticHeadTagKey(item)
+    const key = semanticKey
+      ? `semantic:${semanticKey}`
+      : item?.key != null
+        ? `react:${item.key}`
+        : `auto:${autoKey++}`
     map.set(key, item)
   }
   return Array.from(map.values())
+}
+
+/**
+ * @param {React.ReactElement} tag
+ * @returns {"title" | "charset" | "viewport" | undefined}
+ */
+export function getSemanticHeadTagKey(tag) {
+  if (tag?.type === "title") return "title"
+  if (tag?.type !== "meta") return undefined
+  if ("charSet" in (tag.props ?? {})) return "charset"
+  if (String(tag.props?.name).toLowerCase() === "viewport") return "viewport"
+  return undefined
 }
 
 /**

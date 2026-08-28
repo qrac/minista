@@ -69,6 +69,11 @@ describe.sequential("config plugin mismatch fallback", () => {
       "utf8",
     )
     expect(html).toContain("<h1>Legacy plugin fallback</h1>")
+    expect(html.match(/<!doctype html>/gi)).toHaveLength(1)
+    expect(html.match(/<html/g)).toHaveLength(1)
+    expect(html.match(/<head/g)).toHaveLength(1)
+    expect(html.match(/<body/g)).toHaveLength(1)
+    expect(html).toContain('<html lang="en">')
 
     const [manifest, diagnostics] = await Promise.all([
       fs.promises.readFile(

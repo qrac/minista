@@ -87,6 +87,10 @@ export class NodeHtmlElement {
     return runElementOperation(this, "query", () => getNativeElement(this).innerHTML)
   }
 
+  get outerHtml() {
+    return runElementOperation(this, "query", () => getNativeElement(this).toString())
+  }
+
   /** @param {string} name */
   getAttribute(name) {
     return runElementOperation(this, "query", () =>

@@ -46,6 +46,8 @@ MDXは`pluginSsg().mdx`へ統合し、`@mdx-js/mdx`を直接使う遅延compiler
 
 公開plugin API、option semantics、page／layout contract、出力URLを互換対象として維持します。`pluginSsg()`のpath optionはproject root相対のslashなしをdefaultとし、従来の先頭slash付き表記も同じpathとして扱います。旧`--oneBuild`は削除し、指定時は`MINISTA_CLI_OPTION_REMOVED`を返します。
 
+Layoutは従来の部分treeに加え、rootに`html`を持つ完全なdocumentを返せます。document Layoutでは直書きした`html`／`head`／`body`を採用し、既存の`Head` APIを後から合成します。title、charset、viewportは`Head`側を優先して1つに正規化します。
+
 互換fallbackはViteのexperimental API変更に備えた2経路だけを保持します。新規fallbackは追加せず、発動条件と削除条件は [`vite.md`](vite.md#retained-compatibility-fallbacks) で管理します。
 
 ## Verification

@@ -94,6 +94,23 @@ describe("filterHeadTags", () => {
     expect(result[1].key).toBe("b")
     expect(result[0].props.name).toBe("last")
   })
+
+  it("title、charset、viewportはキーがなくても最後のタグを保持する", () => {
+    const tags = [
+      <title>Layout</title>,
+      <meta charSet="shift_jis" />,
+      <meta name="viewport" content="layout" />,
+      <title>Page</title>,
+      <meta charSet="UTF-8" />,
+      <meta name="viewport" content="page" />,
+    ]
+    const result = filterHeadTags(tags)
+
+    expect(result).toHaveLength(3)
+    expect(result[0].props.children).toBe("Page")
+    expect(result[1].props.charSet).toBe("UTF-8")
+    expect(result[2].props.content).toBe("page")
+  })
 })
 
 describe("headTagToStr", () => {

@@ -1,6 +1,6 @@
 # Architecture
 
-最終確認日: 2026-08-14
+最終確認日: 2026-08-28
 
 > この文書は現在の`v5` branchに実装されている事実だけを記載します。未実装、上流待ち、experimental、移行条件は`roadmap.md`を参照してください。
 
@@ -86,6 +86,7 @@ module-level global variableはほぼ使われていません。output claim col
 - public manifestの型、安全なprojection、安定serializer、atomic filesystem writerは実装済み。通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` とbuild diagnosticsを出力し、`check` の成功／失敗時にも `.minista/diagnostics.json` を出力する
 - representative fixture build、project command、Core/feature/adapterのunit testを追加済み
 - production SSGはRoute／Page Graph snapshotを`ViteSsgRenderLifecycle` adapterで可変Graphへ復元し、Core runnerのrender phaseを実行する。React 19では`ReactStaticRenderer`、Preact aliasまたはReact 18では`ReactRenderToStringRenderer`をportとして選択し、Headを含むpage treeを1回だけrenderする。render phaseはdraftを除外した`RenderedPage` ArtifactとGraph edgeを生成し、失敗を`MINISTA_RENDER_FAILED` diagnosticにする
+- SSG rendererはLayoutのrender結果がrootの`html`要素を持つ場合、その`html`／`head`／`body`をdocumentとして採用する。rootに`html`がない部分Layoutは従来の既定documentで囲む。既存の`Head`属性とhead要素はLayout documentへ後適用し、title、charset、viewportは`Head`側を優先して1つに正規化する。head内ではcharsetを先頭、viewportをその次へ配置する
 - parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを実装し、markerとgraph node IDをbindできる。parse、selector query、mutation、serializeのerrorはoperation別のstable diagnosticへ変換し、page node IDを保持する
 - CommentとSvgのcompatibility facadeは`ViteCompatibilityLifecycle` adapterからCore runnerのcompose phaseを実行し、domain featureがDocument Storeを変更する
 - Svgのfilesystem読込、SVGO、fragment parseは `NodeSvgSourceResolver` adapterに閉じ、missing source以外の失敗をoperation別のstable diagnosticへ変換する。project内のsource errorにはproject相対locationを付ける。resolverはdev serverまたはproduction bundle environment identity単位に保持する
@@ -362,7 +363,7 @@ manifest snapshotだけに依存せず、graph invariant、diagnostic code、dis
 | `pluginSsg()` | lifecycle coordinator、MDX page format、render asset出力を含むVite Plugin | path optionはproject root相対をdefaultとし、先頭slash付きもVite境界で同じpathへ変換する |
 | Image/Island/Entry/Sprite/Search | optionとcomponent importを維持 | temp path、marker、output hashの非公開挙動は保証しない |
 | Svg/Comment/Beautify/Archive | facadeからCore phase hookを実行 | user plugin配列順による偶発的順序は保証しない |
-| `Metadata`, `PageProps`, `LayoutProps`, `StaticData` | exportとmodule augmentationを維持 | 一部のruntime互換境界には`any`が残る |
+| `Metadata`, `PageProps`, `LayoutProps`, `StaticData` | exportとmodule augmentationを維持。Layoutは部分treeまたはroot `html`を持つdocumentを返せる | 一部のruntime互換境界には`any`が残る |
 | `--oneBuild` | v5で削除し、`MINISTA_CLI_OPTION_REMOVED` errorを返す | 既定buildが単一App Build lifecycleを使用するため代替optionは不要 |
 
 互換性の基準はdocumented API、option semantics、page/layout contract、出力URLです。`node_modules/.minista` の配置、virtual module ID、Vite plugin name、生成source名、plugin closure stateは非公開であり互換対象にしません。

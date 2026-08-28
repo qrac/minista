@@ -4,6 +4,7 @@ export interface HtmlElement {
   readonly tagName: string
   readonly text: string
   readonly innerHtml: string
+  readonly outerHtml: string
   getAttribute(name: string): string | undefined
   hasAttribute(name: string): boolean
   setAttribute(name: string, value: string): void
