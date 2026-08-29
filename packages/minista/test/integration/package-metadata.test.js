@@ -13,7 +13,7 @@ function readPackage(file) {
 }
 
 describe("release package metadata", () => {
-  test("aligns the supported Vite and Node.js ranges", () => {
+  test("keeps a broad Vite peer range and aligns the scaffold toolchain", () => {
     const workspace = readPackage("package.json")
     const minista = readPackage("packages/minista/package.json")
     const createMinista = readPackage("packages/create-minista/package.json")
@@ -25,7 +25,7 @@ describe("release package metadata", () => {
     )
     const vite = readPackage("node_modules/vite/package.json")
 
-    expect(minista.peerDependencies.vite).toBe(workspace.devDependencies.vite)
+    expect(minista.peerDependencies.vite).toBe("^8.0.0")
     expect(minimalJs.devDependencies.vite).toBe(workspace.devDependencies.vite)
     expect(minimalTs.devDependencies.vite).toBe(workspace.devDependencies.vite)
 

@@ -209,6 +209,9 @@ Headはrender中のside effectで収集されるため、page treeを二重rende
 
 ## Version and fallback policy
 
+- Vite peer rangeはstable major全体を許容し、既存projectのpackage manager warningで導入を妨げない
+- repositoryの開発環境とcreate-ministaのtemplateは検証済みの最新minorに揃える
+- peer rangeの最低versionはAPI contractを基準にやや楽観的に設定し、互換性問題の報告または再現を確認した場合に引き上げる
 - Vite peer rangeの引上げはcompatibility suiteと同時に行う
 - Environment/App Build adapterは最低・推奨・latest minorでintegration test
 - experimental APIのshape changeはadapterのminor releaseで吸収
