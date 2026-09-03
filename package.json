@@ -1,6 +1,6 @@
 {
   "name": "minista-monorepo",
-  "version": "4.0.10",
+  "version": "4.0.11",
   "private": true,
   "type": "module",
   "workspaces": [

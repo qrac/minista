@@ -1,33 +1,66 @@
 import fs from "node:fs"
 import path from "node:path"
 
+const configFileNameList = [
+  "vite.config.js",
+  "vite.config.mjs",
+  "vite.config.ts",
+  "vite.config.cjs",
+  "vite.config.mts",
+  "vite.config.cts",
+  "minista.config.js",
+  "minista.config.mjs",
+  "minista.config.ts",
+  "minista.config.cjs",
+  "minista.config.mts",
+  "minista.config.cts",
+]
+
 /**
  * @param {string} [rootArg]
  * @returns {string}
  */
 export function findConfigFile(rootArg) {
   const cwd = process.cwd()
-  const configFileList = [
-    "minista.config.js",
-    "minista.config.cjs",
-    "minista.config.mjs",
-    "minista.config.ts",
-    "minista.config.cts",
-    "minista.config.mts",
-  ]
+
   if (rootArg) {
-    for (const fileName of configFileList) {
-      const filePath = path.resolve(cwd, rootArg, fileName)
-      if (fs.existsSync(filePath)) {
-        return path.resolve(rootArg, fileName)
-      }
+    const configFiles = findConfigFiles(path.resolve(cwd, rootArg))
+    if (configFiles.length) {
+      return resolveConfigFile(configFiles, rootArg)
     }
   }
-  for (const fileName of configFileList) {
-    const filePath = path.resolve(cwd, fileName)
-    if (fs.existsSync(filePath)) {
-      return fileName
-    }
+
+  const configFiles = findConfigFiles(cwd)
+  if (configFiles.length) {
+    return resolveConfigFile(configFiles)
   }
+
   return ""
+}
+
+/**
+ * @param {string} root
+ * @returns {string[]}
+ */
+function findConfigFiles(root) {
+  return configFileNameList.filter((fileName) =>
+    fs.existsSync(path.resolve(root, fileName))
+  )
+}
+
+/**
+ * @param {string[]} configFiles
+ * @param {string} [rootArg]
+ * @returns {string}
+ */
+function resolveConfigFile(configFiles, rootArg) {
+  if (configFiles.length > 1) {
+    const fileList = configFiles.map((fileName) => `  ${fileName}`).join("\n")
+    throw new Error(
+      `Multiple config files were found.\n\n${fileList}\n\nPlease remove one of them. \`vite.config.js\` is recommended.`
+    )
+  }
+
+  const configFile = configFiles[0]
+  return rootArg ? path.resolve(rootArg, configFile) : configFile
 }
