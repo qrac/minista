@@ -8,6 +8,7 @@ import { runMinista } from "./utils/command.js"
 import {
   createRemovedOptionDiagnostic,
   reportCliDiagnostic,
+  reportCliError,
 } from "./utils/diagnostic.js"
 import {
   isProjectCommand,
@@ -41,6 +42,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error)
+  reportCliError(error)
   process.exit(1)
 })

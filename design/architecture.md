@@ -37,6 +37,8 @@ minista build (current programmatic path)
 
 CLI processは一つになり、render/client buildにはbuildId、`DiagnosticCollector`、`MemoryArtifactStore` を持つ同じbuild sessionを渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。App Builderはschema付きの単一resultを返し、CLIは成功、失敗、legacy fallbackの各経路でArtifactStoreをclearします。未対応CLI flagで別processのVite CLIへfallbackする場合は、buildIdで隔離したprivate `work/<buildId>/external` のschema付きJSONでrendered pagesとIsland snippetsを渡します。client pluginは同じscopeへ安全なmanifest候補を書き、親CLIは両process成功後だけ公開metadataへ昇格します。成功／失敗の両方でhandoff全体を削除します。旧`--oneBuild` optionはv5で削除し、指定時は`MINISTA_CLI_OPTION_REMOVED` errorで終了します。
 
+CLIは`vite.config.*`を優先順の先頭、`minista.config.*`を後方互換aliasとして検出します。複数のconfig fileが存在する場合は暗黙に選択せず、`MINISTA_CLI_CONFIG_CONFLICT` errorで終了します。
+
 App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。`ViteAppBuilderAdapter`は単一の`createBuilder()`でrender、clientを順にbuildし、その間にclient planを適用します。SSGはrender bundle評価とpage renderに加え、render environmentで確定したCSS／画像をclientへ引き継ぎます。render module graphからrouteごとのsource asset依存を収集し、schema付きArtifactとoutput claim consumerへ投影します。EntryとIslandはrendered page Artifactからclient entryを生成します。Comment、Svg、Sprite、Beautify、Archiveのoutput hookはclient environmentだけに適用します。既存の`isSsrBuild`config関数、legacy fallback、output transaction、structured build diagnostic、公開Output Manifestの境界は維持します。
 
 ### Dev lifecycle

@@ -7,6 +7,28 @@ export function reportCliDiagnostic(diagnostic) {
   if (diagnostic.hint) stream(`  hint: ${diagnostic.hint}`)
 }
 
+/** @param {unknown} error */
+export function reportCliError(error) {
+  const diagnostic = error && typeof error === "object"
+    ? Reflect.get(error, "diagnostic")
+    : undefined
+  if (diagnostic) reportCliDiagnostic(diagnostic)
+  else console.error(error)
+}
+
+/**
+ * @param {readonly string[]} configFiles
+ * @returns {import("../../core/diagnostics/index.js").Diagnostic}
+ */
+export function createConfigConflictDiagnostic(configFiles) {
+  const fileList = configFiles.map((fileName) => `  ${fileName}`).join("\n")
+  return Object.freeze({
+    code: "MINISTA_CLI_CONFIG_CONFLICT",
+    severity: "error",
+    message: `Error: Multiple config files were found.\n\n${fileList}\n\nPlease remove one of them. \`vite.config.js\` is recommended.`,
+  })
+}
+
 /** @param {string} option @returns {import("../../core/diagnostics/index.js").Diagnostic} */
 export function createRemovedOptionDiagnostic(option) {
   return Object.freeze({

@@ -1,3 +1,5 @@
+import fs from "node:fs"
+import os from "node:os"
 import path from "node:path"
 import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
@@ -5,6 +7,7 @@ import { fileURLToPath } from "node:url"
 import { describe, expect, test, vi } from "vitest"
 
 import {
+  createConfigConflictDiagnostic,
   createRemovedOptionDiagnostic,
   reportCliDiagnostic,
 } from "../../src/cli/utils/diagnostic.js"
@@ -13,11 +16,11 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const packageDir = path.resolve(here, "../..")
 const binFile = path.resolve(packageDir, "bin/minista.js")
 
-/** @param {string[]} args */
-function runCli(args) {
+/** @param {string[]} args @param {string} [cwd] */
+function runCli(args, cwd = packageDir) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [binFile, ...args], {
-      cwd: packageDir,
+      cwd,
       env: { ...process.env, NO_COLOR: "1" },
       stdio: ["ignore", "pipe", "pipe"],
     })
@@ -31,6 +34,46 @@ function runCli(args) {
 }
 
 describe("CLI diagnostics", () => {
+  test("creates a structured config conflict error", () => {
+    const diagnostic = createConfigConflictDiagnostic([
+      "vite.config.js",
+      "minista.config.js",
+    ])
+
+    expect(diagnostic).toEqual({
+      code: "MINISTA_CLI_CONFIG_CONFLICT",
+      severity: "error",
+      message:
+        "Error: Multiple config files were found.\n\n" +
+        "  vite.config.js\n" +
+        "  minista.config.js\n\n" +
+        "Please remove one of them. `vite.config.js` is recommended.",
+    })
+  })
+
+  test("reports config conflicts and exits before running Vite", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "minista-conflict-"))
+    try {
+      fs.writeFileSync(path.join(root, "vite.config.js"), "")
+      fs.writeFileSync(path.join(root, "minista.config.js"), "")
+
+      const result = await runCli(["--version"], root)
+
+      expect(result).toEqual({
+        code: 1,
+        stdout: "",
+        stderr:
+          "[MINISTA_CLI_CONFIG_CONFLICT] " +
+          "Error: Multiple config files were found.\n\n" +
+          "  vite.config.js\n" +
+          "  minista.config.js\n\n" +
+          "Please remove one of them. `vite.config.js` is recommended.\n",
+      })
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true })
+    }
+  })
+
   test("creates and reports a structured removed option error", () => {
     const diagnostic = createRemovedOptionDiagnostic("--oneBuild")
     const output = vi.spyOn(console, "error").mockImplementation(() => {})

@@ -16,21 +16,12 @@ import { LegacyViteBuilderAdapter } from "../../adapters/vite/legacy-builder.js"
 import { ViteDevServerAdapter } from "../../adapters/vite/dev-server.js"
 import { ViteCliProcessAdapter } from "../../adapters/vite/cli-process.js"
 import { createDiagnosticsReport } from "../../core/diagnostics/index.js"
-import { reportCliDiagnostic } from "./diagnostic.js"
+import { reportCliDiagnostic, reportCliError } from "./diagnostic.js"
 
 /** @typedef {import("../../adapters/vite/build-session.js").ViteBuildSession} ViteBuildSession */
 
 const require = createRequire(import.meta.url)
 const { version: ministaVersion } = require("../../../package.json")
-
-/** @param {unknown} error */
-function reportCliError(error) {
-  const diagnostic = error && typeof error === "object"
-    ? Reflect.get(error, "diagnostic")
-    : undefined
-  if (diagnostic) reportCliDiagnostic(diagnostic)
-  else console.error(error)
-}
 
 /** @param {unknown} value */
 function isDiagnostic(value) {
