@@ -21,6 +21,7 @@ import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   createSearchFeature,
+  createSearchFeatureDescriptor,
   createSearchDataArtifactId,
   getSearchPageUrl,
 } from "../../features/search/index.js"
@@ -78,7 +79,7 @@ export function pluginSearch(uOpts = {}) {
 
   return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-search",
-    api: { minista: { outputClaims: getOutputClaims, feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html-documents"], optionalAfter: ["comment", "svg", "image", "sprite", "entry", "island"] } } },
+    api: { minista: { outputClaims: getOutputClaims, feature: createSearchFeatureDescriptor(opts) } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
       const isAppBuild = Boolean(getViteAppEnvironmentNames(config))

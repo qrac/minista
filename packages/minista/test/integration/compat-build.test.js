@@ -48,7 +48,7 @@ async function removeGenerated() {
   ])
 }
 
-describe.sequential("v4 compatibility build", () => {
+describe("v4 compatibility build", () => {
   beforeAll(async () => {
     await removeGenerated()
     await runBuild()

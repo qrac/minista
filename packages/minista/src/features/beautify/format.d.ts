@@ -34,3 +34,6 @@ export declare function createOutputMatcher(
 export declare function createBeautifyFeature(
   options: BeautifyFeatureOptions,
 ): MinistaFeature<BeautifyFeatureOptions>
+export declare function createBeautifyFeatureDescriptor(
+  options: BeautifyFeatureOptions,
+): Omit<MinistaFeature<BeautifyFeatureOptions>, "hooks">

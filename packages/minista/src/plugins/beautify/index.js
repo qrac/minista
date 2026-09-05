@@ -12,6 +12,7 @@ import {
 } from "../../adapters/vite/compatibility-lifecycle.js"
 import {
   createBeautifyFeature,
+  createBeautifyFeatureDescriptor,
   createOutputMatcher,
 } from "../../features/beautify/index.js"
 import { mergeObj } from "../../shared/obj.js"
@@ -49,7 +50,7 @@ export function pluginBeautify(uOpts = {}) {
 
   return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-beautify",
-    api: { minista: { feature: { id: "beautify", apiVersion: 1, options: opts, provides: ["formatted-output"], requires: ["html-documents", "output-files"], optionalAfter: ["comment", "svg", "image", "sprite", "entry", "island", "search"] } } },
+    api: { minista: { feature: createBeautifyFeatureDescriptor(opts) } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       return command === "build" && !isSsrBuild

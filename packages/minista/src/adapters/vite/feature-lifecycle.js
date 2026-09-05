@@ -13,6 +13,30 @@ function handler(hook) {
     hook && typeof hook === "object" ? Reflect.get(hook, "handler") : undefined
 }
 
+/** @param {string} id */
+function toFacadeFeatureId(id) {
+  return id.startsWith("feature:") ? id.slice("feature:".length) : id
+}
+
+/**
+ * Keep the public Vite metadata shape stable while sourcing it from the Core
+ * descriptor. Core uses branded feature IDs; the compatibility facade has
+ * historically exposed their unbranded names.
+ * @param {import("../../core/lifecycle/index.js").MinistaFeature | Omit<import("../../core/lifecycle/index.js").MinistaFeature, "hooks">} feature
+ */
+function toViteFeatureDescriptor(feature) {
+  return Object.freeze({
+    ...feature,
+    id: toFacadeFeatureId(feature.id),
+    ...feature.after ? {
+      after: Object.freeze(feature.after.map(toFacadeFeatureId)),
+    } : {},
+    ...feature.optionalAfter ? {
+      optionalAfter: Object.freeze(feature.optionalAfter.map(toFacadeFeatureId)),
+    } : {},
+  })
+}
+
 /**
  * Schedule the entire application before selecting a hook's participants.
  * Domain operation dependencies are deliberately independent of Vite ordering.
@@ -53,6 +77,7 @@ export function registerViteFeatureLifecycle(plugin, options = {}) {
   /** @type {WeakMap<import("vite").ViteDevServer, Promise<unknown>>} */
   const pending = new WeakMap()
   const api = plugin.api.minista
+  api.feature = toViteFeatureDescriptor(api.feature)
   const operations = {
     /** @template T @param {import("vite").ViteDevServer} server @param {() => Promise<T>} operation @returns {Promise<T>} */
     runDev(server, operation) {

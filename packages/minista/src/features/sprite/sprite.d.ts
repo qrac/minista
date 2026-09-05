@@ -34,3 +34,6 @@ export declare function createSpriteFeature(
   builder: SpriteBuilder,
   outputs: SpriteOutputResolver,
 ): MinistaFeature<SpriteFeatureOptions>
+export declare function createSpriteFeatureDescriptor(
+  options: SpriteFeatureOptions,
+): Omit<MinistaFeature<SpriteFeatureOptions>, "hooks">

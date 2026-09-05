@@ -33,3 +33,6 @@ export declare function createEntryFeature(
   bundler: EntryBundler,
   outputs: EntryOutputResolver,
 ): MinistaFeature<EntryFeatureOptions>
+export declare function createEntryFeatureDescriptor(
+  options: EntryFeatureOptions,
+): Omit<MinistaFeature<EntryFeatureOptions>, "hooks">

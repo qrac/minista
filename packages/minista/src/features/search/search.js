@@ -15,6 +15,23 @@ import { createNodeId } from "../../core/graph/index.js"
 
 export const SEARCH_FEATURE_ID = createNodeId("feature", "search")
 
+/**
+ * @param {SearchFeatureOptions} options
+ * @returns {Omit<import("../../core/lifecycle/index.js").MinistaFeature<SearchFeatureOptions>, "hooks">}
+ */
+export function createSearchFeatureDescriptor(options) {
+  return Object.freeze({
+    id: SEARCH_FEATURE_ID,
+    apiVersion: 1,
+    options: Object.freeze({ ...options }),
+    requires: [capability("html-documents")],
+    provides: [capability("search-data")],
+    optionalAfter: ["comment", "svg", "image", "sprite", "entry", "island"].map(
+      (id) => createNodeId("feature", id),
+    ),
+  })
+}
+
 /** @param {string} value */
 function capability(value) {
   return /** @type {Capability} */ (/** @type {unknown} */ (value))
@@ -124,17 +141,12 @@ export function composeSearchOutputDocument(document, url, options) {
  */
 export function createSearchFeature(options, analyzer) {
   return Object.freeze({
-    id: SEARCH_FEATURE_ID,
-    apiVersion: 1,
-    options: Object.freeze({ ...options }),
-    requires: [capability("html-documents")],
-    provides: [capability("search-data")],
+    ...createSearchFeatureDescriptor(options),
     hooks: Object.freeze({
       /** @param {PhaseContext} context */
       async analyze(context) {
-        const pages = context.graph.snapshot().pages
         for (const document of context.documents.list()) {
-          const page = pages.get(document.pageId)
+          const page = context.graph.getPage(document.pageId)
           if (!page) continue
           const fileName = getSearchPageFileName(page.url)
           if (
@@ -158,7 +170,7 @@ export function createSearchFeature(options, analyzer) {
             content: JSON.stringify(record),
             scope: { kind: "page", pageId: page.id },
           })
-          if (context.graph.snapshot().features.has(SEARCH_FEATURE_ID)) {
+          if (context.graph.hasFeature(SEARCH_FEATURE_ID)) {
             context.graph.addArtifact({
               id,
               kind: "data",
@@ -190,7 +202,7 @@ export function createSearchFeature(options, analyzer) {
           mediaType: "application/json",
           content: JSON.stringify(data),
         })
-        if (context.graph.snapshot().features.has(SEARCH_FEATURE_ID)) {
+        if (context.graph.hasFeature(SEARCH_FEATURE_ID)) {
           context.graph.addArtifact({
             id,
             kind: "data",
@@ -202,9 +214,12 @@ export function createSearchFeature(options, analyzer) {
       },
       /** @param {PhaseContext} context */
       compose(context) {
-        const pages = context.graph.snapshot().pages
         for (const document of context.documents.list()) {
-          composeSearchDocument(document, pages.get(document.pageId), options)
+          composeSearchDocument(
+            document,
+            context.graph.getPage(document.pageId),
+            options,
+          )
         }
       },
     }),

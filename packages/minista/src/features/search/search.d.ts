@@ -77,3 +77,6 @@ export declare function createSearchFeature(
   options: SearchFeatureOptions,
   analyzer: SearchDocumentAnalyzer,
 ): MinistaFeature<SearchFeatureOptions>
+export declare function createSearchFeatureDescriptor(
+  options: SearchFeatureOptions,
+): Omit<MinistaFeature<SearchFeatureOptions>, "hooks">

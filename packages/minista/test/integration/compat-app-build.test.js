@@ -16,7 +16,7 @@ const packageDir = path.resolve(here, "../..")
 const sourceFixtureDir = path.resolve(here, "../fixtures/compat-basic")
 let fixtureDir = ""
 
-describe.sequential("v4 compatibility App Build", () => {
+describe("v4 compatibility App Build", () => {
   /** @type {import("../../src/adapters/vite/app-builder.js").ViteAppBuildResult["environments"] | undefined} */
   let environments
   /** @type {import("../../src/core/manifest/index.js").OutputManifest | undefined} */

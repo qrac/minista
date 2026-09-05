@@ -23,7 +23,7 @@ import {
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
-import { createEntryFeature } from "../../features/entry/index.js"
+import { createEntryFeature, createEntryFeatureDescriptor } from "../../features/entry/index.js"
 import { getRootDir } from "../../shared/path.js"
 import { getHtmlPageUrl } from "../../shared/filename.js"
 import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
@@ -147,7 +147,7 @@ export function pluginEntry(uOpts = {}) {
 
   return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-entry",
-    api: { minista: { prepareClient: prepareAppClient, outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"], optionalAfter: ["comment", "svg"] } } },
+    api: { minista: { prepareClient: prepareAppClient, outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: createEntryFeatureDescriptor(opts) } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
       const isAppBuild = command === "build" &&

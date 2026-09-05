@@ -10,6 +10,21 @@ import { BEAUTIFY_FEATURE_ID } from "../beautify/index.js"
 
 export const ARCHIVE_FEATURE_ID = createNodeId("feature", "archive")
 
+/** @param {ArchiveFeatureOptions} options */
+export function createArchiveFeatureDescriptor(options) {
+  return Object.freeze({
+    id: ARCHIVE_FEATURE_ID,
+    apiVersion: /** @type {const} */ (1),
+    options: Object.freeze({
+      ...options,
+      archives: Object.freeze([...options.archives]),
+    }),
+    requires: [capability("output-files")],
+    provides: [capability("archives")],
+    optionalAfter: [BEAUTIFY_FEATURE_ID],
+  })
+}
+
 /** @param {string} value */
 function capability(value) {
   return /** @type {Capability} */ (/** @type {unknown} */ (value))
@@ -22,15 +37,7 @@ function capability(value) {
  */
 export function createArchiveFeature(options, builder) {
   return Object.freeze({
-    id: ARCHIVE_FEATURE_ID,
-    apiVersion: 1,
-    options: Object.freeze({
-      ...options,
-      archives: Object.freeze([...options.archives]),
-    }),
-    requires: [capability("output-files")],
-    provides: [capability("archives")],
-    optionalAfter: [BEAUTIFY_FEATURE_ID],
+    ...createArchiveFeatureDescriptor(options),
     hooks: Object.freeze({
       /** @param {PhaseContext} context */
       async finalize(context) {

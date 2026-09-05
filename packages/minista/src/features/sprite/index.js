@@ -6,5 +6,6 @@ export {
   composeSpriteDocument,
   createSpriteArtifactId,
   createSpriteFeature,
+  createSpriteFeatureDescriptor,
 } from "./sprite.js"
 export { DevSpritePageIndex } from "./dev-page-index.js"

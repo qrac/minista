@@ -7,6 +7,7 @@ export {
   createSearchData,
   createSearchDataArtifactId,
   createSearchFeature,
+  createSearchFeatureDescriptor,
   getSearchPageFileName,
   getSearchPageUrl,
 } from "./search.js"

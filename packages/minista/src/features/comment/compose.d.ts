@@ -11,3 +11,6 @@ export declare function composeCommentDocument(document: HtmlDocument): number
 export declare function createCommentFeature(
   options?: CommentFeatureOptions,
 ): MinistaFeature<CommentFeatureOptions>
+export declare function createCommentFeatureDescriptor(
+  options?: CommentFeatureOptions,
+): Omit<MinistaFeature<CommentFeatureOptions>, "hooks">

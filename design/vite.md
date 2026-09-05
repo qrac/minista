@@ -1,8 +1,8 @@
 # Vite boundary
 
-最終確認日: 2026-08-14
+最終確認日: 2026-09-05
 
-確認対象: repository lockfileのVite 8.2.1、およびVite / React公式資料
+確認対象: 最低対応Vite 8.1.0、repository lockfileのVite 8.2.2、対応minor最新、およびVite / React公式資料
 
 ## Boundary rule
 
@@ -26,16 +26,16 @@ Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvir
 | Environment API | Release Candidate。major間の安定を目指すが一部APIはexperimental | render/client modelに採用。adapterに隔離しversion matrixを持つ |
 | `RunnableDevEnvironment.runner.import()` / ModuleRunner | Environment APIのmodern SSR evaluation path。server module runner factory自体にはexperimental表記あり | default dev evaluation候補。`isRunnableDevEnvironment` guardを必須にする |
 | App Build (`builder: {}`, `vite build --app`) | Environment API framework API。将来default予定 | Minista CLIはprogrammatic pathを所有する |
-| `createBuilder()` | Vite 8.2.1 type declarationで `@experimental` | v5 adapterで採用するがminor version testとfallbackを持つ |
-| `buildApp` hook | Vite 8.2.1 type declarationで `@experimental` | orchestration補助。Core lifecycle自体をhook semanticsに依存させない |
+| `createBuilder()` | Vite 8.2.2 type declarationで `@experimental` | v5 adapterで採用するがminor version testとfallbackを持つ |
+| `buildApp` hook | Vite 8.2.2 type declarationで `@experimental` | orchestration補助。Core lifecycle自体をhook semanticsに依存させない |
 | `builder.sharedConfigBuild`, `sharedPlugins` | experimental | 初期不採用 |
 | `this.environment`, environment module graph, `hotUpdate` | Environment API migration path | adapter内で採用。stateはenvironment単位に分離 |
-| `perEnvironmentState()` | Vite 8.2.1 type declarationで `@experimental` | Core前提にせず、adapter所有の互換state storeを使用 |
-| `transformIndexHtml()` hook context | Vite 8.2.1ではenvironmentを公開せず、serverもoptional | dev featureは登録server identityをadapterで解決し、server lifetimeのDocument lifecycleを共有 |
+| `perEnvironmentState()` | Vite 8.2.2 type declarationで `@experimental` | Core前提にせず、adapter所有の互換state storeを使用 |
+| `transformIndexHtml()` hook context | Vite 8.2.2ではenvironmentを公開せず、serverもoptional | dev featureは登録server identityをadapterで解決し、server lifetimeのDocument lifecycleを共有 |
 | `server.ssrLoadModule()` | backward-compatible legacy API。Environment APIはrunnerをreplacementと説明 | 使用しない。`ViteDevModuleEvaluator`がModuleRunnerへ適合 |
 | top-level `ssr` config | Environment API stable後にdeprecated予定 | 新adapterは `environments.render` を使用。public config compatibilityの入力だけ変換 |
 | `server.moduleGraph`, `handleHotUpdate`, `server.ws` | client/ssr mixed backward-compatible view | 新規codeではavoid。per-environment graph / hot channelを使う |
-| `experimental.bundledDev` | Vite 8.1でexperimental、8.2.1 typeではhighly experimental | user opt-in experimentのみ。Core依存禁止 |
+| `experimental.bundledDev` | Vite 8.1でexperimental、8.2.2 typeではhighly experimental | user opt-in experimentのみ。Core依存禁止 |
 
 公式資料:
 
@@ -54,7 +54,7 @@ Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvir
 
 通常の `minista build` はVite CLI processを二回spawnせず、同じNode.js processで `ViteAppBuilderAdapter` が一つのBuilderからrender/clientを順にbuildします。configがisSsrBuildを参照する場合やplugin構成がenvironment間で異なる場合は `LegacyViteBuilderAdapter`、任意のVite CLI flagをprogrammatic configへ変換できない場合は従来のCLIへ段階的にfallbackします。
 
-EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。`createViteAppConfig()` はrenderをserver consumerかつSSR build、clientをclient consumerかつnon-SSR buildとして構成します。`ViteEnvironmentInputAdapter` は `prepareClient` 時に解決済みRolldown optionを保ったままinputを差し替えます。このlate inputが実際のVite 8.2.1 client buildに反映されることはintegration testで確認済みです。
+EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。`createViteAppConfig()` はrenderをserver consumerかつSSR build、clientをclient consumerかつnon-SSR buildとして構成します。`ViteEnvironmentInputAdapter` は `prepareClient` 時に解決済みRolldown optionを保ったままinputを差し替えます。このlate inputはVite 8.1.0以降でintegration testを通過します。Vite 8.0.0ではEntry／Islandのclient inputが欠落することを実測したため対応rangeに含めません。
 
 App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。そのため `prepareViteClientEnvironment()` が `api.minista.prepareClient` をfeature descriptorのcapability / `after` でscheduleし、late preparationをconfig hookから分離します。SSG pluginは `config()` でrender/clientの静的設定を既存environment optionへ合成し、`prepareClient` でrender bundle評価、page render、Artifact生成を行います。Islandはsnippet Artifactをrenderで保存し、client preparationでsource planとentryを生成します。Entryもrendered page Artifactを解析してentryを生成し、両者は `ViteEnvironmentInputAdapter.merge()` でSSGのthrough inputを消さずnamed inputを合成します。render bundleでHead contextをrendererと共有するため、`minista/context` と `minista/head` はuserのRolldown external設定を保ったままexternalizeします。React関連importもrenderでexternalizeし、client限定のPreact aliasから分離します。Minista専用config markerかenvironment名も伝播するため、通常のVite `builder` optionをApp Buildと誤認しません。Comment、Svg、Sprite、Beautify、Archive、Bundleは `applyToEnvironment` でclientだけにoutput hookを登録し、ImageとSearchもenvironment別source transformを使うため、render側でclient用HTML変更やarchive生成を行いません。全compatibility plugin fixtureは単一Builder、isSsrBuildでaliasを分けるPreact fixtureはLegacy経路で検証しています。output claim collectorは対象environmentをproviderへ渡し、生成pluginは `ViteEnvironmentState` にclaimをidentity単位で分離して保持します。build sessionはbuildId、ArtifactStore、diagnostic collectorを共有し、CLIが全終了経路でArtifactStoreをclearします。App Builderはschema version、status、buildId、diagnostics、environment status、Core `OutputManifest` を一つのresultとして返します。manifestはlogical ID、kind、fileName、公開URL、byte size、entry/import関係だけを持ち、Vite Builder、実行code、asset source、絶対facade pathを含みません。
 

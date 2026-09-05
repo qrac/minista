@@ -54,7 +54,7 @@ async function removeGenerated() {
   await fs.promises.rmdir(nodeModulesDir).catch(() => {})
 }
 
-describe.sequential("Preact compatibility build", () => {
+describe("Preact compatibility build", () => {
   beforeAll(async () => {
     await removeGenerated()
     await runBuild()

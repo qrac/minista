@@ -20,6 +20,7 @@ import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import {
   createSpriteFeature,
+  createSpriteFeatureDescriptor,
   DevSpritePageIndex,
 } from "../../features/sprite/index.js"
 import { mergeObj } from "../../shared/obj.js"
@@ -84,7 +85,7 @@ export function pluginSprite(uOpts = {}) {
 
   return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-sprite",
-    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html-documents"], optionalAfter: ["comment", "svg"] } } },
+    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: createSpriteFeatureDescriptor(opts) } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       return command === "serve" || (command === "build" && !isSsrBuild)

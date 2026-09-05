@@ -88,3 +88,6 @@ export declare function createIslandFeature(
   bundler: IslandBundler,
   outputs: IslandOutputResolver,
 ): MinistaFeature<IslandFeatureOptions>
+export declare function createIslandFeatureDescriptor(
+  options: IslandFeatureOptions,
+): Omit<MinistaFeature<IslandFeatureOptions>, "hooks">

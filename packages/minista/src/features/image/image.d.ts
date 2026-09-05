@@ -92,3 +92,6 @@ export declare function createImageFeature(
   generator: ImageGenerator,
   outputs: ImageOutputResolver,
 ): MinistaFeature<ImageFeatureOptions>
+export declare function createImageFeatureDescriptor(
+  options: ImageFeatureOptions,
+): Omit<MinistaFeature<ImageFeatureOptions>, "hooks">

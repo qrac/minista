@@ -29,7 +29,7 @@ async function removeGenerated() {
   ])
 }
 
-describe.sequential("SSG App Build", () => {
+describe("SSG App Build", () => {
   const artifacts = new MemoryArtifactStore()
   /** @type {import("../../src/adapters/vite/app-builder.js").ViteAppBuildResult["environments"] | undefined} */
   let environments

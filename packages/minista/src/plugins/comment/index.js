@@ -11,7 +11,7 @@ import {
   createViteCompatibilityTraceHooks,
 } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
-import { createCommentFeature } from "../../features/comment/index.js"
+import { createCommentFeature, createCommentFeatureDescriptor } from "../../features/comment/index.js"
 import { filterOutputAssets } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
@@ -28,7 +28,7 @@ export function pluginComment(uOpts = {}) {
 
   return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-comment",
-    api: { minista: { feature: { id: "comment", apiVersion: 1, options: opts, provides: ["html-comments"], requires: ["html-documents"] } } },
+    api: { minista: { feature: createCommentFeatureDescriptor(opts) } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       return command === "serve" || (command === "build" && !isSsrBuild)

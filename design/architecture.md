@@ -70,7 +70,7 @@ interface RenderedPage {
 
 `RenderedPage`の生成元はRoute／Page Graphとrendererであり、通常buildではArtifactStore、外部fallbackではschema付きJSONに保存します。`ViteBuildDataReader`が保存方式の差を吸収し、Entry／Islandはdomain snapshotだけに依存します。SSG／Searchのdev virtual moduleも同じ型を使用し、旧`SsgPage`型は削除済みです。Project Graph、branded node ID、AssetNode、IslandNode、ImageNode、BuildArtifact、各domain featureの明示phaseも実装済みです。production outputを持つfeature facadeはCore lifecycle runnerへ接続済みです。
 
-各公開pluginは`api.minista.feature`に`id`、`apiVersion`、`options`、`provides`、`requires`と必要な順序制約を持つmachine-readable metadataを公開します。production operationの全体順序はadapter coordinatorがCore schedulerから取得し、operation内のphaseはscope付きCore runnerから実行されます。
+各公開pluginは`api.minista.feature`に`id`、`apiVersion`、`options`、`provides`、`requires`と必要な順序制約を持つmachine-readable metadataを公開します。Comment、Svg、Search、Beautify、Archive、Entry、Image、Island、SpriteはCore feature factoryと同じdescriptor生成関数を使い、compatibility facadeはbranded FeatureIdだけを従来の公開名へ正規化します。production operationの全体順序はadapter coordinatorがCore schedulerから取得し、operation内のphaseはscope付きCore runnerから実行されます。
 
 ### 残っているcompatibility境界
 
@@ -133,6 +133,8 @@ packages/minista/src/
 
 Core用 `tsconfig.core.json` はJavaScript + JSDocと隣接 `.d.ts` をstrict modeで直接型検査します。repository全体の `tsc --noEmit` でも同じsourceを検査します。
 
+PRでは`.github/workflows/ci.yml`が全testとtypecheckを実行し、Vite 8.1.0、lockfile版、対応minor最新のapplication contractを分離して検証します。React 18 fallbackとPreactも専用jobで検証します。
+
 package entry、CLI、testは `src/` を直接参照します。`prepare`、`prepack`、test前のruntime buildは行わず、編集直後のsourceをそのまま検証できます。
 
 ## 残存する実装上の制約
@@ -161,7 +163,7 @@ Adapters
 
 ### Project Graph
 
-Project Graphは安定IDを持つnodeを`ProjectGraph`へ追加し、`snapshot()`で読み取り用Mapへ投影します。`ProjectGraph.fromSnapshot()`はadapter境界でsnapshotから可変Graphを復元します。
+Project Graphは安定IDを持つnodeを`ProjectGraph`へ追加し、`snapshot()`で読み取り用Mapへ投影します。内部にpattern→RouteIdとURL→PageIdのindexを持ち、重複検出、更新、削除をMap lookupで行います。`hasFeature()`、Route／PageのID・node query、`listPages()`はMap全体を複製せずにphase中の軽量な参照を提供します。`ProjectGraph.fromSnapshot()`はadapter境界でsnapshotから可変Graphとindexを復元します。
 
 ```ts
 type NodeId<T extends string> = `${T}:${string}`

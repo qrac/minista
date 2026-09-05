@@ -46,6 +46,10 @@ emptyOutDir:falseとproject外outDirの既定動作ではbackupを作ったう�
 
 実Vite fixtureでplugin順序交換、dev SearchのSVG文字列、同名SSR plugin、Preact fallback、連続再build、emptyOutDir:false、metadataとpost hookの失敗復元を検証します。unitでは全descriptorの依存検証、operationの一度だけの実行、dev queue、phase停止、危険なoutDir、commit後cleanup失敗を検証します。
 
+PR gateは全testとtypecheckに加え、Vite 8.1.0、repository lockfile版、対応minor最新でapplication contractを実行します。React 18とPreactのcompatibility経路も別に検証します。実測でVite 8.0.0はrender後のlate client inputを反映せずEntry／Island出力が欠落したため、peer rangeの最低versionは8.1.0とします。
+
+feature descriptorはdomain feature factory側を正本とし、Vite compatibility facadeはCoreのbranded FeatureIdを従来の公開名へ変換するだけにします。coordinatorと各feature内のscope付きphase構造は維持します。
+
 ## Rejected alternatives
 
 plugin名や関数の文字列表現だけでconfigの同値性を判定する方法はclosureを識別できません。配列順へ依存したHTML変換やmetadata保存前のcommitも、今回再現した不整合を残すため採用しません。

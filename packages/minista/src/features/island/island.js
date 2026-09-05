@@ -16,6 +16,21 @@ import { createNodeId } from "../../core/graph/index.js"
 
 export const ISLAND_FEATURE_ID = createNodeId("feature", "island")
 
+/** @param {IslandFeatureOptions} options */
+export function createIslandFeatureDescriptor(options) {
+  return Object.freeze({
+    id: ISLAND_FEATURE_ID,
+    apiVersion: /** @type {const} */ (1),
+    options: Object.freeze({
+      ...options,
+      rootStyle: Object.freeze({ ...options.rootStyle }),
+    }),
+    requires: [capability("html-documents")],
+    provides: [capability("island-entries")],
+    optionalAfter: ["comment", "svg"].map((id) => createNodeId("feature", id)),
+  })
+}
+
 /** @param {string} value */
 function capability(value) {
   return /** @type {Capability} */ (/** @type {unknown} */ (value))
@@ -212,14 +227,7 @@ export function composeIslandDocument(
  */
 export function createIslandFeature(options, generator, bundler, outputs) {
   return Object.freeze({
-    id: ISLAND_FEATURE_ID,
-    apiVersion: 1,
-    options: Object.freeze({
-      ...options,
-      rootStyle: Object.freeze({ ...options.rootStyle }),
-    }),
-    requires: [capability("html-documents")],
-    provides: [capability("island-entries")],
+    ...createIslandFeatureDescriptor(options),
     hooks: Object.freeze({
       /** @param {PhaseContext} context */
       async analyze(context) {
@@ -242,7 +250,7 @@ export function createIslandFeature(options, generator, bundler, outputs) {
             content: JSON.stringify(references),
             scope: { kind: "page", pageId: document.pageId },
           })
-          if (context.graph.snapshot().features.has(ISLAND_FEATURE_ID)) {
+          if (context.graph.hasFeature(ISLAND_FEATURE_ID)) {
             context.graph.addArtifact({
               id,
               kind: "data",
@@ -253,7 +261,7 @@ export function createIslandFeature(options, generator, bundler, outputs) {
             })
           }
         }
-        if (context.graph.snapshot().features.has(ISLAND_FEATURE_ID)) {
+        if (context.graph.hasFeature(ISLAND_FEATURE_ID)) {
           for (const snippet of [
             ...new Set(allReferences.map(({ snippet }) => snippet)),
           ]) {
@@ -303,7 +311,7 @@ export function createIslandFeature(options, generator, bundler, outputs) {
           mediaType: "application/vnd.minista.island-sources+json",
           content: JSON.stringify(plan),
         })
-        if (context.graph.snapshot().features.has(ISLAND_FEATURE_ID)) {
+        if (context.graph.hasFeature(ISLAND_FEATURE_ID)) {
           context.graph.addArtifact({
             id: createIslandSourcePlanArtifactId(),
             kind: "data",
@@ -329,7 +337,7 @@ export function createIslandFeature(options, generator, bundler, outputs) {
           mediaType: "application/vnd.minista.island-bundle+json",
           content: JSON.stringify(bundled),
         })
-        if (context.graph.snapshot().features.has(ISLAND_FEATURE_ID)) {
+        if (context.graph.hasFeature(ISLAND_FEATURE_ID)) {
           context.graph.addArtifact({
             id: createIslandBundleArtifactId(),
             kind: "data",

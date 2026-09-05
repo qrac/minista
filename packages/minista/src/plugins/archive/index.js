@@ -17,7 +17,7 @@ import {
 } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
-import { createArchiveFeature } from "../../features/archive/index.js"
+import { createArchiveFeature, createArchiveFeatureDescriptor } from "../../features/archive/index.js"
 import { getRootDir } from "../../shared/path.js"
 
 /** @type {PluginOptions} */
@@ -45,7 +45,7 @@ export function pluginArchive(uOpts = {}) {
 
   return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-archive",
-    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["output-files"], optionalAfter: ["beautify"] } } },
+    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: createArchiveFeatureDescriptor(opts) } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       return command === "build" && !isSsrBuild

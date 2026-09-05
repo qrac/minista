@@ -27,3 +27,6 @@ export declare function createSvgFeature(
   options: SvgFeatureOptions,
   sources: SvgSourceResolver,
 ): MinistaFeature<SvgFeatureOptions>
+export declare function createSvgFeatureDescriptor(
+  options: SvgFeatureOptions,
+): Omit<MinistaFeature<SvgFeatureOptions>, "hooks">

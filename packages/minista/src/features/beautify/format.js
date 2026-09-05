@@ -13,6 +13,20 @@ import { createNodeId } from "../../core/graph/index.js"
 
 export const BEAUTIFY_FEATURE_ID = createNodeId("feature", "beautify")
 
+/** @param {BeautifyFeatureOptions} options */
+export function createBeautifyFeatureDescriptor(options) {
+  return Object.freeze({
+    id: BEAUTIFY_FEATURE_ID,
+    apiVersion: /** @type {const} */ (1),
+    options: Object.freeze({ ...options }),
+    requires: [capability("html-documents"), capability("output-files")],
+    provides: [capability("formatted-output")],
+    optionalAfter: ["comment", "svg", "image", "sprite", "entry", "island", "search"].map(
+      (id) => createNodeId("feature", id),
+    ),
+  })
+}
+
 /** @param {string} value */
 function capability(value) {
   return /** @type {Capability} */ (/** @type {unknown} */ (value))
@@ -78,11 +92,7 @@ export function createBeautifyFeature(options) {
   const format = createOutputFormatter(options)
 
   return Object.freeze({
-    id: BEAUTIFY_FEATURE_ID,
-    apiVersion: 1,
-    options: Object.freeze({ ...options }),
-    requires: [capability("html-documents"), capability("output-files")],
-    provides: [capability("formatted-output")],
+    ...createBeautifyFeatureDescriptor(options),
     hooks: Object.freeze({
       /** @param {PhaseContext} context */
       compose(context) {

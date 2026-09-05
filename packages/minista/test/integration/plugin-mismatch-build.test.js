@@ -54,7 +54,7 @@ async function removeGenerated() {
   await fs.promises.rmdir(nodeModulesDir).catch(() => {})
 }
 
-describe.sequential("config plugin mismatch fallback", () => {
+describe("config plugin mismatch fallback", () => {
   beforeAll(async () => {
     await removeGenerated()
     await runBuild()

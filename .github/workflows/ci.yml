@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, v5]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc --noEmit
+
+  vite-compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: minimum
+            vite: "8.1.0"
+            react: "19.2.8"
+          - name: locked
+            vite: "8.2.2"
+            react: "19.2.8"
+          - name: latest-supported-minor
+            vite: "8.2"
+            react: "19"
+    name: Vite ${{ matrix.name }} (${{ matrix.vite }}, React ${{ matrix.react }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+      - run: npm ci
+      - name: Install compatibility versions
+        run: npm install --no-save --package-lock=false vite@${{ matrix.vite }} react@${{ matrix.react }} react-dom@${{ matrix.react }}
+      - name: Record resolved versions
+        run: node -e "for (const name of ['vite','react','react-dom']) console.log(name, require(name + '/package.json').version)"
+      - name: Run Vite application contracts
+        run: >-
+          npm test -- --run
+          packages/minista/test/integration/application-contract.test.js
+          packages/minista/test/integration/compat-app-build.test.js
+          packages/minista/test/integration/ssg-app-build.test.js
+          packages/minista/test/integration/vite-app-builder.test.js
+          packages/minista/test/unit/core/project-manifest.test.js
+      - name: Run Preact compatibility
+        run: npm test -- --run packages/minista/test/integration/preact-app-build.test.js
+
+  react-18-compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false react@18.3.1 react-dom@18.3.1
+      - run: >-
+          npm test -- --run
+          packages/minista/test/integration/application-contract.test.js
+          packages/minista/test/integration/ssg-app-build.test.js
+          packages/minista/test/integration/preact-app-build.test.js

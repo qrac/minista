@@ -14,6 +14,18 @@ import { createNodeId, toProjectPath } from "../../core/graph/index.js"
 
 export const ENTRY_FEATURE_ID = createNodeId("feature", "entry")
 
+/** @param {EntryFeatureOptions} options */
+export function createEntryFeatureDescriptor(options) {
+  return Object.freeze({
+    id: ENTRY_FEATURE_ID,
+    apiVersion: /** @type {const} */ (1),
+    options: Object.freeze({ ...options }),
+    requires: [capability("html-documents")],
+    provides: [capability("asset-entries")],
+    optionalAfter: ["comment", "svg"].map((id) => createNodeId("feature", id)),
+  })
+}
+
 /** @param {string} value */
 function capability(value) {
   return /** @type {Capability} */ (/** @type {unknown} */ (value))
@@ -127,11 +139,7 @@ export function composeEntryDocument(document, outputs, resolver) {
  */
 export function createEntryFeature(options, bundler, outputs) {
   return Object.freeze({
-    id: ENTRY_FEATURE_ID,
-    apiVersion: 1,
-    options: Object.freeze({ ...options }),
-    requires: [capability("html-documents")],
-    provides: [capability("asset-entries")],
+    ...createEntryFeatureDescriptor(options),
     hooks: Object.freeze({
       /** @param {PhaseContext} context */
       async analyze(context) {
@@ -146,7 +154,7 @@ export function createEntryFeature(options, bundler, outputs) {
             mediaType: "application/vnd.minista.entry-references+json",
             content: JSON.stringify(references),
           })
-          if (context.graph.snapshot().features.has(ENTRY_FEATURE_ID)) {
+          if (context.graph.hasFeature(ENTRY_FEATURE_ID)) {
             context.graph.addArtifact({
               id,
               kind: "data",
@@ -183,7 +191,7 @@ export function createEntryFeature(options, bundler, outputs) {
           mediaType: "application/vnd.minista.entry-bundle+json",
           content: JSON.stringify(bundled),
         })
-        if (context.graph.snapshot().features.has(ENTRY_FEATURE_ID)) {
+        if (context.graph.hasFeature(ENTRY_FEATURE_ID)) {
           for (const reference of unique) {
             context.graph.addAsset({
               id: createNodeId("asset", reference.source),

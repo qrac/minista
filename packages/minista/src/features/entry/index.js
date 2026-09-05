@@ -3,4 +3,5 @@ export {
   collectEntryReferences,
   composeEntryDocument,
   createEntryFeature,
+  createEntryFeatureDescriptor,
 } from "./entry.js"

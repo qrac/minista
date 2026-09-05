@@ -52,6 +52,75 @@ describe("ProjectGraph", () => {
     expect(diagnostics.byCode("MINISTA_ROUTE_DUPLICATE")).toHaveLength(1)
   })
 
+  test("keeps route and page indexes consistent across updates, removals, and restore", () => {
+    const { graph, diagnostics } = createGraph()
+    const routeId = createNodeId("route", "src/pages/a.tsx")
+    const pageId = createNodeId("page", "/a/")
+    graph.addRoute({
+      id: routeId,
+      sourceFile: toProjectPath("src/pages/a.tsx"),
+      pattern: "/a/",
+      params: [],
+      pageModuleId: "/src/pages/a.tsx",
+    })
+    graph.addPage({
+      id: pageId,
+      routeId,
+      url: "/a/",
+      params: {},
+      props: {},
+      metadata: {},
+      draft: false,
+    })
+
+    expect(graph.getRouteByPattern("/a/")?.id).toBe(routeId)
+    expect(graph.getPageByUrl("/a/")?.id).toBe(pageId)
+    expect(graph.getRouteIdByPattern("/a/")).toBe(routeId)
+    expect(graph.getPageIdByUrl("/a/")).toBe(pageId)
+    expect([...graph.listPages()].map(({ id }) => id)).toEqual([pageId])
+    graph.updateRoute({
+      ...graph.getRoute(routeId)!,
+      pattern: "/renamed/",
+    })
+    graph.updatePage({
+      ...graph.getPage(pageId)!,
+      url: "/renamed/",
+    })
+    expect(graph.getRouteByPattern("/a/")).toBeUndefined()
+    expect(graph.getPageByUrl("/a/")).toBeUndefined()
+    expect(graph.getRouteByPattern("/renamed/")?.id).toBe(routeId)
+    expect(graph.getPageByUrl("/renamed/")?.id).toBe(pageId)
+
+    const restored = ProjectGraph.fromSnapshot(graph.snapshot(), diagnostics)
+    expect(restored.getRouteByPattern("/renamed/")?.id).toBe(routeId)
+    expect(restored.getPageByUrl("/renamed/")?.id).toBe(pageId)
+    expect(restored.removePage(pageId)).toBe(true)
+    expect(restored.getPageByUrl("/renamed/")).toBeUndefined()
+    expect(restored.removeRoute(routeId)).toBe(true)
+    expect(restored.getRouteByPattern("/renamed/")).toBeUndefined()
+  })
+
+  test("rejects conflicting index updates without changing existing nodes", () => {
+    const { graph, diagnostics } = createGraph()
+    const routeA = createNodeId("route", "a")
+    const routeB = createNodeId("route", "b")
+    for (const [id, pattern] of [[routeA, "/a/"], [routeB, "/b/"]] as const) {
+      graph.addRoute({ id, sourceFile: toProjectPath(`${id}.tsx`), pattern, params: [], pageModuleId: `/${id}.tsx` })
+    }
+    const pageA = createNodeId("page", "a")
+    const pageB = createNodeId("page", "b")
+    for (const [id, routeId, url] of [[pageA, routeA, "/a/"], [pageB, routeB, "/b/"]] as const) {
+      graph.addPage({ id, routeId, url, params: {}, props: {}, metadata: {}, draft: false })
+    }
+
+    graph.updateRoute({ ...graph.getRoute(routeB)!, pattern: "/a/" })
+    graph.updatePage({ ...graph.getPage(pageB)!, url: "/a/" })
+    expect(graph.getRoute(routeB)?.pattern).toBe("/b/")
+    expect(graph.getPage(pageB)?.url).toBe("/b/")
+    expect(diagnostics.byCode("MINISTA_ROUTE_DUPLICATE")).toHaveLength(1)
+    expect(diagnostics.byCode("MINISTA_PAGE_URL_DUPLICATE")).toHaveLength(1)
+  })
+
   test("creates a safe manifest projection without props or absolute roots", () => {
     const { graph, diagnostics } = createGraph()
     const featureId = createNodeId("feature", "ssg")

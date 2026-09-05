@@ -13,7 +13,7 @@ import {
 } from "../../adapters/vite/compatibility-lifecycle.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
-import { createSvgFeature } from "../../features/svg/index.js"
+import { createSvgFeature, createSvgFeatureDescriptor } from "../../features/svg/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir } from "../../shared/path.js"
 import { filterOutputAssets } from "../../shared/vite.js"
@@ -57,7 +57,7 @@ export function pluginSvg(uOpts = {}) {
 
   return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-svg",
-    api: { minista: { feature: { id: "svg", apiVersion: 1, options: opts, provides: ["inline-svg"], requires: ["html-documents"], optionalAfter: ["comment"] } } },
+    api: { minista: { feature: createSvgFeatureDescriptor(opts) } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       return command === "serve" || (command === "build" && !isSsrBuild)

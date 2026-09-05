@@ -98,15 +98,17 @@ Project Manifest schema v1、diagnostics snapshot、atomic writer、migration re
 
 ## レビュー後の中核強化
 
-進捗: lifecycle集約、config互換性、transactionの中核を実装済み。判断は[ADR-0015](decisions/0015-application-lifecycle-and-output-transaction.md)を参照してください。
+進捗: 完了。判断は[ADR-0015](decisions/0015-application-lifecycle-and-output-transaction.md)を参照してください。
 
 全descriptorを検証してdomain operationを依存順にdispatchし、devの共有mutationをserver単位で直列化します。App Build前後hook、同名pluginのSSR設定、emptyOutDirの保持、metadata失敗時のrollback、error diagnosticによるphase停止、同一processの再buildを回帰テストに追加しました。
+
+追加の中核強化としてGraphのpattern／URL indexと軽量queryを実装し、1,000／10,000ページの構築benchmarkを記録しました。domain featureと公開facadeは同じdescriptor生成元を使用します。PRの全test／typecheck、Vite 8.1.0／lockfile版／対応minor最新、React 18、PreactのCI gateも追加しました。Vite 8.0.0は実contractでlate client inputが欠落したためpeer rangeから除外しました。
 
 ## 今後の移行候補
 
 - feature内のscope付きphase bridgeを全feature共通のphase loopへ移す。必要なArtifactとcapabilityを定義してから進める
 - crash recovery、同時build、generation単位でのdist／metadata公開。現在の捕捉可能な失敗に対するrollbackとは別の保証として設計する
-- Vite minor matrixと性能baselineを拡充し、config再評価やDocument処理のcostを測定する
+- config再評価、Document処理、Artifact Storeのbinary copy costを個別に測定する
 
 ## Experimental tracks
 

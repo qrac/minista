@@ -34,7 +34,7 @@ export function createSsgRenderFeature(renderer) {
       /** @param {PhaseContext} context */
       async render(context) {
         const pages = []
-        for (const page of context.graph.snapshot().pages.values()) {
+        for (const page of context.graph.listPages()) {
           if (page.draft) continue
           pages.push(Object.freeze({
             url: page.url,

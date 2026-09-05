@@ -21,6 +21,7 @@ import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.j
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import {
   createImageFeature,
+  createImageFeatureDescriptor,
   createImageOutputsArtifactId,
   DevImagePageIndex,
 } from "../../features/image/index.js"
@@ -119,13 +120,7 @@ export function pluginImage(uOpts = {}) {
     api: {
       minista: {
         outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims,
-        feature: {
-          id: "image",
-          apiVersion: 1,
-          options: opts,
-          provides: ["image-assets"],
-          requires: ["html-documents"], optionalAfter: ["comment", "svg"],
-        },
+        feature: createImageFeatureDescriptor(opts),
       },
     },
     enforce: "pre",

@@ -60,7 +60,7 @@ function runBuild(root = fixtureDir) {
   })
 }
 
-describe.sequential("external Vite CLI build fallback", () => {
+describe("external Vite CLI build fallback", () => {
   beforeAll(async () => {
     fixtureDir = await copyFixture(
       sourceFixtureDir,

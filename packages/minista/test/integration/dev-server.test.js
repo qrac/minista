@@ -21,7 +21,7 @@ let assetEntry = ""
 /** @type {any} */
 let search
 
-describe.sequential("programmatic custom dev server", () => {
+describe("programmatic custom dev server", () => {
   beforeAll(async () => {
     const testTempDir = path.resolve(packageDir, "test/.tmp")
     await fs.promises.mkdir(testTempDir, { recursive: true })

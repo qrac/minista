@@ -32,3 +32,6 @@ export declare function createArchiveFeature(
   options: ArchiveFeatureOptions,
   builder: ArchiveBuilder,
 ): MinistaFeature<ArchiveFeatureOptions>
+export declare function createArchiveFeatureDescriptor(
+  options: ArchiveFeatureOptions,
+): Omit<MinistaFeature<ArchiveFeatureOptions>, "hooks">

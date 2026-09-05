@@ -10,6 +10,21 @@ import { createNodeId } from "../../core/graph/index.js"
 
 export const SVG_FEATURE_ID = createNodeId("feature", "svg")
 
+/**
+ * @param {SvgFeatureOptions} options
+ * @returns {Omit<import("../../core/lifecycle/index.js").MinistaFeature<SvgFeatureOptions>, "hooks">}
+ */
+export function createSvgFeatureDescriptor(options) {
+  return Object.freeze({
+    id: SVG_FEATURE_ID,
+    apiVersion: 1,
+    options: Object.freeze({ ...options }),
+    requires: [capability("html-documents")],
+    provides: [capability("inline-svg")],
+    optionalAfter: [createNodeId("feature", "comment")],
+  })
+}
+
 /** @param {string} value */
 function capability(value) {
   return /** @type {Capability} */ (/** @type {unknown} */ (value))
@@ -55,11 +70,7 @@ export async function composeSvgDocument(document, sources) {
  */
 export function createSvgFeature(options, sources) {
   return Object.freeze({
-    id: SVG_FEATURE_ID,
-    apiVersion: 1,
-    options: Object.freeze({ ...options }),
-    requires: [capability("html-documents")],
-    provides: [capability("inline-svg")],
+    ...createSvgFeatureDescriptor(options),
     hooks: Object.freeze({
       /** @param {PhaseContext} context */
       async compose(context) {

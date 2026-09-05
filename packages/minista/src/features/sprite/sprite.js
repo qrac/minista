@@ -13,6 +13,18 @@ import { createNodeId, toProjectPath } from "../../core/graph/index.js"
 
 export const SPRITE_FEATURE_ID = createNodeId("feature", "sprite")
 
+/** @param {SpriteFeatureOptions} options */
+export function createSpriteFeatureDescriptor(options) {
+  return Object.freeze({
+    id: SPRITE_FEATURE_ID,
+    apiVersion: /** @type {const} */ (1),
+    options: Object.freeze({ ...options }),
+    requires: [capability("html-documents")],
+    provides: [capability("sprite-assets")],
+    optionalAfter: ["comment", "svg"].map((id) => createNodeId("feature", id)),
+  })
+}
+
 /** @param {string} value */
 function basename(value) {
   return value.replaceAll("\\", "/").split("/").pop() ?? value
@@ -110,11 +122,7 @@ export function composeSpriteDocument(document, outputs) {
  */
 export function createSpriteFeature(options, builder, outputs) {
   return Object.freeze({
-    id: SPRITE_FEATURE_ID,
-    apiVersion: 1,
-    options: Object.freeze({ ...options }),
-    requires: [capability("html-documents")],
-    provides: [capability("sprite-assets")],
+    ...createSpriteFeatureDescriptor(options),
     hooks: Object.freeze({
       /** @param {PhaseContext} context */
       async analyze(context) {
@@ -130,7 +138,7 @@ export function createSpriteFeature(options, builder, outputs) {
             content: JSON.stringify(references),
             scope: { kind: "page", pageId: document.pageId },
           })
-          if (context.graph.snapshot().features.has(SPRITE_FEATURE_ID)) {
+          if (context.graph.hasFeature(SPRITE_FEATURE_ID)) {
             context.graph.addArtifact({
               id,
               kind: "data",
@@ -157,7 +165,7 @@ export function createSpriteFeature(options, builder, outputs) {
         const directories = [
           ...new Set(references.map(({ sourceDirectory }) => sourceDirectory)),
         ].sort()
-        if (context.graph.snapshot().features.has(SPRITE_FEATURE_ID)) {
+        if (context.graph.hasFeature(SPRITE_FEATURE_ID)) {
           for (const source of [...new Set(references.map((item) => item.source))]) {
             const sourceReferences = references.filter(
               (reference) => reference.source === source,
@@ -181,7 +189,7 @@ export function createSpriteFeature(options, builder, outputs) {
             mediaType: "image/svg+xml",
             content: await builder.build(sourceDirectory),
           })
-          if (context.graph.snapshot().features.has(SPRITE_FEATURE_ID)) {
+          if (context.graph.hasFeature(SPRITE_FEATURE_ID)) {
             context.graph.addArtifact({
               id,
               kind: "sprite",

@@ -13,7 +13,7 @@ const packageDir = path.resolve(here, "../..")
 const sourceFixtureDir = path.resolve(here, "../fixtures/preact-basic")
 let fixtureDir = ""
 
-describe.sequential("Preact legacy config routing", () => {
+describe("Preact legacy config routing", () => {
   beforeAll(async () => {
     const testTempDir = path.resolve(packageDir, "test/.tmp")
     await fs.promises.mkdir(testTempDir, { recursive: true })

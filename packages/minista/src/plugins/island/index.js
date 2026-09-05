@@ -29,6 +29,7 @@ import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   createIslandFeature,
+  createIslandFeatureDescriptor,
   createIslandSnippetsArtifactId,
   createIslandSourcePlanArtifactId,
 } from "../../features/island/index.js"
@@ -183,13 +184,7 @@ export function pluginIsland(uOpts = {}) {
       minista: {
         prepareClient: prepareAppClient,
         outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims,
-        feature: {
-          id: "island",
-          apiVersion: 1,
-          options: opts,
-          provides: ["island-entries"],
-          requires: ["html-documents"], optionalAfter: ["comment", "svg"],
-        },
+        feature: createIslandFeatureDescriptor(opts),
       },
     },
     enforce: "pre",

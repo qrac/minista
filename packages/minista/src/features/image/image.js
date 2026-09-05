@@ -17,6 +17,18 @@ import { createNodeId } from "../../core/graph/index.js"
 
 export const IMAGE_FEATURE_ID = createNodeId("feature", "image")
 
+/** @param {ImageFeatureOptions} options */
+export function createImageFeatureDescriptor(options) {
+  return Object.freeze({
+    id: IMAGE_FEATURE_ID,
+    apiVersion: /** @type {const} */ (1),
+    options: Object.freeze({ ...options }),
+    requires: [capability("html-documents")],
+    provides: [capability("image-assets")],
+    optionalAfter: ["comment", "svg"].map((id) => createNodeId("feature", id)),
+  })
+}
+
 /** @param {string} value */
 function capability(value) {
   return /** @type {Capability} */ (/** @type {unknown} */ (value))
@@ -126,11 +138,7 @@ export function composeImageDocument(document, plans, outputs) {
  */
 export function createImageFeature(options, generator, outputs) {
   return Object.freeze({
-    id: IMAGE_FEATURE_ID,
-    apiVersion: 1,
-    options: Object.freeze({ ...options }),
-    requires: [capability("html-documents")],
-    provides: [capability("image-assets")],
+    ...createImageFeatureDescriptor(options),
     hooks: Object.freeze({
       /** @param {PhaseContext} context */
       async analyze(context) {
@@ -146,7 +154,7 @@ export function createImageFeature(options, generator, outputs) {
             content: JSON.stringify(references),
             scope: { kind: "page", pageId: document.pageId },
           })
-          if (context.graph.snapshot().features.has(IMAGE_FEATURE_ID)) {
+          if (context.graph.hasFeature(IMAGE_FEATURE_ID)) {
             context.graph.addArtifact({
               id,
               kind: "data",
@@ -201,7 +209,7 @@ export function createImageFeature(options, generator, outputs) {
             mediaType: artifact.mediaType,
           }))),
         })
-        if (context.graph.snapshot().features.has(IMAGE_FEATURE_ID)) {
+        if (context.graph.hasFeature(IMAGE_FEATURE_ID)) {
           const sourcePages = new Map()
           for (const reference of references) {
             const pages = sourcePages.get(reference.source) ?? new Set()

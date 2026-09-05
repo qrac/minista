@@ -53,7 +53,7 @@ afterAll(async () => {
   }
 })
 
-describe.sequential("machine-readable project commands", () => {
+describe("machine-readable project commands", () => {
   test("check resolves static paths without emitting dist", async () => {
     const result = await run(["check", fixtureDir, "--json"])
     const json = JSON.parse(result.stdout)
