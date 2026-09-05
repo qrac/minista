@@ -1,6 +1,6 @@
 # v5 roadmap
 
-最終確認日: 2026-08-14
+最終確認日: 2026-09-05
 
 v5のStage 0〜8は完了しました。この文書は各Stageの完了状態と、v5の完了後も独立して追跡するexperimental項目を記録します。実装済みの詳細は [`release-notes-v5.md`](release-notes-v5.md)、現在の構造は [`architecture.md`](architecture.md)、Vite境界とfallback条件は [`vite.md`](vite.md) を参照してください。
 
@@ -56,7 +56,7 @@ route discovery、param parser、PageNode resolution、`getStaticData()`診断�
 
 進捗: 完了。
 
-通常buildは`ViteAppBuilderAdapter`が一つの`createBuilder()`からrender、client、compose、emitを実行します。environment間のplugin構成差はprogrammatic legacy adapter、programmatic configへ安全に変換できないCLI flagだけは外部Vite CLIへfallbackします。fallbackの発動条件と削除条件は [`vite.md`](vite.md#retained-compatibility-fallbacks) に固定しています。
+通常buildは`ViteAppBuilderAdapter`が一つの`createBuilder()`からrender、client、compose、emitを実行します。isSsrBuildを参照するconfigとenvironment間のplugin構成差はprogrammatic legacy adapter、programmatic configへ安全に変換できないCLI flagだけは外部Vite CLIへfallbackします。fallbackの発動条件と削除条件は [`vite.md`](vite.md#retained-compatibility-fallbacks) に固定しています。
 
 `--oneBuild`は削除し、指定時は`MINISTA_CLI_OPTION_REMOVED`を返します。programmatic buildはoutDir transactionを使用し、失敗時に以前の正常な出力へrollbackします。
 
@@ -96,9 +96,21 @@ Project Manifest schema v1、diagnostics snapshot、atomic writer、migration re
 
 完了条件: compatibility facadeが公開APIとVite hookへの適合だけを担当し、domain処理、状態共有、feature順序、diagnosticsがCore contractで説明できる。
 
+## レビュー後の中核強化
+
+進捗: lifecycle集約、config互換性、transactionの中核を実装済み。判断は[ADR-0015](decisions/0015-application-lifecycle-and-output-transaction.md)を参照してください。
+
+全descriptorを検証してdomain operationを依存順にdispatchし、devの共有mutationをserver単位で直列化します。App Build前後hook、同名pluginのSSR設定、emptyOutDirの保持、metadata失敗時のrollback、error diagnosticによるphase停止、同一processの再buildを回帰テストに追加しました。
+
+## 今後の移行候補
+
+- feature内のscope付きphase bridgeを全feature共通のphase loopへ移す。必要なArtifactとcapabilityを定義してから進める
+- crash recovery、同時build、generation単位でのdist／metadata公開。現在の捕捉可能な失敗に対するrollbackとは別の保証として設計する
+- Vite minor matrixと性能baselineを拡充し、config再評価やDocument処理のcostを測定する
+
 ## Experimental tracks
 
-以下はStage 8の未完了項目ではなく、上流APIの安定化後に個別判断する将来候補です。
+以下は上記の実装移行とは別に、上流APIの安定化などの条件で個別判断する将来候補です。
 
 ### Bundled Dev
 

@@ -11,7 +11,10 @@ export declare class ViteOutputTransaction {
     readonly root: string
     readonly outDir: string
     readonly buildId?: string
+    readonly emptyOutDir?: boolean | null
+    readonly protectMetadata?: boolean
   })
+  readonly cleanupDiagnostic?: import("../../core/diagnostics/index.js").Diagnostic
   get outDir(): string
   get backupDir(): string
   begin(): Promise<void>

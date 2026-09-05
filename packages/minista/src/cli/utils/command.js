@@ -6,7 +6,7 @@ import { NodeDiagnosticsWriter } from "../../adapters/filesystem/diagnostics-wri
 import { NodeExternalBuildHandoff } from "../../adapters/filesystem/external-build-handoff.js"
 import { NodeProjectManifestWriter } from "../../adapters/filesystem/project-manifest-writer.js"
 import { ViteAppBuilderAdapter } from "../../adapters/vite/app-builder.js"
-import { ViteAppConfigPluginMismatchError } from "../../adapters/vite/app-config-loader.js"
+import { ViteAppConfigPluginMismatchError, ViteAppConfigLegacyEnvironmentError } from "../../adapters/vite/app-config-loader.js"
 import {
   attachViteBuildSession,
   createViteBuildSession,
@@ -352,7 +352,7 @@ export async function runProgrammaticAppBuild(args, session) {
   return new ViteAppBuilderAdapter().build(config)
 }
 
-/** @param {ViteAppConfigPluginMismatchError} error */
+/** @param {ViteAppConfigPluginMismatchError | ViteAppConfigLegacyEnvironmentError} error */
 function reportAppBuildFallback(error) {
   reportCliDiagnostic(error.diagnostic)
 }
@@ -395,7 +395,8 @@ export async function runMinista(args) {
       try {
         await runProgrammaticAppBuild(args, session)
       } catch (error) {
-        if (error instanceof ViteAppConfigPluginMismatchError) {
+        if (error instanceof ViteAppConfigPluginMismatchError ||
+          error instanceof ViteAppConfigLegacyEnvironmentError) {
           reportAppBuildFallback(error)
           useLegacyFallback = true
           fallbackDiagnostic = error.diagnostic

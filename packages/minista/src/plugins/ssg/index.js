@@ -1,3 +1,6 @@
+import { randomUUID } from "node:crypto"
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('vite').EnvironmentModuleNode} EnvModuleNode */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
@@ -234,7 +237,7 @@ export function pluginSsg(uOpts = {}) {
         Reflect.get(error, "code") !== "ENOENT"
       ) throw error
     }
-    const importUrl = pathToFileURL(ssrFile).href
+    const importUrl = `${pathToFileURL(ssrFile).href}?build=${encodeURIComponent(buildSession?.buildId ?? randomUUID())}`
     const { LAYOUTS = {}, PAGES = {} } = await import(importUrl)
     const formatedLayout = formatLayout(LAYOUTS)
     const resolvedLayout = await resolveLayout(formatedLayout)
@@ -583,7 +586,7 @@ export function pluginSsg(uOpts = {}) {
     return [...htmlClaims, ...assetClaims]
   }
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-ssg",
     api: {
       minista: {
@@ -652,7 +655,7 @@ export function pluginSsg(uOpts = {}) {
                   ),
                   input: { [opts.bundle.outName]: globFile },
                   output: {
-                    chunkFileNames: "[name].mjs",
+                    chunkFileNames: "[name]-[hash].mjs",
                     entryFileNames: `${tempName}.mjs`,
                   },
                 },
@@ -699,7 +702,7 @@ export function pluginSsg(uOpts = {}) {
                 [opts.bundle.outName]: globFile,
               },
               output: {
-                chunkFileNames: "[name].mjs",
+                chunkFileNames: "[name]-[hash].mjs",
                 entryFileNames: `${tempName}.mjs`,
               },
             },
@@ -1184,5 +1187,5 @@ export function pluginSsg(uOpts = {}) {
         }),
       )
     },
-  }
+  })
 }

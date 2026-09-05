@@ -4,16 +4,16 @@ import { fileURLToPath } from "node:url"
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 
+import { runMinista } from "../../src/cli/utils/command.js"
+
 import { ViteAppBuilderAdapter } from "../../src/adapters/vite/app-builder.js"
-import { attachViteBuildSession } from "../../src/adapters/vite/build-session.js"
-import { MemoryArtifactStore } from "../../src/core/artifacts/index.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const packageDir = path.resolve(here, "../..")
 const sourceFixtureDir = path.resolve(here, "../fixtures/preact-basic")
 let fixtureDir = ""
 
-describe.sequential("Preact compatibility App Build", () => {
+describe.sequential("Preact legacy config routing", () => {
   beforeAll(async () => {
     const testTempDir = path.resolve(packageDir, "test/.tmp")
     await fs.promises.mkdir(testTempDir, { recursive: true })
@@ -36,16 +36,13 @@ describe.sequential("Preact compatibility App Build", () => {
       ),
     ])
 
-    await new ViteAppBuilderAdapter().build(
-      attachViteBuildSession(
-        {
-          root: fixtureDir,
-          configFile: path.resolve(fixtureDir, "vite.config.js"),
-          logLevel: "silent",
-        },
-        { artifacts: new MemoryArtifactStore() },
-      ),
-    )
+    await expect(new ViteAppBuilderAdapter().build({
+      root: fixtureDir,
+      configFile: path.resolve(fixtureDir, "vite.config.js"),
+      logLevel: "silent",
+    })).rejects.toMatchObject({ code: "MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT" })
+    await runMinista(["build", fixtureDir, "--logLevel", "silent"])
+
   }, 60_000)
 
   afterAll(async () => {

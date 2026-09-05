@@ -2,6 +2,7 @@
 
 - Status: Accepted with incremental migration
 - Date: 2026-08-13
+- Amended: 2026-09-05 by [ADR-0015](0015-application-lifecycle-and-output-transaction.md)
 
 ## Context
 
@@ -13,7 +14,7 @@ Project Manifestの `diagnosticSummary` は件数だけを持ち、stable code�
 
 `.minista/diagnostics.json` schema v1をworkspace内の直近実行snapshotとします。`schemaVersion`, `generator`, `command`, optionalな `buildId`, `summary`, `diagnostics`, `createdAt` を持ちます。
 
-`check` は成功とvalidation errorの両方でreportを置換します。通常のApp Buildとprogrammatic legacy fallbackはclient outputのcommit後に成功したbuild sessionのdiagnosticsを保存し、失敗時はsession、errorの単一 `diagnostic`、lifecycle errorの `diagnostics` を重複排除して失敗reportを保存します。Vite config読込、Builder生成、render／client build、client preparationのerrorをこの境界へ含めます。別processの外部Vite CLI fallbackは両process成功後に空の成功reportを保存し、processの起動失敗、signal終了、非zero終了時は `MINISTA_VITE_CLI_FAILED` を持つ失敗reportを保存します。外部processのstderrは構造化せず、元のVite出力としてterminalへ維持します。
+`check` は成功とvalidation errorの両方でreportを置換します。通常のApp Buildとprogrammatic legacy fallbackはclient outputのcommit前に成功したbuild sessionのdiagnosticsを保存します。adapterは捕捉可能な失敗時に旧出力とmetadataを復元し、その後CLIがsession、errorの単一 `diagnostic`、lifecycle errorの `diagnostics` を重複排除して失敗reportを保存します。Vite config読込、Builder生成、render／client build、client preparationのerrorをこの境界へ含めます。別processの外部Vite CLI fallbackは両process成功後に空の成功reportを保存し、processの起動失敗、signal終了、非zero終了時は `MINISTA_VITE_CLI_FAILED` を持つ失敗reportを保存します。外部processのstderrは構造化せず、元のVite出力としてterminalへ維持します。
 
 Project Manifest writerとDiagnostics writerは同じstable JSON serializerとatomic workspace writerを使います。同一directoryの一時ファイルへwriteした後でrenameし、失敗時は一時ファイルを削除します。
 
@@ -24,7 +25,7 @@ Project Manifest writerとDiagnostics writerは同じstable JSON serializerとat
 - diagnostic reportはworkspace metadataであり、配布可能または秘密情報を含まないことを保証するartifactではない
 - 外部Vite CLI fallbackの失敗はbuild IDとenvironmentを持つreportとして再利用できる
 - programmatic buildの失敗もbuild ID付きreportとして再利用できる
-- manifestとdiagnosticsは個別にatomicですが、二つのfileを一つのtransactionとして置換する保証はありません
+- manifestとdiagnosticsは個別にatomicで、programmatic buildのrollback対象に含まれる。ただし二つのfileの同時可視化やcrash atomicityは保証しない（ADR-0015）
 
 ## Rejected alternatives
 

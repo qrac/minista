@@ -1,3 +1,5 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
@@ -112,7 +114,7 @@ export function pluginImage(uOpts = {}) {
     return state
   }
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-image",
     api: {
       minista: {
@@ -122,7 +124,7 @@ export function pluginImage(uOpts = {}) {
           apiVersion: 1,
           options: opts,
           provides: ["image-assets"],
-          requires: ["html-documents"],
+          requires: ["html-documents"], optionalAfter: ["comment", "svg"],
         },
       },
     },
@@ -372,5 +374,5 @@ export function pluginImage(uOpts = {}) {
         if (output && output.html !== page.html) page.item.source = output.html
       }
     },
-  }
+  })
 }

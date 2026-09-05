@@ -1,0 +1,51 @@
+# ADR-0015: application lifecycle集約と出力transaction
+
+- Status: Accepted with scoped compatibility pipelines
+- Date: 2026-09-05
+- Amends: ADR-0002、0003、0004、0008、0009
+
+## Context
+
+v5レビューで、plugin配列順によるSearch結果の差、同名pluginのSSR設定の取り違え、App Build hookの未実行、emptyOutDir:falseでの既存file消失、metadata失敗時のdistとの不整合を再現しました。公開plugin APIを維持しながらapplication境界を明確にします。
+
+## Decision
+
+### Lifecycle
+
+Vite adapterのcoordinatorへ各公開pluginのdomain operationを登録します。対象environmentの全feature descriptorをCore schedulerで検証し、generateBundleとwriteBundleの各境界で一度だけ依存順にdispatchします。source transformとSSGのpre HTML hookは通常のVite semanticsを維持します。Comment、Svg、asset feature、Search、Beautifyの順序はdescriptorのoptionalAfterで宣言します。
+
+これはfeature単位のpipeline集約です。既存のscope付きCore runnerがanalyze／generate／compose等を実行する構造を維持し、全featureを一つのglobal phase loopへ移したとは扱いません。HTML markerを新しいfeature間protocolとして追加しません。Core runnerはerror diagnosticのあるphaseから次のphaseへ進みません。
+
+devではdomain mutationをserver単位のqueueへ直列化し、失敗したrequestが後続requestを止めないようにします。Searchは全RenderedPageへComment／Svgの内容変換を適用してから解析し、devのGraph identityをURLに統一します。この派生data処理にはdev script注入やclient asset生成を含めません。third-party HTML transform全体を再実行する契約ではありません。
+
+### App Buildとconfig互換性
+
+Ministaがconfig.builder.buildAppを所有し、Viteのbuilder.buildApp()を呼びます。pluginのpre／post buildApp hookを含めて実行し、その内側でrender → prepareClient → clientを順にbuildします。user configやconfig pluginによるcallback置換と、application hookからの直接buildはMINISTA_VITE_APP_BUILD_RESERVEDで拒否します。追加environmentはtransactionの出力対象として扱わず、Viteの既定ssr以外を拒否します。
+
+config関数のisSsrBuild参照をgetterで検出し、MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT warningで既存のprogrammatic Legacy経路へ送ります。分割代入による参照も含みます。plugin名／順序が異なる場合は既存のMINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCHを優先します。同名pluginのclosureやaliasの同値性を推測しません。config評価回数を一回と保証せず、既存の二つのfallback以外を追加しません。
+
+同一processの再buildではrender entryのnative importにbuild IDを付け、split chunk名にはcontent hashを含めます。前回の評価済みmoduleを次buildのsourceとして再利用しません。
+
+### Output transaction
+
+Appとprogrammatic Legacyは共通のclient確定処理を使います。Appではpre buildApp hookの前、Legacyではclient build前にbackupを作り、build、output reconciliation、claim検証、manifest／diagnosticsのatomic writeまで完了してからcommitします。error diagnosticが残るbuildは成功にしません。
+
+emptyOutDir:falseとproject外outDirの既定動作ではbackupを作ったうえで出力をcopy backし、既存fileを保持します。root・祖先・それらを指すsymlink経路と直接のoutDir symlinkを拒否します。別のrolldown output.dir／output.fileも拒否し、transactionの対象をbuild.outDirへ限定します。
+
+捕捉可能な失敗時は旧outDirと旧manifest／diagnosticsを復元します。CLIはその後、直近実行結果として失敗diagnosticsを保存します。metadata復元の再試行では復元済みoutDirを削除しません。commit後のbackup削除失敗はMINISTA_OUTPUT_TRANSACTION_CLEANUP_FAILED warningとして返し、部分削除済みbackupからrollbackしません。この遅いcleanup warningはcommit前の成功diagnostics snapshotには含まれません。
+
+## Guarantees and limits
+
+- 公開plugin API、既存の成功出力、emptyOutDirの保持指定を維持する
+- 捕捉したbuild／post hook／metadata失敗から以前の出力へ復元する。復元自体が失敗した場合は元のerrorを保持し、rollback errorも添える
+- distとmetadataの同時可視化、process強制終了時の復旧、同じoutDirへの同時buildは保証しない
+- render cache、任意のuser hookの外部side effect、外部Vite CLI fallbackはtransaction対象外
+- 各feature内のphase bridgeは残る。単一global phase loopへの移行とgeneration単位の公開はroadmapで別途扱う
+
+## Validation
+
+実Vite fixtureでplugin順序交換、dev SearchのSVG文字列、同名SSR plugin、Preact fallback、連続再build、emptyOutDir:false、metadataとpost hookの失敗復元を検証します。unitでは全descriptorの依存検証、operationの一度だけの実行、dev queue、phase停止、危険なoutDir、commit後cleanup失敗を検証します。
+
+## Rejected alternatives
+
+plugin名や関数の文字列表現だけでconfigの同値性を判定する方法はclosureを識別できません。配列順へ依存したHTML変換やmetadata保存前のcommitも、今回再現した不整合を残すため採用しません。

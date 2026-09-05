@@ -1,3 +1,5 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
@@ -45,9 +47,9 @@ export function pluginBeautify(uOpts = {}) {
   const isMatch = createOutputMatcher(opts)
   const feature = createBeautifyFeature(opts)
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-beautify",
-    api: { minista: { feature: { id: "beautify", apiVersion: 1, options: opts, provides: ["formatted-output"], requires: ["html-documents", "output-files"] } } },
+    api: { minista: { feature: { id: "beautify", apiVersion: 1, options: opts, provides: ["formatted-output"], requires: ["html-documents", "output-files"], optionalAfter: ["comment", "svg", "image", "sprite", "entry", "island", "search"] } } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
       return command === "build" && !isSsrBuild
@@ -88,5 +90,5 @@ export function pluginBeautify(uOpts = {}) {
         if (content !== undefined) item.code = String(content)
       }
     },
-  }
+  })
 }

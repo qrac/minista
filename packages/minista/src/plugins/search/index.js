@@ -1,3 +1,5 @@
+import { registerViteFeatureLifecycle, runViteDevLifecycle, transformViteDocumentContent } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
@@ -74,9 +76,9 @@ export function pluginSearch(uOpts = {}) {
     return claimStates.get(environment).claims
   }
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-search",
-    api: { minista: { outputClaims: getOutputClaims, feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html-documents"] } } },
+    api: { minista: { outputClaims: getOutputClaims, feature: { id: "search", apiVersion: 1, options: opts, provides: ["search-data"], requires: ["html-documents"], optionalAfter: ["comment", "svg", "image", "sprite", "entry", "island"] } } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
       const isAppBuild = Boolean(getViteAppEnvironmentNames(config))
@@ -116,19 +118,28 @@ export function pluginSearch(uOpts = {}) {
           /** @type {{default?: RenderedPage[]}} */
           const mod = await evaluator.importModule("virtual:ssg-pages")
           const ssgPages = mod.default ?? []
-          const result = await processViteDocuments(
-            ssgPages.map(({ url, html }) => ({
-              fileName: url,
-              url,
-              html,
-            })),
-            [createSearchFeature(opts, analyzer)],
-            ["analyze", "generate"],
-            createViteCompatibilityTraceHooks(
-              getViteBuildSession(server.config),
-              "search:dev",
-            ),
-          )
+          const result = await runViteDevLifecycle(server, async () => {
+            const pages = []
+            for (const { url, html } of ssgPages) {
+              pages.push({
+                // Dev document identity is its URL, shared with asset features.
+                fileName: url,
+                url,
+                html: await transformViteDocumentContent(html, {
+                  path: url, filename: path.resolve(server.config.root, url.replace(/^\//, "")), server,
+                }),
+              })
+            }
+            return processViteDocuments(
+              pages,
+              [createSearchFeature(opts, analyzer)],
+              ["analyze", "generate"],
+              createViteCompatibilityTraceHooks(
+                getViteBuildSession(server.config),
+                "search:dev",
+              ),
+            )
+          })
           const searchArtifact = result.artifacts.find(
             ({ id }) => id === createSearchDataArtifactId(opts.outName),
           )
@@ -253,5 +264,5 @@ export function pluginSearch(uOpts = {}) {
         if (output && output.html !== page.html) page.item.source = output.html
       }
     },
-  }
+  })
 }

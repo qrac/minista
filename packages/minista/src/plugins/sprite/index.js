@@ -1,3 +1,5 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
@@ -80,9 +82,9 @@ export function pluginSprite(uOpts = {}) {
     )
   }
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-sprite",
-    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html-documents"] } } },
+    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "sprite", apiVersion: 1, options: opts, provides: ["sprite-assets"], requires: ["html-documents"], optionalAfter: ["comment", "svg"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       return command === "serve" || (command === "build" && !isSsrBuild)
@@ -285,5 +287,5 @@ export function pluginSprite(uOpts = {}) {
         if (output && output.html !== page.html) page.item.source = output.html
       }
     },
-  }
+  })
 }

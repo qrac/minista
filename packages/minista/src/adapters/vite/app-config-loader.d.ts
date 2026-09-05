@@ -20,3 +20,8 @@ export declare function loadViteAppConfig(
   names?: ViteAppEnvironmentNames,
   loader?: typeof import("vite").loadConfigFromFile,
 ): Promise<InlineConfig>
+
+export declare class ViteAppConfigLegacyEnvironmentError extends Error {
+  readonly code: "MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT"
+  readonly diagnostic: import("../../core/diagnostics/index.js").Diagnostic
+}

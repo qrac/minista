@@ -1,3 +1,5 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
@@ -24,7 +26,7 @@ export function pluginComment(uOpts = {}) {
   const feature = createCommentFeature(opts)
   const devServers = new ViteDevServerRegistry()
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-comment",
     api: { minista: { feature: { id: "comment", apiVersion: 1, options: opts, provides: ["html-comments"], requires: ["html-documents"] } } },
     enforce: "pre",
@@ -69,5 +71,5 @@ export function pluginComment(uOpts = {}) {
         )
       }
     },
-  }
+  }, { documentContent: true })
 }

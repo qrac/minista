@@ -1,3 +1,5 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
@@ -53,9 +55,9 @@ export function pluginSvg(uOpts = {}) {
     ], hooks)
   }
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-svg",
-    api: { minista: { feature: { id: "svg", apiVersion: 1, options: opts, provides: ["inline-svg"], requires: ["html-documents"] } } },
+    api: { minista: { feature: { id: "svg", apiVersion: 1, options: opts, provides: ["inline-svg"], requires: ["html-documents"], optionalAfter: ["comment"] } } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
       return command === "serve" || (command === "build" && !isSsrBuild)
@@ -99,5 +101,5 @@ export function pluginSvg(uOpts = {}) {
         )
       }
     },
-  }
+  }, { documentContent: true })
 }

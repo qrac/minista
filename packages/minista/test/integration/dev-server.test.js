@@ -62,7 +62,14 @@ export default function Other() {
       "utf8",
     )
     const indexFile = path.resolve(fixtureDir, "src/pages/index.jsx")
-    const indexSource = await fs.promises.readFile(indexFile, "utf8")
+    const indexSource = (await fs.promises.readFile(indexFile, "utf8")).replace(
+      '<h1>Compatibility fixture</h1>',
+      '<h1>Compatibility fixture</h1><div><Svg src="/src/vector/label.svg" /></div>',
+    )
+    await fs.promises.mkdir(path.resolve(fixtureDir, "src/vector"))
+    await fs.promises.writeFile(path.resolve(fixtureDir, "src/vector/label.svg"),
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><text x="0" y="15">devvectorword</text></svg>',
+    )
     await Promise.all([
       fs.promises.writeFile(
         indexFile,
@@ -127,8 +134,9 @@ export default function Other() {
       `${origin}/@__minista_search_json`,
       { signal: AbortSignal.timeout(10_000) },
     )
-    search = await searchResponse.json()
-    expect(searchResponse.status).toBe(200)
+    const searchBody = await searchResponse.text()
+    expect(searchResponse.status, searchBody).toBe(200)
+    search = JSON.parse(searchBody)
   }, 60_000)
 
   afterAll(async () => {
@@ -148,7 +156,7 @@ export default function Other() {
     expect(cachedHtml).toContain("<h1>Compatibility fixture</h1>")
     expect(cachedHtml).toContain("/@vite/client")
     expect(search.words).toEqual(
-      expect.arrayContaining(["Compatibility", "fixture"]),
+      expect.arrayContaining(["Compatibility", "fixture", "devvectorword"]),
     )
     const session = running
       ? getViteBuildSession(running.server.config)

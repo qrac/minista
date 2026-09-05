@@ -129,6 +129,24 @@ describe("feature scheduler and lifecycle", () => {
     ])
   })
 
+  test("collects phase diagnostics but does not enter a later emit phase", async () => {
+    const dependencies = createDependencies()
+    let emitted = false
+    const feature: MinistaFeature = {
+      id: createNodeId("feature", "validator"), apiVersion: 1, options: {},
+      hooks: {
+        analyze({ diagnostics }) {
+          diagnostics.error({ code: "MINISTA_PHASE_FAILED", message: "invalid input" })
+        },
+        emit() { emitted = true },
+      },
+    }
+    const result = await new LifecycleRunner([feature], dependencies).run({ phases: ["analyze", "emit"] })
+    expect(result.ok).toBe(false)
+    expect(emitted).toBe(false)
+    expect(result.traces.filter((event) => event.type === "phase:start").map((event) => event.phase)).toEqual(["analyze"])
+  })
+
   test("preserves structured diagnostics thrown by an adapter", async () => {
     const dependencies = createDependencies()
     const featureId = createNodeId("feature", "archive")

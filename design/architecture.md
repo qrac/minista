@@ -1,6 +1,6 @@
 # Architecture
 
-最終確認日: 2026-08-28
+最終確認日: 2026-09-05
 
 > この文書は現在の`v5` branchに実装されている事実だけを記載します。未実装、上流待ち、experimental、移行条件は`roadmap.md`を参照してください。
 
@@ -20,26 +20,31 @@ package runtime entryは `src/node.js` です。CLI、test、workspace package�
 
 ### Build lifecycle
 
-通常の `minista build` は同じNode.js processで一つの `createBuilder(config, false)` を作り、App Buildのrender/client environmentを順にbuildします。`isSsrBuild` でplugin構成自体を変えるconfigはstable diagnosticを出し、同一processの `LegacyViteBuilderAdapter` がrender/clientごとのbackward-compatible environmentをbuildします。programmatic adapterが変換できないVite CLI flagを指定した場合だけ、最終compatibility fallbackとして `cross-spawn` でVite CLIを二度起動します。
+通常の `minista build` は同じNode.js processで一つの `createBuilder(config, false)` を作り、App Buildのrender/client environmentを順にbuildします。`isSsrBuild` を参照するconfig（同名pluginのoptionやaliasの分岐も含む）はstable diagnosticを出し、同一processの `LegacyViteBuilderAdapter` がrender/clientごとのbackward-compatible environmentをbuildします。programmatic adapterが変換できないVite CLI flagを指定した場合だけ、最終compatibility fallbackとして `cross-spawn` でVite CLIを二度起動します。
 
 ```text
 minista build (current programmatic path)
   └─ createBuilder({ environments: { render, client } }, false)
-       ├─ builder.build(render)
-       │    └─ page/layout glob entryをbundle
-       ├─ prepareClient
-       │    ├─ render bundleをnative import
-       │    ├─ getStaticDataとReact rendererを実行
-       │    └─ ArtifactStoreからclient inputを合成
-       └─ builder.build(client)
-            └─ HTML / assetを出力
+       └─ builder.buildApp()  # Minista所有callbackとplugin前後hook
+            ├─ builder.build(render)
+            │    └─ page/layout glob entryをbundle
+            ├─ prepareClient
+            │    ├─ render bundleをnative import
+            │    ├─ getStaticDataとReact rendererを実行
+            │    └─ ArtifactStoreからclient inputを合成
+            └─ builder.build(client)
+                 └─ HTML / assetを出力
 ```
 
 CLI processは一つになり、render/client buildにはbuildId、`DiagnosticCollector`、`MemoryArtifactStore` を持つ同じbuild sessionを渡します。EntryとIslandはrendered page／snippet Artifactをこのstoreから読みます。App Builderはschema付きの単一resultを返し、CLIは成功、失敗、legacy fallbackの各経路でArtifactStoreをclearします。未対応CLI flagで別processのVite CLIへfallbackする場合は、buildIdで隔離したprivate `work/<buildId>/external` のschema付きJSONでrendered pagesとIsland snippetsを渡します。client pluginは同じscopeへ安全なmanifest候補を書き、親CLIは両process成功後だけ公開metadataへ昇格します。成功／失敗の両方でhandoff全体を削除します。旧`--oneBuild` optionはv5で削除し、指定時は`MINISTA_CLI_OPTION_REMOVED` errorで終了します。
 
 CLIは`vite.config.*`を優先順の先頭、`minista.config.*`を後方互換aliasとして検出します。複数のconfig fileが存在する場合は暗黙に選択せず、`MINISTA_CLI_CONFIG_CONFLICT` errorで終了します。
 
-App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。`ViteAppBuilderAdapter`は単一の`createBuilder()`でrender、clientを順にbuildし、その間にclient planを適用します。SSGはrender bundle評価とpage renderに加え、render environmentで確定したCSS／画像をclientへ引き継ぎます。render module graphからrouteごとのsource asset依存を収集し、schema付きArtifactとoutput claim consumerへ投影します。EntryとIslandはrendered page Artifactからclient entryを生成します。Comment、Svg、Sprite、Beautify、Archiveのoutput hookはclient environmentだけに適用します。既存の`isSsrBuild`config関数、legacy fallback、output transaction、structured build diagnostic、公開Output Manifestの境界は維持します。
+App BuildではViteが全environmentのconfigをbuild前に解決するため、render結果が必要なclient inputを初回config解決時に確定できません。`ViteAppBuilderAdapter`は単一の`createBuilder()`と`builder.buildApp()`でrender、clientを順にbuildし、その間にclient planを適用します。SSGはrender bundle評価とpage renderに加え、render environmentで確定したCSS／画像をclientへ引き継ぎます。render module graphからrouteごとのsource asset依存を収集し、schema付きArtifactとoutput claim consumerへ投影します。EntryとIslandはrendered page Artifactからclient entryを生成します。Comment、Svg、Sprite、Beautify、Archiveのoutput hookはclient environmentだけに適用します。既存の`isSsrBuild`config関数、legacy fallback、output transaction、structured build diagnostic、公開Output Manifestの境界は維持します。
+
+### Domain operationの集約
+
+`feature-lifecycle.js`は対象environmentの全descriptorをCore schedulerで検証し、generateBundle／writeBundleの各境界でdomain operationを一度だけ依存順にdispatchします。Comment→Svg→asset feature→Search→BeautifyのoptionalAfterを宣言し、plugin配列順による検索内容の差を除去しています。各feature内のanalyze／generate／composeはscope付きCore runnerが実行します。全feature共通の単一phase loopではありません。Core runnerはerror diagnosticのあるphaseから先へ進みません。
 
 ### Dev lifecycle
 
@@ -47,7 +52,7 @@ App BuildではViteが全environmentのconfigをbuild前に解決するため、
 
 `pluginSsg()` は引き続きVite middlewareを登録しますが、module評価は `ViteDevModuleEvaluator` を通じて `RunnableDevEnvironment.runner.import()` を使用します。adapterはrunnable environmentのguard、module invalidation、stacktrace補正を所有し、Core側にはViteの型を公開しません。最初のrequestでroute解決と全page renderを行い、世代管理付きの `DevPageCache` がsnapshotを後続requestで再利用します。page/layoutの依存moduleに到達するhot updateではsnapshotを破棄し、次のrequestで再評価します。`ViteDevUpdateAdapter` は変更moduleのimporter chainをroute sourceへ投影し、`LegacySsgRouteCache` は影響routeだけRouteNode／PageNodeと `getStaticData()` を再解決します。Project Graph全体はcache entryから毎回再構成し、duplicate routeなどのglobal invariantを再検証します。`DevRenderCache` も影響RouteNode配下のPageNodeだけを破棄し、layout変更またはrouteを限定できない変更では全pageを破棄します。
 
-Image／Sprite／Islandは `transformIndexHtml()` からserver lifetimeのcompatibility lifecycleを実行し、開発用sourceやassetを `.minista` に生成します。入力Documentだけをphaseへ渡し、page scope付き参照Artifactから全ページの集約出力を再生成します。Sprite／Imageのdev generator、watch対象、Page indexはserver identity単位に分離されています。IslandとSearchは共有module evaluatorから `virtual:ssg-pages` をimportし、Search JSON middlewareも全RenderedPageをDocument／Graphへ投影してCore featureのanalyze／generateを実行します。plugin／CLIからの `ssrLoadModule()` 直接利用は除去済みです。
+Image／Sprite／Islandは `transformIndexHtml()` からserver lifetimeのcompatibility lifecycleを実行し、開発用sourceやassetを `.minista` に生成します。入力Documentだけをphaseへ渡し、page scope付き参照Artifactから全ページの集約出力を再生成します。Sprite／Imageのdev generator、watch対象、Page indexはserver identity単位に分離されています。IslandとSearchは共有module evaluatorから `virtual:ssg-pages` をimportし、Search JSON middlewareも全RenderedPageへComment／Svgの内容変換を適用し、URLをpage identityとしてDocument／Graphへ投影してCore featureのanalyze／generateを実行します。devのdomain mutationはserver単位で直列化します。plugin／CLIからの `ssrLoadModule()` 直接利用は除去済みです。
 
 `pluginSsg()` のHMRは `hotUpdate` から `ViteDevUpdateAdapter` を呼び、environment別module graphの存在確認・invalidationと `environment.hot` によるreloadをadapterへ閉じています。page固有のdocument変更ではdev HTMLへ注入したlistenerへ影響PageNodeのURLだけを送り、layout変更またはrouteを限定できない変更だけ標準full reloadを送ります。Spriteは `DevSpritePageIndex` にsource directoryと参照ページURL、Imageは `DevImagePageIndex` にlocal sourceと参照ページURLのedgeを保存し、source変更時は該当ページだけをreloadします。plugin内の `server.ws`、mixed `server.environments`、module graph直接操作は除去済みです。route source／PageNodeとSprite／Image Artifactのinvalidation対応付けは実装済みです。
 
@@ -65,7 +70,7 @@ interface RenderedPage {
 
 `RenderedPage`の生成元はRoute／Page Graphとrendererであり、通常buildではArtifactStore、外部fallbackではschema付きJSONに保存します。`ViteBuildDataReader`が保存方式の差を吸収し、Entry／Islandはdomain snapshotだけに依存します。SSG／Searchのdev virtual moduleも同じ型を使用し、旧`SsgPage`型は削除済みです。Project Graph、branded node ID、AssetNode、IslandNode、ImageNode、BuildArtifact、各domain featureの明示phaseも実装済みです。production outputを持つfeature facadeはCore lifecycle runnerへ接続済みです。
 
-各公開pluginは`api.minista.feature`に`id`、`apiVersion`、`options`、`provides`、`requires`と必要な順序制約を持つmachine-readable metadataを公開します。production phaseはdependency schedulerを持つCore runnerから実行されます。
+各公開pluginは`api.minista.feature`に`id`、`apiVersion`、`options`、`provides`、`requires`と必要な順序制約を持つmachine-readable metadataを公開します。production operationの全体順序はadapter coordinatorがCore schedulerから取得し、operation内のphaseはscope付きCore runnerから実行されます。
 
 ### 残っているcompatibility境界
 
@@ -283,6 +288,8 @@ Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 `diagnostics.json` は `schemaVersion`, `generator`, `command`, `buildId`, `summary`, `diagnostics`, `createdAt` を持つworkspace snapshotです。`check` はvalidation errorを含む終了結果を保存し、App Buildは成功時のsession diagnosticsを保存します。外部Vite CLI fallbackは成功reportに加え、process起動／終了失敗を `MINISTA_VITE_CLI_FAILED` として保存します。公開Project Manifestとは異なり配布用artifactではありません。writerは共通のstable JSON serializerとatomic workspace writerを使います。
 
 `work/<buildId>/external`は別process fallbackだけが使用します。buildIdを照合し、成功／失敗後に削除するため別buildの残骸を読みません。画像やIslandなどのVite入力用cache／生成sourceは公開workspaceとは分け、`node_modules/.minista`に置きます。
+
+App／programmatic Legacyは共通のclient確定処理でmanifestと成功diagnosticsをcommit前に保存します。捕捉可能な失敗時は旧outDirとmetadataへrollbackし、CLIがその後で失敗diagnosticsを保存します。emptyOutDir:falseでは既存fileを保持します。Appのtransactionはpluginのpre／post buildApp hookも囲みます。process強制終了、同じ出力先への同時build、distとmetadataの同時可視化は保証しません。詳細は[ADR-0015](decisions/0015-application-lifecycle-and-output-transaction.md)を参照してください。
 
 ### Structured diagnostics
 

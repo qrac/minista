@@ -46,3 +46,4 @@
 - [ADR-0012: 外部buildのdata handoffをschema付きJSONにする](decisions/0012-json-external-build-handoff.md)
 - [ADR-0013: SSGをpage formatとrender assetのcomposition rootにする](decisions/0013-ssg-page-formats-and-render-assets.md)
 - [ADR-0014: Layoutのdocument rootを既存Head APIと合成する](decisions/0014-layout-document-root.md)
+- [ADR-0015: application lifecycle集約と出力transaction](decisions/0015-application-lifecycle-and-output-transaction.md)

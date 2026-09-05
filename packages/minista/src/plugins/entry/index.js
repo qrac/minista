@@ -1,3 +1,5 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
@@ -143,9 +145,9 @@ export function pluginEntry(uOpts = {}) {
     environmentInput.merge(preparation.client, state.entries)
   }
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-entry",
-    api: { minista: { prepareClient: prepareAppClient, outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"] } } },
+    api: { minista: { prepareClient: prepareAppClient, outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "entry", apiVersion: 1, options: opts, provides: ["asset-entries"], requires: ["html-documents"], optionalAfter: ["comment", "svg"] } } },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
       const isAppBuild = command === "build" &&
@@ -322,5 +324,5 @@ export function pluginEntry(uOpts = {}) {
         if (output && output.html !== page.html) page.item.source = output.html
       }
     },
-  }
+  })
 }

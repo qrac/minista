@@ -1,3 +1,5 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
@@ -41,7 +43,7 @@ export function pluginArchive(uOpts = {}) {
   }))
   const outputWriter = new NodeOutputWriter()
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-archive",
     api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: { id: "archive", apiVersion: 1, options: opts, provides: ["archives"], requires: ["output-files"], optionalAfter: ["beautify"] } } },
     enforce: "post",
@@ -87,5 +89,5 @@ export function pluginArchive(uOpts = {}) {
         ))
       }
     },
-  }
+  })
 }

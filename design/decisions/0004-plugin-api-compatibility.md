@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-12
 - Amended: 2026-08-28 by [ADR-0013](0013-ssg-page-formats-and-render-assets.md)
+- Amended: 2026-09-05 by [ADR-0015](0015-application-lifecycle-and-output-transaction.md)
 
 ## Context
 
@@ -19,6 +20,8 @@
 - accidental internal contract (`.minista` path、virtual ID、plugin name、generated source name) は互換対象外
 - documented output URL / HTML semanticsの変更はmigration noteとdiagnosticを必要とする
 - `--oneBuild` はv5で削除し、指定時は `MINISTA_CLI_OPTION_REMOVED` errorを返す
+
+全descriptorを検証するadapter coordinatorがdomain output operationを依存順にdispatchします。source transformの通常Vite順序とは分離します。isSsrBuildを参照するconfigは既存Legacy経路を使用し、builder.buildApp callbackはMinistaが所有します。詳細はADR-0015を参照してください。
 
 ## Consequences
 

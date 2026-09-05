@@ -1,3 +1,5 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
@@ -175,7 +177,7 @@ export function pluginIsland(uOpts = {}) {
     environmentInput.merge(preparation.client, state.entries)
   }
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-island",
     api: {
       minista: {
@@ -186,7 +188,7 @@ export function pluginIsland(uOpts = {}) {
           apiVersion: 1,
           options: opts,
           provides: ["island-entries"],
-          requires: ["html-documents"],
+          requires: ["html-documents"], optionalAfter: ["comment", "svg"],
         },
       },
     },
@@ -534,5 +536,5 @@ export function pluginIsland(uOpts = {}) {
         )
       }
     },
-  }
+  })
 }

@@ -57,7 +57,9 @@ export default defineConfig(({ command, isSsrBuild }) => {
 })
 ```
 
-render／clientでpluginの名前や順序が変わるconfigはApp Buildで共有できません。この場合ministaは`MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH`を記録し、同一processのcompatibility builderへfallbackします。新しいconfigでは両environmentのplugin構成を揃え、plugin内部でenvironmentごとの処理を分けることを推奨します。
+isSsrBuildを参照するconfigは、同名pluginでも設定を取り違えないよう、`MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT`を記録して同一processのcompatibility builderへfallbackします。pluginの名前や順序も変わる場合は`MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH`を記録します。新しいconfigではplugin内部のenvironment-aware hookで処理を分けることを推奨します。
+
+`builder.buildApp`はministaがbuild順序を管理するために使用します。application全体の前後処理にはpluginの`buildApp` hookを使用してください。このhookからenvironmentを直接buildすることはできません。
 
 通常のbuild／devはprogrammatic Vite adapterを使用します。programmatic configへ安全に変換できないVite CLI flagを指定した場合だけ外部CLIへfallbackします。Coreはどちらの経路でもViteのenvironment型やhookに依存しません。
 

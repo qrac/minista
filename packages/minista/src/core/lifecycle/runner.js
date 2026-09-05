@@ -104,6 +104,9 @@ export class LifecycleRunner {
         trace({ type: "feature:end", phase, feature: feature.id })
       }
       trace({ type: "phase:end", phase })
+      if (this.#dependencies.diagnostics.hasErrors()) {
+        return Object.freeze({ ok: false, traces: Object.freeze(traces) })
+      }
     }
     return Object.freeze({
       ok: !this.#dependencies.diagnostics.hasErrors(),

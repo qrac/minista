@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 
-import { afterEach, describe, expect, test } from "vitest"
+import { afterEach, describe, expect, test, vi } from "vitest"
 
 import {
   ViteOutputDirectoryUnsafeError,
@@ -20,6 +20,7 @@ async function createTempRoot() {
 }
 
 afterEach(async () => {
+  vi.restoreAllMocks()
   await Promise.all(
     tempDirs.splice(0).map((directory) =>
       fs.promises.rm(directory, { recursive: true, force: true }),
@@ -75,6 +76,47 @@ describe("Vite output transaction", () => {
     ).resolves.toBe("new")
     await expect(fs.promises.access(transaction.backupDir))
       .rejects.toMatchObject({ code: "ENOENT" })
+  })
+
+  test("preserves external output by default and can roll it back", async () => {
+    const parent = await createTempRoot()
+    const root = path.join(parent, "project")
+    const outDir = path.join(parent, "output")
+    await fs.promises.mkdir(root)
+    await fs.promises.mkdir(outDir)
+    await fs.promises.writeFile(path.join(outDir, "keep.txt"), "old")
+    const transaction = new ViteOutputTransaction({ root, outDir })
+    await transaction.begin()
+    expect(await fs.promises.readFile(path.join(outDir, "keep.txt"), "utf8")).toBe("old")
+    await fs.promises.writeFile(path.join(outDir, "keep.txt"), "new")
+    await transaction.rollback()
+    expect(await fs.promises.readFile(path.join(outDir, "keep.txt"), "utf8")).toBe("old")
+  })
+
+  test("cleanup failure never rolls back committed output", async () => {
+    const root = await createTempRoot()
+    const outDir = path.join(root, "dist")
+    await fs.promises.mkdir(outDir)
+    await fs.promises.writeFile(path.join(outDir, "old.txt"), "old")
+    const transaction = new ViteOutputTransaction({ root, outDir })
+    await transaction.begin()
+    await fs.promises.mkdir(outDir)
+    await fs.promises.writeFile(path.join(outDir, "new.txt"), "new")
+    vi.spyOn(fs.promises, "rm").mockRejectedValueOnce(new Error("cleanup failed"))
+    await transaction.commit()
+    expect(transaction.cleanupDiagnostic?.code).toBe("MINISTA_OUTPUT_TRANSACTION_CLEANUP_FAILED")
+    await transaction.rollback()
+    expect(await fs.promises.readFile(path.join(outDir, "new.txt"), "utf8")).toBe("new")
+  })
+
+  test("rejects ancestors and symlinks to the project before moving files", async () => {
+    const root = await createTempRoot()
+    expect(() => new ViteOutputTransaction({ root, outDir: ".." }))
+      .toThrowError(ViteOutputDirectoryUnsafeError)
+    await fs.promises.symlink(root, path.join(root, "alias"), "dir")
+    const transaction = new ViteOutputTransaction({ root, outDir: "alias" })
+    await expect(transaction.begin()).rejects.toThrowError(ViteOutputDirectoryUnsafeError)
+    expect((await fs.promises.stat(root)).isDirectory()).toBe(true)
   })
 
   test("rejects project and filesystem roots", async () => {

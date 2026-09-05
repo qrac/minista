@@ -12,6 +12,19 @@ import {
   createViteBuildSession,
 } from "../../../src/adapters/vite/build-session.js"
 
+// Emulate Vite's application callback in the injected builder test doubles.
+class TestAppBuilderAdapter extends ViteAppBuilderAdapter {
+  /** @param {any} factory */
+  constructor(factory) {
+    super(async (config, legacy) => {
+      const builder = await factory(config, legacy)
+      builder.config = config
+      builder.buildApp = () => config.builder?.buildApp?.(builder)
+      return builder
+    })
+  }
+}
+
 describe("Vite App Builder adapter", () => {
   test("builds render, prepares client, then builds client", async () => {
     /** @type {string[]} */
@@ -41,7 +54,7 @@ describe("Vite App Builder adapter", () => {
     const prepareClient = vi.fn(async ({ renderOutput }) => {
       calls.push(`prepare:${renderOutput.output[0].name}`)
     })
-    const adapter = new ViteAppBuilderAdapter(/** @type {any} */ (factory))
+    const adapter = new TestAppBuilderAdapter(/** @type {any} */ (factory))
 
     const result = await adapter.build(
       attachViteBuildSession(
@@ -57,7 +70,7 @@ describe("Vite App Builder adapter", () => {
           renderName: "render",
           clientName: "client",
         },
-        builder: {},
+        builder: expect.objectContaining({ buildApp: expect.any(Function) }),
         environments: {
           render: { consumer: "server", build: { ssr: true } },
           client: { consumer: "client", build: { ssr: false } },
@@ -79,8 +92,17 @@ describe("Vite App Builder adapter", () => {
     })
   })
 
+  test("does not build when the session already contains errors", async () => {
+    const factory = vi.fn()
+    const session = createViteBuildSession()
+    session.diagnostics.error({ code: "MINISTA_PHASE_FAILED", message: "invalid input" })
+    await expect(new TestAppBuilderAdapter(factory).build(attachViteBuildSession({}, session)))
+      .rejects.toMatchObject({ code: "MINISTA_BUILD_DIAGNOSTICS_FAILED" })
+    expect(factory).not.toHaveBeenCalled()
+  })
+
   test("reports a missing configured environment with a stable code", async () => {
-    const adapter = new ViteAppBuilderAdapter(
+    const adapter = new TestAppBuilderAdapter(
       /** @type {any} */ (async () => ({ environments: { client: {} } })),
     )
 
@@ -93,7 +115,7 @@ describe("Vite App Builder adapter", () => {
 
   test("normalizes Vite failures while creating the application builder", async () => {
     const session = createViteBuildSession({ buildId: "build:config" })
-    const adapter = new ViteAppBuilderAdapter(
+    const adapter = new TestAppBuilderAdapter(
       /** @type {any} */ (async () => {
         throw new Error("config plugin failed")
       }),
@@ -131,7 +153,7 @@ describe("Vite App Builder adapter", () => {
       }],
     }
     const session = createViteBuildSession({ buildId: "build:prepare" })
-    const adapter = new ViteAppBuilderAdapter(
+    const adapter = new TestAppBuilderAdapter(
       /** @type {any} */ (async () => ({
         environments: { render, client },
         async build() {
@@ -188,7 +210,7 @@ describe("Vite App Builder adapter", () => {
           return { output: [] }
         },
       }
-      const adapter = new ViteAppBuilderAdapter(
+      const adapter = new TestAppBuilderAdapter(
         /** @type {any} */ (async () => builder),
       )
       const session = createViteBuildSession({ buildId: "build:test" })

@@ -2,6 +2,7 @@
 
 - Status: Accepted with compatibility fallback
 - Date: 2026-08-12
+- Amended: 2026-09-05 by [ADR-0015](0015-application-lifecycle-and-output-transaction.md)
 
 ## Context
 
@@ -19,7 +20,7 @@ v5 build adapterは `render` と `client` environmentを一つのMinista applica
 - adapterのVite minor matrixと、移行期間中のisolated legacy adapterを持つ
 - Core phaseは `buildApp` hookの存在や順序を知らない
 
-通常buildは単一Builder内で `render → prepareClient → client` を実行する `ViteAppBuilderAdapter` を既定経路とします。名前付きenvironmentを構成する `createViteAppConfig()`、late named input合成をVite境界に閉じ込める `ViteEnvironmentInputAdapter`、feature descriptorのcapabilityと順序制約で `api.minista.prepareClient` をscheduleする処理を実装済みです。SSGはrender bundle評価とrendered page Artifact生成、Entryはasset entry生成、Islandはsnippet Artifactからのsource planとentry生成をlate phaseで行います。不正な依存はstructured diagnosticにします。Head contextはrender bundleでexternalizeし、rendererと同一instanceを使用します。client-only output hookは `applyToEnvironment` でrenderから除外し、Image / Searchのtransformもenvironment別に分離します。legacy render envでconfigを再評価してenvironment対応optionを投影し、client限定のPreact aliasはrenderのReact関連importをexternalizeして分離します。plugin構成差分はstable diagnosticを出し、同一processの `LegacyViteBuilderAdapter` へfallbackします。未対応CLI flagのみ二process fallbackを使用します。build sessionはbuildId、ArtifactStore、diagnostic collectorを共有し、CLIが全終了経路でArtifactStoreをclearします。App Builderはclient outputをCore `OutputManifest` schema v1へ即時変換し、raw Vite output、Builder、実行code、source本文、絶対pathを公開resultへ含めません。programmatic App／legacy client buildは既存outDirをprivate backupへrenameし、成功時にcommit、失敗時にpartial outputを削除してrollbackします。この反映はVite 8.2.1との全compatibility plugin、Preact、plugin mismatchのintegration testで固定します。
+通常buildはMinista所有のconfig.builder.buildAppをViteのbuilder.buildApp()から呼び、pluginのpre／post application hookを含む単一Builder内で `render → prepareClient → client` を実行する `ViteAppBuilderAdapter` を既定経路とします。名前付きenvironmentを構成する `createViteAppConfig()`、late named input合成をVite境界に閉じ込める `ViteEnvironmentInputAdapter`、feature descriptorのcapabilityと順序制約で `api.minista.prepareClient` をscheduleする処理を実装済みです。SSGはrender bundle評価とrendered page Artifact生成、Entryはasset entry生成、Islandはsnippet Artifactからのsource planとentry生成をlate phaseで行います。不正な依存はstructured diagnosticにします。Head contextはrender bundleでexternalizeし、rendererと同一instanceを使用します。client-only output hookは `applyToEnvironment` でrenderから除外し、Image / Searchのtransformもenvironment別に分離します。isSsrBuildを参照するconfigは、同名pluginのclosureやaliasを取り違えないよう、stable diagnosticとともに同一processの `LegacyViteBuilderAdapter` へfallbackします。未対応CLI flagのみ二process fallbackを使用します。build sessionはbuildId、ArtifactStore、diagnostic collectorを共有し、CLIが全終了経路でArtifactStoreをclearします。App Builderはclient outputをCore `OutputManifest` schema v1へ即時変換し、raw Vite output、Builder、実行code、source本文、絶対pathを公開resultへ含めません。programmatic App／legacy client buildは既存outDirをprivate backupへrenameし、成功時にcommit、失敗時にpartial outputを削除してrollbackします。この反映はVite 8.2.1との全compatibility plugin、Preact、plugin mismatchのintegration testで固定します。
 
 ## Consequences
 

@@ -2,6 +2,7 @@
 
 - Status: Accepted with incremental migration
 - Date: 2026-08-13
+- Amended: 2026-09-05 by [ADR-0015](0015-application-lifecycle-and-output-transaction.md)
 
 ## Context
 
@@ -17,7 +18,7 @@ AI coding toolやCLIがroute、page、asset、artifactの関係を調べるた�
 
 serializerはobject keyを再帰的にsortし、配列の意味上の順序を維持して、末尾改行を持つUTF-8 JSONを生成します。filesystem adapterは `.minista` と同じdirectoryに一時ファイルを書き、write完了後にrenameで `.minista/manifest.json` を置換します。失敗時は一時ファイルを削除し、以前のmanifestを維持します。
 
-通常のApp Buildとprogrammatic legacy fallbackはclient output transactionのcommit後、build sessionに保存されたProject Graph snapshotからmanifestを生成します。`inspect --manifest` はfilesystem readerとCore parserを通してmanifestだけを読み、Vite serverやuser moduleを起動しません。schemaなし／構造不正は `MINISTA_MANIFEST_INVALID`、未対応versionは `MINISTA_MANIFEST_VERSION_UNSUPPORTED`、fileなしは `MINISTA_MANIFEST_NOT_FOUND` として返します。
+通常のApp Buildとprogrammatic legacy fallbackはclient output transactionのcommit前、build sessionに保存されたProject Graph snapshotからmanifestを生成します。`inspect --manifest` はfilesystem readerとCore parserを通してmanifestだけを読み、Vite serverやuser moduleを起動しません。schemaなし／構造不正は `MINISTA_MANIFEST_INVALID`、未対応versionは `MINISTA_MANIFEST_VERSION_UNSUPPORTED`、fileなしは `MINISTA_MANIFEST_NOT_FOUND` として返します。
 
 readerはparse前に明示的なmigration registryを適用します。migrationは `from` と `to` を宣言し、一versionずつ変換します。v1が最初の公開schemaなのでbuilt-in registryは空です。cycle、同じversionからの重複migration、宣言したversionを返さない変換は `MINISTA_MANIFEST_MIGRATION_FAILED` とします。
 
@@ -28,7 +29,7 @@ readerはparse前に明示的なmigration registryを適用します。migration
 - toolは実行可能な一時moduleやarbitrary propsを読まずにproject構造を取得できる
 - 同じmanifest valueは安定したJSON表現を持ち、差分とcache keyに利用できる
 - manifest writeの中断でpartial JSONは公開pathに残らない
-- dist transactionとmanifest renameは単一filesystem transactionではないため、build後のmanifest write失敗はbuild全体の失敗として報告する
+- programmatic buildはmetadata writeの捕捉可能な失敗時に旧distとmetadataへrollbackする。ただし同時可視化やprocess強制終了時のatomicityは保証しない（ADR-0015）
 - `createdAt` はbuild時刻なので、manifest file全体はbuild間でbyte-identicalにはならない
 
 ## Rejected alternatives

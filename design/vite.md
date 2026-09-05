@@ -52,15 +52,15 @@ Vite adapterだけが `vite` の `Environment`, `ViteBuilder`, `RunnableDevEnvir
 
 ### Current adapter
 
-通常の `minista build` はVite CLI processを二回spawnせず、同じNode.js processで `ViteAppBuilderAdapter` が一つのBuilderからrender/clientを順にbuildします。config plugin構成がenvironment間で異なる場合は `LegacyViteBuilderAdapter`、任意のVite CLI flagをprogrammatic configへ変換できない場合は従来のCLIへ段階的にfallbackします。
+通常の `minista build` はVite CLI processを二回spawnせず、同じNode.js processで `ViteAppBuilderAdapter` が一つのBuilderからrender/clientを順にbuildします。configがisSsrBuildを参照する場合やplugin構成がenvironment間で異なる場合は `LegacyViteBuilderAdapter`、任意のVite CLI flagをprogrammatic configへ変換できない場合は従来のCLIへ段階的にfallbackします。
 
 EntryとIslandの通常buildはconfig-time temp importをbuild-session ArtifactStoreへ移行しました。`createViteAppConfig()` はrenderをserver consumerかつSSR build、clientをclient consumerかつnon-SSR buildとして構成します。`ViteEnvironmentInputAdapter` は `prepareClient` 時に解決済みRolldown optionを保ったままinputを差し替えます。このlate inputが実際のVite 8.2.1 client buildに反映されることはintegration testで確認済みです。
 
-App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。そのため `prepareViteClientEnvironment()` が `api.minista.prepareClient` をfeature descriptorのcapability / `after` でscheduleし、late preparationをconfig hookから分離します。SSG pluginは `config()` でrender/clientの静的設定を既存environment optionへ合成し、`prepareClient` でrender bundle評価、page render、Artifact生成を行います。Islandはsnippet Artifactをrenderで保存し、client preparationでsource planとentryを生成します。Entryもrendered page Artifactを解析してentryを生成し、両者は `ViteEnvironmentInputAdapter.merge()` でSSGのthrough inputを消さずnamed inputを合成します。render bundleでHead contextをrendererと共有するため、`minista/context` と `minista/head` はuserのRolldown external設定を保ったままexternalizeします。React関連importもrenderでexternalizeし、client限定のPreact aliasから分離します。Minista専用config markerかenvironment名も伝播するため、通常のVite `builder` optionをApp Buildと誤認しません。Comment、Svg、Sprite、Beautify、Archive、Bundleは `applyToEnvironment` でclientだけにoutput hookを登録し、ImageとSearchもenvironment別source transformを使うため、render側でclient用HTML変更やarchive生成を行いません。全compatibility plugin fixtureとPreact fixtureの単一Builder buildは成功済みです。output claim collectorは対象environmentをproviderへ渡し、生成pluginは `ViteEnvironmentState` にclaimをidentity単位で分離して保持します。build sessionはbuildId、ArtifactStore、diagnostic collectorを共有し、CLIが全終了経路でArtifactStoreをclearします。App Builderはschema version、status、buildId、diagnostics、environment status、Core `OutputManifest` を一つのresultとして返します。manifestはlogical ID、kind、fileName、公開URL、byte size、entry/import関係だけを持ち、Vite Builder、実行code、asset source、絶対facade pathを含みません。
+App Buildは全environment configを先に解決するため、render environment完了後に確定するclient input planを従来pluginの `config` hookでは渡せません。そのため `prepareViteClientEnvironment()` が `api.minista.prepareClient` をfeature descriptorのcapability / `after` でscheduleし、late preparationをconfig hookから分離します。SSG pluginは `config()` でrender/clientの静的設定を既存environment optionへ合成し、`prepareClient` でrender bundle評価、page render、Artifact生成を行います。Islandはsnippet Artifactをrenderで保存し、client preparationでsource planとentryを生成します。Entryもrendered page Artifactを解析してentryを生成し、両者は `ViteEnvironmentInputAdapter.merge()` でSSGのthrough inputを消さずnamed inputを合成します。render bundleでHead contextをrendererと共有するため、`minista/context` と `minista/head` はuserのRolldown external設定を保ったままexternalizeします。React関連importもrenderでexternalizeし、client限定のPreact aliasから分離します。Minista専用config markerかenvironment名も伝播するため、通常のVite `builder` optionをApp Buildと誤認しません。Comment、Svg、Sprite、Beautify、Archive、Bundleは `applyToEnvironment` でclientだけにoutput hookを登録し、ImageとSearchもenvironment別source transformを使うため、render側でclient用HTML変更やarchive生成を行いません。全compatibility plugin fixtureは単一Builder、isSsrBuildでaliasを分けるPreact fixtureはLegacy経路で検証しています。output claim collectorは対象environmentをproviderへ渡し、生成pluginは `ViteEnvironmentState` にclaimをidentity単位で分離して保持します。build sessionはbuildId、ArtifactStore、diagnostic collectorを共有し、CLIが全終了経路でArtifactStoreをclearします。App Builderはschema version、status、buildId、diagnostics、environment status、Core `OutputManifest` を一つのresultとして返します。manifestはlogical ID、kind、fileName、公開URL、byte size、entry/import関係だけを持ち、Vite Builder、実行code、asset source、絶対facade pathを含みません。
 
 ADR-0013適用後は独立したBundle pluginを使用しません。SSGのrender outputからCSS／画像とmodule graphを収集し、route asset Artifactを生成してclientへ再emitします。MDX compilerは同じSSG adapterのtransform hookから対象moduleの初回読込時だけ初期化します。
 
-programmatic App／legacy client buildはclient build直前に既存outDirを同じ親directoryのbuildId付きprivate backupへrenameします。buildとmanifest生成が成功した場合だけbackupを削除し、失敗時はpartial outDirを削除してbackupを元の名前へ戻します。これによりArchiveなどが通常のoutDirを参照する互換性を維持しながら、以前の正常な出力を保護します。outDirがproject rootまたはfilesystem rootの場合はtransactionを開始せずstable errorにします。Vite config読込、Builder生成、render／client build、client preparationで発生した任意のprogrammatic errorはadapter境界で `MINISTA_VITE_BUILD_FAILED` に正規化し、environment、phase、project root内のsource locationをDiagnosticへ保存します。既にstableなMinista errorは再包装しません。CLIはsessionとerror由来のdiagnosticを重複排除し、失敗時もbuild ID付き `.minista/diagnostics.json` をatomic replaceします。未対応CLI flagで外部Vite CLIを起動する最終fallbackはtransactionの対象外ですが、processの起動失敗、signal終了、非zero終了を `MINISTA_VITE_CLI_FAILED` に正規化し、失敗したenvironmentとbuild IDを同じworkspace snapshotへ保存します。
+programmatic Appはpre buildApp hookの前、Legacyはclient build直前に既存outDirを同じ親directoryのbuildId付きprivate backupへrenameします。emptyOutDir:falseとproject外outDirの既定保持ではcopy backします。build、post hook、claim検証、manifest／diagnosticsのatomic writeが成功した場合だけcommitし、捕捉可能な失敗時はpartial outDirを削除して旧outDirとmetadataを復元します。commit後のbackup削除失敗はwarningにします。これによりArchiveなどが通常のoutDirを参照する互換性を維持しながら、以前の正常な出力を保護します。outDirがproject rootや祖先、それらを指すsymlink経路または直接symlinkの場合はtransactionを開始せずstable errorにします。Vite config読込、Builder生成、render／client build、client preparationで発生した任意のprogrammatic errorはadapter境界で `MINISTA_VITE_BUILD_FAILED` に正規化し、environment、phase、project root内のsource locationをDiagnosticへ保存します。既にstableなMinista errorは再包装しません。CLIはsessionとerror由来のdiagnosticを重複排除し、失敗時もbuild ID付き `.minista/diagnostics.json` をatomic replaceします。未対応CLI flagで外部Vite CLIを起動する最終fallbackはtransactionの対象外ですが、processの起動失敗、signal終了、非zero終了を `MINISTA_VITE_CLI_FAILED` に正規化し、失敗したenvironmentとbuild IDを同じworkspace snapshotへ保存します。
 
 ### Environments
 
@@ -77,9 +77,11 @@ type MinistaEnvironmentName = "render" | "client"
 
 ```text
 minista build
-  -> load Minista/Vite config once
+  -> evaluate Minista/Vite config at the adapter boundary
   -> create ProjectContext + buildId
   -> createBuilder()
+  -> begin output transaction
+  -> builder.buildApp() (plugin pre/post hooks + owned callback)
   -> discover
   -> builder.build(render)
   -> evaluate render output
@@ -88,6 +90,7 @@ minista build
   -> builder.build(client)
   -> translate Vite output to OutputManifest
   -> compose + emit + finalize
+  -> write manifest + diagnostics, commit output transaction
   -> one BuildResult
 ```
 
@@ -95,7 +98,7 @@ minista build
 
 render environmentのbuildはuser moduleをproduction相当のNode runtimeで評価するためのadapter準備で、Coreのdomain `bundle` phaseとは区別します。Coreの `resolve` はこのevaluatorが利用可能になった後に `getStaticData` を実行します。domain `bundle` phaseはgenerate済みclient entry / assetをclient environmentへ渡す段階です。
 
-Viteはenvironment record順にbuildできますが、Ministaはrender結果からclient entry planを作るため、adapterが明示的に `builder.build(render)` と `builder.build(client)` を順に呼びます。parallel buildは採用しません。
+Viteはenvironment record順にbuildできますが、Ministaはrender結果からclient entry planを作るため、Minista所有のconfig.builder.buildAppが明示的に `builder.build(render)` と `builder.build(client)` を順に呼びます。pluginのbuildApp前後hookは実行しますが、callback置換やhookからの直接buildはMINISTA_VITE_APP_BUILD_RESERVEDで拒否します。parallel buildは採用しません。
 
 ### Inter-environment handoff
 
@@ -113,9 +116,9 @@ Viteはenvironment record順にbuildできますが、Ministaはrender結果か�
 
 ### User config compatibility
 
-`defineConfig(({ command, isSsrBuild }) => ...)` を利用する既存projectが存在します。App Build adapterはconfig関数をlegacy render envでも評価し、`build`、`define`、environment対応の `resolve` optionなどをrender environmentへ投影します。`resolve.alias` はViteのenvironment optionではないため投影せず、Preact互換ではrender bundleのReact関連importをexternalizeしてclient aliasの影響を遮断します。この挙動はPreactとIslandを含むApp Build fixtureで固定しています。
+`isSsrBuild`を参照するconfig関数はgetterで検出し、MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT warningとともに既存Legacy adapterへ送ります。同名pluginでもclosure内のoptionやaliasが異なる可能性があるため、plugin名の一致を互換性の証明には使いません。分割代入だけでも対象になります。
 
-`isSsrBuild` でplugin配列そのものを変えるconfigは、Viteがroot pluginを全environmentへ先に解決する制約があるため、plugin名と順序の差分をbuild開始前に検出します。`MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH` warningを出し、同一processのlegacy adapterへfallbackします。新documentationはenvironment-aware helperを案内し、`isSsrBuild` 分岐を推奨しません。
+plugin名／順序も異なる場合は既存のMINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCHを優先します。isSsrBuildを参照しないconfigのenvironment対応optionは引き続きrenderへ投影します。新しいconfigではenvironment-aware hookを使用します。config評価回数は一回と保証しません。詳細は[ADR-0015](decisions/0015-application-lifecycle-and-output-transaction.md)を参照してください。
 
 ## Dev adapter
 
@@ -181,9 +184,9 @@ Vite 8.1の公式告知ではbrowser sideとbasic plugin / main featureが中心
 
 ## React static rendering boundary
 
-現在は `react-dom/server` の同期 `renderToString()` でbody markupを作り、mutable `HeadContext` から収集したheadを外側で連結しています。
+現在はStaticRenderer portを通じてReact 19のprerenderToNodeStream()を使用し、Preact／React 18ではrenderToString() adapterへfallbackします。Headを含むpage treeを一回だけrenderします。
 
-React 19.2の公式資料ではstatic APIはSSG用で、`prerender()` はSuspense dataの完了を待ちます。一方Node.jsではWeb Stream版より `prerenderToNodeStream()` が推奨されています。したがってtargetは次です。
+React 19.2の公式資料ではstatic APIはSSG用で、`prerender()` はSuspense dataの完了を待ちます。一方Node.jsではWeb Stream版より `prerenderToNodeStream()` が推奨されています。この境界を次のportで実装しています。
 
 ```ts
 interface StaticRenderer {
@@ -204,7 +207,7 @@ Headはrender中のside effectで収集されるため、page treeを二重rende
 - Islandのsource transformはVite plugin contextのstableな`this.parse()`をadapterへ注入し、`lang: "tsx"`のESTree互換ASTを読み取り専用で使用する。変更はMagicStringによるsource range編集に限定する
 - adapterがchunk/asset metadataをnormalized `OutputManifest` に変換する。schema v1は実装済み
 - asset entryはlogical ArtifactIdで宣言し、file name matchingや `originalFileNames` scanはadapter内に限定
-- `generateBundle` で複数featureがHTMLを順番に変更するcurrent patternを廃止
+- `generateBundle`／`writeBundle`のdomain operationをadapterで集約し、全descriptorの依存順にdispatchする。feature内のscope付きphase bridgeは維持する
 - userの `build.rolldownOptions` は可能な限り透過的に維持し、Minista reserved input/outputとの衝突をdiagnosticにする
 
 ## Version and fallback policy
@@ -224,7 +227,7 @@ Stage 8完了時点でfallbackは次の2経路だけです。
 
 | 経路 | 発動条件 | 削除条件 |
 | --- | --- | --- |
-| `LegacyViteBuilderAdapter` | legacy render／client config評価でplugin名または順序が異なる | environment-aware configへの移行期間を1 minor設け、警告利用状況を確認後に削除 |
+| `LegacyViteBuilderAdapter` | configがisSsrBuildを参照する、またはrender／clientでplugin名・順序が異なる | environment-aware configへの移行期間を1 minor設け、警告利用状況を確認後に削除 |
 | 外部Vite CLI | programmatic configへ安全に変換できないCLI flagを指定 | 対応flagを明示的に変換するか、unsupported optionのstable diagnosticへ移行したmajorで削除 |
 
 通常のbuild／dev、公開plugin、Core lifecycleはfallback実装へ依存しません。`createBuilder()`とApp Build関連APIがexperimentalである間は安全網として保持し、fallbackの追加は禁止します。再検討日はVite Environment APIまたは`createBuilder()`のstable化を確認した最初のMinista minor releaseです。
