@@ -5,10 +5,16 @@ export type PluginSsgBundleOptions = {
   outName: string
 }
 
+export type PluginSsgMdxFrontmatterOptions = {
+  name?: string
+}
+
 export type PluginSsgMdxOptions = Omit<
   CompileOptions,
   "development" | "format" | "SourceMapGenerator"
->
+> & {
+  frontmatter?: false | PluginSsgMdxFrontmatterOptions
+}
 
 export type PluginOptions = {
   layout: string

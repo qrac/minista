@@ -2,42 +2,28 @@
 
 import { createProcessor } from "@mdx-js/mdx"
 import { SourceMapGenerator } from "source-map"
-import remarkFrontmatter from "remark-frontmatter"
-import remarkMdxFrontmatter from "remark-mdx-frontmatter"
+import remarkMinistaFrontmatter from "../../internal/mdx/frontmatter.js"
 
 /** @typedef {import("@mdx-js/mdx").CompileOptions} CompileOptions */
+/** @typedef {import("../../plugins/ssg/types.js").PluginSsgMdxOptions} PluginSsgMdxOptions */
+/** @typedef {PluginSsgMdxOptions & Pick<CompileOptions, "development">} MdxCompilerOptions */
 
 /**
- * @param {Readonly<CompileOptions>} options
+ * @param {Readonly<MdxCompilerOptions>} options
  * @returns {CompileOptions}
  */
 function resolveOptions(options) {
+  const { frontmatter = { name: "metadata" }, ...compileOptions } = options
   const remarkPlugins = Array.isArray(options.remarkPlugins)
     ? [...options.remarkPlugins]
     : []
 
-  if (
-    !remarkPlugins.some(
-      (plugin) =>
-        plugin === remarkFrontmatter ||
-        (Array.isArray(plugin) && plugin[0] === remarkFrontmatter),
-    )
-  ) {
-    remarkPlugins.unshift(remarkFrontmatter)
-  }
-
-  if (
-    !remarkPlugins.some(
-      (plugin) =>
-        plugin === remarkMdxFrontmatter ||
-        (Array.isArray(plugin) && plugin[0] === remarkMdxFrontmatter),
-    )
-  ) {
-    remarkPlugins.splice(1, 0, [remarkMdxFrontmatter, { name: "metadata" }])
+  if (frontmatter !== false) {
+    remarkPlugins.unshift([remarkMinistaFrontmatter, frontmatter])
   }
 
   return {
-    ...options,
+    ...compileOptions,
     remarkPlugins,
     SourceMapGenerator,
   }
@@ -47,7 +33,7 @@ function resolveOptions(options) {
  * Create reusable Markdown and MDX processors after the first matching module
  * reaches the Vite transform pipeline.
  *
- * @param {Readonly<CompileOptions>} options
+ * @param {Readonly<MdxCompilerOptions>} options
  */
 export function createMdxCompiler(options) {
   const resolved = resolveOptions(options)

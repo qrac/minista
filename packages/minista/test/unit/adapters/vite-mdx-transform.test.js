@@ -30,4 +30,37 @@ describe("Vite MDX transformer", () => {
     expect(mdx?.code).toContain("export const answer = 42")
     expect(mdx?.code).toContain("function MDXContent")
   })
+
+  test("parses YAML frontmatter with the internal plugin", async () => {
+    const transformer = createViteMdxTransformer({})
+    const result = await transformer.transform(
+      "---\ntitle: About\ntags:\n  - docs\ndraft: false\n---\n# About",
+      "/about.mdx",
+    )
+
+    expect(result?.code).toContain("export const metadata")
+    expect(result?.code).toContain('"title": "About"')
+    expect(result?.code).toContain('"tags": ["docs"]')
+    expect(result?.code).toContain('"draft": false')
+  })
+
+  test("supports a custom export name and explicit disable", async () => {
+    const custom = createViteMdxTransformer({
+      frontmatter: { name: "pageData" },
+    })
+    const disabled = createViteMdxTransformer({ frontmatter: false })
+
+    const customResult = await custom.transform(
+      "---\ntitle: Custom\n---\n# Custom",
+      "/custom.mdx",
+    )
+    const disabledResult = await disabled.transform(
+      "---\ntitle: Plain\n---\n# Plain",
+      "/plain.mdx",
+    )
+
+    expect(customResult?.code).toContain("export const pageData")
+    expect(customResult?.code).not.toContain("export const metadata")
+    expect(disabledResult?.code).not.toContain("export const metadata")
+  })
 })

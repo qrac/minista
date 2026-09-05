@@ -15,6 +15,7 @@
 - `pluginBundle()`、`pluginMdx()`、`useExportCss`、Bundle独自の`src`を削除する
 - MDXはdefaultで有効にし、`mdx: false`で無効化できる
 - `@mdx-js/mdx`の公開`createProcessor()`を使用し、最初の対象moduleまでcompilerを遅延ロードする
+- YAML frontmatterの構文登録、解析、MDX export生成は内部MDX機能が所有し、`mdx.frontmatter`でexport名または無効化を指定する。TOML frontmatterはサポートしない
 - render environmentで確定したCSS／画像をclient outputへ引き継ぎ、CSS Modulesをclient environmentで再コンパイルしない
 - render module graphからrouteごとのsource asset依存を記録し、確定output claimのconsumerへ投影する
 - explicit Entry、Island、render assetは同じclient output lifecycleで出力する

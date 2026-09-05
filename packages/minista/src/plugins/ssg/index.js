@@ -91,6 +91,9 @@ export const defaultOptions = {
     outName: "bundle",
   },
   mdx: {
+    frontmatter: {
+      name: "metadata",
+    },
     remarkPlugins: [],
     rehypePlugins: [],
   },

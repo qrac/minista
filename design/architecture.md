@@ -81,7 +81,7 @@ interface RenderedPage {
 | Page → feature | source transformが付けるHTML markerとDocument Store | markerはcompatibility facade内の非公開protocolとして残る |
 | Vite output → feature | build sessionのDocument Store／Graph／Artifact／Emitterを共有 | Vite outputからCore inputへの投影はhook境界に残る |
 | dev feature | server lifetimeのsession、入力ページ限定Document phase、page scope付きArtifact更新 | HTTP配信、watch、HMR、module評価、URL解決はVite adapterに残る |
-| MDX | `@mdx-js/mdx`の`createProcessor()`を使う遅延compiler adapter | `pluginSsg().mdx`が有効で対象moduleが読み込まれた場合だけ初期化 |
+| MDX | `@mdx-js/mdx`の`createProcessor()`を使う遅延compiler adapter。内部MDX機能がYAML frontmatterをMDX exportへ変換 | `pluginSsg().mdx`が有効で対象moduleが読み込まれた場合だけ初期化。`mdx.frontmatter`でexport名または無効化を指定 |
 
 module-level global variableはほぼ使われていません。output claim collectorはenvironment identityを明示し、Archive、Sprite、Image、Entry、Island、Searchのclaim stateはadapter所有の`ViteEnvironmentState`でenvironment単位に分離済みです。SSGのrendered pages、render asset、route参照、Project Graph、manifest候補もenvironment identity単位に保持します。SSG／Sprite／Image／Islandのdev stateとSvg source resolverは`ViteDevServerRegistry`が解決するserver identityごとに分離します。SSGのnamed environment用静的設定は通常の`config()`hookが既存environment optionへ合成します。
 

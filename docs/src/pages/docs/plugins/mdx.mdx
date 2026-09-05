@@ -38,24 +38,35 @@ paragraph
 ```js title="Default"
 pluginSsg({
   mdx: {
+    frontmatter: {
+      name: "metadata",
+    },
     remarkPlugins: [],
     rehypePlugins: [],
   },
 })
 ```
 
-オプションは`development`、`format`、`SourceMapGenerator`を除く[@mdx-js/mdx](https://www.npmjs.com/package/@mdx-js/mdx)の`CompileOptions`と同一です。
-
-remarkPluginsにremark-frontmatterまたはremark-mdx-frontmatterを用いると、デフォルトの設定を上書きできます。
+`frontmatter`を除くオプションは`development`、`format`、`SourceMapGenerator`を除いた[@mdx-js/mdx](https://www.npmjs.com/package/@mdx-js/mdx)の`CompileOptions`と同一です。
 
 ## Frontmatter
 
 フロントマターは `props` としてLayoutやPageで使用可能です。`draft` を `true` にしたページは本番ビルドから除外されます。
 
+YAML frontmatterはデフォルトで`metadata`という名前のMDX exportへ変換されます。export名は`frontmatter.name`で変更でき、変換を無効にする場合は`frontmatter: false`を指定します。
+
+```js title="Custom export name"
+pluginSsg({
+  mdx: {
+    frontmatter: { name: "pageData" },
+  },
+})
+```
+
 ```mdx title="./src/pages/index.mdx"
 ---
 title: Index
-draft: false // true = Don't build the page
+draft: false # true = Don't build the page
 ---
 
 # {props.title}

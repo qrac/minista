@@ -1,6 +1,6 @@
 // @ts-check
 
-/** @typedef {import("@mdx-js/mdx").CompileOptions} CompileOptions */
+/** @typedef {import("../../plugins/ssg/types.js").PluginSsgMdxOptions} PluginSsgMdxOptions */
 
 /** @param {string} value */
 function normalizeExtension(value) {
@@ -11,7 +11,7 @@ function normalizeExtension(value) {
  * Vite-facing lazy MDX transformer. This module intentionally does not import
  * the MDX compiler so projects without matching modules avoid its startup cost.
  *
- * @param {Readonly<CompileOptions>} options
+ * @param {Readonly<PluginSsgMdxOptions>} options
  */
 export function createViteMdxTransformer(options) {
   const mdExtensions = new Set(

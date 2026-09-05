@@ -42,6 +42,9 @@ pluginSsg({
     outName: "bundle",
   },
   mdx: {
+    frontmatter: {
+      name: "metadata",
+    },
     remarkPlugins: [],
     rehypePlugins: [],
   },
@@ -78,10 +81,10 @@ pageとlayoutから参照されたCSS・画像をrender結果と同じ変換結�
 
 ### mdx
 
-- 型: `false | CompileOptions`
-- デフォルト: `{ remarkPlugins: [], rehypePlugins: [] }`
+- 型: `false | (CompileOptions & { frontmatter?: false | { name?: string } })`
+- デフォルト: `{ frontmatter: { name: "metadata" }, remarkPlugins: [], rehypePlugins: [] }`
 
-MDX・Markdownの変換設定です。デフォルトで有効ですが、`@mdx-js/mdx`とprocessorは最初の`.md`または`.mdx`が読み込まれるまでロードされません。無効にする場合は`mdx: false`を指定します。`src`を省略している場合、無効化に合わせてdefaultの探索対象もJSX・TSXだけになります。
+MDX・Markdownの変換設定です。YAML frontmatterは`frontmatter.name`で指定した名前のMDX exportへ変換され、`frontmatter: false`でfrontmatter変換だけを無効化できます。MDX全体はデフォルトで有効ですが、`@mdx-js/mdx`とprocessorは最初の`.md`または`.mdx`が読み込まれるまでロードされません。無効にする場合は`mdx: false`を指定します。`src`を省略している場合、無効化に合わせてdefaultの探索対象もJSX・TSXだけになります。
 
 ## Head
 

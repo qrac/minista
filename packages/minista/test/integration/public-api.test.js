@@ -43,6 +43,7 @@ describe("public API compatibility", () => {
     const defaults = pluginSsg().api.minista.feature
     expect(defaults.options.bundle).toEqual({ outName: "bundle" })
     expect(defaults.options.mdx).toMatchObject({
+      frontmatter: { name: "metadata" },
       remarkPlugins: [],
       rehypePlugins: [],
     })
