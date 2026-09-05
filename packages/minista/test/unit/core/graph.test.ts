@@ -121,6 +121,54 @@ describe("ProjectGraph", () => {
     expect(diagnostics.byCode("MINISTA_PAGE_URL_DUPLICATE")).toHaveLength(1)
   })
 
+  test("removes page references and page-scoped artifacts", () => {
+    const { graph } = createGraph()
+    const featureId = createNodeId("feature", "fixture")
+    const routeId = createNodeId("route", "shared")
+    const pageA = createNodeId("page", "a")
+    const pageB = createNodeId("page", "b")
+    const assetId = createNodeId("asset", "shared")
+    const islandId = createNodeId("island", "shared")
+    const imageId = createNodeId("image", "shared")
+    const pageArtifactA = createNodeId("artifact", "page-a")
+    const pageArtifactB = createNodeId("artifact", "page-b")
+    const buildArtifact = createNodeId("artifact", "build")
+    graph.addFeature({ id: featureId, apiVersion: 1, provides: [], requires: [] })
+    graph.addRoute({
+      id: routeId,
+      sourceFile: toProjectPath("src/pages/[slug].tsx"),
+      pattern: "/:slug/",
+      params: [{ name: "slug", optional: false, rest: false }],
+      pageModuleId: "/src/pages/[slug].tsx",
+    })
+    for (const [id, url] of [[pageA, "/a/"], [pageB, "/b/"]] as const) {
+      graph.addPage({ id, routeId, url, params: {}, props: {}, metadata: {}, draft: false })
+    }
+    graph.addAsset({ id: assetId, kind: "generated", consumers: [pageA, pageB] })
+    graph.addIsland({ id: islandId, componentModuleId: "/island.jsx", directive: "load", pages: [pageA, pageB] })
+    graph.addImage({ id: imageId, source: "/image.png", pages: [pageA, pageB], generatedAssets: [assetId] })
+    graph.addArtifact({ id: pageArtifactA, kind: "data", owner: featureId, source: "a", dependencies: [], scope: { kind: "page", pageId: pageA } })
+    graph.addArtifact({ id: pageArtifactB, kind: "data", owner: featureId, source: "b", dependencies: [], scope: { kind: "page", pageId: pageB } })
+    graph.addArtifact({ id: buildArtifact, kind: "data", owner: featureId, source: "build", dependencies: [pageArtifactA, pageArtifactB] })
+
+    expect(graph.removePage(pageA)).toBe(true)
+    let snapshot = graph.snapshot()
+    expect(snapshot.assets.get(assetId)?.consumers).toEqual([pageB])
+    expect(snapshot.islands.get(islandId)?.pages).toEqual([pageB])
+    expect(snapshot.images.get(imageId)?.pages).toEqual([pageB])
+    expect(snapshot.artifacts.has(pageArtifactA)).toBe(false)
+    expect(snapshot.artifacts.get(buildArtifact)?.dependencies).toEqual([pageArtifactB])
+
+    expect(graph.removeRoute(routeId)).toBe(true)
+    snapshot = graph.snapshot()
+    expect(snapshot.pages.size).toBe(0)
+    expect(snapshot.assets.get(assetId)?.consumers).toEqual([])
+    expect(snapshot.islands.get(islandId)?.pages).toEqual([])
+    expect(snapshot.images.get(imageId)?.pages).toEqual([])
+    expect(snapshot.artifacts.has(pageArtifactB)).toBe(false)
+    expect(snapshot.artifacts.get(buildArtifact)?.dependencies).toEqual([])
+  })
+
   test("creates a safe manifest projection without props or absolute roots", () => {
     const { graph, diagnostics } = createGraph()
     const featureId = createNodeId("feature", "ssg")

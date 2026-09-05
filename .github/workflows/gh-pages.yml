@@ -20,7 +20,7 @@ jobs:
       - name: Node.js をセットアップ
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 22.12.0
 
       - name: 依存関係をインストール
         run: npm ci

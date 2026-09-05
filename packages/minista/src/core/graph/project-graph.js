@@ -16,14 +16,23 @@
 export class ProjectGraph {
   #project
   #diagnostics
+  /** @type {Map<FeatureNode["id"], FeatureNode>} */
   #features = new Map()
+  /** @type {Map<RouteNode["id"], RouteNode>} */
   #routes = new Map()
+  /** @type {Map<string, RouteNode["id"]>} */
   #routeIdsByPattern = new Map()
+  /** @type {Map<PageNode["id"], PageNode>} */
   #pages = new Map()
+  /** @type {Map<string, PageNode["id"]>} */
   #pageIdsByUrl = new Map()
+  /** @type {Map<AssetNode["id"], AssetNode>} */
   #assets = new Map()
+  /** @type {Map<IslandNode["id"], IslandNode>} */
   #islands = new Map()
+  /** @type {Map<ImageNode["id"], ImageNode>} */
   #images = new Map()
+  /** @type {Map<BuildArtifact["id"], BuildArtifact>} */
   #artifacts = new Map()
   /**
    * @param {ProjectGraphSnapshot} snapshot
@@ -176,6 +185,44 @@ export class ProjectGraph {
     if (!page) return false
     this.#pages.delete(id)
     this.#pageIdsByUrl.delete(page.url)
+    for (const [assetId, asset] of this.#assets) {
+      if (!asset.consumers.includes(id)) continue
+      this.#assets.set(assetId, Object.freeze({
+        ...asset,
+        consumers: Object.freeze(asset.consumers.filter((pageId) => pageId !== id)),
+      }))
+    }
+    for (const [islandId, island] of this.#islands) {
+      if (!island.pages.includes(id)) continue
+      this.#islands.set(islandId, Object.freeze({
+        ...island,
+        pages: Object.freeze(island.pages.filter((pageId) => pageId !== id)),
+      }))
+    }
+    for (const [imageId, image] of this.#images) {
+      if (!image.pages.includes(id)) continue
+      this.#images.set(imageId, Object.freeze({
+        ...image,
+        pages: Object.freeze(image.pages.filter((pageId) => pageId !== id)),
+      }))
+    }
+    const removedArtifactIds = new Set()
+    for (const [artifactId, artifact] of this.#artifacts) {
+      if (artifact.scope?.kind !== "page" || artifact.scope.pageId !== id) continue
+      removedArtifactIds.add(artifactId)
+      this.#artifacts.delete(artifactId)
+    }
+    if (removedArtifactIds.size > 0) {
+      for (const [artifactId, artifact] of this.#artifacts) {
+        if (!artifact.dependencies.some((dependency) => removedArtifactIds.has(dependency))) continue
+        this.#artifacts.set(artifactId, Object.freeze({
+          ...artifact,
+          dependencies: Object.freeze(
+            artifact.dependencies.filter((dependency) => !removedArtifactIds.has(dependency)),
+          ),
+        }))
+      }
+    }
     return true
   }
   /** @param {AssetNode} node */

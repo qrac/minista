@@ -30,5 +30,5 @@ unit testで次を固定しました。
 
 - pattern／URL重複時に既存nodeとindexを変更しない
 - Route／Page更新時に旧keyを削除して新keyへ張り替える
-- Page削除とRoute削除時にindexを削除し、Route削除では配下Pageも削除する
+- Page削除とRoute削除時にindexを削除し、Asset／Island／ImageのPage参照とpage scope Artifact、そのArtifactへのdependencyも除去する。Route削除では配下Pageへ同じcleanupを適用する
 - `ProjectGraph.fromSnapshot()`で復元したGraphにも同じindex queryが使える
