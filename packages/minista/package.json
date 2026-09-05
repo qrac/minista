@@ -76,17 +76,17 @@
     "archiver": "^8.0.0",
     "cross-spawn": "^7.0.6",
     "js-beautify": "^2.0.3",
-    "magic-string": "^0.30.21",
+    "magic-string": "^1.2.3",
     "mime-types": "^3.0.2",
     "mojigiri": "^0.3.0",
-    "node-html-parser": "^9.0.1",
+    "node-html-parser": "^9.0.3",
     "picocolors": "^1.1.1",
-    "picomatch": "^4.0.5",
+    "picomatch": "^4.0.7",
     "remark-frontmatter": "^5.0.0",
     "remark-mdx-frontmatter": "^5.2.0",
-    "sharp": "^0.35.3",
-    "source-map": "^0.7.6",
-    "svgo": "^4.0.2",
+    "sharp": "^0.35.4",
+    "source-map": "^0.8.0",
+    "svgo": "^4.1.0",
     "tinyglobby": "^0.2.17"
   }
 }
