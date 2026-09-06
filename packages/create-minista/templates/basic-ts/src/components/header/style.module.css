@@ -11,4 +11,5 @@
   color: var(--theme-tx-1);
   font-weight: 700;
   text-decoration: none;
+  white-space: nowrap;
 }

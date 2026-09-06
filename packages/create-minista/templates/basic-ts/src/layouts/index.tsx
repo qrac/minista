@@ -15,6 +15,7 @@ export default function (props: LayoutProps) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width" />
         <title>{title}</title>
+        <script src="/src/assets/entries/scripts.ts" type="module" />
         <link rel="icon" href="/favicon.png" />
       </head>
       <body>
