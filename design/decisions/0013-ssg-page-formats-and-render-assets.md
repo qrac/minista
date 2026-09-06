@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-28
+- Amended: 2026-09-06
 
 ## Context
 
@@ -15,7 +16,7 @@
 - `pluginBundle()`、`pluginMdx()`、`useExportCss`、Bundle独自の`src`を削除する
 - MDXはdefaultで有効にし、`mdx: false`で無効化できる
 - `@mdx-js/mdx`の公開`createProcessor()`を使用し、最初の対象moduleまでcompilerを遅延ロードする
-- YAML frontmatterの構文登録、解析、MDX export生成は内部MDX機能が所有し、`mdx.frontmatter`でexport名または無効化を指定する。TOML frontmatterはサポートしない
+- YAML／TOML frontmatterの構文登録、解析、MDX export生成は内部MDX機能が所有し、`mdx.frontmatter`でexport名または無効化を指定する。TOMLの解析には依存0の`smol-toml`を使用する
 - render environmentで確定したCSS／画像をclient outputへ引き継ぎ、CSS Modulesをclient environmentで再コンパイルしない
 - render module graphからrouteごとのsource asset依存を記録し、確定output claimのconsumerへ投影する
 - explicit Entry、Island、render assetは同じclient output lifecycleで出力する
@@ -29,6 +30,8 @@ Viteのmodule graph、transform hook、render outputはadapterに閉じ、Core�
 - client buildでpage module全体を再変換する必要がなくなる
 - page import CSSはSSG outputの整合性に必要なため、出力抑止optionを持たない
 - v5移行時は`pluginBundle()`と`pluginMdx()`を`pluginSsg()`のnested optionへ移す必要がある
+
+2026-09-06に、v4以前のTOML利用者の移行互換性を保つため、内部frontmatter機能へTOMLを追加しました。従来のparser依存は戻さず、依存0でTOML 1.1を扱う`smol-toml`をbuild時にのみ使用します。生成サイトのclient bundleには含めません。
 
 ## Rejected alternatives
 

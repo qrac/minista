@@ -44,6 +44,22 @@ describe("Vite MDX transformer", () => {
     expect(result?.code).toContain('"draft": false')
   })
 
+  test("parses TOML frontmatter with the internal plugin", async () => {
+    const transformer = createViteMdxTransformer({})
+    const result = await transformer.transform(
+      "+++\ntitle = \"About\"\ntags = [\"docs\", \"toml\"]\ndraft = false\npublished = 1979-05-27T07:32:00Z\nlarge = 9007199254740993\n+++\n# About",
+      "/about.mdx",
+    )
+
+    expect(result?.code).toContain("export const metadata")
+    expect(result?.code).toContain('"title": "About"')
+    expect(result?.code).toContain('"tags": ["docs", "toml"]')
+    expect(result?.code).toContain('"draft": false')
+    expect(result?.code).toMatch(/"published": new Date\(\d+\)/u)
+    expect(result?.code).not.toContain("new TomlDate")
+    expect(result?.code).toContain('"large": 9007199254740993n')
+  })
+
   test("supports a custom export name and explicit disable", async () => {
     const custom = createViteMdxTransformer({
       frontmatter: { name: "pageData" },

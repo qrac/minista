@@ -53,7 +53,7 @@ pluginSsg({
 
 フロントマターは `props` としてLayoutやPageで使用可能です。`draft` を `true` にしたページは本番ビルドから除外されます。
 
-YAML frontmatterはデフォルトで`metadata`という名前のMDX exportへ変換されます。export名は`frontmatter.name`で変更でき、変換を無効にする場合は`frontmatter: false`を指定します。
+YAML／TOML frontmatterはデフォルトで`metadata`という名前のMDX exportへ変換されます。YAMLは`---`、TOMLは`+++`で囲みます。export名は`frontmatter.name`で変更でき、変換を無効にする場合は`frontmatter: false`を指定します。
 
 ```js title="Custom export name"
 pluginSsg({
@@ -68,6 +68,15 @@ pluginSsg({
 title: Index
 draft: false # true = Don't build the page
 ---
+
+# {props.title}
+```
+
+```mdx title="./src/pages/toml.mdx"
++++
+title = "TOML"
+draft = false
++++
 
 # {props.title}
 ```

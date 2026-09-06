@@ -8,10 +8,13 @@ import {
   frontmatterToMarkdown,
 } from "mdast-util-frontmatter"
 import { frontmatter } from "micromark-extension-frontmatter"
-import { parse } from "yaml"
+import { parse as parseToml, TomlDate } from "smol-toml"
+import { parse as parseYaml } from "yaml"
 
 /** @typedef {import("mdast").Root} Root */
+/** @typedef {import("micromark-extension-frontmatter").Preset} FrontmatterPreset */
 /** @typedef {import("unified").Processor} Processor */
+/** @typedef {{type: "yaml" | "toml", value: string}} FrontmatterNode */
 
 const identifierPattern = /^[A-Za-z_$][\w$]*$/u
 const reservedNames = new Set([
@@ -34,8 +37,8 @@ function assertExportName(name) {
 }
 
 /**
- * Add YAML frontmatter syntax support and expose its parsed value as an MDX
- * named export.
+ * Add YAML and TOML frontmatter syntax support and expose the parsed value as
+ * an MDX named export.
  *
  * @this {Processor}
  * @param {{name?: string}} [options]
@@ -52,13 +55,23 @@ export default function remarkMinistaFrontmatter(options = {}) {
   const toMarkdownExtensions =
     data.toMarkdownExtensions || (data.toMarkdownExtensions = [])
 
-  micromarkExtensions.push(frontmatter("yaml"))
-  fromMarkdownExtensions.push(frontmatterFromMarkdown("yaml"))
-  toMarkdownExtensions.push(frontmatterToMarkdown("yaml"))
+  /** @type {FrontmatterPreset[]} */
+  const matters = ["yaml", "toml"]
+  micromarkExtensions.push(frontmatter(matters))
+  fromMarkdownExtensions.push(frontmatterFromMarkdown(matters))
+  toMarkdownExtensions.push(frontmatterToMarkdown(matters))
 
   return (/** @type {Root} */ tree) => {
-    const node = tree.children.find((child) => child.type === "yaml")
-    const value = node?.type === "yaml" ? parse(node.value) : undefined
+    const node = /** @type {FrontmatterNode | undefined} */ (
+      tree.children.find((child) => matters.includes(
+        /** @type {FrontmatterPreset} */ (child.type),
+      ))
+    )
+    const value = node?.type === "yaml"
+      ? parseYaml(node.value)
+      : node?.type === "toml"
+        ? parseToml(node.value, { integersAsBigInt: "asNeeded" })
+        : undefined
 
     tree.children.unshift({
       type: "mdxjsEsm",
@@ -75,7 +88,18 @@ export default function remarkMinistaFrontmatter(options = {}) {
               declarations: [{
                 type: "VariableDeclarator",
                 id: { type: "Identifier", name },
-                init: valueToEstree(value, { preserveReferences: true }),
+                init: valueToEstree(value, {
+                  preserveReferences: true,
+                  replacer(value) {
+                    if (value instanceof TomlDate) {
+                      return {
+                        type: "NewExpression",
+                        callee: { type: "Identifier", name: "Date" },
+                        arguments: [{ type: "Literal", value: value.getTime() }],
+                      }
+                    }
+                  },
+                }),
               }],
             },
             specifiers: [],
