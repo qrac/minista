@@ -12,9 +12,19 @@ import prompts from "prompts"
 
 /** @type {{ title: string, value: string }[]} */
 const TEMPLATES = [
-  { title: "Minimal (JavaScript)", value: "minimal-js" },
-  { title: "Minimal (Typescript)", value: "minimal-ts" },
+  { title: "Basic", value: "basic" },
+  { title: "Minimal", value: "minimal" },
 ]
+
+/** @type {{ title: string, value: string }[]} */
+const LANGUAGES = [
+  { title: "TypeScript", value: "ts" },
+  { title: "JavaScript", value: "js" },
+]
+
+const TEMPLATE_NAMES = TEMPLATES.flatMap((template) =>
+  LANGUAGES.map((language) => `${template.value}-${language.value}`),
+)
 
 /**
  * @returns {string}
@@ -51,7 +61,7 @@ function resolveTemplateDir(template) {
  * @returns {boolean}
  */
 function hasTemplate(template) {
-  return TEMPLATES.some((item) => item.value === template)
+  return TEMPLATE_NAMES.includes(template)
 }
 
 /**
@@ -90,6 +100,12 @@ async function main(root, options) {
       message: "Which template would you like to use?",
       choices: TEMPLATES,
     },
+    language: {
+      type: "select",
+      name: "language",
+      message: "Which language would you like to use?",
+      choices: LANGUAGES,
+    },
   }
 
   if (fs.existsSync(cwd)) {
@@ -102,19 +118,25 @@ async function main(root, options) {
     if (!current) mkdirp(cwd)
   }
 
-  const configs = template
-    ? { template }
-    : /** @type {{ template: string }} */ (await prompts(questions.template))
+  let selectedTemplate = template
+  if (!selectedTemplate) {
+    const answers = /** @type {{ template?: string, language?: string }} */ (
+      await prompts([questions.template, questions.language], {
+        onCancel: () => process.exit(1),
+      })
+    )
+    selectedTemplate = `${answers.template}-${answers.language}`
+  }
 
-  if (!hasTemplate(configs.template)) {
-    console.error(pc.red(`Unknown template: ${configs.template}`))
+  if (!hasTemplate(selectedTemplate)) {
+    console.error(pc.red(`Unknown template: ${selectedTemplate}`))
     console.error(
-      pc.gray(`Available templates: ${TEMPLATES.map((item) => item.value).join(", ")}`),
+      pc.gray(`Available templates: ${TEMPLATE_NAMES.join(", ")}`),
     )
     process.exit(1)
   }
 
-  const templateDir = resolveTemplateDir(configs.template)
+  const templateDir = resolveTemplateDir(selectedTemplate)
 
   try {
     console.log(`${pc.green(">")} ${pc.gray("Copying project files...")}`)
