@@ -1,0 +1,33 @@
+:root {
+  --theme-bg: #18212f;
+  --theme-tx-1: oklch(94% 0.02 277.99);
+  --theme-tx-2: oklab(83.222% -0.00085 -0.00903);
+  --theme-tx-3: oklab(0.56 0 -0.02);
+  --font-sans:
+    system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    sans-serif;
+}
+
+body {
+  color-scheme: dark;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  min-height: 100svh;
+  margin: 0;
+  background-color: var(--theme-bg);
+  color: var(--theme-tx-1);
+  font-family: var(--font-sans);
+}
+
+main {
+  padding: 0 32px;
+}
+
+h1 {
+  color: var(--theme-tx-1);
+}
+
+p {
+  color: var(--theme-tx-2);
+}

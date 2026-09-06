@@ -1,0 +1,15 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 32px;
+}
+
+.siteName {
+  flex: 1 0;
+  color: var(--theme-tx-1);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
