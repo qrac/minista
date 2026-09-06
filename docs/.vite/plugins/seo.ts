@@ -36,19 +36,12 @@ export function pluginSeo(uOpts: {
   }
   const opts = { ...defaultOptions, ...uOpts }
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-
   return {
     name: "vite-plugin:minista-local-seo",
     enforce: "pre",
-    apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && (isSsrBuild ?? false)
-      isBuild = command === "build" && !(isSsrBuild ?? false)
-      return isBuild
-    },
+    apply: "build",
+    applyToEnvironment: (environment) =>
+      environment.config.consumer === "client",
     async generateBundle(options, bundle) {
       const isMatch = picomatch(opts.src)
       const regAssets = /\.(html)$/
