@@ -30,6 +30,7 @@ import { createViteCompatibilityTraceHooks } from "../../adapters/vite/compatibi
 import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
+import { getViteDevStyles } from "../../adapters/vite/dev-styles.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createViteMdxTransformer } from "../../adapters/vite/mdx-transform.js"
@@ -62,7 +63,6 @@ import {
   getServeBase,
 } from "../../shared/url.js"
 import {
-  mergeAlias,
   mergeRolldownExternal,
   mergeSsrExternal,
 } from "../../shared/vite.js"
@@ -123,7 +123,6 @@ export function pluginSsg(uOpts = {}) {
   }
   const cwd = process.cwd()
   const tempName = "__minista-ssg"
-  const assetEntryId = "/@__minista-ssg-assets"
   const SSG_PAGES_ID = "virtual:ssg-pages"
   const SSG_PAGES_VIRTUAL = "\0" + SSG_PAGES_ID
   const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
@@ -684,11 +683,6 @@ export function pluginSsg(uOpts = {}) {
       }
       if (command === "serve") {
         return {
-          resolve: {
-            alias: mergeAlias(config, [
-              { find: assetEntryId, replacement: globFile },
-            ]),
-          },
           ssr: {
             external: mergeSsrExternal(config, [
               "minista/context",
@@ -767,15 +761,21 @@ export function pluginSsg(uOpts = {}) {
         const server = devServers.resolve(context)
         if (!server) return
         const base = getServeBase(server.config.base || "/").replace(/\/$/, "")
+        const state = devStates.get(server)
+        const snapshot = state.pageCache.peek()
+        const pathname = context.path.split("?")[0]
+        const routePath = base && pathname.startsWith(`${base}/`)
+          ? pathname.slice(base.length)
+          : pathname
+        const page = snapshot && [...snapshot.graph.pages.values()]
+          .find((page) => page.url === routePath)
+        const route = page && snapshot.graph.routes.get(page.routeId)
+        const sourceFiles = [
+          ...(snapshot?.layoutSourceFiles ?? []),
+          ...(route ? [path.resolve(state.rootDir, route.sourceFile)] : []),
+        ]
         return [
-          {
-            tag: "script",
-            attrs: {
-              type: "module",
-              src: `${base}${assetEntryId}`,
-            },
-            injectTo: "head",
-          },
+          ...getViteDevStyles(server, sourceFiles),
           {
             tag: "script",
             attrs: { type: "module" },

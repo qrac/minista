@@ -139,7 +139,7 @@ package entry、CLI、testは `src/` を直接参照します。`prepare`、`pre
 
 ## 残存する実装上の制約
 
-production featureのdomain phaseはCore runnerへ接続済みです。LifecycleRunnerは同じbuild sessionが所有するProject Graph、Document Store、Artifact Store、Emitter、diagnostic collectorを操作し、scope付きphase traceを同じevent列へ追加します。同一output pageはfile identityから同じDocument instanceを再利用します。SSG renderはRoute／Page Graphの正本に加え、route asset Artifactを同じArtifact Storeへ保存します。dev server adapterもserver lifetimeのsessionを作成してclose時に破棄し、Comment／Svg／Sprite／Image／Islandの`transformIndexHtml()`は同じDocument／Graph／Artifact／trace workspaceを共有します。SSGのdev asset entry URLはVite adapterが解決します。HTTP配信、watch、HMR、module評価、URL解決はVite adapterの責務として残ります。
+production featureのdomain phaseはCore runnerへ接続済みです。LifecycleRunnerは同じbuild sessionが所有するProject Graph、Document Store、Artifact Store、Emitter、diagnostic collectorを操作し、scope付きphase traceを同じevent列へ追加します。同一output pageはfile identityから同じDocument instanceを再利用します。SSG renderはRoute／Page Graphの正本に加え、route asset Artifactを同じArtifact Storeへ保存します。dev server adapterもserver lifetimeのsessionを作成してclose時に破棄し、Comment／Svg／Sprite／Image／Islandの`transformIndexHtml()`は同じDocument／Graph／Artifact／trace workspaceを共有します。SSGのdev CSSは対象routeとlayoutのrender module graphからVite adapterがimport順に収集し、初期HTMLのheadへstylesheet linkとして出力します。page moduleのbrowser再実行に依存せず初回描画をCSS読込まで待たせます。HTTP配信、watch、HMR、module評価、URL解決はVite adapterの責務として残ります。
 
 ## CoreとFeatureの実装contract
 

@@ -21,6 +21,8 @@
 - render module graphからrouteごとのsource asset依存を記録し、確定output claimのconsumerへ投影する
 - explicit Entry、Island、render assetは同じclient output lifecycleで出力する
 
+devでは対象Pageのrouteとlayoutを起点として評価済みrender module graphの依存CSSをimport順に収集し、初期HTMLのheadにrender-blockingなstylesheet linkを出力します。全pageをimportするbrowser用asset entryは廃止します。CSS ModulesもViteのdirect CSS配信へ接続し、`?inline`／`?raw`／`?url`のdata importは除外します。CSS変更時のrender invalidationとpage reloadは維持し、変更後のclass名とCSSを再取得します。
+
 Viteのmodule graph、transform hook、render outputはadapterに閉じ、CoreへViteの型を持ち込みません。
 
 ## Consequences
@@ -38,6 +40,10 @@ Viteのmodule graph、transform hook、render outputはadapterに閉じ、Core�
 ### client environmentでpage globを再importする
 
 実装は単純ですが、二重変換のcostとCSS Modules hashの不一致をframework invariantとして解消できないため却下します。
+
+### dev CSSをpage moduleのbrowser importだけで適用する
+
+JSの依存graph取得・実行後にstyleが挿入されるため、通常のページ遷移のたびに未装飾HTMLが描画されます。preloadや画面を隠す処理ではなく、documentのstylesheetとして読み込みを初期描画の前提にします。
 
 ### MDX compilerをplugin初期化時にimportする
 

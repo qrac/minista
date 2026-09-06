@@ -17,7 +17,6 @@ let running
 let html = ""
 let cachedHtml = ""
 let reloadClient = ""
-let assetEntry = ""
 /** @type {any} */
 let search
 
@@ -61,10 +60,19 @@ export default function Other() {
 `,
       "utf8",
     )
+    await fs.promises.mkdir(path.resolve(fixtureDir, "src/layouts"), { recursive: true })
+    await fs.promises.writeFile(path.resolve(fixtureDir, "src/layouts/index.jsx"),
+      'import "./style.css"; export default function Layout({ children }) { return <>{children}</> }')
+    await fs.promises.writeFile(path.resolve(fixtureDir, "src/layouts/style.css"),
+      'body { color: rgb(1, 2, 3); }')
+    await fs.promises.writeFile(path.resolve(fixtureDir, "src/components/styled.jsx"),
+      'import styles from "./styled.module.css"; export default function Styled() { return <p className={styles.label}>Styled</p> }')
+    await fs.promises.writeFile(path.resolve(fixtureDir, "src/components/styled.module.css"),
+      '.label { color: rgb(4, 5, 6); }')
     const indexFile = path.resolve(fixtureDir, "src/pages/index.jsx")
     const indexSource = (await fs.promises.readFile(indexFile, "utf8")).replace(
       '<h1>Compatibility fixture</h1>',
-      '<h1>Compatibility fixture</h1><div><Svg src="/src/vector/label.svg" /></div>',
+      '<h1>Compatibility fixture</h1><Styled /><div><Svg src="/src/vector/label.svg" /></div>',
     )
     await fs.promises.mkdir(path.resolve(fixtureDir, "src/vector"))
     await fs.promises.writeFile(path.resolve(fixtureDir, "src/vector/label.svg"),
@@ -73,7 +81,7 @@ export default function Other() {
     await Promise.all([
       fs.promises.writeFile(
         indexFile,
-        indexSource.replace(
+        ('import Styled from "../components/styled.jsx";\n' + indexSource).replace(
           '<Image src="/src/assets/pixel.svg" alt="Pixel" width={2} height={2} />',
           `<Image src="/src/assets/pixel.svg" alt="Pixel" width={2} height={2} />
         <Image src="/src/assets/photo.svg" alt="Photo" width={2} height={2} />`,
@@ -118,12 +126,6 @@ export default function Other() {
     reloadClient = await fetch(new URL(reloadClientPath, origin), {
       signal: AbortSignal.timeout(10_000),
     }).then((response) => response.text())
-    const assetEntryResponse = await fetch(
-      `${origin}/@__minista-ssg-assets`,
-      { signal: AbortSignal.timeout(10_000) },
-    )
-    assetEntry = await assetEntryResponse.text()
-    expect(assetEntryResponse.status).toBe(200)
     const cachedResponse = await fetch(
       `${origin}/`,
       { signal: AbortSignal.timeout(10_000) },
@@ -150,8 +152,8 @@ export default function Other() {
     expect(running?.server.config.appType).toBe("custom")
     expect(html).toContain("<h1>Compatibility fixture</h1>")
     expect(html).toContain("/@vite/client")
-    expect(html).toContain("/@__minista-ssg-assets")
-    expect(assetEntry).toContain("/src/pages/index.jsx")
+    expect(html).not.toContain("/@__minista-ssg-assets")
+    expect(html).toContain('rel="stylesheet" href="/src/assets/bundle.css?direct"')
     expect(reloadClient).toContain("minista:full-reload")
     expect(cachedHtml).toContain("<h1>Compatibility fixture</h1>")
     expect(cachedHtml).toContain("/@vite/client")
@@ -174,6 +176,46 @@ export default function Other() {
     expect(session?.state?.compatibilityDocuments?.list().length).toBeGreaterThan(
       0,
     )
+  })
+
+  test("includes component CSS in initial HTML, scoped to the page and shared layout", async () => {
+    const hrefs = [...html.matchAll(/<link[^>]+href="([^"]+\?direct)"/g)]
+      .map((match) => match[1])
+    expect(hrefs).toContain("/src/layouts/style.css?direct")
+    expect(hrefs).toContain("/src/components/styled.module.css?direct")
+    expect(hrefs.indexOf("/src/layouts/style.css?direct"))
+      .toBeLessThan(hrefs.indexOf("/src/components/styled.module.css?direct"))
+    const className = html.match(/class="([^"]+)">Styled<\/p>/)?.[1]
+    expect(className).toBeTruthy()
+    const css = await fetch(`${origin}/src/components/styled.module.css?direct`)
+    expect(css.headers.get("content-type")).toContain("text/css")
+    expect(await css.text()).toContain(`.${className}`)
+    const other = await fetch(`${origin}/other`).then((response) => response.text())
+    expect(other).toContain('/src/layouts/style.css?direct')
+    expect(other).not.toContain('/src/components/styled.module.css?direct')
+    expect(other).not.toContain('/src/assets/bundle.css?direct')
+    expect(cachedHtml).toContain('/src/components/styled.module.css?direct')
+  })
+
+  test("refreshes component CSS and its rendered class after an edit", async () => {
+    if (!running) throw new Error("The dev server is not running.")
+    const hotSend = vi.spyOn(running.server.environments.client.hot, "send")
+    try {
+      await fs.promises.writeFile(path.resolve(fixtureDir, "src/components/styled.module.css"),
+        '.label { color: rgb(7, 8, 9); }')
+      await vi.waitFor(() => {
+        expect(hotSend).toHaveBeenCalledWith("minista:full-reload", { paths: ["/"] })
+      }, { timeout: 10_000 })
+      const updated = await fetch(`${origin}/`).then((response) => response.text())
+      const className = updated.match(/class="([^"]+)">Styled<\/p>/)?.[1]
+      const css = await fetch(`${origin}/src/components/styled.module.css?direct`)
+        .then((response) => response.text())
+      expect(css).toContain(`.${className}`)
+      expect(css).toContain("rgb(7, 8, 9)")
+      expect(updated).toContain('/src/components/styled.module.css?direct')
+    } finally {
+      hotSend.mockRestore()
+    }
   })
 
   test("invalidates the cached page snapshot after a source change", async () => {
