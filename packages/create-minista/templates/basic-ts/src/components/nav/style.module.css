@@ -1,0 +1,16 @@
+.list {
+  display: flex;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  font-size: 0.875rem;
+  color: var(--theme-tx-3);
+  text-decoration: none;
+}
+
+.link[aria-current="page"] {
+  color: var(--theme-tx-1);
+}
