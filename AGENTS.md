@@ -25,9 +25,10 @@
 段階移行中は変更範囲に応じて、少なくとも次を実行します。
 
 ```sh
-npm test
-npx tsc --noEmit
+npm run test:ci
 ```
+
+Vite／React／Node.jsの対応範囲へ影響する変更では、必要なcompatibility scriptもローカルで実行し、GitHub Actionsの`Compatibility CI`を対象suiteまたは`all`で手動実行します。
 
 v5のCLIが実装された後は、fixtureに対して次も実行します。
 

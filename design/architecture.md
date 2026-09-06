@@ -133,7 +133,7 @@ packages/minista/src/
 
 Core用 `tsconfig.core.json` はJavaScript + JSDocと隣接 `.d.ts` をstrict modeで直接型検査します。repository全体の `tsc --noEmit` でも同じsourceを検査します。
 
-PRでは`.github/workflows/ci.yml`がVitest 5の対応範囲内であるNode.js 22.12上で全testとtypecheckを実行し、Vite 8.1.0、lockfile版、対応minor最新のapplication contractを分離して検証します。React 18 fallbackとPreactもNode.js 22.12で検証し、公開engine最低版のNode.js 20.19はVitestを介さないCLI check／inspect／build jobで維持します。
+`main`向けPRと`main`へのpushでは`.github/workflows/ci.yml`がVitest 5の対応範囲内であるNode.js 22.12上で`npm run test:ci`を実行します。Vite 8.1.0、lockfile版、対応minor最新、React 18 fallback、Preact、公開engine最低版のNode.js 20.19は`.github/workflows/compatibility.yml`へ分離し、対応範囲へ影響する変更またはリリース前に対象suiteを手動実行します。Node.js 20.19ではVitestを介さずCLI check／inspect／buildを検証します。
 
 package entry、CLI、testは `src/` を直接参照します。`prepare`、`prepack`、test前のruntime buildは行わず、編集直後のsourceをそのまま検証できます。
 

@@ -1,0 +1,78 @@
+name: Compatibility CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Compatibility suite to run
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - vite
+          - react-18
+          - node-20
+
+permissions:
+  contents: read
+
+jobs:
+  vite-compatibility:
+    if: ${{ inputs.suite == 'all' || inputs.suite == 'vite' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: minimum
+            vite: "8.1.0"
+            react: "19.2.8"
+          - name: locked
+            vite: "8.2.2"
+            react: "19.2.8"
+          - name: latest-supported-minor
+            vite: "8.2"
+            react: "19"
+    name: Vite ${{ matrix.name }} (${{ matrix.vite }}, React ${{ matrix.react }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+      - run: npm ci
+      - name: Install compatibility versions
+        run: npm install --no-save --package-lock=false vite@${{ matrix.vite }} react@${{ matrix.react }} react-dom@${{ matrix.react }}
+      - name: Record resolved versions
+        run: node -e "for (const name of ['vite','react','react-dom']) console.log(name, require(name + '/package.json').version)"
+      - name: Run Vite application contracts
+        run: npm run test:contracts
+      - name: Run Preact compatibility
+        run: npm run test:preact
+
+  react-18-compatibility:
+    if: ${{ inputs.suite == 'all' || inputs.suite == 'react-18' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false react@18.3.1 react-dom@18.3.1
+      - run: npm run test:react-compat
+
+  node-20-compatibility:
+    if: ${{ inputs.suite == 'all' || inputs.suite == 'node-20' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+      - run: npm ci
+      - name: Run CLI compatibility without the Vitest 5 test runner
+        run: npm run test:cli-contracts
