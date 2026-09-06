@@ -41,23 +41,24 @@ export default defineConfig({
 
 ### Environment-specific config
 
-ministaはrender environmentとclient environmentを1つのApp Build lifecycleで順に実行します。多くのVite設定はそのまま両environmentへ適用できます。
-
-既存の`isSsrBuild`を使ったconfig関数もcompatibility adapterがenvironmentごとに評価します。Node.jsでpageをrenderする側とbrowser向けassetを生成する側で設定を分けたい場合に使用できます。
+ministaはrender environmentとclient environmentを1つのApp Build lifecycleで順に実行します。多くのVite設定はそのまま両environmentへ適用できます。Node.jsでpageをrenderする側とbrowser向けassetを生成する側で設定を分ける場合は、named environmentの設定かpluginのenvironment-aware hookを使用します。
 
 例として、client environmentだけminifyを無効にします。
 
 ```ts title="./vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"
 
-export default defineConfig(({ command, isSsrBuild }) => {
-  const isSsr = command === "build" && (isSsrBuild ?? false)
-  const isBuild = command === "build" && !(isSsrBuild ?? false)
-  return { plugins: [pluginSsg()], build: { minify: isBuild ? false : true } }
+export default defineConfig({
+  plugins: [pluginSsg()],
+  environments: {
+    client: {
+      build: { minify: false },
+    },
+  },
 })
 ```
 
-isSsrBuildを参照するconfigは、同名pluginでも設定を取り違えないよう、`MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT`を記録して同一processのcompatibility builderへfallbackします。pluginの名前や順序も変わる場合は`MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH`を記録します。新しいconfigではplugin内部のenvironment-aware hookで処理を分けることを推奨します。
+既存の`isSsrBuild`を参照するconfigは、同名pluginでも設定を取り違えないよう、`MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT`を記録して同一processのcompatibility builderへfallbackします。pluginの名前や順序も変わる場合は`MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH`を記録します。新しいconfigでは`environments`、`applyToEnvironment`、`configEnvironment`を使用してください。
 
 `builder.buildApp`はministaがbuild順序を管理するために使用します。application全体の前後処理にはpluginの`buildApp` hookを使用してください。このhookからenvironmentを直接buildすることはできません。
 
@@ -237,20 +238,36 @@ $ npm install preact
 ```
 
 ```ts title="./vite.config.ts"
+import { defineConfig } from "minista"
+import type { Plugin } from "vite"
+
 const preactAlias = {
   react: "preact/compat",
   "react-dom": "preact/compat",
 }
 
-export default defineConfig(({ command, isSsrBuild }) => {
-  const isDev = command === "serve"
-  const isSsr = command === "build" && (isSsrBuild ?? false)
-  const isBuild = command === "build" && !(isSsrBuild ?? false)
+function pluginClientPreactAlias(): Plugin {
   return {
-    resolve: {
-      alias: isBuild ? preactAlias : undefined,
+    name: "example:client-preact-alias",
+    enforce: "pre",
+    apply: "build",
+    applyToEnvironment: (environment) =>
+      environment.config.consumer === "client",
+    resolveId(source, importer, options) {
+      for (const [find, replacement] of Object.entries(preactAlias)) {
+        if (source !== find && !source.startsWith(`${find}/`)) continue
+        return this.resolve(
+          `${replacement}${source.slice(find.length)}`,
+          importer,
+          { ...options, skipSelf: true },
+        )
+      }
     },
   }
+}
+
+export default defineConfig({
+  plugins: [pluginClientPreactAlias()],
 })
 ```
 

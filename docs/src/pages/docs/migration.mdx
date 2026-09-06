@@ -83,7 +83,7 @@ npm install --save-dev @vitejs/plugin-react
 
 基本設定は[Vite公式](https://ja.vite.dev/config/)に沿って移行。minista独自の機能はViteプラグイン化されているため、必要なプラグインをインポートして `plugins` 配列に追加します。
 
-注意点として、v4は**ViteのSSRビルドと通常ビルドを連続で行う**ことを意識してください。ビルド用に設定した内容がSSRビルドを壊してしまう可能性があります。これは設定をSSRビルド用・通常ビルド用に切り分けることで解消できます。
+v4ではViteのSSRビルドと通常ビルドを連続で行っていました。v5ではrender environmentとclient environmentを1つのApp Build lifecycleで実行します。両方へ適用する設定はrootへ、片方だけに適用する設定はnamed environmentかpluginのenvironment-aware hookへ記述してください。
 
 ```ts title="Before"
 import { defineConfig } from "minista"
@@ -99,14 +99,9 @@ export default defineConfig({
 ```ts title="After"
 import { defineConfig, pluginSsg, pluginImage } from "minista"
 
-export default defineConfig(({ command, isSsrBuild }) => {
-  const isDev = command === "serve"
-  const isSsr = command === "build" && (isSsrBuild ?? false)
-  const isBuild = command === "build" && !(isSsrBuild ?? false)
-  return {
-    plugins: [pluginSsg()],
-    build: { outDir: isBuild ? "dist" : undefined },
-  }
+export default defineConfig({
+  plugins: [pluginSsg(), pluginImage()],
+  build: { outDir: "dist" },
 })
 ```
 
@@ -342,20 +337,36 @@ export default { assets: { partial: { usePreact: true } } }
 ```
 
 ```ts title="After"
+import { defineConfig } from "minista"
+import type { Plugin } from "vite"
+
 const preactAlias = {
   react: "preact/compat",
   "react-dom": "preact/compat",
 }
 
-export default defineConfig(({ command, isSsrBuild }) => {
-  const isDev = command === "serve"
-  const isSsr = command === "build" && (isSsrBuild ?? false)
-  const isBuild = command === "build" && !(isSsrBuild ?? false)
+function pluginClientPreactAlias(): Plugin {
   return {
-    resolve: {
-      alias: isBuild ? preactAlias : undefined,
+    name: "example:client-preact-alias",
+    enforce: "pre",
+    apply: "build",
+    applyToEnvironment: (environment) =>
+      environment.config.consumer === "client",
+    resolveId(source, importer, options) {
+      for (const [find, replacement] of Object.entries(preactAlias)) {
+        if (source !== find && !source.startsWith(`${find}/`)) continue
+        return this.resolve(
+          `${replacement}${source.slice(find.length)}`,
+          importer,
+          { ...options, skipSelf: true },
+        )
+      }
     },
   }
+}
+
+export default defineConfig({
+  plugins: [pluginClientPreactAlias()],
 })
 ```
 
