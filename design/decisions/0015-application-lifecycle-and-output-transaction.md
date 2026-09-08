@@ -24,7 +24,7 @@ devではdomain mutationをserver単位のqueueへ直列化し、失敗したreq
 
 ### Searchの解析・query契約（2026-09-08追記）
 
-devとbuildは同じanalyzerで、除外selectorに一致した全要素と子孫を読み飛ばします。共有Documentは変更せず、除外後の本文tokenと独立して取得したtitle tokenから語彙を作り、tocも同じ本文tokenの位置を使います。React UIの入力とhighlightはliteral検索とし、正規表現検索の公開optionは追加しません。index取得後は現在の入力から結果を再計算します。JSON schemaと公開optionは維持し、辞書参照の高速化やquery engineの分離はP06で扱います。
+devとbuildは同じanalyzerで、除外selectorに一致した全要素と子孫を読み飛ばします。共有Documentは変更せず、除外後の本文tokenと独立して取得したtitle tokenから語彙を作り、tocも同じ本文tokenの位置を使います。React UIの入力とhighlightはliteral検索とし、正規表現検索の公開optionは追加しません。index取得後は現在の入力から結果を再計算します。JSON schemaと公開optionは維持します。P06で実施した内部境界は末尾に記録します。
 
 ### App Buildとconfig互換性
 
@@ -61,3 +61,9 @@ feature descriptorはdomain feature factory側を正本とし、Vite compatibili
 ## Rejected alternatives
 
 plugin名や関数の文字列表現だけでconfigの同値性を判定する方法はclosureを識別できません。配列順へ依存したHTML変換やmetadata保存前のcommitも、今回再現した不整合を残すため採用しません。
+
+### Searchの内部責務分離（2026-09-08、P06）
+
+DOM解析とmojigiriによる文字種分割はNodeSearchDocumentAnalyzerに維持します。`features/search/create-search-data.js`は解析recordからJSON用の辞書・hit・pageを生成する純粋関数とし、featureはArtifactとphaseの管理を担当します。整列済み語彙からword→indexのMapを一度生成し、hit／title／contentで共有します。語彙・URLの整列、重複token、toc位置、hit選別は変更しません。
+
+`plugins/search/internal/query.js`はReact／DOM／Vite非依存の内部query engineです。index取得時に辞書Mapとpageごとの重複を除いた検索用配列を準備し、入力変更では再利用します。UIは取得・入力・highlightの描画・URL解決を担当します。検索順位、同点時の順序、辞書順で選ばれる本文抜粋の起点、tocリンク、literal検索を維持します。package exportや公開optionは追加しません。検索品質の変更や新規検索libraryは今回の性能改善と分離します。

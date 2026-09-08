@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01〜P05完了。P06〜P11は未着手
+- 状態: 計画を文書化済み。P01〜P06完了。P07〜P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -65,7 +65,7 @@
 | [x] | P03 | 高 | Archiveの入力解決と欠落診断 | 最初の修正群 |
 | [x] | P04 | 高 | 公開型と配布依存を修正 | 最初の修正群 |
 | [x] | P05 | 中 | 重い依存を遅延ロード | P04後を推奨。公開型への影響も検証 |
-| [ ] | P06 | 中 | Search辞書と内部境界を改善 | P01後 |
+| [x] | P06 | 中 | Search辞書と内部境界を改善 | P01後 |
 | [ ] | P07 | 中 | Islandの条件付きmodule読み込み | 独立。Vite／React compatibility検証が必要 |
 | [ ] | P08 | 中 | Beautifyの責務と出力整合性を改善 | P05とformatter境界を調整 |
 | [ ] | P09 | 中 | Svg／SpriteのIDとsymbol診断 | P02後。source contractを共通化 |
@@ -188,11 +188,23 @@
 
 ### P06: Search辞書と内部境界
 
+着手日: 2026-09-08。辞書Map、index生成とReact非依存query engineの内部分離、互換性検証と規模別benchmarkを対象とする。
+
 - 語彙の整列後に`word → index`のMapを一度作り、`indexOf()`の繰返しをなくす。
 - analyzer／index生成／query engine／React UIを内部で分ける。必要性が固まるまでは新しい公開APIを増やさない。
 - mojigiriは文字種分割を担当する依存として維持する。検索品質の変更と単なる性能改善を分ける。
 
 完了条件: P01後のindex出力順と検索結果を保ち、ページ数・語彙数・総token数を変えたbenchmarkで時間とメモリを比較する。新しい検索libraryの採用は、検索品質や規模の要件が既存構造では満たせない場合に限定する。
+
+完了記録（2026-09-08）:
+
+- index生成を`features/search/create-search-data.js`へ分離し、語彙整列後のMapをhit／title／contentで共有した。既存内部exportは維持する。
+- React非依存の`plugins/search/internal/query.js`へ準備・検索・token結合を移し、index取得時の辞書Mapと検索用pageを入力変更時に再利用する。analyzerはDOM解析とmojigiri、featureはArtifact／phase、UIは取得・入力・描画・URL解決を担当する。公開APIと依存は追加していない。
+- 新規unitで辞書・hit・URL順、重複token、空index、順位・同点順、本文抜粋の起点、tocリンク、入力option、入力非破壊を固定した。既存P01のliteral検索・初回取得・クリアと実Viteのdev/build JSON一致も成功した。
+- 最終`npm run test:ci`: exit 0、107ファイル・446テストと`tsc --noEmit`が成功。初回sandbox実行はHTTP listen制限があり、再実行時に追加テストのtuple型注釈を修正した。最終実行はlisten許可環境で実施した。
+- `npm run test:cli-contracts`: exit 0、fixtureのcheck／inspect／buildが成功。`git diff --check`も成功した。
+- [規模別benchmark](../benchmarks/2026-09-08-search-dictionary.md)に時間・heap差分・peak RSSと生データを記録した。5条件で変更前後のJSONハッシュが一致した。Mapの追加メモリも記録し、メモリ削減とは扱わない。
+- architectureとADR-0015を更新した。公開schema・option・検索品質・Vite／React／Node.js対応範囲は変更していない。query／React／実サイト全体の性能測定とブラウザ操作テストは今回の対象外。
 
 ### P07: Islandの条件付きmodule読み込み
 
