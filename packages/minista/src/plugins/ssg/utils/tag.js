@@ -11,13 +11,13 @@ export function getDefaultHeadTags(title, hasCharset, hasViewport) {
   const tags = []
 
   if (!hasCharset) {
-    tags.push(createElement("meta", { charSet: "UTF-8" }))
+    tags.push(createElement("meta", { charSet: "utf-8" }))
   }
   if (!hasViewport) {
     tags.push(
       createElement("meta", {
         name: "viewport",
-        content: "width=device-width, initial-scale=1.0",
+        content: "width=device-width",
       }),
     )
   }

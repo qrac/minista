@@ -201,11 +201,11 @@ describe("transformHtml", () => {
     expect(html.match(/<!doctype html>/gi)).toHaveLength(1)
     expect(html).toContain('<html lang="de">')
     expect(html).toContain("<title>Layout title</title>")
-    expect(html).toContain('meta charset="UTF-8"')
-    expect(html).toContain('meta name="viewport"')
+    expect(html).toContain('meta charset="utf-8"')
+    expect(html).toContain('meta name="viewport" content="width=device-width"')
     const headHtml = html.slice(html.indexOf("<head>"), html.indexOf("</head>"))
     expect(headHtml).toMatch(
-      /^<head><meta charset="UTF-8"><meta name="viewport"/,
+      /^<head><meta charset="utf-8"><meta name="viewport"/,
     )
   })
 
@@ -238,7 +238,7 @@ describe("transformHtml", () => {
     const headHtml = html.slice(html.indexOf("<head>"), html.indexOf("</head>"))
 
     expect(headHtml).toMatch(
-      /^<head><meta charset="UTF-8"><meta name="viewport"[^>]*><meta property="og:type"/,
+      /^<head><meta charset="utf-8"><meta name="viewport"[^>]*><meta property="og:type"/,
     )
   })
 })

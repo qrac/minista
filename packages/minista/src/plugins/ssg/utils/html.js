@@ -142,7 +142,7 @@ export async function renderHtmlDocument(
     const bodyElement = document.select("body")[0]
 
     if (htmlElement && headElement && bodyElement) {
-      if (!htmlElement.hasAttribute("lang")) htmlElement.setAttribute("lang", "ja")
+      if (!htmlElement.hasAttribute("lang")) htmlElement.setAttribute("lang", "en")
       applyAttributes(htmlElement, htmlAttrs)
       applyAttributes(bodyElement, bodyAttrs)
 
@@ -163,7 +163,7 @@ export async function renderHtmlDocument(
     }
   }
 
-  const htmlAttrsStr = headAttrsToStr({ ...{ lang: "ja" }, ...htmlAttrs })
+  const htmlAttrsStr = headAttrsToStr({ ...{ lang: "en" }, ...htmlAttrs })
   const bodyAttrsStr = headAttrsToStr(bodyAttrs)
 
   const hasCharset = checkCharset(tags)

@@ -13,7 +13,7 @@ describe("getDefaultHeadTags", () => {
     expect(result).toHaveLength(3)
 
     const charsetMeta = result.find(
-      (tag) => tag.type === "meta" && tag.props.charSet === "UTF-8"
+      (tag) => tag.type === "meta" && tag.props.charSet === "utf-8"
     )
     const viewportMeta = result.find(
       (tag) => tag.type === "meta" && tag.props.name === "viewport"
@@ -22,7 +22,7 @@ describe("getDefaultHeadTags", () => {
       (tag) => tag.type === "title" && tag.props.children === "My Page"
     )
     expect(charsetMeta).toBeTruthy()
-    expect(viewportMeta).toBeTruthy()
+    expect(viewportMeta?.props.content).toBe("width=device-width")
     expect(title).toBeTruthy()
   })
 
