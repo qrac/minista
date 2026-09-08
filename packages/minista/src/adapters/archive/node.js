@@ -3,7 +3,7 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
-import { TarArchive, ZipArchive } from "archiver"
+import { loadDependency } from "../dependencies/archiver.js"
 
 /** @typedef {import("../../features/archive/index.js").ArchiveOptions} ArchiveOptions */
 
@@ -60,6 +60,7 @@ export class NodeArchiveBuilder {
       const outside = relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)
       const cwd = outside ? path.dirname(source) : this.#rootDir
       const sourcePattern = escapeGlob(path.relative(cwd, source).replaceAll("\\", "/"))
+      const { TarArchive, ZipArchive } = await loadDependency()
       return await new Promise((resolve, reject) => {
         const archive =
           options.format === "tar"

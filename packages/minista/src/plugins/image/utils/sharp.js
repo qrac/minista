@@ -1,4 +1,4 @@
-import sharp from "sharp"
+import { loadDependency } from "../../../adapters/dependencies/sharp.js"
 
 /**
  * @param {string} input
@@ -6,6 +6,7 @@ import sharp from "sharp"
  * @returns {Promise<Buffer>}
  */
 export async function runSharp(input, pattern) {
+  const { default: sharp } = await loadDependency()
   const { width, height, format, formatOptions, resizeOptions } = pattern
 
   let pipeline = sharp(input).resize(width, height, resizeOptions).rotate()

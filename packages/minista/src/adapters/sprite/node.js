@@ -3,7 +3,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { parse } from "node-html-parser"
-import { optimize } from "svgo"
+import { loadDependency } from "../dependencies/svgo.js"
 import { glob } from "tinyglobby"
 
 import { toProjectPath } from "../../core/graph/index.js"
@@ -84,15 +84,16 @@ async function runSpriteOperation(operation, rootDir, source, task) {
 /**
  * @param {string} fragment
  * @param {SvgoConfig} [config]
- * @returns {string}
+ * @returns {Promise<string>}
  */
-function optimizeSvgFragment(fragment, config) {
+async function optimizeSvgFragment(fragment, config) {
   const document = [
     '<svg xmlns="http://www.w3.org/2000/svg"',
     ' xmlns:xlink="http://www.w3.org/1999/xlink">',
     fragment,
     "</svg>",
   ].join("")
+  const { optimize } = await loadDependency()
   const { data } = optimize(document, config)
   const element = parse(data).querySelector("svg")
   if (!element) throw new Error("Expected an optimized <svg> root element.")

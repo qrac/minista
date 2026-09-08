@@ -37,3 +37,9 @@ hook fileを分割してもdomain lifecycleがViteに所有されたままで、
 ## Reconsider when
 
 Core APIを複数の独立package / adapterが利用し、release cadenceまたはdependency graphを分ける実益が確認された場合に物理package分割を再検討します。
+
+## 重い依存の遅延ロード（2026-09-08）
+
+P05ではSharp／SVGO／archiver／js-beautifyのmodule初期化をadapter側の遅延loaderへ集約します。公開plugin factoryをPromiseへ変更せず、既存の非同期処理内で待ちます。共有するのは初期化Promiseだけで、失敗もcacheします。入力・option・生成結果・library instanceは呼出し側が所有し、server／buildのstate分離を維持します。初期化errorは既存adapter診断またはBeautifyの`MINISTA_PHASE_FAILED`へ接続します。
+
+ID参照のためのfeature実装importを避け、Archiveは`createNodeId("feature", "beautify")`でoptionalAfterを宣言します。barrelの公開・内部export自体は削除しません。Beautifyのformatter port分離と出力整合性はP08で扱い、今回の変更では出力semanticsを維持します。optional dependency化・package分割はインストール容量と利用頻度の別測定が必要なため採用しません。

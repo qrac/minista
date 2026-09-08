@@ -22,6 +22,10 @@ package runtime entryは `src/node.js` です。CLI、test、workspace package�
 
 公開宣言が必要とするArchive／Beautifyの型依存はministaのdependenciesに含みます。SSGのMDX compile optionは隣接宣言に分離し、上流型との一致を型テストで確認します。`minista/client`はSSG配下のMD／MDX宣言を参照します。通常CIでは`npm run test:public-types`がpackした配布物をReact 18／19の隔離consumerで`skipLibCheck:false`により検証します。詳細は[ADR-0006](decisions/0006-javascript-jsdoc-runtime.md)を参照してください。
 
+### 重い依存の初期化
+
+Sharp（metadata取得と変換）、SVGO（Svg／Sprite共有）、archiver、js-beautifyは最初の実処理でdynamic importします。`adapters/dependencies`がmodule初期化のPromiseだけを共有し、同時利用も同じ初期化へ合流します。失敗したPromiseはprocess内で保持し、各処理の既存diagnostic境界へ伝播します。公開plugin factoryは同期のままです。画像pipeline、archive instance、source cache、build／server stateは共有しません。HTML barrelの参照だけではSVGOを初期化せず、Archiveの順序宣言はBeautify実装をimportしません。Beautify内部formatterは非同期になり、finalizeがawaitします。整形責務のport分離はP08で扱います。
+
 ### Build lifecycle
 
 通常の `minista build` は同じNode.js processで一つの `createBuilder(config, false)` を作り、App Buildのrender/client environmentを順にbuildします。`isSsrBuild` を参照するconfig（同名pluginのoptionやaliasの分岐も含む）はstable diagnosticを出し、同一processの `LegacyViteBuilderAdapter` がrender/clientごとのbackward-compatible environmentをbuildします。programmatic adapterが変換できないVite CLI flagを指定した場合だけ、最終compatibility fallbackとして `cross-spawn` でVite CLIを二度起動します。

@@ -3,7 +3,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { parse } from "node-html-parser"
-import { optimize } from "svgo"
+import { loadDependency } from "../dependencies/svgo.js"
 
 import { toProjectPath } from "../../core/graph/index.js"
 
@@ -134,7 +134,7 @@ export class NodeSvgSourceResolver {
       "optimize",
       this.#rootDir,
       normalizedPath,
-      () => optimize(rawSvg, this.#config),
+      async () => (await loadDependency()).optimize(rawSvg, this.#config),
     )
     const svg = await runSvgSourceOperation(
       "parse",

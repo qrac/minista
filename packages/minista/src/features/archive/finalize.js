@@ -1,7 +1,6 @@
 // @ts-check
 
 import { createNodeId } from "../../core/graph/index.js"
-import { BEAUTIFY_FEATURE_ID } from "../beautify/index.js"
 
 /** @typedef {import("../../core/types.js").Capability} Capability */
 /** @typedef {import("../../core/lifecycle/index.js").PhaseContext} PhaseContext */
@@ -21,7 +20,7 @@ export function createArchiveFeatureDescriptor(options) {
     }),
     requires: [capability("output-files")],
     provides: [capability("archives")],
-    optionalAfter: [BEAUTIFY_FEATURE_ID],
+    optionalAfter: [createNodeId("feature", "beautify")],
   })
 }
 

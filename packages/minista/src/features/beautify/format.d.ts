@@ -25,7 +25,7 @@ export declare function composeBeautifyDocument(
 
 export declare function createOutputFormatter(
   options: BeautifyFeatureOptions,
-): (file: EmittedFile) => EmittedFile
+): (file: EmittedFile) => Promise<EmittedFile>
 
 export declare function createOutputMatcher(
   options: BeautifyFeatureOptions,

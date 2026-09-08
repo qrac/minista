@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01〜P04完了。P05〜P11は未着手
+- 状態: 計画を文書化済み。P01〜P05完了。P06〜P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -64,7 +64,7 @@
 | [x] | P02 | 高 | Svgの属性保持とdev更新を修正 | 最初の修正群 |
 | [x] | P03 | 高 | Archiveの入力解決と欠落診断 | 最初の修正群 |
 | [x] | P04 | 高 | 公開型と配布依存を修正 | 最初の修正群 |
-| [ ] | P05 | 中 | 重い依存を遅延ロード | P04後を推奨。公開型への影響も検証 |
+| [x] | P05 | 中 | 重い依存を遅延ロード | P04後を推奨。公開型への影響も検証 |
 | [ ] | P06 | 中 | Search辞書と内部境界を改善 | P01後 |
 | [ ] | P07 | 中 | Islandの条件付きmodule読み込み | 独立。Vite／React compatibility検証が必要 |
 | [ ] | P08 | 中 | Beautifyの責務と出力整合性を改善 | P05とformatter境界を調整 |
@@ -173,6 +173,16 @@
 - module loadのcacheとbuild／serverごとの可変stateを区別する。
 
 完了条件: `minista`のimportのみ、SSGのみ、各featureの初回利用と再利用をfresh processで検証する。未使用libraryの評価が発生せず、初期化失敗も既存のstructured diagnosticへ接続される。cold import／起動／初回処理の測定条件と結果を`design/benchmarks/`へ記録する。
+
+完了記録（2026-09-08）:
+
+- Sharpのmetadata取得・変換、Svg／Sprite共有のSVGO、archiver、js-beautifyを実処理まで遅延した。loaderは初期化Promise（失敗を含む）だけを共有し、pipeline・archive instance・source cache・server／build stateを共有しない。
+- 公開plugin factoryは同期のまま維持した。Beautifyの内部formatterを非同期化し、finalizeがawaitする。対象外のfileではformatterを初期化しない。ArchiveのoptionalAfterはfeature IDを直接生成し、Beautify実装へのimportを除いた。HTML barrelのexportは維持し、参照だけではSVGOを評価しない。
+- fresh process回帰テスト12件でpackage import、全plugin factory生成、SSG起動、各featureの初回同時利用・再利用・初期化失敗を確認した。Image／Svg／Sprite／Archiveの既存adapter診断とBeautifyのphase診断を検証した。
+- `npm run test:ci`: exit 0、105ファイル・444テストと`tsc --noEmit`が成功。最終版の測定hookと失敗検証を反映した後の対象12テストもexit 0。初回sandbox実行はHTTP listen制限があり、CLI生成物が混入した型検査もあったため、listen許可・生成物退避後に全体を通した。
+- `npm run test:cli-contracts`: exit 0。check／inspect／buildが成功し、生成bundleはリポジトリ外へ退避した。`npm run test:public-types`: exit 0、packした配布物をReact 18／19の隔離consumerで検証した。
+- [測定条件と結果](../benchmarks/2026-09-08-lazy-dependencies.md)を記録した。ADR-0001とarchitectureを更新した。公開API・出力semantics・Vite／React／Node.jsの対応範囲は変更していない。
+- 残る範囲: formatter portと出力整合性はP08。対象外の依存、インストール容量削減、実サイトのHTTP初回応答と変更前baselineの比較は今回の測定に含まない。
 
 遅延ロードはインストール容量を減らさない。optional dependency化や公開package分割は、容量・起動・利用頻度の実測から利益が示された場合の別判断とする。
 

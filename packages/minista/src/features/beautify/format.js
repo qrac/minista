@@ -1,6 +1,6 @@
 // @ts-check
 
-import beautify from "js-beautify"
+import { loadDependency } from "../../adapters/dependencies/js-beautify.js"
 import picomatch from "picomatch"
 
 import { createNodeId } from "../../core/graph/index.js"
@@ -54,13 +54,16 @@ export function createOutputMatcher(options) {
 
 /**
  * @param {BeautifyFeatureOptions} options
- * @returns {(file: EmittedFile) => EmittedFile}
+ * @returns {(file: EmittedFile) => Promise<EmittedFile>}
  */
 export function createOutputFormatter(options) {
   const isMatch = createOutputMatcher(options)
 
-  return (file) => {
+  return async (file) => {
     if (!isMatch(file.fileName) || typeof file.content !== "string") return file
+
+    if (!/\.(html|css|js)$/.test(file.fileName)) return file
+    const { default: beautify } = await loadDependency()
 
     if (file.fileName.endsWith(".html")) {
       return Object.freeze({
@@ -103,7 +106,7 @@ export function createBeautifyFeature(options) {
       /** @param {PhaseContext} context */
       async finalize(context) {
         for (const file of await context.emitter.list()) {
-          const formatted = format(file)
+          const formatted = await format(file)
           if (formatted !== file) await context.emitter.replace(formatted)
         }
       },
