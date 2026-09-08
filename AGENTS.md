@@ -39,3 +39,7 @@ minista build
 ```
 
 `design/architecture.md` の「Current」は実装済みの事実だけを記載します。未実装、上流待ち、experimental、移行条件は `design/roadmap.md` に置きます。移行期間中だけ、同ファイル内のCurrentとTargetを明示的に分けます。
+
+## Command execution
+
+- テスト、ビルド、型チェックなど時間のかかるコマンドは、1秒程度の短い間隔で繰り返し状態確認しない。過去の実行時間や処理内容を踏まえて十分に待ってから確認する。
