@@ -20,7 +20,7 @@ monorepoは主に次で構成されています。
 
 package runtime entryは `src/node.js` です。CLI、test、workspace packageは `src/` のJavaScriptを直接実行し、通常の開発にcompile済み `dist/` を必要としません。公開型は `src/*.d.ts` を参照します。`src/node.js` はViteの `defineConfig` と10個の `pluginXXX()`をexportします。MDX変換とpage／layout参照assetの出力は`pluginSsg()`へ統合されています。
 
-公開宣言が必要とするArchive／Beautifyの型依存はministaのdependenciesに含みます。SSGのMDX compile optionは隣接宣言に分離し、上流型との一致を型テストで確認します。`minista/client`はSSG配下のMD／MDX宣言を参照します。通常CIでは`npm run test:public-types`がpackした配布物をReact 18／19の隔離consumerで`skipLibCheck:false`により検証します。詳細は[ADR-0006](decisions/0006-javascript-jsdoc-runtime.md)を参照してください。
+公開宣言が必要とするArchive／Beautifyの型依存はministaのdependenciesに含みます。SSGのMDX compile optionは隣接宣言に分離し、上流型との一致を型テストで確認します。`minista/client`はSSG配下のMD／MDX宣言を参照します。通常CIでは`npm run test:public-types`がpackした配布物をReact 19の隔離consumerで`skipLibCheck:false`により検証します。詳細は[ADR-0006](decisions/0006-javascript-jsdoc-runtime.md)を参照してください。
 
 ### 重い依存の初期化
 
@@ -100,7 +100,7 @@ module-level global variableはほぼ使われていません。output claim col
 - `check [--json]`, `inspect [--json]`, `explain [--json]` は実装済みで、Vite ModuleRunnerによりpage moduleと `getStaticData()` を評価する
 - public manifestの型、安全なprojection、安定serializer、atomic filesystem writerは実装済み。通常のApp Build、programmatic legacy fallback、別processの外部Vite CLI fallbackから `.minista/manifest.json` とbuild diagnosticsを出力し、`check` の成功／失敗時にも `.minista/diagnostics.json` を出力する
 - representative fixture build、project command、Core/feature/adapterのunit testを追加済み
-- production SSGはRoute／Page Graph snapshotを`ViteSsgRenderLifecycle` adapterで可変Graphへ復元し、Core runnerのrender phaseを実行する。React 19では`ReactStaticRenderer`、Preact aliasまたはReact 18では`ReactRenderToStringRenderer`をportとして選択し、Headを含むpage treeを1回だけrenderする。render phaseはdraftを除外した`RenderedPage` ArtifactとGraph edgeを生成し、失敗を`MINISTA_RENDER_FAILED` diagnosticにする
+- production SSGはRoute／Page Graph snapshotを`ViteSsgRenderLifecycle` adapterで可変Graphへ復元し、Core runnerのrender phaseを実行する。React 19では`ReactStaticRenderer`、Preact aliasでは`ReactRenderToStringRenderer`をportとして選択し、Headを含むpage treeを1回だけrenderする。render phaseはdraftを除外した`RenderedPage` ArtifactとGraph edgeを生成し、失敗を`MINISTA_RENDER_FAILED` diagnosticにする
 - SSG rendererはLayoutのrender結果がrootの`html`要素を持つ場合、その`html`／`head`／`body`をdocumentとして採用する。rootに`html`がない部分Layoutは従来の既定documentで囲む。既存の`Head`属性とhead要素はLayout documentへ後適用し、title、charset、viewportは`Head`側を優先して1つに正規化する。head内ではcharsetを先頭、viewportをその次へ配置する
 - parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを実装し、markerとgraph node IDをbindできる。parse、selector query、mutation、serializeのerrorはoperation別のstable diagnosticへ変換し、page node IDを保持する
 - CommentとSvgのcompatibility facadeは`ViteCompatibilityLifecycle` adapterからCore runnerのcompose phaseを実行し、domain featureがDocument Storeを変更する
@@ -142,7 +142,7 @@ packages/minista/src/
 
 Core用 `tsconfig.core.json` はJavaScript + JSDocと隣接 `.d.ts` をstrict modeで直接型検査します。repository全体の `tsc --noEmit` でも同じsourceを検査します。
 
-`main`向けPRと`main`へのpushでは`.github/workflows/ci.yml`がVitest 5の対応範囲内であるNode.js 22.12上で`npm run test:ci`を実行します。Vite 8.1.0、lockfile版、対応minor最新、React 18 fallback、Preact、公開engine最低版のNode.js 20.19は`.github/workflows/compatibility.yml`へ分離し、対応範囲へ影響する変更またはリリース前に対象suiteを手動実行します。Node.js 20.19ではVitestを介さずCLI check／inspect／buildを検証します。
+`main`向けPRと`main`へのpushでは`.github/workflows/ci.yml`がVitest 5の対応範囲内であるNode.js 22.12上で`npm run test:ci`を実行します。Vite 8.1.0、lockfile版、対応minor最新、Preact、公開engine最低版のNode.js 20.19は`.github/workflows/compatibility.yml`へ分離し、対応範囲へ影響する変更またはリリース前に対象suiteを手動実行します。Node.js 20.19ではVitestを介さずCLI check／inspect／buildを検証します。
 
 package entry、CLI、testは `src/` を直接参照します。`prepare`、`prepack`、test前のruntime buildは行わず、編集直後のsourceをそのまま検証できます。
 

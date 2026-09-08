@@ -17,7 +17,11 @@ Coreはframework非依存のasync `StaticRenderer` portのみを知ります。R
 
 Web/edge runtime adapterが必要になった場合は `prerender()` を使用できます。partial prerender / resume APIは初期採用しません。内部名称はrequest-time SSRと区別して `render` / `static renderer` とします。
 
-Vite adapterはReact 19で `ReactStaticRenderer` をdefaultとします。Preact aliasを検出した場合は `ReactRenderToStringRenderer` を選択し、React 18で `react-dom/static` を読み込めない場合も同じcompatibility rendererへ戻します。compatibility adapterをstatic adapterのbarrelから分離することで、Preact経路では `react-dom/static` を読みません。どちらの経路もHeadのside effectを含むpage treeを1回だけrenderし、結果を `HtmlDocument` factoryへ渡します。
+Vite adapterはReact 19で `ReactStaticRenderer` をdefaultとします。Preact aliasを検出した場合は `ReactRenderToStringRenderer` を選択します。compatibility adapterはstatic adapterのbarrelから分離し、Preactのpage treeにはstatic APIを使用しません。どちらの経路もHeadのside effectを含むpage treeを1回だけrenderし、結果を `HtmlDocument` factoryへ渡します。
+
+## Reactサポート方針（2026-09-08）
+
+v5の`react`／`react-dom`のpeerDependenciesは`>=19.0.0`とします。これはViteやplugin-reactの要求ではなく、ministaのテスト・保守コストを削減するための方針です。React 18専用のCompatibility CI jobとscript、配布型consumerのReact 18検証、static API読込失敗時のReact 18向けfallbackを削除します。React 19の通常testと配布型検証、Preactのcompatibility検証は継続します。React 18利用projectはv5への移行時にReactとReact DOMを19以降へ更新する必要があります。
 
 ## Consequences
 

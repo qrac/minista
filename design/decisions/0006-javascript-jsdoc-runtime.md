@@ -47,6 +47,6 @@ SSGのMDX optionはcompile用のshapeを隣接`mdx-options.d.ts`で定義しま�
 
 `minista/client`のMD／MDX宣言はSSG配下に置きます。公開entryのexport名とoption shapeは維持し、既存の内部補助型exportも削除しません。SSGの内部`ResolvedPage`が使う`PageId`はGraph barrelを経由せずID宣言を直接参照します。公開optionにrecipeやGraph型は要求しません。
 
-`npm run test:public-types`はpackしたpackageをリポジトリ外の空consumerへインストールし、React 18／19それぞれで`strict:true`／`skipLibCheck:false`の検査を実行します。全10プラグイン、component、公開page型、client宣言と不正値の拒否を対象とし、通常CIで実行します。上流型との比較は通常の`typecheck`で実行し、配布型の厳格検査と分けます。
+`npm run test:public-types`はpackしたpackageをリポジトリ外の空consumerへインストールし、React 19で`strict:true`／`skipLibCheck:false`の検査を実行します。全10プラグイン、component、公開page型、client宣言と不正値の拒否を対象とし、通常CIで実行します。上流型との比較は通常の`typecheck`で実行し、配布型の厳格検査と分けます。
 
 上流のglobal JSX参照は[DefinitelyTypedのMDX宣言](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/mdx/types.d.ts)でも確認しました（2026-09-08）。上流のReact 19対応後はcompile optionの直接importへ戻せるか再検討します。

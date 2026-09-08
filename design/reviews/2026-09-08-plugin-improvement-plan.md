@@ -215,7 +215,7 @@
 - 複数instanceの二重hydrateを防ぎ、共有chunk、CSS取得、import失敗の扱いを定義する。
 - Viteのpreloadが意図せず遅延moduleを先行取得しないか実際のbrowserで確認する。
 
-完了条件: 条件不成立時に対象snippetが取得・評価されず、成立後は一度だけhydrateされる。CSS、ページ分割、同一componentの複数配置、React 18／19と既存Preact経路を確認する。初期転送量と操作可能になるまでの遅延を測定し、出力claimも更新する。
+完了条件: 条件不成立時に対象snippetが取得・評価されず、成立後は一度だけhydrateされる。CSS、ページ分割、同一componentの複数配置、React 19と既存Preact経路を確認する。初期転送量と操作可能になるまでの遅延を測定し、出力claimも更新する。
 
 ### P08: Beautifyの責務と出力整合性
 

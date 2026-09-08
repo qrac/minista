@@ -1,13 +1,10 @@
 // @ts-check
 
+import { ReactStaticRenderer } from "../react/static.js"
 import { ReactRenderToStringRenderer } from "../react/render-to-string.js"
 
 /** @typedef {import("vite").UserConfig} UserConfig */
 /** @typedef {import("../../core/ports/index.js").StaticRenderer<import("react").ReactNode>} ReactRenderer */
-
-// Viteがbuild用にNODE_ENVを切り替える前にReactとreact-domの条件を揃える。
-// React 18ではreact-dom/staticが存在しないため、失敗はcompatibility fallbackとして保持する。
-const staticRendererModule = import("../react/static.js").catch(() => undefined)
 
 /** @param {UserConfig} config */
 export function hasPreactAlias(config) {
@@ -24,7 +21,7 @@ export function hasPreactAlias(config) {
 }
 
 /**
- * React 19ではstatic rendererを使用し、Preact/React 18では現行rendererへ戻す。
+ * React 19以降ではstatic rendererを使用し、Preactではcompatibility rendererを使用する。
  *
  * @param {UserConfig} config
  * @returns {Promise<ReactRenderer>}
@@ -32,8 +29,5 @@ export function hasPreactAlias(config) {
 export async function createViteReactRenderer(config) {
   if (hasPreactAlias(config)) return new ReactRenderToStringRenderer()
 
-  const module = await staticRendererModule
-  return module
-    ? new module.ReactStaticRenderer()
-    : new ReactRenderToStringRenderer()
+  return new ReactStaticRenderer()
 }

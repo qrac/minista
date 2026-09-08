@@ -42,7 +42,7 @@ route discovery、param parser、PageNode resolution、`getStaticData()`診断�
 
 進捗: 完了。
 
-交換可能な`StaticRenderer` port、React 19の`prerenderToNodeStream()` adapter、Preact／React 18向けcompatibility rendererを実装しました。`HtmlDocument`、`HtmlDocumentStore`、node-html-parser adapterにより、featureはparser非依存のDocumentを共有します。
+交換可能な`StaticRenderer` port、React 19の`prerenderToNodeStream()` adapter、Preact向けcompatibility rendererを実装しました。`HtmlDocument`、`HtmlDocumentStore`、node-html-parser adapterにより、featureはparser非依存のDocumentを共有します。
 
 完了条件: Headを含むpage treeを1回だけrenderし、Suspense、`useId`、preload、doctype、Preact alias、render errorを互換fixtureで検証できる。
 
@@ -104,7 +104,7 @@ Project Manifest schema v1、diagnostics snapshot、atomic writer、migration re
 
 全descriptorを検証してdomain operationを依存順にdispatchし、devの共有mutationをserver単位で直列化します。App Build前後hook、同名pluginのSSR設定、emptyOutDirの保持、metadata失敗時のrollback、error diagnosticによるphase停止、同一processの再buildを回帰テストに追加しました。
 
-追加の中核強化としてGraphのpattern／URL indexと軽量queryを実装し、1,000／10,000ページの構築benchmarkを記録しました。Page／Route削除は関連nodeのPage参照とpage scope Artifactも除去します。domain featureと公開facadeは同じdescriptor生成元を使用します。PRの全test／typecheck、Vite 8.1.0／lockfile版／対応minor最新、React 18、PreactのCI gateはNode.js 22.12で実行し、Node.js 20.19は独立したCLI互換jobで検証します。Vite 8.0.0は実contractでlate client inputが欠落したためpeer rangeから除外しました。
+追加の中核強化としてGraphのpattern／URL indexと軽量queryを実装し、1,000／10,000ページの構築benchmarkを記録しました。Page／Route削除は関連nodeのPage参照とpage scope Artifactも除去します。domain featureと公開facadeは同じdescriptor生成元を使用します。PRの全test／typecheck、Vite 8.1.0／lockfile版／対応minor最新、React 19、PreactのCI gateはNode.js 22.12で実行し、Node.js 20.19は独立したCLI互換jobで検証します。Vite 8.0.0は実contractでlate client inputが欠落したためpeer rangeから除外しました。
 
 ## 今後の移行候補
 

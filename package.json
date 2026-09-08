@@ -70,7 +70,6 @@
     "test:ci": "npm run test && npm run typecheck",
     "test:contracts": "vitest run packages/minista/test/integration/application-contract.test.js packages/minista/test/integration/compat-app-build.test.js packages/minista/test/integration/ssg-app-build.test.js packages/minista/test/integration/vite-app-builder.test.js packages/minista/test/unit/core/project-manifest.test.js",
     "test:preact": "vitest run packages/minista/test/integration/preact-app-build.test.js",
-    "test:react-compat": "vitest run packages/minista/test/integration/application-contract.test.js packages/minista/test/integration/ssg-app-build.test.js packages/minista/test/integration/preact-app-build.test.js",
     "test:cli-contracts": "node packages/minista/bin/minista.js check packages/minista/test/fixtures/check-basic --json && node packages/minista/bin/minista.js inspect packages/minista/test/fixtures/check-basic --json && node packages/minista/bin/minista.js build packages/minista/test/fixtures/compat-basic --logLevel silent",
     "test:w": "vitest watch",
     "audit": "node scripts/audit-tree.ts",

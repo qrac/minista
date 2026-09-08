@@ -186,7 +186,7 @@ Vite 8.1の公式告知ではbrowser sideとbasic plugin / main featureが中心
 
 ## React static rendering boundary
 
-現在はStaticRenderer portを通じてReact 19のprerenderToNodeStream()を使用し、Preact／React 18ではrenderToString() adapterへfallbackします。Headを含むpage treeを一回だけrenderします。
+現在はStaticRenderer portを通じてReact 19のprerenderToNodeStream()を使用し、PreactではrenderToString() adapterへfallbackします。Headを含むpage treeを一回だけrenderします。
 
 React 19.2の公式資料ではstatic APIはSSG用で、`prerender()` はSuspense dataの完了を待ちます。一方Node.jsではWeb Stream版より `prerenderToNodeStream()` が推奨されています。この境界を次のportで実装しています。
 
@@ -201,7 +201,7 @@ interface StaticRenderer {
 - compatibility fallback: current `renderToString()` adapter
 - partial prerender / resume API: experimentalのため初期不採用
 
-Headはrender中のside effectで収集されるため、page treeを二重renderしません。`Head` semantics、Suspense、preload、doctypeはfixtureで固定し、Preact aliasを検出した場合とReact 18でstatic APIを読み込めない場合はcurrent adapterへfallbackします。
+Headはrender中のside effectで収集されるため、page treeを二重renderしません。`Head` semantics、Suspense、preload、doctypeはfixtureで固定し、Preact aliasを検出した場合はcurrent adapterへfallbackします。
 
 ## Rolldown boundary
 
