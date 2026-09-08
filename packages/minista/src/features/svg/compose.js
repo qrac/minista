@@ -50,6 +50,9 @@ export async function composeSvgDocument(document, sources) {
       featureId: SVG_FEATURE_ID,
       nodeId: document.pageId,
     })
+    for (const [name, value] of Object.entries(source.attributes ?? {})) {
+      if (element.getAttribute(name) === undefined) element.setAttribute(name, value)
+    }
     element.setAttribute(
       "viewBox",
       element.getAttribute("viewBox") ?? source.viewBox ?? "0 0 0 0",

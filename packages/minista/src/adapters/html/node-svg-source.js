@@ -11,6 +11,7 @@ import { toProjectPath } from "../../core/graph/index.js"
 /** @typedef {import("../../features/svg/index.js").SvgSource} SvgSource */
 
 const svgSourceErrorCodes = Object.freeze({
+  missing: "MINISTA_SVG_SOURCE_NOT_FOUND",
   read: "MINISTA_SVG_READ_FAILED",
   optimize: "MINISTA_SVG_OPTIMIZE_FAILED",
   parse: "MINISTA_SVG_PARSE_FAILED",
@@ -79,6 +80,18 @@ export class NodeSvgSourceResolver {
   #config
   /** @type {Map<string, SvgSource | undefined>} */
   #cache = new Map()
+  #generation = 0
+
+  clear() {
+    this.#generation += 1
+    this.#cache.clear()
+  }
+
+  /** @param {string} sourcePath */
+  invalidate(sourcePath) {
+    this.#generation += 1
+    this.#cache.delete(path.resolve(this.#rootDir, sourcePath.replace(/^\//, "")))
+  }
 
   /**
    * @param {string} rootDir
@@ -92,9 +105,11 @@ export class NodeSvgSourceResolver {
   /** @param {string} sourcePath */
   async resolve(sourcePath) {
     const normalizedPath = sourcePath.replace(/^\//, "")
+    const cacheKey = path.resolve(this.#rootDir, normalizedPath)
+    const generation = this.#generation
     if (!normalizedPath) return undefined
-    if (this.#cache.has(normalizedPath)) {
-      return this.#cache.get(normalizedPath)
+    if (this.#cache.has(cacheKey)) {
+      return this.#cache.get(cacheKey)
     }
 
     let rawSvg
@@ -105,7 +120,9 @@ export class NodeSvgSourceResolver {
       )
     } catch (error) {
       if (error && typeof error === "object" && Reflect.get(error, "code") === "ENOENT") {
-        return undefined
+        throw new NodeSvgSourceError(error, {
+          operation: "missing", rootDir: this.#rootDir, sourcePath: normalizedPath,
+        })
       }
       throw new NodeSvgSourceError(error, {
         operation: "read",
@@ -134,8 +151,29 @@ export class NodeSvgSourceResolver {
     const source = Object.freeze({
       innerHtml: svg.innerHTML,
       viewBox: svg.getAttribute("viewBox"),
+      attributes: Object.freeze(Object.fromEntries(
+        Object.entries(svg.attributes).filter(([name]) =>
+          svgRootAttributes.has(name)
+        ),
+      )),
     })
-    this.#cache.set(normalizedPath, source)
+    if (generation === this.#generation) this.#cache.set(cacheKey, source)
     return source
   }
 }
+
+// Only source rendering attributes cross the composition boundary.
+const svgRootAttributes = new Set(`
+  xmlns xmlns:xlink viewBox preserveAspectRatio width height x y
+  fill fill-opacity fill-rule stroke stroke-width stroke-opacity
+  stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset
+  opacity color color-interpolation color-interpolation-filters color-rendering
+  display visibility overflow transform transform-origin vector-effect
+  clip-path clip-rule mask filter paint-order shape-rendering text-rendering
+  image-rendering marker-start marker-mid marker-end
+  font-family font-size font-style font-weight font-stretch font-variant
+  text-anchor dominant-baseline alignment-baseline baseline-shift
+  letter-spacing word-spacing writing-mode direction unicode-bidi
+  stop-color stop-opacity flood-color flood-opacity lighting-color
+  style class
+`.trim().split(/\s+/))

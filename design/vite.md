@@ -233,3 +233,7 @@ Stage 8完了時点でfallbackは次の2経路だけです。
 | 外部Vite CLI | programmatic configへ安全に変換できないCLI flagを指定 | 対応flagを明示的に変換するか、unsupported optionのstable diagnosticへ移行したmajorで削除 |
 
 通常のbuild／dev、公開plugin、Core lifecycleはfallback実装へ依存しません。`createBuilder()`とApp Build関連APIがexperimentalである間は安全網として保持し、fallbackの追加は禁止します。再検討日はVite Environment APIまたは`createBuilder()`のstable化を確認した最初のMinista minor releaseです。
+
+### Svg source更新（2026-09-08）
+
+Svgのwatchとpage reloadは既存の`ViteDevUpdateAdapter`を使います。serverごとのsource→page参照をresolver呼出しから記録し、add／change／unlinkでNode resolverを無効化します。Viteの新規API採用や対応versionの変更はありません。buildのresolver cacheはbundle開始ごとにclearします。

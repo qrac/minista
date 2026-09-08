@@ -8,6 +8,7 @@ export interface SvgFeatureOptions {
 }
 
 export interface SvgSource {
+  readonly attributes?: Readonly<Record<string, string>>
   readonly innerHtml: string
   readonly viewBox?: string
 }

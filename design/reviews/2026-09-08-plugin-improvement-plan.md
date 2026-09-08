@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01完了。P02〜P11は未着手
+- 状態: 計画を文書化済み。P01・P02完了。P03〜P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -61,7 +61,7 @@
 | 状態 | ID | 優先度 | 作業 | 依存・順序 |
 | --- | --- | --- | --- | --- |
 | [x] | P01 | 高 | Searchの除外とquery処理を修正 | 最初の修正群 |
-| [ ] | P02 | 高 | Svgの属性保持とdev更新を修正 | 最初の修正群 |
+| [x] | P02 | 高 | Svgの属性保持とdev更新を修正 | 最初の修正群 |
 | [ ] | P03 | 高 | Archiveの入力解決と欠落診断 | 最初の修正群 |
 | [ ] | P04 | 高 | 公開型と配布依存を修正 | 最初の修正群 |
 | [ ] | P05 | 中 | 重い依存を遅延ロード | P04後を推奨。公開型への影響も検証 |
@@ -106,6 +106,16 @@
 - 欠落sourceを無言でスキップする扱いを再検討し、stable code付き診断と互換性方針を記録する。
 
 完了条件: `fill`／`stroke`／viewBox／明示propsの合成が正しい。dev起動後のSVG変更で再起動なしに表示が更新され、再buildでも古いsourceが残らない。複数serverのcacheが混ざらない。
+
+完了記録（2026-09-08）:
+
+- source contractへ最適化後の描画用ルート属性を追加した。明示propsを優先し、ルートID、イベント属性、任意のdata属性をコピーしないallowlistとした。`style`／`class`は属性単位で上書きする。
+- dev adapterがserverごとのsource→page参照を記録し、add／change／unlinkでresolver cacheを無効化して参照ページをreloadする。invalidationと競合する古い読込結果はcacheへ戻さない。buildはbundle開始ごとにcacheをclearする。
+- 欠落sourceは`MINISTA_SVG_SOURCE_NOT_FOUND` errorに変更し、project相対locationを付ける。ADR-0004、設計資料、公開Svg docs、migration noteへ互換性方針を記録した。
+- unitで属性保持・内部属性除外・明示props優先・path aliasの無効化・欠落診断を検証した。実Vite fixtureでは変更・削除・復旧、対象ページへのreload通知、同一pluginを共有する複数serverの分離、連続buildの更新を検証した。ブラウザの画面操作は行わず、ViteのHTML変換結果と更新通知、build出力を確認した。
+- `npm run test:ci`: exit 0、102ファイル・424テストと`tsc --noEmit`が成功。最初のsandbox内実行はローカルHTTP listen拒否で停止したため、listenを許可して全体を再実行した。更新通知の検証を強化した後のSvg integration testも成功した。
+- `npm run test:cli-contracts`: exit 0。fixtureの`check --json`／`inspect --json`／`build`が成功。生成bundleは型検査対象に混入しないようリポジトリ外へ退避した。`git diff --check`も成功した。
+- 残る範囲: 内部IDの名前空間化とSpriteとの解析共有はP09で扱う。Vite／React／Node.jsの対応範囲と新規Vite API採用には変更がない。
 
 ### P03: Archiveの入力解決と欠落診断
 

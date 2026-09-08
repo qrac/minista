@@ -865,3 +865,9 @@ export default function () {
   return <BlockCounter client:visible />
 }
 ```
+
+## Svgの属性保持と欠落source
+
+`pluginSvg()`はSVGO最適化後の描画用ルート属性を保持します。`fill`／`stroke`やサイズをsourceで指定している場合は出力へ反映されます。上書きする場合は`Svg`の同名propsを指定してください。`style`／`className`は属性全体を置き換えます。
+
+存在しないsourceを黙って残す動作は廃止し、`MINISTA_SVG_SOURCE_NOT_FOUND` errorでbuildを失敗させます。`src`はproject root相対として解決されます。dev中のsource変更は再起動なしで反映されます。

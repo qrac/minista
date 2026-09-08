@@ -1,3 +1,5 @@
+import path from "node:path"
+import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
 import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
 
 /** @typedef {import('vite').Plugin} Plugin */
@@ -33,6 +35,8 @@ export function pluginSvg(uOpts = {}) {
   const sourceStates = new ViteEnvironmentState(() => ({
     /** @type {NodeSvgSourceResolver | undefined} */
     sources: undefined,
+    /** @type {Map<string, Set<string>>} */
+    pageSources: new Map(),
   }))
 
   /** @param {object} identity @param {string} rootDir */
@@ -45,7 +49,7 @@ export function pluginSvg(uOpts = {}) {
   /**
    * @param {string} html
    * @param {string} pageIdentity
-   * @param {NodeSvgSourceResolver} sources
+   * @param {import("../../features/svg/index.js").SvgSourceResolver} sources
    * @param {import("../../adapters/vite/compatibility-lifecycle.js").ViteCompatibilityRunHooks} [hooks]
    * @returns {Promise<string>}
    */
@@ -65,16 +69,41 @@ export function pluginSvg(uOpts = {}) {
     applyToEnvironment: isViteAppClientEnvironment,
     configureServer(server) {
       devServers.add(server)
-      server.httpServer?.once("close", () => devServers.delete(server))
+      const rootDir = getRootDir(cwd, server.config.root || "")
+      const sources = getSources(server, rootDir)
+      const state = sourceStates.get(server)
+      const updates = new ViteDevUpdateAdapter(server)
+      /** @param {string} event @param {string} filePath */
+      const onChange = (event, filePath) => {
+        if (!["add", "change", "unlink"].includes(event)) return
+        const absolute = path.resolve(filePath)
+        sources.invalidate(path.relative(rootDir, absolute))
+        const pages = [...state.pageSources]
+          .filter(([, files]) => files.has(absolute)).map(([page]) => page)
+        if (pages.length) updates.reloadPages(pages)
+      }
+      server.watcher.on("all", onChange)
+      server.httpServer?.once("close", () => {
+        server.watcher.off("all", onChange)
+        devServers.delete(server)
+      })
     },
     async transformIndexHtml(html, context) {
       const server = devServers.resolve(context)
       if (!server) return html
       const rootDir = getRootDir(cwd, server.config.root || "")
+      const sources = getSources(server, rootDir)
+      const references = new Set()
+      sourceStates.get(server).pageSources.set(context.path, references)
       return transformSvgHtml(
         html,
         context.path,
-        getSources(server, rootDir),
+        { resolve(source) {
+          const absolute = path.resolve(rootDir, source.replace(/^\//, ""))
+          references.add(absolute)
+          server.watcher.add(absolute)
+          return sources.resolve(source)
+        } },
         createViteCompatibilityTraceHooks(
           getViteBuildSession(server.config),
           "svg:dev",
@@ -84,6 +113,7 @@ export function pluginSvg(uOpts = {}) {
     async generateBundle(options, bundle) {
       const rootDir = getRootDir(cwd, this.environment.config.root || "")
       const sources = getSources(this.environment, rootDir)
+      sources.clear()
       const outputAssets = filterOutputAssets(bundle)
       const htmlItems = Object.values(outputAssets).filter((item) =>
         item.fileName.endsWith(".html"),

@@ -85,4 +85,10 @@ SVGの展開に失敗した場合、buildは次のstable diagnostic codeを出�
 - `MINISTA_SVG_OPTIMIZE_FAILED`: SVGOによる最適化失敗
 - `MINISTA_SVG_PARSE_FAILED`: SVG markupの解析失敗
 
-存在しないsourceは従来どおり未解決として扱います。それ以外の失敗では、project内のSVGにproject相対locationが含まれます。HTML document adapterの解析、selector、変更、serializeに失敗した場合は、対応する `MINISTA_HTML_*_FAILED` codeが出力されます。
+存在しないsourceは`MINISTA_SVG_SOURCE_NOT_FOUND` errorとなり、buildを失敗させます。project内のSVGにproject相対locationが含まれます。HTML document adapterの解析、selector、変更、serializeに失敗した場合は、対応する `MINISTA_HTML_*_FAILED` codeが出力されます。
+
+## 属性の合成とdev更新
+
+SVGO最適化後のルートから、`viewBox`、`preserveAspectRatio`、サイズ、`fill`／`stroke`などの描画属性、`style`／`class`を保持します。`Svg`に明示した同名propsを優先し、`style`／`className`も属性単位で置き換えます。元SVGのルート`id`、イベント属性、`data-*`などの任意属性はコピーしません。明示propsとsourceの両方にviewBoxがない場合は`0 0 0 0`を使います。
+
+devでは参照sourceの追加・変更・削除に応じてcacheを無効化し、参照ページを再読み込みします。server間でcacheを共有せず、再buildでもsourceを読み直します。内部IDの名前空間化はこの変更に含みません。

@@ -111,3 +111,19 @@ describe("svg feature", () => {
     expect(document.serialize()).toContain("<circle></circle>")
   })
 })
+
+test("source attributes fill gaps while explicit props win", async () => {
+  const document = new NodeHtmlDocumentFactory().parse({
+    pageId: createNodeId("page", "svg-attributes"),
+    html: '<svg data-minista-svg="" data-minista-svg-src="icon.svg" stroke="red" fill="" viewBox="1 2 3 4"></svg>',
+  })
+  await composeSvgDocument(document, { resolve: async () => ({
+    innerHtml: '<path d="M0 0h1"/>', viewBox: "0 0 10 10",
+    attributes: { fill: "none", stroke: "currentColor", "stroke-width": "2", viewBox: "0 0 10 10" },
+  }) })
+  const svg = document.select("svg")[0]
+  expect(svg.getAttribute("fill")).toBe("")
+  expect(svg.getAttribute("stroke")).toBe("red")
+  expect(svg.getAttribute("stroke-width")).toBe("2")
+  expect(svg.getAttribute("viewBox")).toBe("1 2 3 4")
+})

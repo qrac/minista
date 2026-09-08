@@ -5,7 +5,7 @@ import type {
   SvgSourceResolver,
 } from "../../features/svg/index.js"
 
-export type NodeSvgSourceOperation = "read" | "optimize" | "parse"
+export type NodeSvgSourceOperation = "missing" | "read" | "optimize" | "parse"
 export interface NodeSvgSourceErrorOptions {
   readonly operation: NodeSvgSourceOperation
   readonly rootDir: string
@@ -13,6 +13,7 @@ export interface NodeSvgSourceErrorOptions {
 }
 export declare class NodeSvgSourceError extends Error {
   readonly code:
+    | "MINISTA_SVG_SOURCE_NOT_FOUND"
     | "MINISTA_SVG_READ_FAILED"
     | "MINISTA_SVG_OPTIMIZE_FAILED"
     | "MINISTA_SVG_PARSE_FAILED"
@@ -24,5 +25,7 @@ export declare class NodeSvgSourceError extends Error {
 
 export declare class NodeSvgSourceResolver implements SvgSourceResolver {
   constructor(rootDir: string, config?: SvgoConfig)
+  clear(): void
+  invalidate(sourcePath: string): void
   resolve(sourcePath: string): Promise<SvgSource | undefined>
 }

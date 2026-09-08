@@ -19,9 +19,9 @@ afterEach(async () => {
 })
 
 describe("Node SVG source resolver", () => {
-  test("keeps a missing source unresolved", async () => {
+  test("reports a missing source", async () => {
     await expect(new NodeSvgSourceResolver(rootDir).resolve("/missing.svg"))
-      .resolves.toBeUndefined()
+      .rejects.toMatchObject({ code: "MINISTA_SVG_SOURCE_NOT_FOUND", diagnostic: { location: { file: "missing.svg" } } })
   })
 
   test("normalizes filesystem read failures", async () => {
@@ -74,4 +74,18 @@ describe("Node SVG source resolver", () => {
       diagnostic: { location: { file: "icon.svg" } },
     })
   })
+})
+
+test("preserves rendering attributes, filters metadata and invalidates aliases", async () => {
+  const file = path.join(rootDir, "icon.svg")
+  await fs.promises.writeFile(file, '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" data-minista-svg="bad" id="source"><path d="M0 0h1"/></svg>')
+  const resolver = new NodeSvgSourceResolver(rootDir, { plugins: [] })
+  const source = await resolver.resolve("/icon.svg")
+  expect(source?.attributes).toEqual({ viewBox: "0 0 10 10", fill: "none", stroke: "currentColor" })
+  await fs.promises.writeFile(file, '<svg viewBox="0 0 20 20"/>')
+  resolver.invalidate("./icon.svg")
+  expect((await resolver.resolve("/icon.svg"))?.viewBox).toBe("0 0 20 20")
+  await fs.promises.unlink(file)
+  resolver.clear()
+  await expect(resolver.resolve("icon.svg")).rejects.toMatchObject({ code: "MINISTA_SVG_SOURCE_NOT_FOUND" })
 })
