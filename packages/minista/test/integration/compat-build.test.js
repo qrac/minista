@@ -10,7 +10,7 @@ const packageDir = path.resolve(here, "../..")
 const fixtureDir = path.resolve(here, "../fixtures/compat-basic")
 const binFile = path.resolve(packageDir, "bin/minista.js")
 const distDir = path.resolve(fixtureDir, "dist")
-const manifestDir = path.resolve(fixtureDir, ".minista")
+const manifestDir = path.resolve(fixtureDir, "node_modules/.minista")
 const tempDir = path.resolve(fixtureDir, "node_modules/.minista")
 const viteCacheDir = path.resolve(fixtureDir, "node_modules/.vite")
 const viteConfigCacheDir = path.resolve(fixtureDir, "node_modules/.vite-temp")
@@ -41,7 +41,6 @@ function runBuild() {
 async function removeGenerated() {
   await Promise.all([
     fs.promises.rm(distDir, { recursive: true, force: true }),
-    fs.promises.rm(manifestDir, { recursive: true, force: true }),
     fs.promises.rm(tempDir, { recursive: true, force: true }),
     fs.promises.rm(viteCacheDir, { recursive: true, force: true }),
     fs.promises.rm(viteConfigCacheDir, { recursive: true, force: true }),

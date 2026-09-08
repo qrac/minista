@@ -69,7 +69,7 @@ describe("machine-readable project commands", () => {
     })
     expect(fs.existsSync(path.resolve(fixtureDir, "dist"))).toBe(false)
     const report = JSON.parse(await fs.promises.readFile(
-      path.resolve(fixtureDir, ".minista/diagnostics.json"),
+      path.resolve(fixtureDir, "node_modules/.minista/diagnostics.json"),
       "utf8",
     ))
     expect(report).toMatchObject({
@@ -119,7 +119,7 @@ describe("machine-readable project commands", () => {
       phase: "resolve",
     })
     const report = JSON.parse(await fs.promises.readFile(
-      path.resolve(invalidFixtureDir, ".minista/diagnostics.json"),
+      path.resolve(invalidFixtureDir, "node_modules/.minista/diagnostics.json"),
       "utf8",
     ))
     expect(report).toMatchObject({
@@ -135,7 +135,7 @@ describe("machine-readable project commands", () => {
     expect(result.code).toBe(1)
     expect(result.stderr).toContain("[MINISTA_VITE_BUILD_FAILED]")
     const report = JSON.parse(await fs.promises.readFile(
-      path.resolve(invalidFixtureDir, ".minista/diagnostics.json"),
+      path.resolve(invalidFixtureDir, "node_modules/.minista/diagnostics.json"),
       "utf8",
     ))
     expect(report).toMatchObject({

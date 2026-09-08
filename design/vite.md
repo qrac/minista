@@ -1,5 +1,7 @@
 # Vite boundary
 
+生成workspaceの`.minista`表記は、rootにpackage.jsonがある場合は`<root>/node_modules/.minista`、ない場合は`<root>/.minista`を指します（[ADR-0016](decisions/0016-workspace-and-agent-guide.md)）。
+
 最終確認日: 2026-09-05
 
 確認対象: 最低対応Vite 8.1.0、repository lockfileのVite 8.2.2、対応minor最新、およびVite / React公式資料

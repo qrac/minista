@@ -4,6 +4,8 @@ import fs from "node:fs"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
 
+import { resolveWorkspaceDirectory } from "../filesystem/workspace-directory.js"
+
 import { NodeAtomicWorkspaceWriter } from "../filesystem/atomic-workspace-writer.js"
 
 export class ViteOutputDirectoryUnsafeError extends Error {
@@ -97,7 +99,7 @@ export class ViteOutputTransaction {
     }
     if (this.#protectMetadata) {
       for (const name of ["manifest.json", "diagnostics.json"]) {
-        const file = path.join(this.#root, ".minista", name)
+        const file = path.join(resolveWorkspaceDirectory(this.#root), name)
         this.#metadata.set(name, await exists(file)
           ? await fs.promises.readFile(file, "utf8") : undefined)
       }
@@ -156,7 +158,7 @@ export class ViteOutputTransaction {
     const writer = new NodeAtomicWorkspaceWriter()
     for (const [name, source] of this.#metadata) {
       if (source === undefined) {
-        await fs.promises.rm(path.join(this.#root, ".minista", name), { force: true })
+        await fs.promises.rm(path.join(resolveWorkspaceDirectory(this.#root), name), { force: true })
       } else {
         await writer.write(this.#root, name, source)
       }

@@ -4,6 +4,8 @@ import fs from "node:fs"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
 
+import { resolveWorkspaceDirectory } from "./workspace-directory.js"
+
 import {
   parseProjectManifest,
   serializeProjectManifest,
@@ -32,13 +34,13 @@ function assertBuildId(buildId) {
 /** @param {string} root @param {string} buildId */
 function resolveDirectory(root, buildId) {
   assertBuildId(buildId)
-  return path.resolve(root, ".minista", "work", buildId, "external")
+  return path.resolve(resolveWorkspaceDirectory(root), "work", buildId, "external")
 }
 
 /** @param {string} root @param {string} buildId */
 function resolveBuildDirectory(root, buildId) {
   assertBuildId(buildId)
-  return path.resolve(root, ".minista", "work", buildId)
+  return path.resolve(resolveWorkspaceDirectory(root), "work", buildId)
 }
 
 /** @param {string} root @param {string} buildId @param {string} name */
@@ -210,7 +212,7 @@ export class NodeExternalBuildHandoff {
       recursive: true,
       force: true,
     })
-    await fs.promises.rmdir(path.resolve(root, ".minista", "work"))
+    await fs.promises.rmdir(path.resolve(resolveWorkspaceDirectory(root), "work"))
       .catch(() => {})
   }
 }

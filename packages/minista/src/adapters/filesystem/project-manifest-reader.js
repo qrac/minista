@@ -2,6 +2,7 @@
 
 import fs from "node:fs"
 import path from "node:path"
+import { resolveWorkspaceDirectory } from "./workspace-directory.js"
 
 import {
   migrateProjectManifest,
@@ -12,8 +13,9 @@ import {
 export class ProjectManifestNotFoundError extends Error {
   code = "MINISTA_MANIFEST_NOT_FOUND"
 
-  constructor() {
-    super("Project manifest was not found at .minista/manifest.json.")
+  /** @param {string} [file] */
+  constructor(file = ".minista/manifest.json") {
+    super(`Project manifest was not found at ${file}.`)
     this.name = "ProjectManifestNotFoundError"
   }
 }
@@ -28,7 +30,7 @@ export class NodeProjectManifestReader {
 
   /** @param {string} root */
   async read(root) {
-    const file = path.resolve(root, ".minista/manifest.json")
+    const file = path.join(resolveWorkspaceDirectory(root), "manifest.json")
     let source
     try {
       source = await fs.promises.readFile(file, "utf8")
@@ -38,7 +40,7 @@ export class NodeProjectManifestReader {
         typeof error === "object" &&
         Reflect.get(error, "code") === "ENOENT"
       ) {
-        throw new ProjectManifestNotFoundError()
+        throw new ProjectManifestNotFoundError(path.relative(root, file).split(path.sep).join("/"))
       }
       throw error
     }

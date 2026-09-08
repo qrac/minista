@@ -5,7 +5,7 @@ import type {
 
 export declare class ProjectManifestNotFoundError extends Error {
   readonly code: "MINISTA_MANIFEST_NOT_FOUND"
-  constructor()
+  constructor(file?: string)
 }
 export declare class NodeProjectManifestReader {
   constructor(migrations?: readonly ProjectManifestMigration[])

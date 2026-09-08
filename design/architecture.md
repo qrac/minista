@@ -1,6 +1,8 @@
 # Architecture
 
-最終確認日: 2026-09-05
+生成workspaceの`.minista`表記は、rootにpackage.jsonがある場合は`<root>/node_modules/.minista`、ない場合は`<root>/.minista`を指します（[ADR-0016](decisions/0016-workspace-and-agent-guide.md)）。
+
+最終確認日: 2026-09-08
 
 > この文書は現在の`v5` branchに実装されている事実だけを記載します。未実装、上流待ち、experimental、移行条件は`roadmap.md`を参照してください。
 
@@ -274,7 +276,7 @@ Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 
 ### Artifact Storeとmanifest
 
-`.minista`は公開snapshotと外部fallback用private handoffを分離したworkspaceです。通常の同一process buildは`MemoryArtifactStore`を使用します。
+生成workspaceはNode filesystem adapterの`resolveWorkspaceDirectory(root)`で解決します。root直下にpackage.jsonがあれば`<root>/node_modules/.minista`、なければ`<root>/.minista`です。起動cwdや親package、node_modulesの有無には依存しません。以下の`.minista`表記はこの解決済みworkspaceを指します。公開snapshotと外部fallback用private handoffはschemaとsubdirectoryで分離します。通常の同一process buildは`MemoryArtifactStore`を使用します。
 
 ```text
 .minista/
@@ -289,9 +291,15 @@ Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 
 `diagnostics.json` は `schemaVersion`, `generator`, `command`, `buildId`, `summary`, `diagnostics`, `createdAt` を持つworkspace snapshotです。`check` はvalidation errorを含む終了結果を保存し、App Buildは成功時のsession diagnosticsを保存します。外部Vite CLI fallbackは成功reportに加え、process起動／終了失敗を `MINISTA_VITE_CLI_FAILED` として保存します。公開Project Manifestとは異なり配布用artifactではありません。writerは共通のstable JSON serializerとatomic workspace writerを使います。
 
-`work/<buildId>/external`は別process fallbackだけが使用します。buildIdを照合し、成功／失敗後に削除するため別buildの残骸を読みません。画像やIslandなどのVite入力用cache／生成sourceは公開workspaceとは分け、`node_modules/.minista`に置きます。
+`work/<buildId>/external`は別process fallbackだけが使用します。buildIdを照合し、成功／失敗後に削除するため別buildの残骸を読みません。画像やIslandなどのVite入力用cache／生成sourceも同じworkspace内の既存subdirectoryに置きます。metadataのread／write／rollbackと一時sourceは同じresolverを使います。旧snapshotへのfallbackや自動移動・削除は行いません。
 
 App／programmatic Legacyは共通のclient確定処理でmanifestと成功diagnosticsをcommit前に保存します。捕捉可能な失敗時は旧outDirとmetadataへrollbackし、CLIがその後で失敗diagnosticsを保存します。emptyOutDir:falseでは既存fileを保持します。Appのtransactionはpluginのpre／post buildApp hookも囲みます。process強制終了、同じ出力先への同時build、distとmetadataの同時可視化は保証しません。詳細は[ADR-0015](decisions/0015-application-lifecycle-and-output-transaction.md)を参照してください。
+
+### Agent向け入口
+
+`minista agents [root]`はministaパッケージ同梱の利用者向け`AGENTS.md`を表示します。`--json`はschemaVersion `"1"`、version、絶対root、ガイドのpath／content、workspaceとsnapshotのpath／existsを返します。config評価やworkspace生成は行いません。`--write`はprojectのAGENTS.md内のminista marker blockだけを追加・更新し、その他の内容を保持します。
+
+create-ministaは4種類のtemplateに共通の短いbootstrapを生成します。既存AGENTS.mdは保持して追加コマンドを案内します。bootstrapは`npx --no-install minista agents`でバージョン固有ガイドを取得します。詳細は[ADR-0016](decisions/0016-workspace-and-agent-guide.md)を参照してください。
 
 ### Structured diagnostics
 

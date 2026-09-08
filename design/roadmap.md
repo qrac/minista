@@ -1,5 +1,7 @@
 # v5 roadmap
 
+生成workspaceの`.minista`表記は、rootにpackage.jsonがある場合は`<root>/node_modules/.minista`、ない場合は`<root>/.minista`を指します（[ADR-0016](decisions/0016-workspace-and-agent-guide.md)）。
+
 最終確認日: 2026-09-05
 
 v5のStage 0〜8は完了しました。この文書は各Stageの完了状態と、v5の完了後も独立して追跡するexperimental項目を記録します。実装済みの詳細は [`release-notes-v5.md`](release-notes-v5.md)、現在の構造は [`architecture.md`](architecture.md)、Vite境界とfallback条件は [`vite.md`](vite.md) を参照してください。

@@ -4,6 +4,10 @@
 - Date: 2026-09-05
 - Amends: ADR-0002、0003、0004、0008、0009
 
+- Amended: 2026-09-08 by [ADR-0016](0016-workspace-and-agent-guide.md)
+
+保存先の`.minista`表記は解決済みworkspace directoryを指します。rootにpackage.jsonがある場合は`node_modules/.minista`、ない場合はroot直下の`.minista`です。
+
 ## Context
 
 v5レビューで、plugin配列順によるSearch結果の差、同名pluginのSSR設定の取り違え、App Build hookの未実行、emptyOutDir:falseでの既存file消失、metadata失敗時のdistとの不整合を再現しました。公開plugin APIを維持しながらapplication境界を明確にします。

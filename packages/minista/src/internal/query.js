@@ -37,7 +37,7 @@ export function queryProjectManifest(manifest, request) {
 }
 
 /**
- * `.minista/manifest.json`だけを読み、user moduleやViteを起動せずqueryする。
+ * 解決済みworkspaceの`manifest.json`だけを読み、user moduleやViteを起動せずqueryする。
  *
  * @param {string} root
  * @param {import("./query.js").ProjectQueryRequest} request

@@ -4,6 +4,10 @@
 - Date: 2026-08-13
 - Amended: 2026-09-05 by [ADR-0015](0015-application-lifecycle-and-output-transaction.md)
 
+- Amended: 2026-09-08 by [ADR-0016](0016-workspace-and-agent-guide.md)
+
+保存先の`.minista`表記は解決済みworkspace directoryを指します。rootにpackage.jsonがある場合は`node_modules/.minista`、ない場合はroot直下の`.minista`です。
+
 ## Context
 
 CLI stdoutだけにdiagnosticを出すと、AI coding toolや後続processは実行を再現しなければ結果を参照できません。`check` はuser moduleを評価するため、同じ情報を読むだけの用途で繰り返すと遅く、side effectも再実行します。

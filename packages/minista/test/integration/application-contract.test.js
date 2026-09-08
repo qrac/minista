@@ -55,11 +55,11 @@ describe("application build contracts", () => {
   test("restores output and manifest if metadata fails after the client build", async () => {
     const root = await fixture(`import {pluginSsg} from 'minista'; export default {plugins:[pluginSsg()]}`)
     await build(root)
-    const before = await Promise.all([read(root, "dist/index.html"), read(root, ".minista/manifest.json"), read(root, ".minista/diagnostics.json")])
+    const before = await Promise.all([read(root, "dist/index.html"), read(root, "node_modules/.minista/manifest.json"), read(root, "node_modules/.minista/diagnostics.json")])
     await fs.writeFile(path.join(root, "src/pages/index.jsx"), 'export default function Page(){return <h1>second</h1>}')
     vi.spyOn(NodeDiagnosticsWriter.prototype, "write").mockRejectedValueOnce(new Error("metadata unavailable"))
     await expect(build(root)).rejects.toThrow("metadata unavailable")
-    expect(await Promise.all([read(root, "dist/index.html"), read(root, ".minista/manifest.json"), read(root, ".minista/diagnostics.json")])).toEqual(before)
+    expect(await Promise.all([read(root, "dist/index.html"), read(root, "node_modules/.minista/manifest.json"), read(root, "node_modules/.minista/diagnostics.json")])).toEqual(before)
   })
 
   test("runs application pre/post hooks and rolls back a failing post hook", async () => {
@@ -88,7 +88,7 @@ describe("application build contracts", () => {
     await expect(build(root)).rejects.toMatchObject({ code: "MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT" })
     await runMinista(["build", root, "--logLevel", "silent"])
     expect(await read(root, "dist/index.html")).toContain("<h1>server-option</h1>")
-    expect(JSON.parse(await read(root, ".minista/diagnostics.json")).diagnostics).toEqual(expect.arrayContaining([
+    expect(JSON.parse(await read(root, "node_modules/.minista/diagnostics.json")).diagnostics).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: "MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT" }),
     ]))
   })

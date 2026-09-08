@@ -27,3 +27,7 @@ $ npm create minista@latest my-minista-project -- --template minimal-ts
 
 - Author: [Qrac](https://qrac.jp)
 - Organization: [QRANOKO](https://qranoko.jp)
+
+## Agent guide
+
+Every template creates a short `AGENTS.md` pointing to `npx --no-install minista agents`. Existing instructions are preserved; after installation, run `npx --no-install minista agents --write` to add or update only the minista block. The detailed guide ships with the installed minista version.

@@ -26,6 +26,7 @@ contents list
 | `minista preview [root]` |静的書き出し後の動作確認|
 | `minista check [root]` |page moduleと`getStaticData()`を評価し、route／pageの問題を検査|
 | `minista inspect [root]` |sourceからProject Graphの概要を表示|
+| `minista agents [root]` |インストール済みバージョンのagent向けガイドを表示|
 | `minista explain <node-id> [root]` |指定したGraph nodeの関係を説明|
 
 ## Machine-readable commands
@@ -38,7 +39,9 @@ minista inspect --json
 minista explain "page:route%3Asrc/pages/index.jsx#/" --json
 ```
 
-`minista check`は直近の検査結果を`.minista/diagnostics.json`にも保存します。`minista build`はProject Graphとoutputの安全なprojectionを`.minista/manifest.json`へ、build diagnosticを`.minista/diagnostics.json`へ保存します。
+生成workspaceはroot直下にpackage.jsonがある場合は`node_modules/.minista/`、ない場合はroot直下の`.minista/`です。起動ディレクトリやnode_modulesの有無で保存先は変わりません。
+
+`minista check`は直近の検査結果をworkspaceの`diagnostics.json`にも保存します。`minista build`はProject Graphとoutputの安全なprojectionをworkspaceの`manifest.json`へ、build diagnosticをworkspaceの`diagnostics.json`へ保存します。
 
 build済みmanifestだけを読み、Vite serverやuser moduleを起動せずに確認する場合は`--manifest`を使います。
 
@@ -46,13 +49,30 @@ build済みmanifestだけを読み、Vite serverやuser moduleを起動せずに
 minista inspect --manifest --json
 ```
 
+## Agent guide
+
+```sh
+minista agents
+minista agents --json
+minista agents --write
+```
+
+`agents`はministaに同梱された利用ガイドを表示します。`--json`はバージョン、ガイド本文とpath、解決済みworkspace directory、manifest／diagnosticsのpathと存在状態を返します。configやpage moduleを評価せず、ファイルも生成しません。
+
+`--write`を指定するとprojectのAGENTS.mdへ短い案内を追加します。既存のminista管理ブロックだけを更新し、他の記述は保持します。繰り返しても重複しません。`--write --json`で変更結果をJSONとして取得できます。create-ministaは同じ案内を自動生成します。手動installの場合はinstall後に`npx --no-install minista agents --write`を実行してください。
+
+保存済みmanifestは最後の成功buildの情報であり、最新ソースと一致するとは限りません。最新状態には通常の`inspect`や`check`を使います。これらと`explain`はuser moduleと`getStaticData()`を実行します。manifest不在時にqueryが自動buildすることはなく、`MINISTA_MANIFEST_NOT_FOUND`を返します。
+
+diagnosticsは直近に記録されたcheck／buildの結果なので、manifestと同じ実行の情報とは限りません。生成workspaceは手編集せず、diagnosticsはサイトの公開物へ含めないでください。
+
 ## Options
 
 [ViteのCLIオプション](https://ja.vitejs.dev/guide/cli.html)はdev／build／previewへ引き渡されます。App Buildで処理できないbuild optionを指定した場合はcompatibility fallbackを使用することがあります。
 
 |独自のオプション|対象|内容|
 | --- | --- | --- |
-| `--json` |`check`／`inspect`／`explain`|結果とdiagnosticをJSONで出力|
-| `--manifest` |`inspect`|`.minista/manifest.json`だけを読み取る|
+| `--json` |`check`／`inspect`／`explain`／`agents`|結果とdiagnosticをJSONで出力|
+| `--write` |`agents`|AGENTS.mdのminista案内を追加・更新|
+| `--manifest` |`inspect`|workspaceの`manifest.json`だけを読み取る|
 
 v4の`--oneBuild`はv5で削除されました。指定すると`MINISTA_CLI_OPTION_REMOVED`で終了するため、commandから削除してください。標準の`minista build`が1つのApp Build lifecycleを使用します。

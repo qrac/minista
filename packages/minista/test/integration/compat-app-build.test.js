@@ -136,7 +136,7 @@ describe("v4 compatibility App Build", () => {
   })
 
   test("writes a safe public project manifest atomically", async () => {
-    const manifestFile = path.resolve(fixtureDir, ".minista/manifest.json")
+    const manifestFile = path.resolve(fixtureDir, "node_modules/.minista/manifest.json")
     const source = await fs.promises.readFile(manifestFile, "utf8")
     const manifest = JSON.parse(source)
 
@@ -249,10 +249,10 @@ describe("v4 compatibility App Build", () => {
     expect(source).not.toContain(fixtureDir)
     expect(source).not.toContain('"props"')
     await expect(
-      fs.promises.readdir(path.resolve(fixtureDir, ".minista")),
-    ).resolves.toEqual(["diagnostics.json", "manifest.json"])
+      fs.promises.readdir(path.resolve(fixtureDir, "node_modules/.minista")),
+    ).resolves.toEqual(expect.arrayContaining(["diagnostics.json", "manifest.json"]))
     const diagnostics = JSON.parse(await fs.promises.readFile(
-      path.resolve(fixtureDir, ".minista/diagnostics.json"),
+      path.resolve(fixtureDir, "node_modules/.minista/diagnostics.json"),
       "utf8",
     ))
     expect(diagnostics).toMatchObject({

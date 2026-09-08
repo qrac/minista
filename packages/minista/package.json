@@ -41,7 +41,9 @@
   "files": [
     "bin",
     "src",
-    "types"
+    "types",
+    "agents",
+    "AGENTS.md"
   ],
   "scripts": {
     "typecheck:core": "tsc -p tsconfig.core.json --noEmit"

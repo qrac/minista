@@ -94,7 +94,7 @@ describe("external Vite CLI build fallback", () => {
 
   test("collects claims after archive finalization", async () => {
     const manifest = JSON.parse(await fs.promises.readFile(
-      path.resolve(compatFixtureDir, ".minista/manifest.json"),
+      path.resolve(compatFixtureDir, "node_modules/.minista/manifest.json"),
       "utf8",
     ))
 
@@ -123,11 +123,11 @@ describe("external Vite CLI build fallback", () => {
   test("promotes metadata only after both external builds succeed", async () => {
     const [manifest, diagnostics] = await Promise.all([
       fs.promises.readFile(
-        path.resolve(fixtureDir, ".minista/manifest.json"),
+        path.resolve(fixtureDir, "node_modules/.minista/manifest.json"),
         "utf8",
       ).then(JSON.parse),
       fs.promises.readFile(
-        path.resolve(fixtureDir, ".minista/diagnostics.json"),
+        path.resolve(fixtureDir, "node_modules/.minista/diagnostics.json"),
         "utf8",
       ).then(JSON.parse),
     ])
@@ -157,7 +157,7 @@ describe("external Vite CLI build fallback", () => {
       summary: { errors: 0, warnings: 0, info: 0 },
     })
     await expect(
-      fs.promises.access(path.resolve(fixtureDir, ".minista/work")),
+      fs.promises.access(path.resolve(fixtureDir, "node_modules/.minista/work")),
     ).rejects.toMatchObject({ code: "ENOENT" })
   })
 
@@ -167,7 +167,7 @@ describe("external Vite CLI build fallback", () => {
     expect(result.code).not.toBe(0)
     expect(result.output).toContain("[MINISTA_VITE_CLI_FAILED]")
     const diagnostics = JSON.parse(await fs.promises.readFile(
-      path.resolve(invalidFixtureDir, ".minista/diagnostics.json"),
+      path.resolve(invalidFixtureDir, "node_modules/.minista/diagnostics.json"),
       "utf8",
     ))
     expect(diagnostics).toMatchObject({
@@ -181,10 +181,10 @@ describe("external Vite CLI build fallback", () => {
       }],
     })
     await expect(
-      fs.promises.access(path.resolve(invalidFixtureDir, ".minista/manifest.json")),
+      fs.promises.access(path.resolve(invalidFixtureDir, "node_modules/.minista/manifest.json")),
     ).rejects.toMatchObject({ code: "ENOENT" })
     await expect(
-      fs.promises.access(path.resolve(invalidFixtureDir, ".minista/work")),
+      fs.promises.access(path.resolve(invalidFixtureDir, "node_modules/.minista/work")),
     ).rejects.toMatchObject({ code: "ENOENT" })
   }, 60_000)
 })

@@ -3,6 +3,10 @@
 - Status: Accepted
 - Date: 2026-08-13
 
+- Amended: 2026-09-08 by [ADR-0016](0016-workspace-and-agent-guide.md)
+
+保存先の`.minista`表記は解決済みworkspace directoryを指します。rootにpackage.jsonがある場合は`node_modules/.minista`、ない場合はroot直下の`.minista`です。
+
 ## Context
 
 通常のApp Buildとprogrammatic legacy fallbackは同一processの`MemoryArtifactStore`でrendered pagesとIsland snippetsを渡します。一方、未対応CLI flagからVite CLIを二回起動するfallbackではprocess memoryを共有できず、`.minista`へJavaScript moduleを書き、client processがdynamic importしていました。

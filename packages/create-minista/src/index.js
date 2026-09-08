@@ -9,6 +9,7 @@ import path from "node:path"
 import pc from "picocolors"
 import { cac } from "cac"
 import prompts from "prompts"
+import { writeAgentBootstrap } from "./agents.js"
 
 /** @type {{ title: string, value: string }[]} */
 const TEMPLATES = [
@@ -146,6 +147,7 @@ async function main(root, options) {
       errorOnExist: false,
     })
     await renameGitignore(cwd)
+    await writeAgentBootstrap(cwd)
   } catch (err) {
     console.error(
       pc.red(err instanceof Error && err.message ? err.message : String(err)),

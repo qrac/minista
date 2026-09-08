@@ -1,5 +1,7 @@
 # v5 architecture release notes
 
+生成workspaceの`.minista`表記は、rootにpackage.jsonがある場合は`<root>/node_modules/.minista`、ない場合は`<root>/.minista`を指します（[ADR-0016](decisions/0016-workspace-and-agent-guide.md)）。
+
 最終確認日: 2026-08-14
 
 この文書はv5のAIコーディングネイティブ基盤への再設計で完了した変更を要約します。現在の詳細なcontractは [`architecture.md`](architecture.md)、Vite固有の判断は [`vite.md`](vite.md)、判断理由は [`decisions/`](decisions/) を参照してください。

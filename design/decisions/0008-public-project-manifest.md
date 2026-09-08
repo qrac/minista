@@ -4,6 +4,10 @@
 - Date: 2026-08-13
 - Amended: 2026-09-05 by [ADR-0015](0015-application-lifecycle-and-output-transaction.md)
 
+- Amended: 2026-09-08 by [ADR-0016](0016-workspace-and-agent-guide.md)
+
+保存先の`.minista`表記は解決済みworkspace directoryを指します。rootにpackage.jsonがある場合は`node_modules/.minista`、ない場合はroot直下の`.minista`です。
+
 ## Context
 
 AI coding toolやCLIがroute、page、asset、artifactの関係を調べるたびにuser moduleを実行すると、応答時間、再現性、安全性が損なわれます。一方、build session内のProject Graphにはpage props、metadata、絶対pathになり得るruntime valueがあり、そのままJSON化すると秘密情報や実行時データがworkspaceへ残ります。

@@ -1,5 +1,6 @@
-import fs from "node:fs"
 import path from "node:path"
+
+import { resolveWorkspaceDirectory } from "../adapters/filesystem/workspace-directory.js"
 
 /**
  * @param {string} cwd
@@ -16,9 +17,7 @@ export function getRootDir(cwd, root) {
  * @returns {string}
  */
 export function getTempDir(cwd, rootDir) {
-  const hasRootPkg = fs.existsSync(path.resolve(rootDir, "package.json"))
-  const pkgDir = hasRootPkg ? rootDir : cwd
-  return path.resolve(pkgDir, "node_modules", ".minista")
+  return resolveWorkspaceDirectory(rootDir)
 }
 
 /**

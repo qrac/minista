@@ -1,3 +1,4 @@
+import { runAgentsCommand } from "./utils/agents.js"
 import {
   findRootArg,
   resolveConfigArg,
@@ -18,6 +19,11 @@ import {
 
 async function main() {
   let args = process.argv.slice(2)
+
+  if (args[0] === "agents") {
+    await runAgentsCommand(args.slice(1))
+    return
+  }
 
   if (isProjectCommand(args[0])) {
     const parsed = parseProjectCommandArgs(args)

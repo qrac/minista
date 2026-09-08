@@ -4,6 +4,8 @@ import fs from "node:fs"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
 
+import { resolveWorkspaceDirectory } from "./workspace-directory.js"
+
 export class NodeAtomicWorkspaceWriter {
   /**
    * @param {string} root
@@ -14,7 +16,7 @@ export class NodeAtomicWorkspaceWriter {
     if (path.basename(fileName) !== fileName || !fileName.endsWith(".json")) {
       throw new TypeError("Workspace metadata file must be a JSON basename.")
     }
-    const directory = path.resolve(root, ".minista")
+    const directory = resolveWorkspaceDirectory(root)
     const file = path.resolve(directory, fileName)
     const pending = path.resolve(
       directory,

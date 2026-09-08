@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import { createRequire } from "node:module"
 
+import { resolveWorkspaceDirectory } from "../../adapters/filesystem/workspace-directory.js"
+
 import { createServer } from "vite"
 import { glob } from "tinyglobby"
 
@@ -130,7 +132,11 @@ async function inspectManifest(rootDir) {
       hint: code === "MINISTA_MANIFEST_NOT_FOUND"
         ? "Run minista build before inspecting the manifest."
         : "Regenerate the manifest with the current minista version.",
-      location: { file: toProjectPath(".minista/manifest.json") },
+      location: {
+        file: toProjectPath(path.relative(
+          rootDir, path.join(resolveWorkspaceDirectory(rootDir), "manifest.json"),
+        ).split(path.sep).join("/")),
+      },
       phase: "discover",
     })
     inspection = Object.freeze({

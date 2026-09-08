@@ -30,8 +30,10 @@ v5では次の機械可読な出力とcommandを利用できます。
 - `minista inspect [--json]`: sourceからProject Graphを表示
 - `minista inspect --manifest [--json]`: build済みmanifestだけを表示
 - `minista explain <node-id> [--json]`: Graph nodeの関係を説明
-- `.minista/manifest.json`: build時のProject Graph／output projection
-- `.minista/diagnostics.json`: 直近のcheck／build diagnostic
+生成workspaceはrootにpackage.jsonがあれば`node_modules/.minista`、なければ`.minista`です。旧root直下snapshotは自動移動・削除・読込しません。更新後にcheck／buildで再生成してください。`minista agents --json`で保存先を取得でき、`minista agents --write`で既存projectへagent向け案内を追加できます。
+
+- `node_modules/.minista/manifest.json`: build時のProject Graph／output projection
+- `node_modules/.minista/diagnostics.json`: 直近のcheck／build diagnostic
 
 JavaScript利用者は事前buildを必要としません。ministaのpackage entry、CLI、testは`src/`のJavaScript + JSDoc実装を直接参照します。
 

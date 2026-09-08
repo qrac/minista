@@ -3,6 +3,10 @@
 - Status: Accepted
 - Date: 2026-08-13
 
+- Amended: 2026-09-08 by [ADR-0016](0016-workspace-and-agent-guide.md)
+
+保存先の`.minista`表記は解決済みworkspace directoryを指します。rootにpackage.jsonがある場合は`node_modules/.minista`、ない場合はroot直下の`.minista`です。
+
 ## Context
 
 CoreにはProject GraphとProject Manifestを読むquery関数がありますが、CLIはfilesystem readerとCore関数を直接組み立てていました。このまま将来の`@minista/mcp`や他のtool adapterを追加すると、manifestの探索、schema validation、migration、query dispatchをadapterごとに再実装することになります。
