@@ -871,3 +871,9 @@ export default function () {
 `pluginSvg()`はSVGO最適化後の描画用ルート属性を保持します。`fill`／`stroke`やサイズをsourceで指定している場合は出力へ反映されます。上書きする場合は`Svg`の同名propsを指定してください。`style`／`className`は属性全体を置き換えます。
 
 存在しないsourceを黙って残す動作は廃止し、`MINISTA_SVG_SOURCE_NOT_FOUND` errorでbuildを失敗させます。`src`はproject root相対として解決されます。dev中のsource変更は再起動なしで反映されます。
+
+## v5のArchive入力と欠落診断
+
+`pluginArchive()`および`archives[].srcDir`の省略時は、固定の`dist`ではなく解決済み`build.outDir`を入力にします。例えば`build.outDir: "output"`なら`output`を圧縮し、既定の出力名は`output/dist.zip`です。従来どおり別の`dist`を入力にしたい場合は`srcDir: "dist"`を明示してください。
+
+欠落した入力は空archiveの成功生成ではなく`MINISTA_ARCHIVE_SOURCE_NOT_FOUND` errorになり、ディレクトリ以外の指定は`MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY` errorになります。存在する空ディレクトリは引き続き許可します。同じ`archives`に設定された全出力パスは前回分も入力から除外し、再build時のarchiveの入れ子化を防ぎます。

@@ -10,7 +10,7 @@ describe("Node archive builder", () => {
     const builder = new NodeArchiveBuilder(process.cwd())
 
     await expect(builder.build({
-      srcDir: "dist",
+      srcDir: ".",
       outName: "site",
       format: "zip",
       options: /** @type {any} */ ({ statConcurrency: 0 }),
@@ -18,7 +18,7 @@ describe("Node archive builder", () => {
       code: "MINISTA_ARCHIVE_FAILED",
       name: NodeArchiveError.name,
       format: "zip",
-      sourceDirectory: "dist",
+      sourceDirectory: ".",
       diagnostic: {
         code: "MINISTA_ARCHIVE_FAILED",
         severity: "error",

@@ -10,7 +10,7 @@ import { BEAUTIFY_FEATURE_ID } from "../beautify/index.js"
 
 export const ARCHIVE_FEATURE_ID = createNodeId("feature", "archive")
 
-/** @param {ArchiveFeatureOptions} options */
+/** @template {import("./finalize.js").ArchiveDescriptorOptions} T @param {T} options */
 export function createArchiveFeatureDescriptor(options) {
   return Object.freeze({
     id: ARCHIVE_FEATURE_ID,

@@ -13,7 +13,7 @@ contents list
 
 ## v5での処理
 
-圧縮対象と出力はArtifact ownershipを持つ`finalize` phaseで確定します。filesystemへの書込はCoreではなくNode adapterが担当し、失敗時は`MINISTA_ARCHIVE_FAILED` diagnosticを返します。
+圧縮対象と出力はArtifact ownershipを持つ`finalize` phaseで確定します。filesystemへの書込はCoreではなくNode adapterが担当し、圧縮処理の失敗時は`MINISTA_ARCHIVE_FAILED` diagnosticを返します。入力ディレクトリの欠落は`MINISTA_ARCHIVE_SOURCE_NOT_FOUND`、ディレクトリ以外の指定は`MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY` errorでbuildを停止します。存在する空ディレクトリや、全ファイルが除外された入力は空archiveとして正常生成します。
 
 ## How To Use
 
@@ -31,7 +31,6 @@ export default {
 pluginArchive({
   archives: [
     {
-      srcDir: "dist",
       outName: "dist",
     },
   ],
@@ -46,20 +45,33 @@ pluginArchive({
 
 - 型: `string`
 
-圧縮対象のディレクトリをルートから指定します。
+圧縮対象のディレクトリをproject root相対または絶対パスで指定します。省略時は解決済みの`build.outDir`を使用します。`outName`の既定値は引き続き`dist`です。
+
+archive内のパスはproject root相対のディレクトリ名を含みます。例えば`build.outDir: "output"`なら`output/index.html`になります。project外の入力では入力ディレクトリのbasenameから始まります。
+
+```js
+export default {
+  build: { outDir: "output" },
+  plugins: [pluginArchive({ archives: [{ outName: "site" }] })],
+}
+```
+
+この例は`output`を入力にして`output/site.zip`を生成します。
 
 ### archives[].outName
 
 - 型: `string`
 
-出力ディレクトリ及び出力名をルートから指定します。
+出力先の`build.outDir`からの相対パスで、拡張子を除いた名前を指定します。例えば`downloads/site`なら`<outDir>/downloads/site.zip`になります。
+
+同じ`pluginArchive`の`archives`に設定された全出力パスは、圧縮対象から自動除外します。`emptyOutDir: false`で保持された前回の同名archiveも取り込みません。設定から削除・改名した過去のarchiveや、配布用として置いた別のZIP／TARは自動除外の対象外です。必要に応じて`ignore`で除外してください。
 
 ### archives[].ignore
 
 - 型: `string | string[]`
 - デフォルト: `[]`
 
-除外ファイルを[minimatch](https://www.npmjs.com/package/minimatch)のglob形式で指定します。
+project root相対のパス（project外入力は入力ディレクトリの親からの相対パス）に対して、除外ファイルを[minimatch](https://www.npmjs.com/package/minimatch)のglob形式で指定します。
 
 - 例: `"src/pages/nest/*.tsx"`
 

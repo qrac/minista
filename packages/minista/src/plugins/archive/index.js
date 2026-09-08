@@ -24,7 +24,6 @@ import { getRootDir } from "../../shared/path.js"
 export const defaultOptions = {
   archives: [
     {
-      srcDir: "dist",
       outName: "dist",
     },
   ],
@@ -55,17 +54,27 @@ export function pluginArchive(uOpts = {}) {
       const dist = options.dir
       if (!dist) return
       const rootDir = getRootDir(cwd, this.environment.config.root || "")
-      const builder = new NodeArchiveBuilder(rootDir)
+      /** @type {import("../../features/archive/index.js").ArchiveFeatureOptions} */
+      const resolvedOptions = {
+        archives: opts.archives.map((archive) => ({
+          ...archive,
+          srcDir: archive.srcDir ?? (path.relative(rootDir,
+            path.resolve(rootDir, this.environment.config.build.outDir)) || "."),
+        })),
+      }
+      const builder = new NodeArchiveBuilder(rootDir, resolvedOptions.archives.map(
+        (archive) => path.resolve(dist, `${archive.outName}.${archive.format ?? "zip"}`),
+      ))
       const outputClaims = claimStates.get(this.environment).claims
       outputClaims.length = 0
       const outputs = await processViteOutputs([], [
-        createArchiveFeature(opts, builder),
+        createArchiveFeature(resolvedOptions, builder),
       ], createViteCompatibilityTraceHooks(
         getViteBuildSession(this.environment.getTopLevelConfig()),
         "archive:build",
       ))
       const paths = await outputWriter.write(dist, outputs)
-      const archiveByFileName = new Map(opts.archives.map((archive) => [
+      const archiveByFileName = new Map(resolvedOptions.archives.map((archive) => [
         `${archive.outName}.${archive.format ?? "zip"}`,
         archive,
       ]))
@@ -76,7 +85,7 @@ export function pluginArchive(uOpts = {}) {
           id: createNodeId("artifact", "archive-output", output.fileName),
           kind: "archive",
           owner: createNodeId("feature", "archive"),
-          source: archive.srcDir,
+          source: path.relative(rootDir, path.resolve(rootDir, archive.srcDir)).replaceAll("\\", "/") || ".",
           fileName: output.fileName,
           pageUrls: Object.freeze([]),
           dependencies: Object.freeze([]),

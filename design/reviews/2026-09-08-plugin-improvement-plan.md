@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01・P02完了。P03〜P11は未着手
+- 状態: 計画を文書化済み。P01〜P03完了。P04〜P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -62,7 +62,7 @@
 | --- | --- | --- | --- | --- |
 | [x] | P01 | 高 | Searchの除外とquery処理を修正 | 最初の修正群 |
 | [x] | P02 | 高 | Svgの属性保持とdev更新を修正 | 最初の修正群 |
-| [ ] | P03 | 高 | Archiveの入力解決と欠落診断 | 最初の修正群 |
+| [x] | P03 | 高 | Archiveの入力解決と欠落診断 | 最初の修正群 |
 | [ ] | P04 | 高 | 公開型と配布依存を修正 | 最初の修正群 |
 | [ ] | P05 | 中 | 重い依存を遅延ロード | P04後を推奨。公開型への影響も検証 |
 | [ ] | P06 | 中 | Search辞書と内部境界を改善 | P01後 |
@@ -119,6 +119,8 @@
 
 ### P03: Archiveの入力解決と欠落診断
 
+着手日: 2026-09-08。入力解決・欠落診断・再build時のarchive除外と回帰検証を対象とする。streaming対応はP11に残す。
+
 対象: [公開facade](../../packages/minista/src/plugins/archive/index.js)、[Node builder](../../packages/minista/src/adapters/archive/node.js)、[公開型](../../packages/minista/src/plugins/archive/types.d.ts)。
 
 - 入力未指定時はadapterが解決済み`build.outDir`を使う。明示した`srcDir`は尊重する。
@@ -127,6 +129,17 @@
 - `emptyOutDir:false`や再buildで過去のarchiveが今回のarchiveへ混入しないか確認する。
 
 完了条件: custom outDirと明示srcDirのZIP／TAR内容が正しく、欠落sourceでbuildが失敗する。失敗時のoutput transaction、manifest／claimの整合性が維持される。省略時の変更はmigration noteに記載する。
+
+完了記録（2026-09-08）:
+
+- 公開`srcDir`を省略可能にし、Vite adapterが解決済み`build.outDir`を補完する。明示入力を尊重し、Core feature／Node builderへは必須`srcDir`を持つ解決済みrecipeを渡す。既定出力名`dist`は維持した。
+- Node builderは入力をstatで検証し、欠落は`MINISTA_ARCHIVE_SOURCE_NOT_FOUND`、非directoryは`MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY` errorにする。存在する空directoryは許可し、探索中のENOENT warningは無視せず`MINISTA_ARCHIVE_FAILED`にする。
+- 設定された全archive出力パスをglobから除外し、`emptyOutDir:false`の再buildでも前回の同名archiveが混入しない。入力directory名と除外出力名はglobの特殊文字をescapeする。project内のentry prefixを維持し、project外入力はbasenameをprefixとする。claimには解決した入力のproject相対labelを渡す。
+- 実Vite fixtureでcustom outDir、明示srcDir、ZIP／TARの収録パスと内容、ignore、特殊文字を含む入力、連続build、既定plugin、project外の絶対outDirを検証した。manifestのarchive ownership・出力との一致と、欠落時の旧HTML・archive・manifest・diagnostics復元も確認した。空directory、非directory診断、公開型の省略許可と内部型の必須入力も回帰テストで固定した。
+- 最終`npm run test:ci`: exit 0、104ファイル・432テストと`tsc --noEmit`が成功。sandbox内の初回はHTTP listen制限でdev testが停止したため、listenを許可して再実行した。CLI生成物が型検査に混入した実行もあったため、退避後に全体を通し直した。
+- `npm run test:cli-contracts`: exit 0。fixtureの`check --json`／`inspect --json`／`build`が成功。生成bundleはリポジトリ外へ退避した。`git diff --check`も成功した。
+- 設計資料・ADR-0004・公開Archive docs・migration noteを更新した。
+- 残る範囲: 設定から削除・改名した過去のarchiveと別途配置したZIP／TARは自動除外しないため、必要なら`ignore`で除外する。streamingと大容量memory改善はP11。Vite／React／Node.jsの対応範囲と新規Vite API採用には変更がない。
 
 ### P04: 公開型と配布依存
 

@@ -47,3 +47,12 @@
 ## Svg出力契約の修正（2026-09-08）
 
 P02では最適化後の描画属性をallowlistでsource contractへ渡し、明示propsを優先します。任意属性の無条件コピーはmarkerやイベント属性まで取り込むため採用しません。`style`／`class`は属性全体の上書きとし、CSS宣言のmergeは行いません。欠落sourceの未解決markerを成功出力に残す動作は廃止し、`MINISTA_SVG_SOURCE_NOT_FOUND` errorにします。公開optionの追加は行わず、公開docsとmigration noteに記録します。devの参照管理・watch・cache invalidationはadapterに閉じ、内部IDの名前空間化はP09に残します。
+
+
+## Archive入力契約の修正（2026-09-08）
+
+P03では公開`archives[].srcDir`を省略可能にし、省略時はVite adapterで解決済み`build.outDir`を補います。明示した入力は維持し、Core feature／Node builderには必須`srcDir`を持つ解決済みrecipeだけを渡します。公開descriptorは解決前の設定も保持できます。既定`outName: "dist"`とproject内入力のarchive entryのproject相対prefixは維持します。project外入力のentryはsource basenameをprefixにし、絶対パスを含めません。
+
+欠落入力は`MINISTA_ARCHIVE_SOURCE_NOT_FOUND`、非directory入力は`MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY` errorとし、存在する空directoryと全件ignoreの空archiveは許可します。探索中のENOENT warningも成功として無視せず`MINISTA_ARCHIVE_FAILED`へ接続します。空directoryまで禁止すると意図的に空の配布物を作る既存設定を壊すため採用しません。
+
+同じ`archives`の全出力パスをNode adapterの明示的な除外入力として渡します。前回の同名archiveを取り込まず、任意のZIP／TARを一律除外することもしません。設定から削除・改名した過去のarchiveはuserの`ignore`で扱います。archiveは全件生成後に書き込み、成功出力だけをclaimへ登録する既存の仕組みを維持します。App／programmatic Legacyのoutput transactionが欠落失敗もrollbackします。streamingと大容量時のmemory改善はP11の範囲です。

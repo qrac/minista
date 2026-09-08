@@ -1,7 +1,7 @@
 import type { TarOptions, ZipOptions } from "archiver"
 
 type ArchiveBaseOptions = {
-  srcDir: string
+  srcDir?: string
   outName: string
   ignore?: string | string[]
 }
