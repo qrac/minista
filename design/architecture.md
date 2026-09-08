@@ -20,6 +20,8 @@ monorepoは主に次で構成されています。
 
 package runtime entryは `src/node.js` です。CLI、test、workspace packageは `src/` のJavaScriptを直接実行し、通常の開発にcompile済み `dist/` を必要としません。公開型は `src/*.d.ts` を参照します。`src/node.js` はViteの `defineConfig` と10個の `pluginXXX()`をexportします。MDX変換とpage／layout参照assetの出力は`pluginSsg()`へ統合されています。
 
+公開宣言が必要とするArchive／Beautifyの型依存はministaのdependenciesに含みます。SSGのMDX compile optionは隣接宣言に分離し、上流型との一致を型テストで確認します。`minista/client`はSSG配下のMD／MDX宣言を参照します。通常CIでは`npm run test:public-types`がpackした配布物をReact 18／19の隔離consumerで`skipLibCheck:false`により検証します。詳細は[ADR-0006](decisions/0006-javascript-jsdoc-runtime.md)を参照してください。
+
 ### Build lifecycle
 
 通常の `minista build` は同じNode.js processで一つの `createBuilder(config, false)` を作り、App Buildのrender/client environmentを順にbuildします。`isSsrBuild` を参照するconfig（同名pluginのoptionやaliasの分岐も含む）はstable diagnosticを出し、同一processの `LegacyViteBuilderAdapter` がrender/clientごとのbackward-compatible environmentをbuildします。programmatic adapterが変換できないVite CLI flagを指定した場合だけ、最終compatibility fallbackとして `cross-spawn` でVite CLIを二度起動します。

@@ -1,5 +1,5 @@
-import type { PageId } from "../../core/graph/index.js"
-import type { CompileOptions } from "@mdx-js/mdx"
+import type { PageId } from "../../core/graph/ids.js"
+import type { MdxCompileOptions } from "./mdx-options.js"
 
 export type PluginSsgBundleOptions = {
   outName: string
@@ -9,10 +9,7 @@ export type PluginSsgMdxFrontmatterOptions = {
   name?: string
 }
 
-export type PluginSsgMdxOptions = Omit<
-  CompileOptions,
-  "development" | "format" | "SourceMapGenerator"
-> & {
+export type PluginSsgMdxOptions = MdxCompileOptions & {
   frontmatter?: false | PluginSsgMdxFrontmatterOptions
 }
 

@@ -7,9 +7,9 @@ import type { UserPluginOptions as PluginImageOptions } from "./plugins/image/ty
 import type { UserPluginOptions as PluginSvgOptions } from "./plugins/svg/types"
 import type { UserPluginOptions as PluginSpriteOptions } from "./plugins/sprite/types"
 import type { UserPluginOptions as PluginCommentOptions } from "./plugins/comment/types"
-import type { UserPluginOptions as PluginIslandOptions } from "./plugins/island"
+import type { UserPluginOptions as PluginIslandOptions } from "./plugins/island/types"
 import type { UserPluginOptions as PluginSearchOptions } from "./plugins/search/types"
-import type { UserPluginOptions as PluginBeautifyOptions } from "./plugins/beautify"
+import type { UserPluginOptions as PluginBeautifyOptions } from "./plugins/beautify/types"
 import type { UserPluginOptions as PluginArchiveOptions } from "./plugins/archive/types"
 
 export declare const defineConfig: typeof defineViteConfig

@@ -37,6 +37,11 @@ v5では次の機械可読な出力とcommandを利用できます。
 
 JavaScript利用者は事前buildを必要としません。ministaのpackage entry、CLI、testは`src/`のJavaScript + JSDoc実装を直接参照します。
 
+### TypeScriptの公開型
+
+Island／Beautifyのoption型と`minista/client`のMD／MDX宣言の参照を修正しました。Archive／Beautifyの宣言に必要な型依存はministaと一緒にインストールされます。Reactに対応する`@types/react`／`@types/react-dom`をprojectへ追加してください。React 18／19とも`skipLibCheck:false`で公開型を利用できます。既存のoption名や設定値に変更はありません。
+
+
 ## v3からv4
 
 以下はv3からv4への移行手順です。

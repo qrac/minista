@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01〜P03完了。P04〜P11は未着手
+- 状態: 計画を文書化済み。P01〜P04完了。P05〜P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -63,7 +63,7 @@
 | [x] | P01 | 高 | Searchの除外とquery処理を修正 | 最初の修正群 |
 | [x] | P02 | 高 | Svgの属性保持とdev更新を修正 | 最初の修正群 |
 | [x] | P03 | 高 | Archiveの入力解決と欠落診断 | 最初の修正群 |
-| [ ] | P04 | 高 | 公開型と配布依存を修正 | 最初の修正群 |
+| [x] | P04 | 高 | 公開型と配布依存を修正 | 最初の修正群 |
 | [ ] | P05 | 中 | 重い依存を遅延ロード | P04後を推奨。公開型への影響も検証 |
 | [ ] | P06 | 中 | Search辞書と内部境界を改善 | P01後 |
 | [ ] | P07 | 中 | Islandの条件付きmodule読み込み | 独立。Vite／React compatibility検証が必要 |
@@ -151,6 +151,17 @@
 - 公開optionとinternal recipe／Graph型の境界も確認する。既存の公開type exportを整理する場合は互換性を維持する。
 
 完了条件: packしたpackageを隔離consumerへ入れ、全10プラグインとcomponentの公開型が`skipLibCheck:false`で解決する。不正なoption値も拒否され、`any`化して通っただけにならない。React／Vite対応範囲に影響する変更はcompatibility gateを通す。
+
+完了記録（2026-09-08）:
+
+- Island／Beautifyのoption型参照を隣接`types.d.ts`へ修正した。`@types/archiver`／`@types/js-beautify`をrootのdevDependenciesからministaのdependenciesへ移し、lockfileも更新した。
+- MDXのエラーは`@mdx-js/mdx@3.1.1`のentryから評価用`@types/mdx@2.0.14`を読み込む際のglobal JSX参照と切り分けた。compile optionだけを隣接宣言に定義し、上流とのkey集合・双方向の代入互換性を型テストで固定した。global JSX追加や非公開MDX subpathのimportは行わない。直接参照する`unified`／`remark-rehype`を配布依存に明記した。
+- `minista/client`の削除済みMDX宣言への参照を修正し、SSG配下にMD／MDX component宣言を配置した。公開entryのexportとoption shapeを維持し、内部recipe／Graph型を公開optionへ追加していない。既存の補助型exportを削除せず、SSG内部の`PageId`はID宣言から直接参照する。
+- `npm run test:public-types`を追加し、通常CIへ組み込んだ。packしたpackageをリポジトリ外の空consumerへそれぞれインストールし、全10プラグイン、全asset component、Head／Context、page型、MD／MDX importを`strict:true`／`skipLibCheck:false`で検証する。不正option／component propsの`@ts-expect-error`も検査し、any化による見かけの成功を防ぐ。
+- 最終の配布型検証はexit 0。React 18.3.1＋`@types/react`18.3.31、React 19.2.8＋`@types/react`19.2.18の双方で成功した。Vite 8.2.2、TypeScript 7.0.2、moduleResolutionはBundler。consumerへArchive／Beautify／MDX compilerの型依存を手動追加していない。初回sandbox実行はnpm cache書込みとregistry接続制限があったため、一時cacheとネットワークを許可した実行で確認した。
+- `npm run test:ci`: exit 0、104ファイル・432テストと`tsc --noEmit`が成功。ローカルHTTP listenを許可した環境で実行した。`npm run test:cli-contracts`もexit 0でcheck／inspect／buildが成功し、生成bundleは型検査へ混入しないようリポジトリ外へ退避した。
+- ADR-0006、architecture、公開migration noteを更新した。React／Vite／Node.jsのpeer・engine対応範囲とruntimeは変更していないため、既存Compatibility CIの手動実行対象となる対応範囲変更はない。
+- 残る制限: 上流のMDX評価APIそのもののReact 19型問題を修正するものではない。上流の修正後に直接型importへ戻せるか再検討する。公開宣言のNodeNext対応とTypeScript全versionの検証は今回の対象外。
 
 ### P05: 重い依存の遅延ロード
 

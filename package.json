@@ -82,12 +82,11 @@
     "release:create": "cd ./packages/create-minista && npm publish",
     "release-next": "npm run release-next:main && npm run release-next:create",
     "release-next:main": "cd ./packages/minista && npm publish --tag=next",
-    "release-next:create": "cd ./packages/create-minista && npm publish --tag=next"
+    "release-next:create": "cd ./packages/create-minista && npm publish --tag=next",
+    "test:public-types": "node scripts/test-public-types.js"
   },
   "devDependencies": {
-    "@types/archiver": "^8.0.0",
     "@types/cross-spawn": "^6.0.6",
-    "@types/js-beautify": "^1.14.3",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^26.4.1",
     "@types/picomatch": "^4.0.3",
