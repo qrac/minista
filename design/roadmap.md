@@ -106,6 +106,14 @@ Project Manifest schema v1、diagnostics snapshot、atomic writer、migration re
 
 ## 今後の移行候補
 
+### プラグインの設計・機能・依存改善
+
+進捗: 計画を文書化済み、実装は未着手（2026-09-08）。詳細と進捗は[改善計画](reviews/2026-09-08-plugin-improvement-plan.md)を参照する。
+
+Search／Svg／Archiveの出力不整合と公開型の配布契約を先に修正し、重い依存の遅延ロード、Search／Islandの性能、Beautifyの責務分離へ進む。公開10プラグインの分割とSSGへのMDX／render asset統合は維持する。各作業の根拠、依存、互換性方針、検証条件は計画に記録する。
+
+### 中核の移行候補
+
 - feature内のscope付きphase bridgeを全feature共通のphase loopへ移す。必要なArtifactとcapabilityを定義してから進める
 - crash recovery、同時build、generation単位でのdist／metadata公開。現在の捕捉可能な失敗に対するrollbackとは別の保証として設計する
 - config再評価、Document処理、Artifact Storeのbinary copy costを個別に測定する
