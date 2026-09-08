@@ -18,6 +18,10 @@ Vite adapterのcoordinatorへ各公開pluginのdomain operationを登録しま�
 
 devではdomain mutationをserver単位のqueueへ直列化し、失敗したrequestが後続requestを止めないようにします。Searchは全RenderedPageへComment／Svgの内容変換を適用してから解析し、devのGraph identityをURLに統一します。この派生data処理にはdev script注入やclient asset生成を含めません。third-party HTML transform全体を再実行する契約ではありません。
 
+### Searchの解析・query契約（2026-09-08追記）
+
+devとbuildは同じanalyzerで、除外selectorに一致した全要素と子孫を読み飛ばします。共有Documentは変更せず、除外後の本文tokenと独立して取得したtitle tokenから語彙を作り、tocも同じ本文tokenの位置を使います。React UIの入力とhighlightはliteral検索とし、正規表現検索の公開optionは追加しません。index取得後は現在の入力から結果を再計算します。JSON schemaと公開optionは維持し、辞書参照の高速化やquery engineの分離はP06で扱います。
+
 ### App Buildとconfig互換性
 
 Ministaがconfig.builder.buildAppを所有し、Viteのbuilder.buildApp()を呼びます。pluginのpre／post buildApp hookを含めて実行し、その内側でrender → prepareClient → clientを順にbuildします。user configやconfig pluginによるcallback置換と、application hookからの直接buildはMINISTA_VITE_APP_BUILD_RESERVEDで拒否します。追加environmentはtransactionの出力対象として扱わず、Viteの既定ssr以外を拒否します。

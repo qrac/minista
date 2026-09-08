@@ -12,6 +12,11 @@ const base = "/"
 const relativeAttr = "data-search-relative"
 const inputAttr = "data-search-input"
 
+/** @param {string} value */
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
 /**
  * @param {string[]} tokens
  * @returns {string}
@@ -95,20 +100,16 @@ export function Search(props) {
   const checkHitValues = searchHitValues && searchHitValues.length
   const checkResults = searchResults && searchResults.length
 
-  /**
-   * @param {string} nextValue
-   */
-  const runSearch = (nextValue) => {
-    if (!callSearchData) setCallSearchData(true)
-    if (!searchData || !searchHits || !searchPages) return
-
-    const input = nextValue || ""
+  useEffect(() => {
+    const input = inputValue || ""
     const inputValues = input.split(" ").filter(Boolean)
     const mergedInputValues = [...new Set(inputValues)].sort()
 
     const hitValues = mergedInputValues.flatMap((value) =>
       value.length >= minHitLength
-        ? searchHits.filter((hit) => new RegExp(value, "i").test(hit))
+        ? searchHits.filter((hit) =>
+            new RegExp(escapeRegExp(value), "i").test(hit),
+          )
         : [],
     )
     const mergedHitValues = [...new Set(hitValues)].sort()
@@ -189,7 +190,15 @@ export function Search(props) {
     )
     setSearchHitValues(mergedHitValues)
     setSearchResults(resultHitPages)
-  }
+  }, [
+    inputValue,
+    searchData,
+    searchHits,
+    searchPages,
+    minHitLength,
+    maxHitPages,
+    maxHitWords,
+  ])
 
   /**
    * @param {React.ChangeEvent<HTMLInputElement>} event
@@ -197,7 +206,7 @@ export function Search(props) {
   const searchHandler = (event) => {
     const nextValue = event.target.value || ""
     setInputValue(nextValue)
-    runSearch(nextValue)
+    setCallSearchData(true)
   }
 
   const clearInput = () => {
@@ -230,8 +239,14 @@ export function Search(props) {
    */
   function highlight(content) {
     if (!checkValues || !checkHitValues) return content
-    const regValues = new RegExp(`(${searchValues.join("|")})`, "ig")
-    const regHitValues = new RegExp(`(${searchHitValues.join("|")})`, "ig")
+    const regValues = new RegExp(
+      `(${searchValues.map(escapeRegExp).join("|")})`,
+      "ig",
+    )
+    const regHitValues = new RegExp(
+      `(${searchHitValues.map(escapeRegExp).join("|")})`,
+      "ig",
+    )
     const words = content.split(regHitValues)
     const filteredWords = words.filter((word) => word && word.length > 0)
     return filteredWords.map((word, wordIndex) => {

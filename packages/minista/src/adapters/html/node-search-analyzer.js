@@ -56,10 +56,10 @@ function optimizeText(text) {
  * @param {readonly string[]} selectors
  */
 function isIgnored(element, selectors) {
-  return selectors.some((selector) => {
-    const parent = element.parentNode
-    return parent && parent.querySelector(selector) === element
-  })
+  return (
+    Boolean(element.tagName) &&
+    selectors.some((selector) => element.matches(selector))
+  )
 }
 
 /**
@@ -120,9 +120,8 @@ export class NodeSearchDocumentAnalyzer {
       })
     }
     const { toc, content } = extractPage(pageElement, options.ignoreSelectors)
-    const pageText = optimizeText(getSpacedRawText(pageElement))
     return Object.freeze({
-      words: Object.freeze(mojigiri(`${titleText} ${pageText}`)),
+      words: Object.freeze([...title, ...content]),
       title: Object.freeze(title),
       toc: Object.freeze(toc),
       content: Object.freeze(content),

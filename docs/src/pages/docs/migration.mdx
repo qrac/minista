@@ -600,6 +600,8 @@ export default {
 
 #### outDir
 
+`ignoreSelectors`に一致するすべての要素と子孫を、検索JSONの語彙・本文・見出し位置から除外します。検索UIの入力とhighlightは正規表現として解釈せず、文字列として扱います。`C++`や未閉鎖の括弧を含む入力でも例外を発生させません。初回JSON取得後は、その時点の入力で結果を更新します。
+
 検索用JSONもViteのアセットとして出力されるため、個別の `outDir` は廃止されました。出力先を変える場合は `build.rolldownOptions.output.assetFileNames` で制御してください。
 
 #### include, exclude

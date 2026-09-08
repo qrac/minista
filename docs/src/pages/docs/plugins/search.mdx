@@ -150,7 +150,7 @@ pluginSearch({
 - 型: `string[]`
 - デフォルト: `[]`
 
-`targetSelector` 内のインデックス化から除外するセレクターを配列で指定します。
+`targetSelector` 内のインデックス化から除外するセレクターを配列で指定します。一致したすべての要素と子孫を、語彙（`words`）、本文（`content`）、見出し位置（`toc`）から除外します。`targetSelector` の要素自体が一致する場合も本文全体を除外します。ページタイトルは別に取得します。
 
 - 例: `["h1", "#table-of-contents", "#table-of-contents + div"]`
 
@@ -213,6 +213,8 @@ pluginSearch({
 ## Search
 
 検索用のコンポーネント。検索フィールドと候補の出力がセットとなっており、`pluginIsland` の併用で動作します。
+
+入力は大文字・小文字を区別しない文字列検索として扱い、正規表現として解釈しません。highlightも文字列として一致した部分に適用します。半角スペース区切りの各入力を検索対象語に部分一致させるため、記号を含む入力も、JSONの`hits`に対応する語に含まれる範囲でヒットします。初回の入力でJSONを取得し、取得完了時点の入力で結果を更新します。
 
 ```jsx title="./src/pages/index.jsx"
 import { Search } from "minista/assets"

@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。以下の実装項目はすべて未着手
+- 状態: 計画を文書化済み。P01完了。P02〜P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -60,7 +60,7 @@
 
 | 状態 | ID | 優先度 | 作業 | 依存・順序 |
 | --- | --- | --- | --- | --- |
-| [ ] | P01 | 高 | Searchの除外とquery処理を修正 | 最初の修正群 |
+| [x] | P01 | 高 | Searchの除外とquery処理を修正 | 最初の修正群 |
 | [ ] | P02 | 高 | Svgの属性保持とdev更新を修正 | 最初の修正群 |
 | [ ] | P03 | 高 | Archiveの入力解決と欠落診断 | 最初の修正群 |
 | [ ] | P04 | 高 | 公開型と配布依存を修正 | 最初の修正群 |
@@ -74,6 +74,8 @@
 
 ### P01: Searchの除外とquery処理
 
+着手日: 2026-09-08。除外判定・語彙整合性・literal query／highlight・初回index取得後の更新と回帰テストを対象とする。P06の辞書最適化・内部境界の分離は含めない。
+
 対象: [HTML analyzer](../../packages/minista/src/adapters/html/node-search-analyzer.js)、[Search UI](../../packages/minista/src/plugins/search/components/search.js)、[Search feature](../../packages/minista/src/features/search/search.js)。
 
 - 親の`querySelector()`の最初の一致との比較をやめ、対象elementとselectorの一致を正しく判定する。
@@ -82,6 +84,18 @@
 - 初回index取得後に現在の入力で検索が更新されるかも確認し、不足していれば修正する。
 
 完了条件: 同じ親の複数一致・入れ子の除外・除外内の見出しを検証し、語彙／本文／tocが整合する。`C++`や未閉鎖の括弧を含む入力で例外にならず、初回入力の結果がindex取得後に反映される。dev JSONとbuild JSONのsemanticsが一致する。
+
+完了記録（2026-09-08）:
+
+- analyzerはelementの`matches()`で全一致を判定し、一致した子孫を含むsubtreeを読み飛ばす。語彙はtitleと除外後のcontent tokenから生成し、tocも同じcontent位置へ揃えた。共有HTMLは変更しない。
+- UIは入力とhighlightの両方をescapeし、literal検索に固定した。入力・index・検索propsの変更で結果を再計算し、取得中の入力変更やクリアも最新状態を反映する。
+- unit回帰テストは同じ親の複数一致、入れ子、複合selector、除外内の見出し、target自体の除外、HTML非破壊、記号入力、大小文字、初回取得と取得中の入力変更・クリアを検証する。UIはhook harnessとReactのmarkup出力で検証し、実ブラウザ操作テストは追加していない。
+- 実Vite fixtureで、通常のページ表示後のdev JSONとbuild JSONが完全一致し、除外語彙・本文・tocが期待値と一致することを確認した。
+- `npm run test:ci`: exit 0、99ファイル・411テストと`tsc --noEmit`が成功。ローカルHTTP listenを許可した環境で実行した。
+- `npm run test:cli-contracts`: exit 0、fixtureの`check --json`／`inspect --json`／`build`が成功。生成bundleは型検査対象へ混入するため、検証後にリポジトリ外へ退避した。
+- 設計資料・ADR-0015・公開Search docs・migration noteを更新した。`git diff --check`が成功した。
+- 残る範囲: token分割と`hit`による検索対象語の選別、JSON schema、公開optionは維持する。辞書高速化と内部query engineの分離はP06で扱う。
+
 
 ### P02: Svgの属性保持とdev更新
 

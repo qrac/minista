@@ -139,3 +139,29 @@ describe("search feature", () => {
     })
   })
 })
+
+test("excludes every matching subtree from vocabulary, content and toc without mutating HTML", async () => {
+  const html = '<title>Fixture | Site</title><main data-search><h1 id="intro">Visible</h1><div class="skip">Firsthidden</div><div class="skip"><h2 id="hidden">Secondhidden</h2><div class="skip">Nestedhidden</div></div><section><p class="skip">Thirdhidden</p><h2 id="after">Remaining</h2><p>Body <b>inline</b> tail</p></section><pre id="code">Codehidden</pre><script>Scripthidden</script><style>Stylehidden</style></main>'
+  const document = new NodeHtmlDocumentFactory().parse({
+    pageId: createNodeId("page", "exclusions"), html,
+  })
+  const before = document.serialize()
+  const analysis = await new NodeSearchDocumentAnalyzer().analyze(document, {
+    ...options, ignoreSelectors: ["main > .skip", "section .skip"],
+  })
+  expect(analysis.title).toEqual(["Fixture"])
+  expect(analysis.content).toEqual(["Visible", "Remaining", "Body", "inline", "tail"])
+  expect(analysis.words).toEqual(["Fixture", ...analysis.content])
+  expect(analysis.toc).toEqual([[0, "intro"], [1, "after"]])
+  expect(document.serialize()).toBe(before)
+})
+
+test("can exclude the target element itself", async () => {
+  const document = new NodeHtmlDocumentFactory().parse({
+    pageId: createNodeId("page", "excluded-target"),
+    html: '<title>Fixture</title><main data-search class="skip" id="hidden"><h1>Hidden</h1></main>',
+  })
+  expect(await new NodeSearchDocumentAnalyzer().analyze(document, {
+    ...options, ignoreSelectors: [".skip"],
+  })).toEqual({ words: ["Fixture"], title: ["Fixture"], content: [], toc: [] })
+})

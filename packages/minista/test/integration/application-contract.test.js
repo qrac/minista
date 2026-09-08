@@ -1,6 +1,7 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 import { afterEach, describe, expect, test, vi } from "vitest"
+import { ViteDevServerAdapter } from "../../src/adapters/vite/dev-server.js"
 import { ViteAppBuilderAdapter } from "../../src/adapters/vite/app-builder.js"
 import { attachViteBuildSession, createViteBuildSession } from "../../src/adapters/vite/build-session.js"
 import { NodeDiagnosticsWriter } from "../../src/adapters/filesystem/diagnostics-writer.js"
@@ -106,4 +107,41 @@ describe("application build contracts", () => {
     expect(results[0][1]).toContain("reviewvectorword")
     expect(results[0]).toEqual(results[1])
   })
+})
+
+
+test("search exclusions produce identical dev and build JSON", async () => {
+  const root = await fixture(`import {pluginSsg,pluginSearch} from 'minista'; export default {plugins:[pluginSsg(),pluginSearch({ignoreSelectors:['.skip']})]}`,
+    'export default function Page(){return <main data-search=""><h1 id="intro">Visible</h1><p className="skip">Firsthidden</p><div className="skip"><h2 id="hidden">Secondhidden</h2><p className="skip">Nestedhidden</p></div><h2 id="after">Remaining</h2><p>Body</p></main>}')
+  const running = await new ViteDevServerAdapter().start({
+    root, configFile: path.join(root, "vite.config.js"), logLevel: "silent",
+    server: { host: "127.0.0.1", port: 0, strictPort: true },
+  }, { printUrls: false, bindShortcuts: false })
+  let devData
+  try {
+    const address = running.server.httpServer?.address()
+    if (!address || typeof address === "string") throw new Error("No dev server address")
+    const origin = `http://127.0.0.1:${address.port}`
+    // Search UI requests the index after the page has initialized SSG rendering.
+    const pageResponse = await fetch(`${origin}/`, { signal: AbortSignal.timeout(10_000) })
+    expect(pageResponse.status).toBe(200)
+    await pageResponse.text()
+    const response = await fetch(`${origin}/@__minista_search_json`, {
+      signal: AbortSignal.timeout(10_000),
+    })
+    expect(response.status).toBe(200)
+    devData = await response.json()
+  } finally {
+    await running.close()
+  }
+  await build(root)
+  const files = await fs.readdir(path.join(root, "dist"), { recursive: true })
+  const searchFile = files.find((file) => file.endsWith(".json"))
+  expect(searchFile).toBeTruthy()
+  /** @type {import("../../src/plugins/search/types.js").SearchData} */
+  const buildData = JSON.parse(await read(root, `dist/${searchFile}`))
+  expect(devData).toEqual(buildData)
+  expect(buildData.words).toEqual(["Body", "Remaining", "Visible"])
+  expect(buildData.pages[0].content.map((i) => buildData.words[i])).toEqual(["Visible", "Remaining", "Body"])
+  expect(buildData.pages[0].toc).toEqual([[0, "intro"], [1, "after"]])
 })
