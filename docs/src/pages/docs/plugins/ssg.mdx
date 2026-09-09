@@ -35,6 +35,7 @@ export default function () {
 
 ```js title="Default"
 pluginSsg({
+  removeImagePreload: true,
   layout: "src/layouts/index.{tsx,jsx}",
   src: ["src/pages/**/*.{tsx,jsx,mdx,md}"],
   srcBases: ["src/pages"],
@@ -50,6 +51,28 @@ pluginSsg({
   },
 })
 ```
+
+### removeImagePreload
+
+- 型: `boolean`
+- デフォルト: `true`
+
+React rendererの出力に含まれる`link[rel="preload"][as="image"]`を、Head APIの合成前に除去します。devとbuild、通常ページとIslandの静的レンダリングで共通です。`client:only`の内容は静的レンダリングされません。`false`にするとrenderer出力を保持します。
+
+自動生成か手書きかを判定する設定ではありません。Layoutの`<head>`を含む通常のJSXへ直接書いたimage preloadも除去対象です。明示的なpreloadを残す場合は`Head` APIを使ってください。fontなどimage以外のresource hintは変更しません。
+
+```jsx
+import { Head } from "minista/head"
+
+export default function Page() {
+  return <>
+    <Head><link rel="preload" as="image" href="/hero.jpg" /></Head>
+    <img src="/hero.jpg" />
+  </>
+}
+```
+
+Beautifyの有無と整形対象の指定は、この設定に影響しません。
 
 ### layout
 

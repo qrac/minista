@@ -242,3 +242,43 @@ describe("transformHtml", () => {
     )
   })
 })
+
+for (const documentRoot of [false, true]) {
+  for (const removeImagePreload of [undefined, false, true]) {
+    test(`image preload policy: document=${documentRoot}, remove=${removeImagePreload}`, async () => {
+      function Page() {
+        return createElement(Fragment, null,
+          createElement(Head, null,
+            createElement("link", { rel: "preload", as: "image", href: "/manual.jpg" })),
+          createElement("img", { src: "/auto.jpg", srcSet: "/auto.jpg 1x, /auto2.jpg 2x" }),
+          createElement("img", { src: "/lazy.jpg", loading: "lazy" }),
+          createElement("div", { "data-island": "ssr" }, createElement("img", { src: "/island.jpg" })),
+        )
+      }
+      const resolvedLayout = /** @type {ResolvedLayout} */ (/** @type {unknown} */ ({
+        metadata: {}, staticData: { props: {} },
+        ...(documentRoot ? { component: (/** @type {import("../../../src/plugins/ssg/types.js").LayoutProps} */ { children }) => createElement("html", null,
+          createElement("head", null,
+            createElement("link", { rel: "preload", as: "image", href: "/raw.jpg" }),
+            createElement("link", { rel: "preload", as: "font", href: "/font.woff2" })),
+          createElement("body", null, children)) } : {}),
+      }))
+      const resolvedPage = /** @type {ResolvedPage} */ (/** @type {unknown} */ ({
+        url: "/", component: Page, metadata: {}, staticData: { props: {} },
+      }))
+      const document = await renderHtmlDocument({ resolvedLayout, resolvedPage, removeImagePreload })
+      const hints = document.select('link[rel="preload"][as="image"]')
+      const hrefs = hints.map((hint) => hint.getAttribute("href"))
+      expect(hrefs).toContain("/manual.jpg")
+      expect(document.serialize()).toContain('src="/island.jpg"')
+      if (removeImagePreload === false) {
+        expect(hrefs).toContain("/island.jpg")
+        expect(hints.some((hint) => hint.hasAttribute("imagesrcset"))).toBe(true)
+        if (documentRoot) expect(hrefs).toContain("/raw.jpg")
+      } else {
+        expect(hrefs).toEqual(["/manual.jpg"])
+      }
+      if (documentRoot) expect(document.select('link[as="font"]')).toHaveLength(1)
+    })
+  }
+}

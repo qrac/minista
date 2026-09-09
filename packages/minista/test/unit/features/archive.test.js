@@ -1,3 +1,4 @@
+import { JsBeautifyFormatter } from "../../../src/adapters/formatter/js-beautify.js"
 import { describe, expect, test, vi } from "vitest"
 
 import {
@@ -52,8 +53,7 @@ describe("archive feature", () => {
       htmlOptions: { indent_size: 2, extra_liners: [] },
       cssOptions: { indent_size: 2 },
       jsOptions: { indent_size: 2 },
-      removeImagePreload: false,
-    })
+    }, new JsBeautifyFormatter())
     const archive = createArchiveFeature(
       { archives: [{ srcDir: "dist", outName: "site" }] },
       builder,

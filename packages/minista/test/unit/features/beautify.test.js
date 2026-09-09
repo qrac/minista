@@ -1,3 +1,4 @@
+import { JsBeautifyFormatter } from "../../../src/adapters/formatter/js-beautify.js"
 import { describe, expect, test } from "vitest"
 
 import { NodeHtmlDocumentFactory } from "../../../src/adapters/html/index.js"
@@ -25,11 +26,10 @@ const options = {
   htmlOptions: { indent_size: 2, extra_liners: [] },
   cssOptions: { indent_size: 2 },
   jsOptions: { indent_size: 2 },
-  removeImagePreload: true,
 }
 
 describe("beautify feature", () => {
-  test("removes image preloads during compose and formats emitted text during finalize", async () => {
+  test("preserves image preloads and formats emitted text during finalize", async () => {
     const diagnostics = new DiagnosticCollector()
     const documents = new MemoryHtmlDocumentStore()
     const emitter = new MemoryEmitter()
@@ -75,7 +75,7 @@ describe("beautify feature", () => {
       diagnostics,
     )
     const runner = new LifecycleRunner(
-      [createBeautifyFeature(options), outputFeature],
+      [createBeautifyFeature(options, new JsBeautifyFormatter()), outputFeature],
       {
         graph,
         diagnostics,
@@ -91,7 +91,7 @@ describe("beautify feature", () => {
     const files = await emitter.list()
 
     expect(result.ok).toBe(true)
-    expect(document.serialize()).not.toContain("rel=\"preload\"")
+    expect(document.serialize()).toContain("rel=\"preload\"")
     expect(files.find(({ fileName }) => fileName === "index.html")?.content)
       .toContain("\n  <main>")
     expect(files.find(({ fileName }) => fileName.endsWith("site.css"))?.content)

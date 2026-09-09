@@ -151,3 +151,7 @@ v5初期要件には含めません。CLI／JSONと同じread-only query service
 | graphが巨大化する | read model分割、ID reference、inspect projection |
 | compatibility fallbackの長期残存 | 2経路以外の追加を禁止し、`vite.md`の削除条件で再評価 |
 | Image buildの性能回帰 | remote source cacheとbounded concurrencyで対処済み。[v4.0.8比較](benchmarks/v4-v5-2026-08-14.md)と制御測定をbaselineに継続監視 |
+
+### Beautifyの対応範囲拡張（P08後）
+
+現在の制約は[ADR-0017](decisions/0017-beautify-output-and-ssg-preload.md)を参照。位置情報を生成するformatterでmapの対応精度を検証できた場合にsourcemap対応を、CSSの命名前の安定した最終変換hookが利用できた場合にhash付きCSS対応を再検討する。JSはRolldownの後段minifyを止める必要があり、安定したchunk単位の制御が提供された場合に緩和を検討する。未実装の独自map生成・参照書換えやexperimental APIの採用予定はない。

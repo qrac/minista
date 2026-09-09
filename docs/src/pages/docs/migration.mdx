@@ -15,6 +15,23 @@ contents list
 
 ## v4からv5
 
+### Beautifyとimage preload
+
+`removeImagePreload`を`pluginBeautify`から`pluginSsg`へ移します。旧optionの明示指定は`MINISTA_BEAUTIFY_OPTION_MOVED`になります。
+
+```js
+plugins: [
+  pluginSsg({ removeImagePreload: false }),
+  pluginBeautify(),
+]
+```
+
+SSGの既定値は`true`です。以前Beautifyを使わなかったprojectも、dev／buildともにrendererのimage preloadを除去します。保持する場合は上記の`false`を指定してください。従来のbody直下限定からrenderer出力全体へ対象が変わるため、Layoutのheadへ直接書いたimage preloadは`Head` APIへ移すと保持できます。Beautifyの対象globでpreloadを制御する方法は終了します。
+
+JS整形には`build.rolldownOptions.output.minify: false`、CSS整形には`[hash]`のない文字列の`assetFileNames`が必要です。整形対象のJS／CSSとsourcemapの併用は診断で停止します。詳しい設定例と診断は[pluginBeautify](/docs/plugins/beautify)を参照してください。
+
+### 対応環境と基本設定
+
 ReactとReact DOMのpeerDependenciesを`>=19.0.0`へ変更しました。React 18のサポートと専用テストを終了し、React 19を検証の基準とします。React 18を利用しているprojectは、v5への移行時に両方を19以降へ更新してください。
 
 公開plugin APIと基本的なVite configは継続して使用できます。内部buildは、Vite CLIをrender用とclient用に2回起動する方式から、render environmentとclient environmentを1つのApp Build lifecycleで管理する方式へ変更されました。

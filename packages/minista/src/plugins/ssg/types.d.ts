@@ -14,6 +14,7 @@ export type PluginSsgMdxOptions = MdxCompileOptions & {
 }
 
 export type PluginOptions = {
+  removeImagePreload: boolean
   layout: string
   src: string[]
   srcBases: string[]

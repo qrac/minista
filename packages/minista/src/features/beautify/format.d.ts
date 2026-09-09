@@ -4,7 +4,6 @@ import type {
   JSBeautifyOptions,
 } from "js-beautify"
 import type { EmittedFile } from "../../core/artifacts/index.js"
-import type { HtmlDocument } from "../../core/document/index.js"
 import type { FeatureId } from "../../core/graph/index.js"
 import type { MinistaFeature } from "../../core/lifecycle/index.js"
 
@@ -13,18 +12,17 @@ export interface BeautifyFeatureOptions {
   readonly htmlOptions: HTMLBeautifyOptions
   readonly cssOptions: CSSBeautifyOptions
   readonly jsOptions: JSBeautifyOptions
-  readonly removeImagePreload: boolean
 }
 
 export declare const BEAUTIFY_FEATURE_ID: FeatureId
 
-export declare function composeBeautifyDocument(
-  document: HtmlDocument,
-  options: BeautifyFeatureOptions,
-): number
+export interface OutputFormatter {
+  format(file: EmittedFile, options: BeautifyFeatureOptions): Promise<EmittedFile>
+}
 
 export declare function createOutputFormatter(
   options: BeautifyFeatureOptions,
+  formatter: OutputFormatter,
 ): (file: EmittedFile) => Promise<EmittedFile>
 
 export declare function createOutputMatcher(
@@ -33,6 +31,7 @@ export declare function createOutputMatcher(
 
 export declare function createBeautifyFeature(
   options: BeautifyFeatureOptions,
+  formatter: OutputFormatter,
 ): MinistaFeature<BeautifyFeatureOptions>
 export declare function createBeautifyFeatureDescriptor(
   options: BeautifyFeatureOptions,

@@ -98,15 +98,7 @@ export default { build: { minify: false } }
 
 ### Remove preload
 
-React 19はHTML内の[画像パスを読み取って自動的にPreloadタグを挿入](https://github.com/facebook/react/issues/34217)します。納品時にこれが邪魔になる場合がありますが、非活性化するコンフィグはありません。
-
-そこでministaの `pluginBeautify` を使います。デフォルトの状態でHTMLに出力する画像用のPreloadタグを削除します。
-
-```ts title="./vite.config.ts"
-import { pluginBeautify } from "minista"
-
-export default { plugins: [pluginBeautify()] }
-```
+`pluginSsg`はrenderer出力に含まれるimage preloadを既定で除去します。残したい場合は`pluginSsg({ removeImagePreload: false })`を指定してください。`Head` APIで明示したpreloadは既定でも保持します。詳細は[pluginSsg](/docs/plugins/ssg)を参照してください。
 
 ### Remove hash
 

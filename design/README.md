@@ -52,3 +52,5 @@
 - [ADR-0014: Layoutのdocument rootを既存Head APIと合成する](decisions/0014-layout-document-root.md)
 - [ADR-0015: application lifecycle集約と出力transaction](decisions/0015-application-lifecycle-and-output-transaction.md)
 - [ADR-0016: 生成workspaceの統一とagent向け入口](decisions/0016-workspace-and-agent-guide.md)
+
+- [ADR-0017: Beautifyの整形境界とSSGのimage preload方針](decisions/0017-beautify-output-and-ssg-preload.md)

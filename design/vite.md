@@ -243,3 +243,9 @@ Svgのwatchとpage reloadは既存の`ViteDevUpdateAdapter`を使います。ser
 生成entryのliteralな`import()`をViteの通常chunk分割・async CSS取得へ渡します。独自のpreload抑制やexperimental APIは追加しません。条件成立後の共有chunk並行取得はViteの最適化に任せます。SSGが初期HTMLに出すCSSは維持します。`build.cssCodeSplit:false`や利用者によるchunk統合、別の即時entryによる共有module取得では遅延範囲が変わります。
 
 公式仕様の確認: [Vite CSS code splitting／async chunk loading](https://vite.dev/guide/features#css-code-splitting)、2026-09-09。実ブラウザの確認と転送量は[測定記録](benchmarks/2026-09-09-island-lazy.md)を参照してください。
+
+## Beautifyの出力境界（P08、2026-09-09）
+
+JS整形には既存の`renderChunk` post hookを使用する。experimental APIは追加しない。`output.minify:false`で整形後の再生成を止め、hash確定はbundlerへ任せる。CSSはgenerateBundle時点で名前が決まっているため、hashなしの文字列命名だけを対応範囲とする。整形対象のJS／CSS sourcemapは診断で拒否する。非対応時のfallbackは`pluginBeautify.src`から当該拡張子を除外する明示設定とし、無言のskipはしない。
+
+Rolldownの[OutputOptions](https://rolldown.rs/reference/Interface.OutputOptions)と[Source Code Transformations](https://rolldown.rs/apis/plugin-api/transformations)を2026-09-09に確認した。Vite 8.2.2の実fixtureでbuild.minify:falseのdce-onlyによる整形上書き、output.minify:falseによる保持とhash変更を確認した。詳細は[ADR-0017](decisions/0017-beautify-output-and-ssg-preload.md)。

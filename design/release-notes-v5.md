@@ -62,3 +62,7 @@ Core／featureのunit test、公開API type test、代表fixtureのbuild、progr
 npm test
 npx tsc --noEmit
 ```
+
+## BeautifyとSSGのpreload方針（P08）
+
+image preload除去は`pluginSsg({ removeImagePreload: true })`へ移し、dev／build共通の既定値とした。Head APIの明示preloadを保持し、renderer出力内の生JSX linkは除去対象とする。旧Beautify optionは移行診断を出す。formatterをadapterへ分離し、JSはhash確定前に整形する。整形対象のsourcemap、後段JS minify、CSS hash付き／関数形式命名は明示診断とし、対応設定と移行方法を公開docsへ記載した。

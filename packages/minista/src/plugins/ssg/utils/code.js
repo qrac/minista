@@ -12,7 +12,7 @@ export function toViteRootPath(input) {
 }
 
 /**
- * @param {PluginOptions} opts
+ * @param {Pick<PluginOptions, "layout" | "src"> & Partial<PluginOptions>} opts
  * @returns {string}
  */
 export function getGlobImportCode(opts) {

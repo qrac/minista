@@ -1,3 +1,4 @@
+import { JsBeautifyFormatter } from "../../../src/adapters/formatter/js-beautify.js"
 import { describe, expect, test } from "vitest"
 
 import {
@@ -466,14 +467,13 @@ describe("Vite compatibility lifecycle", () => {
       htmlOptions: { indent_size: 2 },
       cssOptions: {},
       jsOptions: {},
-      removeImagePreload: true,
-    })
+    }, new JsBeautifyFormatter())
     const [output] = await processViteOutputs([{
       fileName: "index.html",
       content: "<html><body><link rel=\"preload\" as=\"image\"><main>Fixture</main></body></html>",
     }], [feature])
 
-    expect(String(output.content)).not.toContain('rel="preload"')
+    expect(String(output.content)).toContain('rel="preload"')
     expect(String(output.content)).toContain("\n<body>")
   })
 

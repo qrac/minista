@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01〜P07完了。P08〜P11は未着手
+- 状態: 計画を文書化済み。P01〜P08完了。P09〜P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -67,7 +67,7 @@
 | [x] | P05 | 中 | 重い依存を遅延ロード | P04後を推奨。公開型への影響も検証 |
 | [x] | P06 | 中 | Search辞書と内部境界を改善 | P01後 |
 | [x] | P07 | 中 | Islandの条件付きmodule読み込み | 独立。Vite／React compatibility検証が必要 |
-| [ ] | P08 | 中 | Beautifyの責務と出力整合性を改善 | P05とformatter境界を調整 |
+| [x] | P08 | 中 | Beautifyの責務と出力整合性を改善 | P05とformatter境界を調整 |
 | [ ] | P09 | 中 | Svg／SpriteのIDとsymbol診断 | P02後。source contractを共通化 |
 | [ ] | P10 | 低 | Entry参照契約と説明を整理 | P02／P09の出力との組合せも確認 |
 | [ ] | P11 | 条件付き | Archiveのstreaming対応 | P03後。大容量benchmarkで必要性を判断 |
@@ -238,6 +238,19 @@
 - 納品用整形と配信容量のtradeoffを公開docsへ記載する。
 
 完了条件: 整形のみの指定で意図しないpreload変更を起こさない。互換設定で従来出力を維持し、sourcemapの対応位置を確認する。整合性を保証できない組合せは明示的なdiagnosticで扱う。責務変更をADRへ記録する。
+
+完了記録（2026-09-09）:
+
+- `JsBeautifyFormatter` adapterを追加し、featureは注入された`OutputFormatter`へ整形を委譲する。js-beautifyの遅延ロードは維持し、Beautifyのpreload除去composeを削除した。
+- ユーザー指定の方針に従い、`pluginSsg({ removeImagePreload: true })`をデフォルトとした。renderer出力中のimage preloadをHead API合成前に除去する。dev／buildとIsland SSRで共通、`false`で保持する。Head APIの明示linkは保持するが、Layoutのheadを含む生JSX linkも除去対象になる。従来のbody直下限定と異なる点をmigration noteへ記載した。
+- 旧Beautify optionは移行期間中deprecatedな公開型を残し、明示指定を`MINISTA_BEAUTIFY_OPTION_MOVED` errorにする。同じ値をSSGへ移す移行方法を記載した。暗黙の互換aliasやplugin間の設定書換えは追加しない。
+- JSは`renderChunk` postで整形し、generateBundleのcode書換えを廃止した。実Viteで整形optionの変更が出力内容とhashを変更することを検証した。`build.minify:false`でも後段の`dce-only`が整形を上書きするため、JS対象時は`build.rolldownOptions.output.minify:false`を要求する。
+- CSSは名前確定後のfinalizeで整形するため、hashなしの文字列`assetFileNames`に限定した。JS／CSS sourcemap、CSSのhash付き／関数命名、後段のJS minifyはstable code付きerrorとする。除外したJSのsourcemapは実際の`console.log`位置を元sourceの行・列へ復元して確認した。mapを推測生成したり無言で捨てたりしない。
+- fragment／document root、responsive／lazy image、Headと生JSXのlink、image以外のhintをunitで検証した。実Islandのdev／build、Beautify有無、SSGの既定値／true／falseをintegration testで検証した。初回のHead検証失敗はテスト内のContext二重読込が原因で、CLIと同じapplication config経由へ修正して成功した。
+- 最終`npm run test:ci`: exit 0、111ファイル・472テストと`tsc --noEmit`が成功。devテストのローカルHTTP listenを許可して実行した。途中のsourcemapテスト型エラーを修正後、全体を通し直した。既存のapplication／Preact contract、manifest／archive検証も含む。
+- `npm run test:public-types`: exit 0。packした配布物の独立consumer（React 19.2.8、Vite 8.2.2）でSSG optionを含む公開型を検証した。
+- `npm run test:cli-contracts`: exit 0。fixtureの`check --json`／`inspect --json`／`build`が成功。生成distは型検査への混入を避けるためリポジトリ外へ退避した。`git diff --check`も成功した。
+- [ADR-0017](../decisions/0017-beautify-output-and-ssg-preload.md)、設計資料、公開docs、migration note、Beautify playground設定を更新した。残る制約はsourcemap／CSS hash／後段minifyと、外部plugin独自の後続変換。これらの拡張条件はroadmapへ記載した。Vite／React／Node.jsの対応version範囲とexperimental API採用に変更はない。
 
 ### P09: Svg／SpriteのIDとsymbol診断
 

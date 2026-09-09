@@ -11,6 +11,8 @@ export default defineConfig({
     assetsInlineLimit: 0,
     rolldownOptions: {
       output: {
+        minify: false,
+        assetFileNames: "assets/[name][extname]",
         //minifyInternalExports: false,
       },
     },

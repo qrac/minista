@@ -85,12 +85,12 @@ function orderPriorityHeadTags(document) {
 }
 
 /**
- * @param {{ resolvedLayout: ResolvedLayout, resolvedPage: ResolvedPage }} params
+ * @param {{ resolvedLayout: ResolvedLayout, resolvedPage: ResolvedPage, removeImagePreload?: boolean }} params
  * @param {import("../../../core/ports/index.js").StaticRenderer<import("react").ReactNode>} [renderer]
  * @returns {Promise<import("../../../core/document/index.js").HtmlDocument>}
  */
 export async function renderHtmlDocument(
-  { resolvedLayout, resolvedPage },
+  { resolvedLayout, resolvedPage, removeImagePreload = true },
   renderer = compatibilityRenderer,
 ) {
   const layout = resolvedLayout
@@ -127,6 +127,16 @@ export async function renderHtmlDocument(
   })
   let markup = rendered.html
   markup = markup.replace(/(?<=\<[img|source].+?)(srcSet=)/g, "srcset=")
+
+  // Normalize renderer output before adding explicit Head API resource hints.
+  // Raw JSX links cannot be distinguished from automatic React preloads.
+  if (removeImagePreload) {
+    const renderedDocument = documents.parse({ pageId, html: markup })
+    for (const element of renderedDocument.select('link[rel="preload"][as="image"]')) {
+      element.remove()
+    }
+    markup = renderedDocument.serialize()
+  }
 
   const htmlAttrs = headData.htmlAttributes || {}
   const bodyAttrs = headData.bodyAttributes || {}
@@ -199,7 +209,7 @@ export async function renderHtmlDocument(
 /**
  * 現行plugin向けにdocumentを一度だけserializeするcompatibility wrapper。
  *
- * @param {{ resolvedLayout: ResolvedLayout, resolvedPage: ResolvedPage }} params
+ * @param {{ resolvedLayout: ResolvedLayout, resolvedPage: ResolvedPage, removeImagePreload?: boolean }} params
  * @param {import("../../../core/ports/index.js").StaticRenderer<import("react").ReactNode>} [renderer]
  * @returns {Promise<string>}
  */

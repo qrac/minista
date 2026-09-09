@@ -24,7 +24,7 @@ package runtime entryは `src/node.js` です。CLI、test、workspace package�
 
 ### 重い依存の初期化
 
-Sharp（metadata取得と変換）、SVGO（Svg／Sprite共有）、archiver、js-beautifyは最初の実処理でdynamic importします。`adapters/dependencies`がmodule初期化のPromiseだけを共有し、同時利用も同じ初期化へ合流します。失敗したPromiseはprocess内で保持し、各処理の既存diagnostic境界へ伝播します。公開plugin factoryは同期のままです。画像pipeline、archive instance、source cache、build／server stateは共有しません。HTML barrelの参照だけではSVGOを初期化せず、Archiveの順序宣言はBeautify実装をimportしません。Beautify内部formatterは非同期になり、finalizeがawaitします。整形責務のport分離はP08で扱います。
+Sharp（metadata取得と変換）、SVGO（Svg／Sprite共有）、archiver、js-beautifyは最初の実処理でdynamic importします。`adapters/dependencies`がmodule初期化のPromiseだけを共有し、同時利用も同じ初期化へ合流します。失敗したPromiseはprocess内で保持し、各処理の既存diagnostic境界へ伝播します。公開plugin factoryは同期のままです。画像pipeline、archive instance、source cache、build／server stateは共有しません。HTML barrelの参照だけではSVGOを初期化せず、Archiveの順序宣言はBeautify実装をimportしません。Beautify内部formatterは非同期になり、finalizeがawaitします。featureは注入された`OutputFormatter`へ整形を委譲し、`JsBeautifyFormatter` adapterがjs-beautifyを呼びます。
 
 ### Build lifecycle
 
@@ -105,7 +105,8 @@ module-level global variableはほぼ使われていません。output claim col
 - parser非依存の `HtmlDocument` contract、build session内の `HtmlDocumentStore`、`node-html-parser` adapterを実装し、markerとgraph node IDをbindできる。parse、selector query、mutation、serializeのerrorはoperation別のstable diagnosticへ変換し、page node IDを保持する
 - CommentとSvgのcompatibility facadeは`ViteCompatibilityLifecycle` adapterからCore runnerのcompose phaseを実行し、domain featureがDocument Storeを変更する
 - Svgのfilesystem読込、SVGO、fragment parseは `NodeSvgSourceResolver` adapterに閉じ、missing sourceを`MINISTA_SVG_SOURCE_NOT_FOUND` errorに、それ以外の失敗をoperation別のstable diagnosticへ変換する。project内のsource errorにはproject相対locationを付ける。resolverはdev serverまたはproduction bundle environment identity単位に保持する
-- Beautify compatibility facadeはVite outputをMemoryEmitterへ投影し、Core runnerでimage preload除去のcomposeと既存出力整形のfinalizeを順に実行する
+- BeautifyはHTML／CSSを共有Emitterのfinalizeで、JS chunkをVite adapterのrenderChunkで整形する。JSはoutput.minify:false、CSSはhashなしの文字列assetFileNamesを必要とし、整形対象のsourcemapはstructured errorにする。JSのhashは整形後にbundlerが確定する
+- SSGのremoveImagePreloadは既定でtrue。renderer出力のimage preloadをHead API合成前に除去する。dev／build共通で、生JSXのlinkも対象、Head APIの明示linkは保持する。Beautifyはpreloadを扱わない（[ADR-0017](decisions/0017-beautify-output-and-ssg-preload.md)）
 - Archive compatibility facadeはCore runnerのfinalize phaseを実行し、domain featureがarchiveをEmitterへ追加する。archive libraryは`NodeArchiveBuilder`へ閉じ、library errorを`MINISTA_ARCHIVE_FAILED`へ変換する。公開`srcDir`は省略可能で、adapterが解決済み`build.outDir`を補い、必須`srcDir`を持つCore recipeへ渡す。欠落入力は`MINISTA_ARCHIVE_SOURCE_NOT_FOUND`、非directory入力は`MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY`で失敗し、存在する空directoryは許可する。同じ設定の全archive出力パスを入力globから除外し、保持された前回出力の再帰的な取り込みを防ぐ。claimのsourceは解決した入力のproject相対labelとする。安全なrelative outputの書込みは`NodeOutputWriter` adapterに閉じ、directory逸脱を`MINISTA_OUTPUT_WRITE_UNSAFE_PATH`で拒否する
 - Searchはanalyzeでpage解析Artifact、generateでSearchData Artifactを作り、composeで相対階層属性を共有documentへ反映する
 - SearchのDOM tree走査は `NodeSearchDocumentAnalyzer` adapterへ閉じ、同じparse treeを再利用する。除外selectorに一致するすべての要素と子孫を読み飛ばし、同じtitle／content tokenから語彙を生成する。tocの位置も除外後のcontentに対応する。React Search UIは入力とhighlightをliteral検索として扱い、index取得後に現在の入力で検索を更新する

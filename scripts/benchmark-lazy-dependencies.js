@@ -1,3 +1,4 @@
+import { JsBeautifyFormatter } from "../packages/minista/src/adapters/formatter/js-beautify.js"
 import assert from "node:assert/strict"
 import * as nodeModule from "node:module"
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises"
@@ -55,7 +56,7 @@ try {
     ], { useCache: false, decoding: "async", loading: "eager", optimize: { outName: "[name]-[width]x[height]", remoteName: "remote-[index]", layout: "constrained", breakpoints: [10], resolutions: [1], format: "png", formatOptions: {}, fit: "cover", position: "centre" } })
   } else if (mode === "beautify") {
     const { createOutputFormatter } = await import("../packages/minista/src/features/beautify/format.js")
-    const format = createOutputFormatter({ src: ["**/*.html"], htmlOptions: {}, cssOptions: {}, jsOptions: {}, removeImagePreload: false })
+    const format = createOutputFormatter({ src: ["**/*.html"], htmlOptions: {}, cssOptions: {}, jsOptions: {} }, new JsBeautifyFormatter())
     await format({ fileName: "ignored.txt", content: "hello" })
     assert.equal(loads().size, 0)
     run = () => format({ fileName: "index.html", content: "<html><body><p>Hello</p></body></html>" })
@@ -68,7 +69,7 @@ try {
     const emitter = new MemoryEmitter()
     await emitter.emit({ fileName: "index.html", content: "<p>Hello</p>" })
     const graph = new ProjectGraph({ id: createNodeId("project", "lazy"), name: "lazy", root: toProjectPath(".") }, diagnostics)
-    const feature = createBeautifyFeature({ src: ["**/*.html"], htmlOptions: {}, cssOptions: {}, jsOptions: {}, removeImagePreload: false })
+    const feature = createBeautifyFeature({ src: ["**/*.html"], htmlOptions: {}, cssOptions: {}, jsOptions: {} }, new JsBeautifyFormatter())
     const runner = new LifecycleRunner([{ ...feature, requires: [] }], { graph, diagnostics, emitter, artifacts: new MemoryArtifactStore(), documents: new MemoryHtmlDocumentStore() })
     const result = await runner.run({ phases: ["finalize"] })
     assert.equal(result.ok, false)

@@ -84,6 +84,7 @@ function assetSourcesEqual(left, right) {
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
+  removeImagePreload: true,
   layout: "src/layouts/index.{tsx,jsx}",
   src: ["src/pages/**/*.{tsx,jsx,mdx,md}"],
   srcBases: ["src/pages"],
@@ -192,7 +193,7 @@ export function pluginSsg(uOpts = {}) {
             url: page.url,
             fileName: getHtmlFileName(page.url),
             html: await transformHtml(
-              { resolvedLayout, resolvedPage },
+              { resolvedLayout, resolvedPage, removeImagePreload: opts.removeImagePreload },
               renderer,
             ),
           })
@@ -266,7 +267,7 @@ export function pluginSsg(uOpts = {}) {
           if (!resolvedPage) {
             throw new Error(`Resolved page ${page.id} is not available.`)
           }
-          return transformHtml({ resolvedLayout, resolvedPage }, renderer)
+          return transformHtml({ resolvedLayout, resolvedPage, removeImagePreload: opts.removeImagePreload }, renderer)
         },
       },
       {
@@ -873,7 +874,7 @@ export function pluginSsg(uOpts = {}) {
                 state.ssgPages.find((page) => page.url === resolvedPage.url)
                   ?.html ??
                 (await transformHtml(
-                  { resolvedLayout, resolvedPage },
+                  { resolvedLayout, resolvedPage, removeImagePreload: opts.removeImagePreload },
                   state.renderer,
                 ))
               html = await server.transformIndexHtml(originalUrl, html)

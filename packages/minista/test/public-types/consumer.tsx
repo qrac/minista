@@ -8,7 +8,7 @@ import Markdown from "./page.md"
 import Mdx from "./page.mdx"
 
 defineConfig({ plugins: [
-  pluginSsg({ mdx: { jsxRuntime: "automatic", remarkPlugins: [() => tree => tree], frontmatter: { name: "metadata" } }, bundle: {} }),
+  pluginSsg({ removeImagePreload: false, mdx: { jsxRuntime: "automatic", remarkPlugins: [() => tree => tree], frontmatter: { name: "metadata" } }, bundle: {} }),
   pluginEntry(), pluginImage({ optimize: { format: "webp", formatOptions: { webp: { lossless: true } } } }),
   pluginSvg({ config: { multipass: true } }), pluginSprite({ config: { multipass: true } }), pluginComment(),
   pluginIsland({ rootDOMElement: "span", rootStyle: { display: "contents" } }),
@@ -62,3 +62,6 @@ const badComment = <Comment />
 // @ts-expect-error Head title must be a string.
 const badHead = <Head title={42} />
 void [badPicture, badSvg, badSprite, badComment, badHead]
+
+// @ts-expect-error SSG preload policy must be boolean.
+pluginSsg({ removeImagePreload: "false" })
