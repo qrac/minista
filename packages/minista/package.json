@@ -85,7 +85,6 @@
     "mdast-util-frontmatter": "^2.0.1",
     "micromark-extension-frontmatter": "^2.0.0",
     "mime-types": "^3.0.2",
-    "mojigiri": "^0.3.0",
     "node-html-parser": "^9.0.3",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.7",

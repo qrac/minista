@@ -32,7 +32,7 @@
 | Sprite | 再利用する外部SVG sprite。SVGO、tinyglobby | symbol重複診断、内部ID、Svgとの解析処理共有 |
 | Comment | HTML comment合成。専用の外部依存は不要 | 現状維持。他項目のために公開APIを統合しない |
 | Island | ページ別entryとhydration directive。Vite parser、MagicString | 条件成立時のmodule取得・評価、dev／buildのruntime重複 |
-| Search | 静的検索indexと任意のReact UI。mojigiri | 除外処理、辞書参照、query処理とUIの内部境界 |
+| Search | 静的検索indexと任意のReact UI。内部tokenizer（2026-09-09にmojigiriから移行） | 除外処理、辞書参照、query処理とUIの内部境界 |
 | Beautify | 納品用HTML／CSS／JS整形。js-beautify | preload方針との分離、formatter adapter、JS sourcemap整合性 |
 | Archive | ZIP／TAR配布物生成。archiver | 既定入力先、欠落診断、大容量時のメモリ使用 |
 
@@ -192,7 +192,7 @@
 
 - 語彙の整列後に`word → index`のMapを一度作り、`indexOf()`の繰返しをなくす。
 - analyzer／index生成／query engine／React UIを内部で分ける。必要性が固まるまでは新しい公開APIを増やさない。
-- mojigiriは文字種分割を担当する依存として維持する。検索品質の変更と単なる性能改善を分ける。
+- P06時点ではmojigiri依存を維持した。2026-09-09の利用者要求で内部tokenizerへ移行した（追記参照）。検索品質の変更と単なる性能改善を分ける。
 
 完了条件: P01後のindex出力順と検索結果を保ち、ページ数・語彙数・総token数を変えたbenchmarkで時間とメモリを比較する。新しい検索libraryの採用は、検索品質や規模の要件が既存構造では満たせない場合に限定する。
 
@@ -205,6 +205,16 @@
 - `npm run test:cli-contracts`: exit 0、fixtureのcheck／inspect／buildが成功。`git diff --check`も成功した。
 - [規模別benchmark](../benchmarks/2026-09-08-search-dictionary.md)に時間・heap差分・peak RSSと生データを記録した。5条件で変更前後のJSONハッシュが一致した。Mapの追加メモリも記録し、メモリ削減とは扱わない。
 - architectureとADR-0015を更新した。公開schema・option・検索品質・Vite／React／Node.js対応範囲は変更していない。query／React／実サイト全体の性能測定とブラウザ操作テストは今回の対象外。
+
+P06追記・tokenizer内製化（2026-09-09）:
+
+- 利用者の「内製化と改善案」に基づく要求で、mojigiri依存維持の判断を更新した。Map化は既存実装を維持し、文字種分割を`features/search/tokenize.js`へ内製化した。パターンとRegExpをmodule初期化時に一度生成し、target不在時のtitle再分割を除いた。
+- mojigiri 0.3.0の範囲・優先順位・空白と未一致文字列の扱いを維持した。Unicode拡張は検索品質の別変更としてroadmapへ記録した。全角小文字は従来の`i`フラグで既に扱われる。
+- npm依存とlockfile entryを削除した。runtimeと固定した旧実装のtest helperにMIT noticeを保持した。`npm pack --dry-run --json`でtokenizerが配布対象、test helperが対象外であることを確認した。
+- 既存mojigiriの6例、UTF-16全コード単位を含む混在入力、固定seedのランダム入力300件、漢数字・長音符・emoji・全角英字・結合文字・空白・連続呼出しを検証した。
+- `npm run test:ci`: exit 0、113ファイル・502テストと型検査が成功した。ローカルHTTP listenを許可した環境で実行した。Searchのdev/build一致も既存integration testで確認した。
+- `npm run test:cli-contracts`: exit 0、check／inspect／buildが成功。`git diff --check`も成功した。
+- [tokenizer benchmark](../benchmarks/2026-09-09-search-tokenizer.md)に短文／長文の時間とメモリ測定を記録した。サイト全体のbuild性能、検索品質、Unicode対応範囲、Vite／React／Node.js対応範囲の変更は含まない。architecture、ADR-0015、roadmapを更新した。
 
 ### P07: Islandの条件付きmodule読み込み
 

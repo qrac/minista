@@ -155,3 +155,8 @@ v5初期要件には含めません。CLI／JSONと同じread-only query service
 ### Beautifyの対応範囲拡張（P08後）
 
 現在の制約は[ADR-0017](decisions/0017-beautify-output-and-ssg-preload.md)を参照。位置情報を生成するformatterでmapの対応精度を検証できた場合にsourcemap対応を、CSSの命名前の安定した最終変換hookが利用できた場合にhash付きCSS対応を再検討する。JSはRolldownの後段minifyを止める必要があり、安定したchunk単位の制御が提供された場合に緩和を検討する。未実装の独自map生成・参照書換えやexperimental APIの採用予定はない。
+
+
+## Search tokenizerの再検討条件（2026-09-09）
+
+Unicode property escapesによる文字範囲の拡張は、既存のmojigiri 0.3.0互換token境界・漢数字優先・長音符・hit選別の変更方針を定めるときに再検討する。検索品質とtoc位置に影響するため、内製化・RegExp再利用の効率改善から分離する。

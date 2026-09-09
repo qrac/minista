@@ -64,6 +64,15 @@ plugin名や関数の文字列表現だけでconfigの同値性を判定する�
 
 ### Searchの内部責務分離（2026-09-08、P06）
 
-DOM解析とmojigiriによる文字種分割はNodeSearchDocumentAnalyzerに維持します。`features/search/create-search-data.js`は解析recordからJSON用の辞書・hit・pageを生成する純粋関数とし、featureはArtifactとphaseの管理を担当します。整列済み語彙からword→indexのMapを一度生成し、hit／title／contentで共有します。語彙・URLの整列、重複token、toc位置、hit選別は変更しません。
+P06時点ではDOM解析とmojigiriによる文字種分割をNodeSearchDocumentAnalyzerに維持しました。文字種分割の現在の境界は以下の2026-09-09追記で更新します。`features/search/create-search-data.js`は解析recordからJSON用の辞書・hit・pageを生成する純粋関数とし、featureはArtifactとphaseの管理を担当します。整列済み語彙からword→indexのMapを一度生成し、hit／title／contentで共有します。語彙・URLの整列、重複token、toc位置、hit選別は変更しません。
 
 `plugins/search/internal/query.js`はReact／DOM／Vite非依存の内部query engineです。index取得時に辞書Mapとpageごとの重複を除いた検索用配列を準備し、入力変更では再利用します。UIは取得・入力・highlightの描画・URL解決を担当します。検索順位、同点時の順序、辞書順で選ばれる本文抜粋の起点、tocリンク、literal検索を維持します。package exportや公開optionは追加しません。検索品質の変更や新規検索libraryは今回の性能改善と分離します。
+
+
+### Search tokenizerの内製化（2026-09-09）
+
+利用者の内製化要求を受け、P06のmojigiri依存維持を変更します。文字種分割をSearch専用の`features/search/tokenize.js`へ移し、analyzerはHTML走査とtokenizer呼出しを担当します。Core、共通utils、公開APIへは追加しません。mojigiri 0.3.0由来の範囲・順序・`i`フラグ・splitと空token除去を維持し、パターン配列とRegExpの生成をmodule初期化へ移します。splitは共有RegExpのlastIndexを変更しないため、呼出し間で走査位置を共有しません。target不在時のwordsは既に分割したtitleのcopyとし、再分割しません。
+
+npm依存とlockfile entryを削除し、由来のMIT noticeをruntime内に保持します。旧実装はtest helperへ固定し、既存例と文字範囲の境界・混在文字列を差分検証します。benchmarkもこのhelperを使い、依存削除後のfresh installで実行できます。Map化したindex生成・query・公開schema・hit選別には変更を加えません。
+
+Unicode property escapesへの置換は今回は採用しません。漢数字の優先順位、長音符、空白、未一致のemoji等を含むtoken境界が変わり、toc位置と検索結果へ波及するためです。全角小文字は既存の全角大文字範囲と`i`フラグで既に扱われます。効率改善とUnicode対応範囲の変更を分離します。

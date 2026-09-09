@@ -1,6 +1,6 @@
 // @ts-check
 
-import mojigiri from "mojigiri"
+import { tokenizeSearchText } from "../../features/search/tokenize.js"
 
 import { getNativeNodeHtmlDocumentRoot } from "./node-html-document.js"
 
@@ -82,7 +82,7 @@ function extractPage(pageElement, ignoreSelectors) {
     if (isIgnored(element, ignoreSelectors)) return
     if (element.id) toc.push([contentCount, element.id])
     if (element._rawText) {
-      const words = mojigiri(optimizeText(getSpacedRawText(element)))
+      const words = tokenizeSearchText(optimizeText(getSpacedRawText(element)))
       if (words.length) {
         content.push(words)
         contentCount += words.length
@@ -109,11 +109,11 @@ export class NodeSearchDocumentAnalyzer {
     if (titleText && options.trimTitle) {
       titleText = titleText.replace(options.trimTitle, "")
     }
-    const title = mojigiri(titleText)
+    const title = tokenizeSearchText(titleText)
     const pageElement = root.querySelector(options.targetSelector)
     if (!pageElement) {
       return Object.freeze({
-        words: Object.freeze(mojigiri(titleText)),
+        words: Object.freeze([...title]),
         title: Object.freeze(title),
         toc: Object.freeze([]),
         content: Object.freeze([]),
