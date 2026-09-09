@@ -31,7 +31,7 @@ function capability(value) {
 
 /**
  * @param {ArchiveFeatureOptions} options
- * @param {ArchiveBuilder} builder
+ * @param {ArchiveBuilder | import("./finalize.js").ArchivePublisher} builder
  * @returns {import("../../core/lifecycle/index.js").MinistaFeature<ArchiveFeatureOptions>}
  */
 export function createArchiveFeature(options, builder) {
@@ -40,10 +40,21 @@ export function createArchiveFeature(options, builder) {
     hooks: Object.freeze({
       /** @param {PhaseContext} context */
       async finalize(context) {
+        const names = new Set()
+        for (const archive of options.archives) {
+          const name = `${archive.outName}.${archive.format ?? "zip"}`
+          if (names.has(name)) throw new Error(`Output ${name} is already emitted.`)
+          names.add(name)
+        }
         for (const archive of options.archives) {
           const format = archive.format ?? "zip"
+          const fileName = `${archive.outName}.${format}`
+          if ("publish" in builder) {
+            await builder.publish(archive, fileName)
+            continue
+          }
           await context.emitter.emit({
-            fileName: `${archive.outName}.${format}`,
+            fileName,
             content: await builder.build(archive),
             mediaType:
               format === "tar" ? "application/x-tar" : "application/zip",

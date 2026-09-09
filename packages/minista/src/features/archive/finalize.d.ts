@@ -28,6 +28,11 @@ export interface ArchiveFeatureOptions {
   readonly archives: readonly ArchiveOptions[]
 }
 
+/** Publishes a completed output; owns staging, stream completion and cleanup. */
+export interface ArchivePublisher {
+  publish(options: ArchiveOptions, fileName: string): Promise<void>
+}
+
 export interface ArchiveBuilder {
   build(options: ArchiveOptions): Promise<Uint8Array>
 }
@@ -36,7 +41,7 @@ export declare const ARCHIVE_FEATURE_ID: FeatureId
 
 export declare function createArchiveFeature(
   options: ArchiveFeatureOptions,
-  builder: ArchiveBuilder,
+  builder: ArchiveBuilder | ArchivePublisher,
 ): MinistaFeature<ArchiveFeatureOptions>
 export declare function createArchiveFeatureDescriptor<T extends ArchiveDescriptorOptions>(
   options: T,

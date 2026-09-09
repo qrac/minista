@@ -279,7 +279,7 @@ Core runnerが実行するphaseは次です。
 | `bundle` | Viteが返すoutput manifest | Vite adapterのみが実行 |
 | `compose` | hashed URLを反映したfinal document | Document Store更新 |
 | `emit` | output emission | Emitter port |
-| `finalize` | beautify、archive、summary | Emitterの`replace()`または`emit()` |
+| `finalize` | beautify、archive、summary | Emitterの`replace()`／`emit()`、ArchivePublisherによる出力 |
 
 Core runnerはphase、feature、node IDを含むtrace eventを発行します。
 
@@ -411,3 +411,7 @@ SVG解析・最適化と描画用ルート属性のallowlistをNode adapterで�
 Spriteは文書単位で共有defsとルート属性を保持し、symbol内の定義をsymbol単位で分離した後、source相対パスで名前空間化する。ファイル名由来・既存symbolの公開IDを維持する。ファイル探索順はsortし、重複公開IDは同一ファイル内も含め`MINISTA_SPRITE_DUPLICATE_SYMBOL` errorで両sourceを示す。
 
 SVGOの`prefixIds`でURL・href・CSS ID selectorを変換し、ARIA IDREFも追従する。classは変更しない。外部CSS／JavaScriptから元の内部IDへアクセスする契約は提供しない。公開symbolを削除・改名するSVGO設定は`MINISTA_SPRITE_OPTIMIZE_FAILED`で停止する。既定のSprite最適化は`cleanupIds`／`removeHiddenElems`を無効にし、外部から参照されるsymbolを残す。任意のscript、外部stylesheet、複雑なSMIL式の変換は保証しない。
+
+### Archiveの大容量出力（2026-09-09）
+
+公開Archive adapterはfeatureの明示的なArchivePublisher portへ接続し、Node pipelineで一時fileへ圧縮出力してclose後にrenameする。binaryをEmitterへ保持しない。一時fileはadapterが所有・除外・cleanupし、claimと公開manifestにはlogical output名だけを渡す。既存outDir transactionで後続失敗から復元する。内部のbuffer builderは維持する。詳細は[ADR-0018](decisions/0018-archive-stream-publication.md)。

@@ -20,4 +20,10 @@ export declare class NodeArchiveError extends Error {
 export declare class NodeArchiveBuilder implements ArchiveBuilder {
   constructor(rootDir: string, excludedPaths?: readonly string[])
   build(options: ArchiveOptions): Promise<Uint8Array>
+  write(options: ArchiveOptions, target: string): Promise<void>
+}
+
+export declare class NodeArchivePublisher {
+  constructor(rootDir: string, directory: string, excludedPaths?: readonly string[])
+  publish(options: ArchiveOptions, fileName: string): Promise<void>
 }

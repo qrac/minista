@@ -66,6 +66,8 @@ export default {
 
 同じ`pluginArchive`の`archives`に設定された全出力パスは、圧縮対象から自動除外します。`emptyOutDir: false`で保持された前回の同名archiveも取り込みません。設定から削除・改名した過去のarchiveや、配布用として置いた別のZIP／TARは自動除外の対象外です。必要に応じて`ignore`で除外してください。
 
+圧縮結果はファイルへstream書込みし、完了後に出力名へ置き換えます。大容量archive全体をメモリに保持しませんが、出力と既存buildのbackupを保存するディスク容量は必要です。通常のbuild失敗時は一時ファイルを削除し、programmatic buildでは以前の出力へ復元します。processの強制終了時の自動回収は保証しません。
+
 ### archives[].ignore
 
 - 型: `string | string[]`

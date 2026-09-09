@@ -160,3 +160,7 @@ v5初期要件には含めません。CLI／JSONと同じread-only query service
 ## Search tokenizerの再検討条件（2026-09-09）
 
 Unicode property escapesによる文字範囲の拡張は、既存のmojigiri 0.3.0互換token境界・漢数字優先・長音符・hit選別の変更方針を定めるときに再検討する。検索品質とtoc位置に影響するため、内製化・RegExp再利用の効率改善から分離する。
+
+### Archiveの大容量対応（P11、2026-09-09完了）
+
+ArchivePublisherによるstream出力を実装し、128MiB入力で最大RSSの約76〜79%減少を測定した。詳細は[測定記録](benchmarks/2026-09-09-archive-stream.md)と[ADR-0018](decisions/0018-archive-stream-publication.md)。膨大なentry数・数GiB／ZIP64の性能検証、強制終了後の自動回収、汎用file-backed Artifactへの拡張は今回の対象外。

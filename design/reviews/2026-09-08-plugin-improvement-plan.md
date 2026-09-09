@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01〜P10完了。P11は未着手
+- 状態: 計画を文書化済み。P01〜P11完了
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -70,7 +70,7 @@
 | [x] | P08 | 中 | Beautifyの責務と出力整合性を改善 | P05とformatter境界を調整 |
 | [x] | P09 | 中 | Svg／SpriteのIDとsymbol診断 | P02後。source contractを共通化 |
 | [x] | P10 | 低 | Entry参照契約と説明を整理 | P02／P09の出力との組合せも確認 |
-| [ ] | P11 | 条件付き | Archiveのstreaming対応 | P03後。大容量benchmarkで必要性を判断 |
+| [x] | P11 | 条件付き | Archiveのstreaming対応 | P03後。大容量benchmarkで必要性を判断 |
 
 ### P01: Searchの除外とquery処理
 
@@ -312,6 +312,17 @@ P06追記・tokenizer内製化（2026-09-09）:
 - streamや一時fileを新しいfeature間の非公開protocolとして導入しない。所有権、cleanup、transactionをADRで定義する。
 
 完了条件: 同じ入力でarchive内容を維持しながらpeak memoryの改善を測定できる。成功・失敗・rollbackで中間出力が適切に処理され、公開manifestへprivate pathが漏れない。必要性が示されなければ測定結果と保留理由を残す。
+
+完了記録（2026-09-09）:
+
+- 128MiBの圧縮しにくい同一入力で従来のchunk収集・concat・Emitter copyを測定し、ZIP約704MiB／TAR約628MiBの最大RSSを確認した。大容量対応の必要性ありと判断した。
+- ArchivePublisherの明示portを追加し、公開pluginはNode pipelineでprivate fileへstream出力、close後にrenameする。feature間でstreamやprivate pathを受け渡さず、binaryをEmitterに保持しない。内部buffer builderと公開optionは維持する。
+- adapterが一時fileの所有・入力からの除外・成功／失敗cleanupを担当する。成功したarchiveのclaimを既存の実在出力再照合へ接続し、後続失敗は既存outDir transactionでrollbackする。設計判断と制限を[ADR-0018](../decisions/0018-archive-stream-publication.md)、architecture、公開Archive docsへ記録した。
+- ZIP／TARのbyte一致と再生成、rename失敗、partial書込み失敗、実destination stream error、path拒否を追加検証した。実Viteのcustom outDir・複数archive・欠落時rollback・manifest ownershipとprivate path非露出の回帰テストも成功した。TAR初期化前のabortが投げる上流例外は元のerrorを保持するよう処理した。
+- 最終`npm run test:ci`: exit 0、113ファイル・504テストと`tsc --noEmit`が成功。初回sandboxのHTTP listen制限と追加失敗テストのTAR abort例外を解消して全体を再実行した。事前に存在したfixture distは型検査へ混入したためリポジトリ外へ退避した。
+- `npm run test:cli-contracts`: exit 0。fixtureのcheck／inspect／buildが成功し、生成distを型検査対象外へ退避した。`git diff --check`も成功した。
+- [最終測定](../benchmarks/2026-09-09-archive-stream.md)では最大RSSがZIP 660780→160432KiB（75.7%減）、TAR 638476→133008KiB（79.2%減）。変更前とbuffer／stream出力のSHA-256が一致した。
+- 制限: 測定は128MiB単一file・各条件1sampleの参考値。全サイトbuild、膨大なentry数、数GiB／ZIP64、強制終了時の回収は対象外。Vite／React／Node.js対応範囲とexperimental API採用は変更していない。
 
 ## 依存選定と共通設計の方針
 

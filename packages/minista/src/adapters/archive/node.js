@@ -2,6 +2,10 @@
 
 import fs from "node:fs/promises"
 import path from "node:path"
+import { createWriteStream } from "node:fs"
+import { randomUUID } from "node:crypto"
+import { pipeline } from "node:stream/promises"
+import { OutputWriteUnsafePathError } from "../filesystem/output-writer.js"
 
 import { loadDependency } from "../dependencies/archiver.js"
 
@@ -41,6 +45,16 @@ export class NodeArchiveBuilder {
 
   /** @param {ArchiveOptions} options */
   async build(options) {
+    return this.#build(options)
+  }
+
+  /** @param {ArchiveOptions} options @param {string} target */
+  async write(options, target) {
+    await this.#build(options, target)
+  }
+
+  /** @param {ArchiveOptions} options @param {string} [target] */
+  async #build(options, target) {
     try {
       const source = path.resolve(this.#rootDir, options.srcDir)
       let stats
@@ -69,19 +83,43 @@ export class NodeArchiveBuilder {
         /** @type {Buffer[]} */
         const chunks = []
 
-        archive.on("data", (chunk) => chunks.push(Buffer.from(chunk)))
+        const fail = (/** @type {Error} */ error) => {
+          try { archive.abort() } catch { /* Preserve the original failure before TAR initialization. */ }
+          archive.destroy(error)
+          reject(error)
+        }
         archive.on("error", reject)
-        archive.on("warning", reject)
-        archive.on("end", () => resolve(new Uint8Array(Buffer.concat(chunks))))
+        archive.on("warning", fail)
+        /** @type {Promise<void> | undefined} */
+        let completion
+        if (target) {
+          // pipeline settles only after the destination closes, including errors.
+          const destination = createWriteStream(target, { flags: "wx" })
+          archive.removeListener("error", reject)
+          archive.removeListener("warning", fail)
+          archive.on("warning", (error) => archive.destroy(error))
+          completion = pipeline(archive, destination).then(() => resolve(new Uint8Array()), (error) => {
+            try { archive.abort() } catch { /* TAR may not have initialized its engine yet. */ }
+            reject(error)
+          })
+        } else {
+          archive.on("data", (chunk) => chunks.push(Buffer.from(chunk)))
+          archive.on("end", () => resolve(new Uint8Array(Buffer.concat(chunks))))
+        }
         const ignore = typeof options.ignore === "string"
           ? [options.ignore] : [...options.ignore ?? []]
-        ignore.push(...this.#excludedPaths.map((file) =>
+        ignore.push(...[...this.#excludedPaths, ...(target ? [target] : [])].map((file) =>
           escapeGlob(path.relative(cwd, file).replaceAll("\\", "/"))))
-        archive.glob(sourcePattern ? `${sourcePattern}/**/*` : "**/*", {
-          cwd,
-          ignore,
-        })
-        void archive.finalize().catch(reject)
+        try {
+          archive.glob(sourcePattern ? `${sourcePattern}/**/*` : "**/*", {
+            cwd,
+            ignore,
+          })
+          void archive.finalize().catch((error) => archive.destroy(error))
+        } catch (error) {
+          archive.destroy(/** @type {Error} */ (error))
+          if (!completion) fail(/** @type {Error} */ (error))
+        }
       })
     } catch (error) {
       if (
@@ -99,4 +137,39 @@ export class NodeArchiveBuilder {
 /** @param {string} value */
 function escapeGlob(value) {
   return value.replace(/[?*\[\]{}()!+@]/g, "[$&]")
+}
+
+/** File publication adapter; private staging paths never cross the feature port. */
+export class NodeArchivePublisher {
+  #builder
+  #directory
+  /** @param {string} rootDir @param {string} directory @param {readonly string[]} [excludedPaths] */
+  constructor(rootDir, directory, excludedPaths = []) {
+    this.#builder = new NodeArchiveBuilder(rootDir, excludedPaths)
+    this.#directory = path.resolve(directory)
+  }
+
+  /** @param {ArchiveOptions} options @param {string} fileName */
+  async publish(options, fileName) {
+    const target = path.resolve(this.#directory, fileName)
+    const relative = path.relative(this.#directory, target)
+    if (!relative || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+      throw new OutputWriteUnsafePathError(fileName)
+    }
+    const temporary = `${target}.minista-${randomUUID()}.tmp`
+    try {
+      await fs.mkdir(path.dirname(target), { recursive: true })
+      await this.#builder.write(options, temporary)
+      await fs.rename(temporary, target)
+    } catch (error) {
+      if (error instanceof NodeArchiveError) throw error
+      throw new NodeArchiveError(error, options)
+    } finally {
+      try {
+        await fs.rm(temporary, { force: true })
+      } catch (error) {
+        throw new NodeArchiveError(error, options)
+      }
+    }
+  }
 }

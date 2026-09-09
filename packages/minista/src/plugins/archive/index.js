@@ -7,8 +7,7 @@ import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecy
 import path from "node:path"
 import pc from "picocolors"
 
-import { NodeArchiveBuilder } from "../../adapters/archive/index.js"
-import { NodeOutputWriter } from "../../adapters/filesystem/output-writer.js"
+import { NodeArchivePublisher } from "../../adapters/archive/node.js"
 import { getViteBuildSession } from "../../adapters/vite/build-session.js"
 import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
 import {
@@ -40,7 +39,6 @@ export function pluginArchive(uOpts = {}) {
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
-  const outputWriter = new NodeOutputWriter()
 
   return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-archive",
@@ -62,23 +60,25 @@ export function pluginArchive(uOpts = {}) {
             path.resolve(rootDir, this.environment.config.build.outDir)) || "."),
         })),
       }
-      const builder = new NodeArchiveBuilder(rootDir, resolvedOptions.archives.map(
+      const builder = new NodeArchivePublisher(rootDir, dist, resolvedOptions.archives.map(
         (archive) => path.resolve(dist, `${archive.outName}.${archive.format ?? "zip"}`),
       ))
       const outputClaims = claimStates.get(this.environment).claims
       outputClaims.length = 0
-      const outputs = await processViteOutputs([], [
+      await processViteOutputs([], [
         createArchiveFeature(resolvedOptions, builder),
       ], createViteCompatibilityTraceHooks(
         getViteBuildSession(this.environment.getTopLevelConfig()),
         "archive:build",
       ))
-      const paths = await outputWriter.write(dist, outputs)
+      const outputs = resolvedOptions.archives.map((archive) => ({
+        fileName: `${archive.outName}.${archive.format ?? "zip"}`,
+      }))
       const archiveByFileName = new Map(resolvedOptions.archives.map((archive) => [
         `${archive.outName}.${archive.format ?? "zip"}`,
         archive,
       ]))
-      for (const [index, output] of outputs.entries()) {
+      for (const output of outputs) {
         const archive = archiveByFileName.get(output.fileName)
         if (!archive) continue
         outputClaims.push(Object.freeze({
@@ -90,7 +90,7 @@ export function pluginArchive(uOpts = {}) {
           pageUrls: Object.freeze([]),
           dependencies: Object.freeze([]),
         }))
-        const finalPath = paths[index]
+        const finalPath = path.resolve(dist, output.fileName)
         const rel = path.relative(rootDir, path.dirname(finalPath))
         console.log(pc.gray(
           (rel + path.sep).replaceAll("\\", "/") +
