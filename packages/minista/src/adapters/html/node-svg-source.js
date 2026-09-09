@@ -3,7 +3,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { parse } from "node-html-parser"
-import { loadDependency } from "../dependencies/svgo.js"
+import { optimizeSvg, readSvgSource, namespaceSvgSource } from "./svg-source.js"
 
 import { toProjectPath } from "../../core/graph/index.js"
 
@@ -102,14 +102,14 @@ export class NodeSvgSourceResolver {
     this.#config = config
   }
 
-  /** @param {string} sourcePath */
-  async resolve(sourcePath) {
+  /** @param {string} sourcePath @param {string} [instanceKey] */
+  async resolve(sourcePath, instanceKey) {
     const normalizedPath = sourcePath.replace(/^\//, "")
     const cacheKey = path.resolve(this.#rootDir, normalizedPath)
     const generation = this.#generation
     if (!normalizedPath) return undefined
     if (this.#cache.has(cacheKey)) {
-      return this.#cache.get(cacheKey)
+      return this.#instantiate(this.#cache.get(cacheKey), instanceKey === undefined ? undefined : `${toProjectPath(path.relative(this.#rootDir, cacheKey))}:${instanceKey}`)
     }
 
     let rawSvg
@@ -134,7 +134,7 @@ export class NodeSvgSourceResolver {
       "optimize",
       this.#rootDir,
       normalizedPath,
-      async () => (await loadDependency()).optimize(rawSvg, this.#config),
+      async () => optimizeSvg(rawSvg, this.#config),
     )
     const svg = await runSvgSourceOperation(
       "parse",
@@ -148,32 +148,14 @@ export class NodeSvgSourceResolver {
         { operation: "parse", rootDir: this.#rootDir, sourcePath: normalizedPath },
       )
     }
-    const source = Object.freeze({
-      innerHtml: svg.innerHTML,
-      viewBox: svg.getAttribute("viewBox"),
-      attributes: Object.freeze(Object.fromEntries(
-        Object.entries(svg.attributes).filter(([name]) =>
-          svgRootAttributes.has(name)
-        ),
-      )),
-    })
+    const source = readSvgSource(svg)
     if (generation === this.#generation) this.#cache.set(cacheKey, source)
-    return source
+    return this.#instantiate(source, instanceKey === undefined ? undefined : `${toProjectPath(path.relative(this.#rootDir, cacheKey))}:${instanceKey}`)
+  }
+
+  /** @param {SvgSource | undefined} source @param {string} [instanceKey] */
+  async #instantiate(source, instanceKey) {
+    if (!source || instanceKey === undefined) return source
+    return namespaceSvgSource(source, instanceKey)
   }
 }
-
-// Only source rendering attributes cross the composition boundary.
-const svgRootAttributes = new Set(`
-  xmlns xmlns:xlink viewBox preserveAspectRatio width height x y
-  fill fill-opacity fill-rule stroke stroke-width stroke-opacity
-  stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset
-  opacity color color-interpolation color-interpolation-filters color-rendering
-  display visibility overflow transform transform-origin vector-effect
-  clip-path clip-rule mask filter paint-order shape-rendering text-rendering
-  image-rendering marker-start marker-mid marker-end
-  font-family font-size font-style font-weight font-stretch font-variant
-  text-anchor dominant-baseline alignment-baseline baseline-shift
-  letter-spacing word-spacing writing-mode direction unicode-bidi
-  stop-color stop-opacity flood-color flood-opacity lighting-color
-  style class
-`.trim().split(/\s+/))

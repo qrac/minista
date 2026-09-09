@@ -44,7 +44,7 @@ describe("svg feature", () => {
 
     await expect(composeSvgDocument(document, sources)).resolves.toBe(1)
 
-    expect(sources.resolve).toHaveBeenCalledWith("/icon.svg")
+    expect(sources.resolve).toHaveBeenCalledWith("/icon.svg", "inline:0")
     expect(document.serialize()).toBe(
       '<main><svg viewBox="1 2 3 4"><title>Icon</title><path d="M0 0h2v2H0z"></path></svg></main>',
     )

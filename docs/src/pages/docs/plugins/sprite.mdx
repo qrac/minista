@@ -116,3 +116,11 @@ Sprite生成に失敗した場合、buildは次のstable diagnostic codeを出�
 - `MINISTA_SPRITE_OPTIMIZE_FAILED`: SVGOによる最適化失敗
 
 project内のSVGにはproject相対locationが含まれます。
+
+## SVGの内部ID
+
+gradient・clipPathなどの内部IDと参照には、衝突を避ける決定的なprefixを付けます。同じSVGの複数配置にも対応します。元の内部IDを外部CSSやJavaScriptから参照しないでください。class名は維持します。
+
+ファイル名由来のsymbol IDと、元ファイル内のsymbol IDは維持します。同じ出力内のsymbol IDが重複すると、`MINISTA_SPRITE_DUPLICATE_SYMBOL`で両方のsourceを示して停止します。IDを一意に変更してください。ルートの描画属性と共有defsも保持します。
+
+SVGOの独自設定で公開symbolを削除・改名すると`MINISTA_SPRITE_OPTIMIZE_FAILED`になります。`cleanupIds`と`removeHiddenElems`を無効にしてください。

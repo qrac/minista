@@ -98,11 +98,11 @@ export function pluginSvg(uOpts = {}) {
       return transformSvgHtml(
         html,
         context.path,
-        { resolve(source) {
+        { resolve(source, instanceKey) {
           const absolute = path.resolve(rootDir, source.replace(/^\//, ""))
           references.add(absolute)
           server.watcher.add(absolute)
-          return sources.resolve(source)
+          return sources.resolve(source, instanceKey)
         } },
         createViteCompatibilityTraceHooks(
           getViteBuildSession(server.config),

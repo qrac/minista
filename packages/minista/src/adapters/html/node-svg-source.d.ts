@@ -27,5 +27,5 @@ export declare class NodeSvgSourceResolver implements SvgSourceResolver {
   constructor(rootDir: string, config?: SvgoConfig)
   clear(): void
   invalidate(sourcePath: string): void
-  resolve(sourcePath: string): Promise<SvgSource | undefined>
+  resolve(sourcePath: string, instanceKey?: string): Promise<SvgSource | undefined>
 }

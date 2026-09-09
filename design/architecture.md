@@ -402,3 +402,11 @@ SvgSourceは最適化後の描画用ルート属性を明示allowlistで保持�
 ### Islandのbrowser読み込み
 
 Islandのdev/build entryは共通runtimeとsnippet loader表を持ちます。`visible`／`media`／`idle`は条件成立時にsnippetとReact rendererをdynamic importし、`load`／`only`はentry評価時に取得を開始します。要素ごとの開始guardと取得Promiseの共有で重複hydrateを防ぎます。取得失敗はSSRを保持し、browserのstructured diagnosticへ接続します。Vite adapterは静的・動的chunkとCSSの到達関係からoutput claimを生成し、遅延出力をHTMLの先行取得へ変換しません。
+
+## Svg／SpriteのID（2026-09-09）
+
+SVG解析・最適化と描画用ルート属性のallowlistをNode adapterで共有する。inlineはsource相対パスと文書内の配置番号から決定的なprefixを生成し、resolverのcacheを変更せず配置ごとにID参照を変換する。文書の処理順・server identity・絶対rootに依存しない。同じ文書内の配置順を変えた場合の内部IDは保証しない。
+
+Spriteは文書単位で共有defsとルート属性を保持し、symbol内の定義をsymbol単位で分離した後、source相対パスで名前空間化する。ファイル名由来・既存symbolの公開IDを維持する。ファイル探索順はsortし、重複公開IDは同一ファイル内も含め`MINISTA_SPRITE_DUPLICATE_SYMBOL` errorで両sourceを示す。
+
+SVGOの`prefixIds`でURL・href・CSS ID selectorを変換し、ARIA IDREFも追従する。classは変更しない。外部CSS／JavaScriptから元の内部IDへアクセスする契約は提供しない。公開symbolを削除・改名するSVGO設定は`MINISTA_SPRITE_OPTIMIZE_FAILED`で停止する。既定のSprite最適化は`cleanupIds`／`removeHiddenElems`を無効にし、外部から参照されるsymbolを残す。任意のscript、外部stylesheet、複雑なSMIL式の変換は保証しない。

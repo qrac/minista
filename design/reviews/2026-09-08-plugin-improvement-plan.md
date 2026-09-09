@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01〜P08完了。P09〜P11は未着手
+- 状態: 計画を文書化済み。P01〜P09完了。P10〜P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -68,7 +68,7 @@
 | [x] | P06 | 中 | Search辞書と内部境界を改善 | P01後 |
 | [x] | P07 | 中 | Islandの条件付きmodule読み込み | 独立。Vite／React compatibility検証が必要 |
 | [x] | P08 | 中 | Beautifyの責務と出力整合性を改善 | P05とformatter境界を調整 |
-| [ ] | P09 | 中 | Svg／SpriteのIDとsymbol診断 | P02後。source contractを共通化 |
+| [x] | P09 | 中 | Svg／SpriteのIDとsymbol診断 | P02後。source contractを共通化 |
 | [ ] | P10 | 低 | Entry参照契約と説明を整理 | P02／P09の出力との組合せも確認 |
 | [ ] | P11 | 条件付き | Archiveのstreaming対応 | P03後。大容量benchmarkで必要性を判断 |
 
@@ -259,6 +259,18 @@
 - gradient／clipPath等の内部IDに決定的な名前空間を付け、参照も追従させる。既存の公開symbol IDと内部IDを区別する。
 
 完了条件: 異なるSVGの同名内部ID、同じSVGの複数inline配置、複数symbolを扱っても描画と参照が正しい。生成順によらず結果が安定し、dev／buildで一致する。最適化前後の描画を視覚的にも確認する。
+
+完了記録（2026-09-09）:
+
+- Node adapterに解析済みsource・描画用属性allowlist・SVGO最適化・ID変換を共有する処理を追加した。公開Svg／Sprite APIは分離を維持する。
+- inlineはsource相対パスと文書内の配置番号、Spriteはsource相対パスとsymbol IDで名前空間を決定する。cacheを配置間で変更せず、文書の処理順や絶対root・server identityに依存しない。配置順を変えた際の内部IDは保証しない。
+- Spriteは共有defsとルート描画属性を文書単位で保持する。同じsymbol内の参照を保ちながらsymbolごとの内部IDも分離する。公開symbol IDの重複は同一ファイル内を含め`MINISTA_SPRITE_DUPLICATE_SYMBOL` errorで両sourceを示し、黙って上書きしない。
+- SVGOの`prefixIds`でgradient／clipPath・href・CSS参照を変換し、ARIA IDREFも追従する。公開symbol IDとclass名を維持する。公開symbolを削除・改名する独自SVGO設定は`MINISTA_SPRITE_OPTIMIZE_FAILED`で停止する。
+- unitで同一sourceの複数instance、共有defs／symbol間href、symbol間の同名内部ID、重複source診断、ルート属性保持、繰返し生成の一致を検証した。実Vite integrationではinlineのdev/build ID一致と複数配置の一意性を確認した。
+- ローカルの実ブラウザで最適化前、最適化後inline、外部spriteを並べ、異なるsourceの同名gradient／clipPath、同じsourceの2配置、stroke／currentColorの描画が一致することを目視確認した。自動pixel比較やbrowser matrixは実施していない。
+- 最終`npm run test:ci`: exit 0、111ファイル・477テストと`tsc --noEmit`が成功。初回sandbox実行はローカルlisten制限で失敗したためlistenを許可して再実行した。途中のdev/build識別子差とテスト型注釈も修正後に全体を通した。Viteの既存HMRポート競合warningは出たがテストは成功した。
+- `npm run test:cli-contracts`: exit 0。fixtureのcheck／inspect／buildが成功し、生成distは型検査への混入を避けてリポジトリ外へ退避した。`git diff --check`も成功した。
+- architecture・ADR-0004・公開Svg／Sprite docs・migration noteを更新した。外部CSS／scriptから元の内部IDを参照する契約、複雑なSMIL式の変換は保証しない。Vite／React／Node.jsの対応範囲やexperimental API採用は変更していない。
 
 ### P10: Entry参照契約と説明
 

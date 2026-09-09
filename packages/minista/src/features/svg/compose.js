@@ -39,11 +39,11 @@ export async function composeSvgDocument(document, sources) {
   const elements = document.select("[data-minista-svg]")
   let composed = 0
 
-  for (const element of elements) {
+  for (const [index, element] of elements.entries()) {
     const sourcePath = element.getAttribute("data-minista-svg-src")
     if (!sourcePath) continue
 
-    const source = await sources.resolve(sourcePath)
+    const source = await sources.resolve(sourcePath, `inline:${index}`)
     if (!source) continue
 
     document.bind(element, {

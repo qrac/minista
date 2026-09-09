@@ -89,3 +89,17 @@ test("preserves rendering attributes, filters metadata and invalidates aliases",
   resolver.clear()
   await expect(resolver.resolve("icon.svg")).rejects.toMatchObject({ code: "MINISTA_SVG_SOURCE_NOT_FOUND" })
 })
+
+test("namespaces each inline instance without mutating cached sources", async () => {
+  await fs.promises.writeFile(path.join(rootDir, "icon.svg"), '<svg viewBox="0 0 10 10" fill="url(#paint)"><defs><linearGradient id="paint"><stop stop-color="red"/></linearGradient><clipPath id="clip"><path d="M0 0h10v10z"/></clipPath></defs><path id="shape" clip-path="url(#clip)" d="M0 0h10v10z"/><use href="#shape"/></svg>')
+  const resolver = new NodeSvgSourceResolver(rootDir, { plugins: [] })
+  const first = await resolver.resolve("icon.svg", "page:/:0")
+  const second = await resolver.resolve("icon.svg", "page:/:1")
+  expect(first).not.toEqual(second)
+  expect(await resolver.resolve("icon.svg", "page:/:0")).toEqual(first)
+  const paint = first?.innerHtml.match(/linearGradient id="([^"]+)"/)?.[1]
+  expect(paint).toMatch(/^minista-/)
+  expect(first?.attributes?.fill).toBe(`url(#${paint})`)
+  expect(first?.innerHtml).not.toContain('href="#shape"')
+  expect((await resolver.resolve("icon.svg"))?.attributes?.fill).toBe("url(#paint)")
+})

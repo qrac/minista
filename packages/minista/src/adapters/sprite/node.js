@@ -3,7 +3,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { parse } from "node-html-parser"
-import { loadDependency } from "../dependencies/svgo.js"
+import { optimizeSvg, namespaceSvg, readSvgSource } from "../html/svg-source.js"
 import { glob } from "tinyglobby"
 
 import { toProjectPath } from "../../core/graph/index.js"
@@ -11,6 +11,7 @@ import { toProjectPath } from "../../core/graph/index.js"
 /** @typedef {import("svgo").Config} SvgoConfig */
 
 const spriteErrorCodes = Object.freeze({
+  duplicate: "MINISTA_SPRITE_DUPLICATE_SYMBOL",
   discover: "MINISTA_SPRITE_DISCOVERY_FAILED",
   read: "MINISTA_SPRITE_READ_FAILED",
   parse: "MINISTA_SPRITE_PARSE_FAILED",
@@ -81,25 +82,6 @@ async function runSpriteOperation(operation, rootDir, source, task) {
   }
 }
 
-/**
- * @param {string} fragment
- * @param {SvgoConfig} [config]
- * @returns {Promise<string>}
- */
-async function optimizeSvgFragment(fragment, config) {
-  const document = [
-    '<svg xmlns="http://www.w3.org/2000/svg"',
-    ' xmlns:xlink="http://www.w3.org/1999/xlink">',
-    fragment,
-    "</svg>",
-  ].join("")
-  const { optimize } = await loadDependency()
-  const { data } = optimize(document, config)
-  const element = parse(data).querySelector("svg")
-  if (!element) throw new Error("Expected an optimized <svg> root element.")
-  return element.innerHTML
-}
-
 export class NodeSpriteBuilder {
   #rootDir
   #config
@@ -122,73 +104,67 @@ export class NodeSpriteBuilder {
       sourceDirectory,
       () => glob("*.svg", { cwd: targetDir }),
     )
-    /** @type {Map<string, {viewBox: string, content: string}>} */
-    const symbols = new Map()
-
-    for (const svgName of svgNames) {
+    /** @type {Map<string, string>} */
+    const owners = new Map()
+    const documents = []
+    for (const svgName of svgNames.sort()) {
       const source = path.join(sourceDirectory, svgName)
-      const code = await runSpriteOperation(
-        "read",
-        this.#rootDir,
-        source,
-        () => fs.promises.readFile(path.resolve(targetDir, svgName), "utf8"),
-      )
-      const root = await runSpriteOperation(
-        "parse",
-        this.#rootDir,
-        source,
-        () => parse(code),
-      )
-      if (code.includes("<symbol")) {
-        const elements = root.querySelectorAll("symbol")
-        if (elements.length === 0) {
-          throw new NodeSpriteError(
-            new Error("Expected at least one <symbol> element."),
-            { operation: "parse", rootDir: this.#rootDir, source },
-          )
+      const code = await runSpriteOperation("read", this.#rootDir, source,
+        () => fs.promises.readFile(path.resolve(targetDir, svgName), "utf8"))
+      const root = parse(code).querySelector("svg")
+      if (!root) throw new NodeSpriteError(new Error("Expected an <svg> root element."),
+        { operation: "parse", rootDir: this.#rootDir, source })
+      let symbols = root.querySelectorAll("symbol")
+      if (!symbols.length) {
+        const symbol = parse("<symbol></symbol>").querySelector("symbol")
+        if (!symbol) throw new Error("Expected symbol")
+        symbol.setAttribute("id", path.parse(svgName).name)
+        for (const [name, value] of Object.entries(readSvgSource(root).attributes)) {
+          if (!name.startsWith("xmlns")) symbol.setAttribute(name, value)
         }
-        for (const element of elements) {
-          const id = element.getAttribute("id")
-          const viewBox = element.getAttribute("viewBox")
-          const content = await runSpriteOperation(
-            "optimize",
-            this.#rootDir,
-            source,
-            () => optimizeSvgFragment(element.innerHTML, this.#config),
-          )
-          if (id && viewBox && content) symbols.set(id, { viewBox, content })
-        }
-      } else {
-        const element = root.querySelector("svg")
-        if (!element) {
-          throw new NodeSpriteError(
-            new Error("Expected an <svg> root element."),
-            { operation: "parse", rootDir: this.#rootDir, source },
-          )
-        }
-        const id = path.parse(svgName).name
-        const viewBox = element.getAttribute("viewBox")
-        const content = await runSpriteOperation(
-          "optimize",
-          this.#rootDir,
-          source,
-          () => optimizeSvgFragment(element.innerHTML, this.#config),
-        )
-        if (id && viewBox && content) symbols.set(id, { viewBox, content })
+        symbol.set_content(root.innerHTML)
+        root.set_content(symbol.toString())
+        for (const name of Object.keys(root.attributes)) root.removeAttribute(name)
+        symbols = root.querySelectorAll("symbol")
       }
+      const ids = symbols.map(element => element.getAttribute("id")).filter(id => id !== undefined)
+      for (const id of ids) {
+        if (owners.has(id)) throw new NodeSpriteError(
+          new Error(`Duplicate symbol "${id}" in ${owners.get(id)} and ${toProjectPath(source)}.`),
+          { operation: "duplicate", rootDir: this.#rootDir, source })
+        owners.set(id, toProjectPath(source))
+      }
+      // Isolate symbol-local definitions while retaining references to shared definitions.
+      const allIds = root.querySelectorAll("[id]").map(element => element.getAttribute("id")).filter(id => id !== undefined)
+      for (const symbol of symbols) {
+        const localIds = new Set(symbol.querySelectorAll("[id]").map(element => element.getAttribute("id")))
+        const externalIds = allIds.filter(id => !localIds.has(id))
+        const isolated = await runSpriteOperation("optimize", this.#rootDir, source,
+          () => namespaceSvg(symbol.toString(), `symbol:${symbol.getAttribute("id")}`, externalIds))
+        symbol.replaceWith(isolated)
+      }
+      // Keep symbols in their source document so shared defs and inherited attributes survive.
+      const content = await runSpriteOperation("optimize", this.#rootDir, source, async () => {
+        const config = { ...this.#config, plugins: this.#config?.plugins ?? [{ name: "preset-default", params: {
+          overrides: { cleanupIds: false, removeHiddenElems: false },
+        } }] }
+        const optimized = await optimizeSvg(root.toString(), config)
+        const remainingIds = parse(optimized.data).querySelectorAll("symbol").map(element => element.getAttribute("id"))
+        if (ids.some(id => !remainingIds.includes(id))) throw new Error("SVGO configuration removed or renamed a public symbol ID. Disable cleanupIds and removeHiddenElems.")
+        const namespaced = await namespaceSvg(optimized.data, toProjectPath(path.relative(this.#rootDir, path.resolve(targetDir, svgName))), ids)
+        const element = parse(namespaced).querySelector("svg")
+        if (!element) throw new Error("Expected optimized SVG root")
+        const group = parse("<g></g>").querySelector("g")
+        if (!group) throw new Error("Expected group")
+        for (const [name, value] of Object.entries(readSvgSource(element).attributes)) {
+          if (!name.startsWith("xmlns")) group.setAttribute(name, value)
+        }
+        group.set_content(element.innerHTML)
+        return Object.keys(group.attributes).length ? group.toString() : group.innerHTML
+      })
+      documents.push(content)
     }
-
-    if (symbols.size === 0) return ""
-    return [
-      '<svg xmlns="http://www.w3.org/2000/svg" style="display:none">',
-      [...symbols.entries()]
-        .sort(([left], [right]) => left.localeCompare(right))
-        .map(
-          ([id, { viewBox, content }]) =>
-            `<symbol id="${id}" viewBox="${viewBox}">${content}</symbol>`,
-        )
-        .join("\n"),
-      "</svg>",
-    ].join("\n")
+    if (!documents.length) return ""
+    return '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none">\n' + documents.join("\n") + "\n</svg>"
   }
 }

@@ -46,7 +46,7 @@
 
 ## Svg出力契約の修正（2026-09-08）
 
-P02では最適化後の描画属性をallowlistでsource contractへ渡し、明示propsを優先します。任意属性の無条件コピーはmarkerやイベント属性まで取り込むため採用しません。`style`／`class`は属性全体の上書きとし、CSS宣言のmergeは行いません。欠落sourceの未解決markerを成功出力に残す動作は廃止し、`MINISTA_SVG_SOURCE_NOT_FOUND` errorにします。公開optionの追加は行わず、公開docsとmigration noteに記録します。devの参照管理・watch・cache invalidationはadapterに閉じ、内部IDの名前空間化はP09に残します。
+P02では最適化後の描画属性をallowlistでsource contractへ渡し、明示propsを優先します。任意属性の無条件コピーはmarkerやイベント属性まで取り込むため採用しません。`style`／`class`は属性全体の上書きとし、CSS宣言のmergeは行いません。欠落sourceの未解決markerを成功出力に残す動作は廃止し、`MINISTA_SVG_SOURCE_NOT_FOUND` errorにします。公開optionの追加は行わず、公開docsとmigration noteに記録します。devの参照管理・watch・cache invalidationはadapterに閉じ、内部IDは下記P09の契約で名前空間化します。
 
 
 ## Archive入力契約の修正（2026-09-08）
@@ -66,3 +66,11 @@ dev/buildは同じbrowser runtimeを使い、Reactのimportは遅延rendererへ�
 失敗時はSSRを残し、自動retryせず、browser consoleへ`MINISTA_ISLAND_LOAD_FAILED`のstructured diagnosticを出します。directive設定失敗は`MINISTA_ISLAND_DIRECTIVE_FAILED`、未知directiveは`MINISTA_ISLAND_DIRECTIVE_UNKNOWN`です。これらはbrowser上の診断で、build workspace snapshotへは書きません。React自身が非同期に報告するrender errorはReactの既存挙動に従います。
 
 CSSはViteのdynamic import処理に任せます。初期描画に必要なSSGのrender CSSは引き続きHTMLへ出力し、遅延JSまでstylesheetと一緒に先行取得することはしません。別の即時Islandや通常entryと共有されるmodule、利用者のchunk統合・preload設定まで取得遅延を保証しません。遅延moduleの失敗後のretryや消えた要素のobserver cleanupは別のnavigation lifecycleが必要になった際に再検討します。
+
+## Svg／SpriteのID（2026-09-09）
+
+SVG解析・最適化と描画用ルート属性のallowlistをNode adapterで共有する。inlineはsource相対パスと文書内の配置番号から決定的なprefixを生成し、resolverのcacheを変更せず配置ごとにID参照を変換する。文書の処理順・server identity・絶対rootに依存しない。同じ文書内の配置順を変えた場合の内部IDは保証しない。
+
+Spriteは文書単位で共有defsとルート属性を保持し、symbol内の定義をsymbol単位で分離した後、source相対パスで名前空間化する。ファイル名由来・既存symbolの公開IDを維持する。ファイル探索順はsortし、重複公開IDは同一ファイル内も含め`MINISTA_SPRITE_DUPLICATE_SYMBOL` errorで両sourceを示す。
+
+SVGOの`prefixIds`でURL・href・CSS ID selectorを変換し、ARIA IDREFも追従する。classは変更しない。外部CSS／JavaScriptから元の内部IDへアクセスする契約は提供しない。公開symbolを削除・改名するSVGO設定は`MINISTA_SPRITE_OPTIMIZE_FAILED`で停止する。既定のSprite最適化は`cleanupIds`／`removeHiddenElems`を無効にし、外部から参照されるsymbolを残す。任意のscript、外部stylesheet、複雑なSMIL式の変換は保証しない。

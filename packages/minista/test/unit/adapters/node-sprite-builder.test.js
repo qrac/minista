@@ -37,7 +37,7 @@ describe("Node sprite builder", () => {
       ),
     ])
 
-    const sprite = await new NodeSpriteBuilder(rootDir).build("src/icons")
+    const sprite = await new NodeSpriteBuilder(rootDir, {}).build("src/icons")
 
     expect(sprite).toContain('<symbol id="first" viewBox="0 0 1 1">')
     expect(sprite).toContain('<symbol id="later" viewBox="0 0 2 2">')
@@ -125,4 +125,37 @@ describe("Node sprite builder", () => {
       diagnostic: { location: { file: "src/icons/icon.svg" } },
     })
   })
+})
+
+test("reports duplicate public IDs with both source names", async () => {
+  await fs.promises.writeFile(path.join(sourceDir, "same.svg"), '<svg viewBox="0 0 10 10"><path d="M0 0h1"/></svg>')
+  await fs.promises.writeFile(path.join(sourceDir, "other.svg"), '<svg><symbol id="same" viewBox="0 0 10 10"><path d="M0 0h1"/></symbol></svg>')
+  await expect(new NodeSpriteBuilder(rootDir).build("src/icons")).rejects.toMatchObject({
+    code: "MINISTA_SPRITE_DUPLICATE_SYMBOL",
+    diagnostic: { message: expect.stringMatching(/other.svg.*same.svg/) },
+  })
+})
+
+test("preserves root paint and shared definitions across public symbols", async () => {
+  const code = '<svg fill="none" stroke="red"><defs><linearGradient id="paint"><stop stop-color="red"/></linearGradient></defs><symbol id="one" viewBox="0 0 10 10"><path fill="url(#paint)" d="M0 0h10v10z"/></symbol><symbol id="two" viewBox="0 0 10 10"><use href="#one"/></symbol></svg>'
+  await fs.promises.writeFile(path.join(sourceDir, "shared.svg"), code)
+  const builder = new NodeSpriteBuilder(rootDir)
+  const output = await builder.build("src/icons")
+  expect(output).toContain('id="one"')
+  expect(output).toContain('href="#one"')
+  expect(output).toContain('fill="none"')
+  const id = output.match(/linearGradient id="([^"]+)"/)?.[1]
+  expect(id).toMatch(/^minista-/)
+  expect(output).toContain(`url(#${id})`)
+  expect(await builder.build("src/icons")).toBe(output)
+})
+
+test("isolates repeated local IDs within different symbols", async () => {
+  const symbol = (/** @type {string} */ id, /** @type {string} */ color) => `<symbol id="${id}" viewBox="0 0 10 10"><defs><linearGradient id="paint"><stop stop-color="${color}"/></linearGradient></defs><path fill="url(#paint)" d="M0 0h10v10H0z"/></symbol>`
+  await fs.promises.writeFile(path.join(sourceDir, "symbols.svg"), '<svg>' + symbol("red", "red") + symbol("blue", "blue") + '</svg>')
+  const output = await new NodeSpriteBuilder(rootDir).build("src/icons")
+  const ids = [...output.matchAll(/linearGradient id="([^"]+)"/g)].map(match => match[1])
+  expect(ids).toHaveLength(2)
+  expect(new Set(ids).size).toBe(2)
+  for (const id of ids) expect(output).toContain(`url(#${id})`)
 })

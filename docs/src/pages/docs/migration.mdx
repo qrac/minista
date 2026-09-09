@@ -905,3 +905,7 @@ export default function () {
 ## Islandの遅延module評価
 
 `client:visible`／`client:media`／`client:idle`はhydrationだけでなく、componentのJavaScript取得とmodule評価も条件成立まで遅延します。component moduleのトップレベルにある副作用をページ初期化として利用していた場合は、即時実行するscriptへ移してください。`client:load`／`client:only`はIsland entry実行時に取得を開始します。初期表示用のSSG CSSは維持されます。
+
+## Svg／Spriteの内部IDと重複symbol
+
+内部IDは決定的なprefix付きに変わります。元IDへの外部CSS／JavaScript参照を避け、classや明示propsを使用してください。Spriteの公開symbol IDは維持しますが、重複は上書きせず`MINISTA_SPRITE_DUPLICATE_SYMBOL` errorになります。衝突するsymbolを改名してください。Spriteは元のルート描画属性と共有defsも保持するようになります。

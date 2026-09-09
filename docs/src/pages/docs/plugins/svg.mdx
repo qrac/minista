@@ -92,3 +92,7 @@ SVGの展開に失敗した場合、buildは次のstable diagnostic codeを出�
 SVGO最適化後のルートから、`viewBox`、`preserveAspectRatio`、サイズ、`fill`／`stroke`などの描画属性、`style`／`class`を保持します。`Svg`に明示した同名propsを優先し、`style`／`className`も属性単位で置き換えます。元SVGのルート`id`、イベント属性、`data-*`などの任意属性はコピーしません。明示propsとsourceの両方にviewBoxがない場合は`0 0 0 0`を使います。
 
 devでは参照sourceの追加・変更・削除に応じてcacheを無効化し、参照ページを再読み込みします。server間でcacheを共有せず、再buildでもsourceを読み直します。内部IDの名前空間化はこの変更に含みません。
+
+## SVGの内部ID
+
+gradient・clipPathなどの内部IDと参照には、衝突を避ける決定的なprefixを付けます。同じSVGの複数配置にも対応します。元の内部IDを外部CSSやJavaScriptから参照しないでください。class名は維持します。

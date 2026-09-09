@@ -58,3 +58,29 @@ test("updates watched SVGs, isolates servers and refreshes repeated builds", asy
     await fs.rm(root, { recursive: true, force: true })
   }
 }, 30000)
+
+
+test("inline ID instances match between dev and build", async () => {
+  const temp = path.resolve("packages/minista/test/.tmp")
+  await fs.mkdir(temp, { recursive: true })
+  const root = await fs.mkdtemp(path.join(temp, "svg-ids-"))
+  const html = markup + markup
+  /** @type {import("vite").InlineConfig} */
+  const config = { root, configFile: false, plugins: [pluginSvg()], logLevel: /** @type {const} */ ("silent") }
+  let server
+  try {
+    await fs.writeFile(path.join(root, "index.html"), html)
+    await fs.writeFile(path.join(root, "icon.svg"), '<svg viewBox="0 0 10 10"><defs><linearGradient id="a"><stop stop-color="red"/><stop offset="1" stop-color="blue"/></linearGradient></defs><path fill="url(#a)" d="M0 0h10v10H0z"/></svg>')
+    server = await createServer(config)
+    const dev = await server.transformIndexHtml("/", html)
+    await build(config)
+    const built = await fs.readFile(path.join(root, "dist/index.html"), "utf8")
+    const ids = (/** @type {string} */ code) => [...code.matchAll(/id="(minista-[^"]+)"/g)].map(match => match[1])
+    expect(ids(dev)).toHaveLength(2)
+    expect(new Set(ids(dev)).size).toBe(2)
+    expect(ids(built)).toEqual(ids(dev))
+  } finally {
+    await server?.close()
+    await fs.rm(root, { recursive: true, force: true })
+  }
+}, 30000)

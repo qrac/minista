@@ -14,7 +14,7 @@ export interface SvgSource {
 }
 
 export interface SvgSourceResolver {
-  resolve(sourcePath: string): Promise<SvgSource | undefined>
+  resolve(sourcePath: string, instanceKey?: string): Promise<SvgSource | undefined>
 }
 
 export declare const SVG_FEATURE_ID: FeatureId
