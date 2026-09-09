@@ -909,3 +909,9 @@ export default function () {
 ## Svg／Spriteの内部IDと重複symbol
 
 内部IDは決定的なprefix付きに変わります。元IDへの外部CSS／JavaScript参照を避け、classや明示propsを使用してください。Spriteの公開symbol IDは維持しますが、重複は上書きせず`MINISTA_SPRITE_DUPLICATE_SYMBOL` errorになります。衝突するsymbolを改名してください。Spriteは元のルート描画属性と共有defsも保持するようになります。
+
+## EntryのHTML参照
+
+`pluginEntry()`の書換え対象を収集対象と同じ`link[href]`、`script[src]`、`img[src]`、`img[srcset]`、`source[srcset]`、`use[href]`へ揃えました。別の要素で収集されたURLと同じ値でも、`meta[content]`、`video[poster]`、`a[href]`などの対象外属性は変更しません。これらの属性で生成assetを使う場合は、SSGのmodule importから得たURLかpublic assetのURLを指定してください。
+
+entryがimportするCSSは参照ページにだけ一度挿入します。別ページのentryを通じた暗黙のCSS適用に依存していた場合は、対象ページ／LayoutからCSSをimportするか、明示的なstylesheet linkを追加してください。`//`で始まる外部URLは収集せず、CDNの絶対URLを指定した`base`はprotocolを保持します。query／fragmentは保持しますが、Viteのmodule変換queryとしては解釈しません。詳細は[pluginEntry](/docs/plugins/entry/)を参照してください。

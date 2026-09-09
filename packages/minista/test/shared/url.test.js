@@ -177,6 +177,16 @@ describe("getBuildBase", () => {
 })
 
 describe("getBasedAssetUrl", () => {
+  it("CDN baseのprotocolを保持する", () => {
+    expect(getBasedAssetUrl("https://cdn.example.com/site/", "blog/index.html", "assets/logo.png"))
+      .toBe("https://cdn.example.com/site/assets/logo.png")
+  })
+
+  it("空のbaseはページ相対URLを返す", () => {
+    expect(getBasedAssetUrl("", "blog/index.html", "assets/logo.png"))
+      .toBe("../assets/logo.png")
+  })
+
   it("baseが './' のとき相対パスを返す", () => {
     const result = getBasedAssetUrl("./", "blog/index.html", "assets/logo.png")
     expect(result).toBe("../assets/logo.png")

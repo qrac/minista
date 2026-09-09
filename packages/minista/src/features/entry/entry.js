@@ -31,34 +31,52 @@ function capability(value) {
   return /** @type {Capability} */ (/** @type {unknown} */ (value))
 }
 
-/** @param {string} value */
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-}
+// Collection and composition intentionally share this element/attribute contract.
+const targets = [
+  ["link[href]", "href"],
+  ["script[src]", "src"],
+  ["img[src]", "src"],
+  ["img[srcset]", "srcset"],
+  ["source[srcset]", "srcset"],
+  ["use[href]", "href"],
+]
 
 /**
+ * Keep URL ranges so query, fragment, descriptors and whitespace survive edits.
+ * Commas inside a srcset URL (including data URLs) are not separators.
  * @param {string} value
- * @returns {readonly string[]}
+ * @param {string} attribute
  */
-function collectRootPaths(value) {
-  return Object.freeze(
-    value.split(",").flatMap((part) => {
-      const source = part.trim().split(/[#? ]/)[0]
-      return source?.startsWith("/") ? [source.slice(1)] : []
-    }),
-  )
-}
-
-/**
- * @param {string} value
- * @param {string} source
- * @param {string} output
- */
-function replaceReference(value, source, output) {
-  return value.replace(
-    new RegExp(`(^|,\\s*)/${escapeRegExp(source)}(?=([#?\\s,]|$))`, "g"),
-    `$1${output}`,
-  )
+function referenceRanges(value, attribute) {
+  const ranges = []
+  if (attribute !== "srcset") {
+    const start = value.search(/\S/)
+    if (start >= 0) ranges.push({ start, end: value.trimEnd().length })
+  } else {
+    let cursor = 0
+    while (cursor < value.length) {
+      while (/[\t\n\f\r ,]/.test(value[cursor] ?? "") && cursor < value.length) cursor++
+      const start = cursor
+      while (cursor < value.length && !/[\t\n\f\r ]/.test(value[cursor])) cursor++
+      let end = cursor
+      while (value[end - 1] === ",") end--
+      if (end > start) ranges.push({ start, end })
+      if (end < cursor) continue
+      let parentheses = 0
+      while (cursor < value.length) {
+        const character = value[cursor++]
+        if (character === "(") parentheses++
+        if (character === ")") parentheses--
+        if (character === "," && parentheses === 0) break
+      }
+    }
+  }
+  return ranges.flatMap(({ start, end }) => {
+    const url = value.slice(start, end)
+    const source = url.split(/[?#]/)[0]
+    if (!source.startsWith("/") || source.startsWith("//") || source.length === 1 || /\s/.test(source)) return []
+    return [{ start, end: start + source.length, source: source.slice(1) }]
+  })
 }
 
 /**
@@ -68,19 +86,11 @@ function replaceReference(value, source, output) {
 export function collectEntryReferences(document) {
   /** @type {EntryReference[]} */
   const references = []
-  const targets = [
-    ["link[href]", "href"],
-    ["script[src]", "src"],
-    ["img[src]", "src"],
-    ["img[srcset]", "srcset"],
-    ["source[srcset]", "srcset"],
-    ["use[href]", "href"],
-  ]
   for (const [selector, attribute] of targets) {
     for (const element of document.select(selector)) {
       const value = element.getAttribute(attribute)
       if (!value) continue
-      for (const source of collectRootPaths(value)) {
+      for (const { source } of referenceRanges(value, attribute)) {
         references.push(
           Object.freeze({ pageId: document.pageId, source, attribute }),
         )
@@ -108,24 +118,38 @@ export function collectEntryReferences(document) {
  */
 export function composeEntryDocument(document, outputs, resolver) {
   let composed = 0
-  for (const output of outputs) {
-    const url = resolver.resolve(output.fileName, document.pageId)
-    if (!url) continue
-    for (const element of document.select("*")) {
-      for (const attribute of ["href", "src", "srcset", "content", "poster"]) {
-        const value = element.getAttribute(attribute)
-        if (!value) continue
-        const next = replaceReference(value, output.source, url)
-        if (next === value) continue
-        element.setAttribute(attribute, next)
-        composed += 1
+  const usedOutputs = new Set()
+  for (const [selector, attribute] of targets) {
+    for (const element of document.select(selector)) {
+      const value = element.getAttribute(attribute)
+      if (!value) continue
+      let next = value
+      // Read each original URL once: generated URLs must not become new sources.
+      for (const { start, end, source } of referenceRanges(value, attribute).reverse()) {
+        const output = outputs.find((item) => item.source === source)
+        if (!output) continue
+        const url = resolver.resolve(output.fileName, document.pageId)
+        if (!url) continue
+        usedOutputs.add(output)
+        next = next.slice(0, start) + url + next.slice(end)
       }
+      if (next === value) continue
+      element.setAttribute(attribute, next)
+      composed += 1
     }
-    const head = document.select("head")[0]
-    if (!head) continue
-    for (const cssFile of output.cssFiles) {
-      const cssUrl = resolver.resolve(cssFile, document.pageId)
-      if (cssUrl) head.appendHtml(`<link rel="stylesheet" href="${cssUrl}">`)
+  }
+  const head = document.select("head")[0]
+  if (head) {
+    const styles = new Set(document.select('link[rel="stylesheet"][href]')
+      .map((element) => element.getAttribute("href")))
+    for (const output of usedOutputs) {
+      for (const cssFile of output.cssFiles) {
+        const cssUrl = resolver.resolve(cssFile, document.pageId)
+        if (!cssUrl || styles.has(cssUrl)) continue
+        styles.add(cssUrl)
+        const escapedUrl = cssUrl.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
+        head.appendHtml(`<link rel="stylesheet" href="${escapedUrl}">`)
+      }
     }
   }
   return composed

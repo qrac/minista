@@ -74,3 +74,13 @@ SVG解析・最適化と描画用ルート属性のallowlistをNode adapterで�
 Spriteは文書単位で共有defsとルート属性を保持し、symbol内の定義をsymbol単位で分離した後、source相対パスで名前空間化する。ファイル名由来・既存symbolの公開IDを維持する。ファイル探索順はsortし、重複公開IDは同一ファイル内も含め`MINISTA_SPRITE_DUPLICATE_SYMBOL` errorで両sourceを示す。
 
 SVGOの`prefixIds`でURL・href・CSS ID selectorを変換し、ARIA IDREFも追従する。classは変更しない。外部CSS／JavaScriptから元の内部IDへアクセスする契約は提供しない。公開symbolを削除・改名するSVGO設定は`MINISTA_SPRITE_OPTIMIZE_FAILED`で停止する。既定のSprite最適化は`cleanupIds`／`removeHiddenElems`を無効にし、外部から参照されるsymbolを残す。任意のscript、外部stylesheet、複雑なSMIL式の変換は保証しない。
+
+## EntryのHTML参照契約（2026-09-09）
+
+P10では収集と書換えを同じelement／attribute表とURL range parserに揃える。対象は`link[href]`、`script[src]`、`img[src]`、`img[srcset]`、`source[srcset]`、`use[href]`。`link`のrelとscriptのtypeによる追加制限は設けない。無条件に`content`／`poster`や任意の要素の同名属性を書き換える挙動は廃止する。対象外属性に対する新しいerrorは追加せず、そのまま保持する。対象外属性も同時に変換されることへ依存した利用者は、module importのURLまたはpublic assetへ移行する。
+
+単一URLとsrcset候補を区別し、単一URLのカンマ、data URL、query／fragment、descriptorを保持する。`//`を外部URLとして除外する。query／fragmentはsource解決前に切り離し、確定URLへ戻す。queryをVite module変換指定として扱うAPIは追加しない。project root内に実在する参照だけをadapterがclient inputへ登録し、publicのみの参照と欠落参照は従来どおり未変更・診断なしとする。publicとrootの同名pathはrootの実ファイルが優先される。
+
+元の属性値のrangeだけを書き換え、生成URLを別sourceとして再解釈しない。imported CSSは参照が解決したページにだけ挿入し、書換え後の既存stylesheetと生成CSSをURLで重複排除する。query／fragment違いは同一視しない。claimのconsumerは解析済み参照から求める既存契約を維持する。CSSの全ページ注入はclaimと一致しないため採用しない。
+
+SSGはmodule import由来asset、EntryはHTML参照由来assetを担当する。公開option、phase、Artifact schema、Vite対応rangeは変更しない。baseのURL生成時にfilesystemのpath正規化が`https://`を壊す不具合は、baseとasset pathを分けて修正する。

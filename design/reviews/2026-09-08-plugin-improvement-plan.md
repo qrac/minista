@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01〜P09完了。P10〜P11は未着手
+- 状態: 計画を文書化済み。P01〜P10完了。P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -69,7 +69,7 @@
 | [x] | P07 | 中 | Islandの条件付きmodule読み込み | 独立。Vite／React compatibility検証が必要 |
 | [x] | P08 | 中 | Beautifyの責務と出力整合性を改善 | P05とformatter境界を調整 |
 | [x] | P09 | 中 | Svg／SpriteのIDとsymbol診断 | P02後。source contractを共通化 |
-| [ ] | P10 | 低 | Entry参照契約と説明を整理 | P02／P09の出力との組合せも確認 |
+| [x] | P10 | 低 | Entry参照契約と説明を整理 | P02／P09の出力との組合せも確認 |
 | [ ] | P11 | 条件付き | Archiveのstreaming対応 | P03後。大容量benchmarkで必要性を判断 |
 
 ### P01: Searchの除外とquery処理
@@ -274,6 +274,8 @@
 
 ### P10: Entry参照契約と説明
 
+着手日: 2026-09-09。参照契約の共通化、CSSの参照ページ限定と重複排除、baseと併用claimの検証、公開説明を対象とする。
+
 対象: [Entry feature](../../packages/minista/src/features/entry/entry.js)、公開docs。
 
 - 収集・解決・書換えの対象属性を一つの明示的な契約へ揃える。`content`や`poster`を無条件にassetとみなさず、対象element／値の条件を定義する。
@@ -281,6 +283,17 @@
 - SSGのmodule import由来assetとEntryのHTML参照由来assetの違いを具体例で説明する。
 
 完了条件: 収集対象だけを適切に書き換え、共有CSSを重複挿入せず、SSG／Image／Svg／Sprite／Islandと併用したfixtureで出力とclaimが一致する。走査最適化は結果を固定した後に測定する。
+
+完了記録（2026-09-09）:
+
+- 収集・書換えのelement／attribute表とURL range parserを共有した。従来の6対象を維持し、`content`／`poster`／anchorなど対象外属性の便乗書換えを廃止する。元の参照だけを書き換え、生成URLを別sourceとして再解釈しない。
+- `//`を外部URLとして除外し、単一URL内のカンマとsrcsetのdata URLを区別する。query／fragment、descriptorと空白を保持する。publicのみの参照と欠落参照は従来どおり未変更・診断なし。rootとの同名衝突、queryをmodule変換指定として解釈しない制約を公開docsへ明記した。
+- imported CSSを参照ページだけに挿入し、明示stylesheetと共有CSSの同一URLを重複排除した。CDN baseのprotocolをfilesystem path正規化が壊す既存不具合も共有URL helperで修正した。
+- unitで収集／書換え境界、query／fragment、data URL／外部URL／相対URL、srcset、未参照CSS、共有CSS、生成URLの再書換え防止を検証した。実ViteのSSG／Image／Svg／Sprite／Island併用fixtureで、空・ルート・サブパス・相対・CDNのbase、階層ページ、public参照、CSSの非参照ページへの非挿入、出力実在とEntry claimのconsumer一致を確認した。
+- 最終`npm run test:ci`: exit 0、112ファイル・488テストと`tsc --noEmit`が成功。初回sandbox実行はローカルHTTP listen制限で失敗したためlistenを許可して再実行した。追加fixtureの型注釈修正後に全体を通した。既存のHMRポート競合warningは出たがテストは成功した。
+- `npm run test:cli-contracts`: exit 0。fixtureのcheck／inspect／buildが成功し、生成distは型検査への混入を避けてリポジトリ外へ退避した。`git diff --check`も成功した。
+- [走査測定](../benchmarks/2026-09-09-entry-references.md)にcompose単体の3条件・変更前後5sampleと出力ハッシュ一致を記録した。実サイト全体のbuild時間・メモリ・収集の重複排除は測定・最適化対象外。
+- architecture・ADR-0004・公開Entry docs・migration noteを更新した。公開option、Artifact schema、Vite／React／Node.jsの対応範囲とexperimental API採用に変更はない。ブラウザ操作／画面比較とCompatibility CIの手動dispatchは実施していない。
 
 ### P11: Archiveの大容量対応
 

@@ -107,5 +107,5 @@ export function getBasedAssetUrl(base, htmlName, assetName) {
   if (base === "./" || base === "") {
     return normalizePath(path.relative(path.dirname(htmlName), assetName))
   }
-  return normalizePath(base.replace(/\/$/, "") + "/" + assetName)
+  return base.replace(/\/$/, "") + "/" + normalizePath(assetName)
 }
