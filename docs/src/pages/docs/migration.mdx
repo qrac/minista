@@ -884,3 +884,7 @@ export default function () {
 `pluginArchive()`および`archives[].srcDir`の省略時は、固定の`dist`ではなく解決済み`build.outDir`を入力にします。例えば`build.outDir: "output"`なら`output`を圧縮し、既定の出力名は`output/dist.zip`です。従来どおり別の`dist`を入力にしたい場合は`srcDir: "dist"`を明示してください。
 
 欠落した入力は空archiveの成功生成ではなく`MINISTA_ARCHIVE_SOURCE_NOT_FOUND` errorになり、ディレクトリ以外の指定は`MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY` errorになります。存在する空ディレクトリは引き続き許可します。同じ`archives`に設定された全出力パスは前回分も入力から除外し、再build時のarchiveの入れ子化を防ぎます。
+
+## Islandの遅延module評価
+
+`client:visible`／`client:media`／`client:idle`はhydrationだけでなく、componentのJavaScript取得とmodule評価も条件成立まで遅延します。component moduleのトップレベルにある副作用をページ初期化として利用していた場合は、即時実行するscriptへ移してください。`client:load`／`client:only`はIsland entry実行時に取得を開始します。初期表示用のSSG CSSは維持されます。

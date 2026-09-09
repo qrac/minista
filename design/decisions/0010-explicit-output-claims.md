@@ -44,3 +44,7 @@ Vite hook orderがGraph mutation orderになり、未確定outputを登録でき
 
 - 全compatibility featureがCore lifecycleへ移行し、bundle phaseのGraph commandとして直接表現できる場合
 - Viteがplugin output ownershipをmachine-readableに提供した場合
+
+## Islandのconditional output（2026-09-09）
+
+Island adapterは確定entryから`imports`／`dynamicImports`／`viteMetadata.importedCss`を巡回し、到達するscript／styleのclaimとArtifact dependency、consumer Page URLを登録します。循環と共有chunkはfile nameで重複排除します。claimに遅延出力を含めても初期HTMLへpreload／stylesheetを追加する根拠にはしません。HTMLへ合成するentry CSSと、条件成立後にViteが取得するCSSを区別します。

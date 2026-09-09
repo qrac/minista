@@ -220,3 +220,11 @@ export default function () {
   )
 }
 ```
+
+## 条件付きのJavaScript読み込み
+
+`client:visible`、`client:media`、`client:idle`は条件が成立してからcomponentとhydration用のJavaScriptを取得・評価します。`client:load`と`client:only`はページのIsland entry実行時に取得を開始します。同じcomponentを複数配置してもmoduleは再利用し、各要素を一度ずつhydrateします。
+
+初期HTMLの表示に必要なCSSは引き続き読み込みます。遅延chunkに含まれるCSSはViteがmoduleと一緒に取得します。別の即時componentや通常のscriptと共有する依存は先に読み込まれる場合があります。
+
+条件成立後には通信とJavaScript実行の待ち時間が発生します。すぐに操作するUIには`client:load`を使ってください。読み込み失敗時はSSRの表示を残し、consoleへ`MINISTA_ISLAND_LOAD_FAILED`を出力します。自動で再試行しないため、接続回復後はページを再読み込みしてください。

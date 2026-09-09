@@ -3,7 +3,7 @@
 - 作成日: 2026-09-08
 - 対象: minista v5の公開10プラグインと内部feature／adapter
 - レビュー時点のHEAD: `22118d9`
-- 状態: 計画を文書化済み。P01〜P06完了。P07〜P11は未着手
+- 状態: 計画を文書化済み。P01〜P07完了。P08〜P11は未着手
 - 目的: 別のチャットやcontributorが、会話履歴なしで根拠・着手順・完了条件を把握できるようにする
 
 ## 結論と前提
@@ -66,7 +66,7 @@
 | [x] | P04 | 高 | 公開型と配布依存を修正 | 最初の修正群 |
 | [x] | P05 | 中 | 重い依存を遅延ロード | P04後を推奨。公開型への影響も検証 |
 | [x] | P06 | 中 | Search辞書と内部境界を改善 | P01後 |
-| [ ] | P07 | 中 | Islandの条件付きmodule読み込み | 独立。Vite／React compatibility検証が必要 |
+| [x] | P07 | 中 | Islandの条件付きmodule読み込み | 独立。Vite／React compatibility検証が必要 |
 | [ ] | P08 | 中 | Beautifyの責務と出力整合性を改善 | P05とformatter境界を調整 |
 | [ ] | P09 | 中 | Svg／SpriteのIDとsymbol診断 | P02後。source contractを共通化 |
 | [ ] | P10 | 低 | Entry参照契約と説明を整理 | P02／P09の出力との組合せも確認 |
@@ -216,6 +216,17 @@
 - Viteのpreloadが意図せず遅延moduleを先行取得しないか実際のbrowserで確認する。
 
 完了条件: 条件不成立時に対象snippetが取得・評価されず、成立後は一度だけhydrateされる。CSS、ページ分割、同一componentの複数配置、React 19と既存Preact経路を確認する。初期転送量と操作可能になるまでの遅延を測定し、出力claimも更新する。
+
+完了記録（2026-09-09）:
+
+- dev/buildで共通のbrowser runtimeを使用し、`visible`／`media`／`idle`の条件成立時にsnippetとReact rendererをdynamic importする。`load`／`only`はentry実行時に取得を開始する。未使用の旧dev専用code generatorを削除した。
+- 要素ごとの開始guardと取得Promise共有で二重hydrateを防ぐ。条件成立時にobserver／media listenerを解除し、切断要素をhydrateしない。失敗はSSRを保持してbrowserへstable code付きstructured diagnosticを出し、自動retryしない。
+- Viteのstatic／dynamic importとCSS metadataから到達する出力のclaim・dependency・page consumerを登録する。遅延chunkのclaimを初期HTMLへのpreloadへ変換しない。SSG由来の初期CSSを維持する。
+- unitで未成立時のloader未実行、繰返し通知、2instance、idle fallback、load／only、取得失敗と他Islandの継続、切断要素を検証した。実Vite integrationでページ分割有効／無効、Islandなしページ、dynamic import／CSS出力、出力claimを確認した。
+- React 19の実ブラウザでvisible／mediaの条件成立前後の通信・評価、idle／only、dev、CSS取得を確認した。Preactの既存Legacy alias経路でも2instanceの操作に成功した。[初期転送量と操作準備までの遅延](../benchmarks/2026-09-09-island-lazy.md)を記録した。
+- 最終`npm run test:ci`: exit 0、109ファイル・453テストと`tsc --noEmit`が成功。`npm run test:contracts`、`npm run test:preact`、`npm run test:cli-contracts`もexit 0。初回sandbox実行はHTTP listen制限、途中の型検査はfixture生成bundleの混入があったため、listen許可・生成物退避後に再実行した。
+- ADR-0004／0010、architecture、Vite境界、公開Island docsとmigration noteを更新した。Vite／React／Node.jsの対応rangeとexperimental API採用は変更していない。Compatibility CIの手動dispatchは行っていない。ローカルcompatibility検証はlockfileのVite 8.2.2／React 19.2.8／Preact 10.29.8で実施した。
+- 制限: 別の即時entryと共有する依存や利用者のchunk統合・preload指定、`cssCodeSplit:false`まで取得遅延を保証しない。browser測定はlocalhostの参考値で、実回線・上流version matrix・自動browser CIは含まない。
 
 ### P08: Beautifyの責務と出力整合性
 

@@ -237,3 +237,9 @@ Stage 8完了時点でfallbackは次の2経路だけです。
 ### Svg source更新（2026-09-08）
 
 Svgのwatchとpage reloadは既存の`ViteDevUpdateAdapter`を使います。serverごとのsource→page参照をresolver呼出しから記録し、add／change／unlinkでNode resolverを無効化します。Viteの新規API採用や対応versionの変更はありません。buildのresolver cacheはbundle開始ごとにclearします。
+
+## Islandのdynamic import（2026-09-09）
+
+生成entryのliteralな`import()`をViteの通常chunk分割・async CSS取得へ渡します。独自のpreload抑制やexperimental APIは追加しません。条件成立後の共有chunk並行取得はViteの最適化に任せます。SSGが初期HTMLに出すCSSは維持します。`build.cssCodeSplit:false`や利用者によるchunk統合、別の即時entryによる共有module取得では遅延範囲が変わります。
+
+公式仕様の確認: [Vite CSS code splitting／async chunk loading](https://vite.dev/guide/features#css-code-splitting)、2026-09-09。実ブラウザの確認と転送量は[測定記録](benchmarks/2026-09-09-island-lazy.md)を参照してください。

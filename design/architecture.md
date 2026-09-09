@@ -397,3 +397,7 @@ manifest snapshotだけに依存せず、graph invariant、diagnostic code、dis
 ### Svg sourceの合成契約
 
 SvgSourceは最適化後の描画用ルート属性を明示allowlistで保持し、composeは明示propsを優先します。任意のdata属性、イベント属性、ルートIDは取り込みません。dev adapterはresolverへの参照をpageごとに記録し、sourceの追加・変更・削除でcacheを無効化して参照ページだけをreloadします。参照とcacheはserver identityごとに分離し、buildではbundle処理の開始時にcacheをclearします。invalidation前から進行中の読込結果はcacheへ戻しません。
+
+### Islandのbrowser読み込み
+
+Islandのdev/build entryは共通runtimeとsnippet loader表を持ちます。`visible`／`media`／`idle`は条件成立時にsnippetとReact rendererをdynamic importし、`load`／`only`はentry評価時に取得を開始します。要素ごとの開始guardと取得Promiseの共有で重複hydrateを防ぎます。取得失敗はSSRを保持し、browserのstructured diagnosticへ接続します。Vite adapterは静的・動的chunkとCSSの到達関係からoutput claimを生成し、遅延出力をHTMLの先行取得へ変換しません。

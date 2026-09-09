@@ -56,6 +56,13 @@ export const defaultOptions = {
 }
 const entryGenerator = new NodeIslandEntryGenerator()
 
+/** @param {string} directory */
+async function writeIslandRuntime(directory) {
+  await Promise.all(["runtime.js", "renderer.js"].map((name) =>
+    fs.promises.copyFile(new URL(`./${name}`, import.meta.url), path.resolve(directory, name)),
+  ))
+}
+
 /**
  * @param {UserPluginOptions} uOpts
  * @returns {Plugin}
@@ -139,6 +146,7 @@ export function pluginIsland(uOpts = {}) {
     /** @type {import("../../features/island/index.js").IslandSourcePlan} */
     const activeSourcePlan = JSON.parse(String(sourceRecord.content))
     state.sourcePlan = activeSourcePlan
+    await writeIslandRuntime(islandDir)
     await Promise.all(
       activeSourcePlan.snippets.map(async (snippet) => {
         const fullPath = path.resolve(
@@ -280,6 +288,7 @@ export function pluginIsland(uOpts = {}) {
         entryGenerator,
         {
           async bundle(plan) {
+            await writeIslandRuntime(islandDir)
             await Promise.all(plan.snippets.map((snippet) =>
               fs.promises.writeFile(
                 path.resolve(snippetsDir, `snippet-${snippet.index}.tsx`),
@@ -458,39 +467,46 @@ export function pluginIsland(uOpts = {}) {
         urls.push(page.url)
         pageUrlsByPattern.set(patternIndex, urls)
       }
+      // Follow both static and conditional edges for ownership, without adding
+      // conditional styles or scripts to the initial HTML.
       /** @type {Map<string, Set<string>>} */
-      const cssPageUrls = new Map()
+      const consumers = new Map()
+      /** @type {Map<string, Set<string>>} */
+      const dependencies = new Map()
+      const chunksByFile = new Map(Object.values(outputChunks).map((chunk) => [chunk.fileName, chunk]))
       for (const output of bundleOutputs) {
         const pageUrls = pageUrlsByPattern.get(output.patternIndex) ?? []
-        outputClaims.push(Object.freeze({
-          id: createNodeId(
-            "artifact",
-            "island-output",
-            String(output.patternIndex),
-          ),
-          kind: "script",
-          owner: createNodeId("feature", "island"),
-          source: `pattern:${output.patternIndex}`,
-          fileName: output.fileName,
-          pageUrls: Object.freeze(pageUrls),
-          dependencies: Object.freeze([]),
-        }))
-        for (const fileName of output.cssFiles) {
-          const consumers = cssPageUrls.get(fileName) ?? new Set()
-          for (const pageUrl of pageUrls) consumers.add(pageUrl)
-          cssPageUrls.set(fileName, consumers)
+        const visited = new Set()
+        /** @param {string} fileName */
+        const visit = (fileName) => {
+          if (visited.has(fileName)) return
+          visited.add(fileName)
+          const urls = consumers.get(fileName) ?? new Set()
+          for (const url of pageUrls) urls.add(url)
+          consumers.set(fileName, urls)
+          const chunk = chunksByFile.get(fileName)
+          if (!chunk) return
+          const refs = [
+            ...chunk.imports, ...chunk.dynamicImports,
+            ...(chunk.viteMetadata?.importedCss ?? []),
+          ].filter((ref) => Boolean(bundle[ref]))
+          dependencies.set(fileName, new Set(refs))
+          refs.forEach(visit)
         }
+        visit(output.fileName)
       }
-      outputClaims.push(...[...cssPageUrls].map(([fileName, pageUrls]) =>
+      /** @param {string} fileName */
+      const claimId = (fileName) => createNodeId("artifact", "island-output", fileName)
+      outputClaims.push(...[...consumers].map(([fileName, pageUrls]) =>
         Object.freeze({
-          id: createNodeId("artifact", "island-style-output", fileName),
-          kind: /** @type {const} */ ("style"),
+          id: claimId(fileName),
+          kind: chunksByFile.has(fileName) ? /** @type {const} */ ("script") : /** @type {const} */ ("style"),
           owner: createNodeId("feature", "island"),
-          source: "island-style",
+          source: "island-bundle",
           fileName,
           pageUrls: Object.freeze([...pageUrls]),
-          dependencies: Object.freeze([]),
-        })
+          dependencies: Object.freeze([...(dependencies.get(fileName) ?? [])].map(claimId)),
+        }),
       ))
 
       const outputDocuments = new Map(
