@@ -54,8 +54,9 @@ Minista renders static HTML with React. Page components are not automatically
 hydrated. Use `pluginIsland` for interactive components; follow existing island
 usage and the installed `minista/assets` types instead of assuming a React SPA.
 
-Page/layout imports of CSS and images are handled by `pluginSsg`. Use
-`pluginEntry` for root asset entries such as module scripts in the document.
+Page/layout imports of CSS and images, and root asset entries such as module
+scripts in the document, are handled by `pluginSsg`. Do not add `pluginEntry`.
+Public CSS and JavaScript can be used alongside bundled source entries.
 Other optional plugins are `pluginImage`, `pluginSvg`, `pluginSprite`,
 `pluginComment`, `pluginSearch`, `pluginBeautify`, and `pluginArchive`.
 Enable and configure the features the project needs. Public options and types

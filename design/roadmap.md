@@ -50,7 +50,7 @@ route discovery、param parser、PageNode resolution、`getStaticData()`診断�
 
 進捗: 完了。
 
-全公開pluginにmachine-readable feature metadataを追加しました。SSG、Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、IslandをCore lifecycleへ接続しました。BundleとMDXの公開設定はSSGへ統合し、MDX compiler adapterはVite境界に置いています。productionとdevは同じdomain featureを使用します。
+全公開pluginにmachine-readable feature metadataを追加しました。SSG、Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、IslandをCore lifecycleへ接続しました。Bundle、MDX、Entryの公開APIはSSGへ統合し、MDX compilerとEntry adapterはVite境界に置いています。productionとdevは同じdomain featureを使用します。
 
 完了条件: featureがrendered page dataを実行可能temp moduleからimportせず、依存、capability、Artifact ownership、phaseを明示する。
 

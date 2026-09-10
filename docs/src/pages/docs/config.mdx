@@ -30,10 +30,10 @@ ministaはv4以降、すべての機能をViteプラグイン化しています�
 例えば、基本のSSGに加えてMDXやアセットのエントリー機能を追加する場合は以下のように記述を増やします。プラグインの使い方は各ページを参照ください。
 
 ```ts title="./vite.config.ts"
-import { defineConfig, pluginSsg, pluginEntry } from "minista"
+import { defineConfig, pluginSsg } from "minista"
 
 export default defineConfig({
-  plugins: [pluginSsg(), pluginEntry()],
+  plugins: [pluginSsg()],
 })
 ```
 

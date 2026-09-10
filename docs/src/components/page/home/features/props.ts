@@ -61,7 +61,7 @@ export const initialProps: Props = {
     },
     {
       tabletColumn: 4,
-      href: "/docs/plugins/entry",
+      href: "/docs/plugins/ssg/#html-assets",
       title: "✍️ Dynamic Entry",
       description:
         "アセット用のCSSやJavaScriptをJSX内のルートパスから自動的に取得。",

@@ -1,7 +1,6 @@
 import {
   defineConfig,
   pluginSsg,
-  pluginEntry,
   pluginSvg,
   pluginIsland,
   pluginSearch,
@@ -65,7 +64,6 @@ export default defineConfig({
         ],
       },
     }),
-    pluginEntry(),
     pluginSvg(),
     pluginIsland(),
     pluginSearch({

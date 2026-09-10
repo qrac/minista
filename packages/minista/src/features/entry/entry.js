@@ -216,6 +216,22 @@ export function createEntryFeature(options, bundler, outputs) {
           content: JSON.stringify(bundled),
         })
         if (context.graph.hasFeature(ENTRY_FEATURE_ID)) {
+          // A later bundle lifecycle can receive analyzed artifacts as explicit
+          // input. Restore their graph nodes before adding plan dependencies.
+          const existingArtifacts = context.graph.snapshot().artifacts
+          const referencePages = new Map(references.map(({ pageId }) => [
+            createNodeId("artifact", "entry-references", pageId), pageId,
+          ]))
+          for (const record of records) {
+            if (existingArtifacts.has(record.id)) continue
+            context.graph.addArtifact({
+              id: record.id,
+              kind: "data",
+              owner: ENTRY_FEATURE_ID,
+              source: `page:${referencePages.get(record.id)}`,
+              dependencies: [],
+            })
+          }
           for (const reference of unique) {
             context.graph.addAsset({
               id: createNodeId("asset", reference.source),

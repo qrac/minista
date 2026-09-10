@@ -1,4 +1,5 @@
-import { defineConfig, pluginSsg, pluginEntry, pluginImage, pluginSvg, pluginSprite, pluginComment, pluginIsland, pluginSearch, pluginBeautify, pluginArchive } from "minista"
+import * as minista from "minista"
+import { defineConfig, pluginSsg, pluginImage, pluginSvg, pluginSprite, pluginComment, pluginIsland, pluginSearch, pluginBeautify, pluginArchive } from "minista"
 import { Image, Picture, Svg, Sprite, Comment, Search } from "minista/assets"
 import { Head } from "minista/head"
 import { HeadContext } from "minista/context"
@@ -9,7 +10,7 @@ import Mdx from "./page.mdx"
 
 defineConfig({ plugins: [
   pluginSsg({ removeImagePreload: false, mdx: { jsxRuntime: "automatic", remarkPlugins: [() => tree => tree], frontmatter: { name: "metadata" } }, bundle: {} }),
-  pluginEntry(), pluginImage({ optimize: { format: "webp", formatOptions: { webp: { lossless: true } } } }),
+  pluginImage({ optimize: { format: "webp", formatOptions: { webp: { lossless: true } } } }),
   pluginSvg({ config: { multipass: true } }), pluginSprite({ config: { multipass: true } }), pluginComment(),
   pluginIsland({ rootDOMElement: "span", rootStyle: { display: "contents" } }),
   pluginSearch({ hit: { minLength: 2 } }),
@@ -28,7 +29,7 @@ pluginSsg({ mdx: { jsxRuntime: "invalid" } })
 // @ts-expect-error Internal compiler option is not public.
 pluginSsg({ mdx: { development: true } })
 // @ts-expect-error Plugin argument cannot be a scalar.
-pluginEntry(null)
+pluginSsg(null)
 // @ts-expect-error Invalid image format.
 pluginImage({ optimize: { format: "gif" } })
 // @ts-expect-error Invalid SVGO option.
@@ -65,3 +66,6 @@ void [badPicture, badSvg, badSprite, badComment, badHead]
 
 // @ts-expect-error SSG preload policy must be boolean.
 pluginSsg({ removeImagePreload: "false" })
+
+// @ts-expect-error Entry is included in SSG; the standalone factory was removed.
+minista.pluginEntry()

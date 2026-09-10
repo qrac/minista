@@ -1,83 +1,16 @@
 ---
-title: pluginEntry
+title: pluginEntryからの移行
 layout: docs
 ---
 
-# pluginEntry
+# pluginEntryからの移行
 
-ルートパスのCSS・JavaScript・画像をビルドプロセスに乗せるプラグイン。
+v5では`pluginEntry()`を削除し、HTML属性に直接指定したCSS・JavaScript・画像のビルドを`pluginSsg()`へ統合しました。importとplugins配列から`pluginEntry`を削除してください。追加オプションは不要です。
 
-## Table of Contents
+```js title="./vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
 
-contents list
-
-## SSGとの役割の違い
-
-ページやLayoutのmodule importから参照するCSS・画像は`pluginSsg()`が出力します。この用途に`pluginEntry()`は不要です。
-
-```jsx
-import "../assets/style.css"
-import image from "../assets/image.png"
-
-export default function Page() {
-  return <img src={image} />
-}
+export default defineConfig({ plugins: [pluginSsg()] })
 ```
 
-`pluginEntry()`は、次の例のようにHTML属性へ直接書いた`/src/assets/style.css`や`/src/assets/script.ts`などをbuild対象にします。scriptはbrowserで実行するentryです。ページmodule自体をbrowserで実行する機能ではありません。
-
-devではViteが元の参照を配信し、Entryによるbundle・URL書換えはbuild時に行います。
-
-## 参照する要素と属性
-
-収集と書換えは同じ対象に限定します。
-
-| 要素 | 属性 | 値の扱い |
-| --- | --- | --- |
-| `link` | `href` | 単一URL。`rel`では限定しない |
-| `script` | `src` | 単一URL |
-| `img` | `src` | 単一URL |
-| `img`、`source` | `srcset` | 各候補のURL。`1x`や`640w`は保持 |
-| SVGの`use` | `href` | 単一URL。symbolのfragmentは保持 |
-
-`/`で始まるproject root相対の参照だけを収集し、root内に実ファイルがあるものをbundleします。`https://`、`//cdn.example.com/`、`data:`、`#icon`、`./image.png`などは変更しません。単一URL内のカンマと、srcsetのdata URL内のカンマも保持します。srcsetのURLとdescriptorの間には空白を入れてください。
-
-`meta[content]`、`video[poster]`、`a[href]`、`source[src]`、SVGの`image[href]`／`use[xlink:href]`、任意の要素の同名属性は対象外です。例えば`<meta property="og:image" content="/src/image.png" />`だけでは画像を出力しません。これらにはSSGでimportした画像URLかpublic assetのURLを指定してください。
-
-`/public.svg`として参照する`public/public.svg`はViteがコピーし、EntryはURLを変更しません。root直下に実ファイルがない参照はそのまま残し、欠落診断もしません。同じURLに対応するファイルをproject rootとpublicの両方へ置くと、Entryはroot側をbundleするため、この配置は避けてください。public assetのURLへのbase付与も利用者側で行います。
-
-`/src/app.ts?v=1#start`は`src/app.ts`をbundleし、出力URLに`?v=1#start`を保持します。queryはViteの`?raw`／`?url`などのmodule変換指定としては渡しません。出力URLはViteの`base`に従い、`/site/`、CDNの絶対URL、`./`や空文字によるページ相対URLに対応します。入力の`/src/…`にはbaseを付けません。
-
-entryがimportするCSSは、そのentryを参照するページにだけ挿入します。同じURLのstylesheetが既にある場合や、複数entryが同じCSSを使う場合は重複挿入しません。query／fragmentが異なるstylesheet URLは別扱いです。
-
-## How To Use
-
-```js title="./minista.config.js"
-import { pluginEntry } from "minista"
-
-export default {
-  plugins: [pluginEntry()],
-}
-```
-
-```jsx title="./src/pages/index.jsx"
-import { Head } from "minista/head"
-
-export default function () {
-  return (
-    <>
-      <Head>
-        <link rel="stylesheet" href="/src/assets/style.css" />
-        <script type="module" src="/src/assets/script.ts" />
-      </Head>
-      <div>
-        <img src="/src/assets/image.png" width={76} height={76} />
-      </div>
-    </>
-  )
-}
-```
-
-## Options
-
-※オプションはありません
+対象の要素・属性、publicとの併用、URLやCSSの扱いは[pluginSsgのHTMLアセット参照](/docs/plugins/ssg/#html-assets)を参照してください。

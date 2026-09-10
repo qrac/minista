@@ -4,7 +4,6 @@ import {
   pluginArchive,
   pluginBeautify,
   pluginComment,
-  pluginEntry,
   pluginImage,
   pluginIsland,
   pluginSearch,
@@ -17,7 +16,6 @@ export default defineConfig({
   plugins: [
     pluginSsg(),
     pluginImage({ useCache: false, optimize: { format: "png" } }),
-    pluginEntry(),
     pluginIsland(),
     pluginSprite(),
     pluginSearch(),

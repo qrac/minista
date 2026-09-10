@@ -64,10 +64,6 @@ export default {
             url: "/docs/plugins/ssg",
           },
           {
-            name: "pluginEntry",
-            url: "/docs/plugins/entry",
-          },
-          {
             name: "pluginImage",
             url: "/docs/plugins/image",
           },

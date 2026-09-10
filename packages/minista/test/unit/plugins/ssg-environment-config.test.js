@@ -24,7 +24,7 @@ afterAll(async () => {
 
 describe("SSG App Build environment config", () => {
   test("returns static named environment options without config-time state", async () => {
-    const plugin = pluginSsg()
+    const [plugin] = pluginSsg()
     if (typeof plugin.config !== "function") throw new Error("config missing")
     const config = createViteAppConfig({
       root,

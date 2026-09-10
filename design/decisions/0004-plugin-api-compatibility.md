@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-12
 - Amended: 2026-08-28 by [ADR-0013](0013-ssg-page-formats-and-render-assets.md)
+- Amended: 2026-09-10 by [ADR-0019](0019-ssg-entry-composition.md)
 - Amended: 2026-09-05 by [ADR-0015](0015-application-lifecycle-and-output-transaction.md)
 
 ## Context
@@ -15,7 +16,7 @@
 
 - userの配列順はVite source transformの通常semanticsには従う
 - Minista domain phaseの順序はfeature dependency graphで決める
-- v5でSSGの入力形式とrender asset保証へ統合された`pluginMdx()`／`pluginBundle()`は例外として削除する
+- v5でSSGの入力形式とrender asset保証へ統合された`pluginMdx()`／`pluginBundle()`／`pluginEntry()`は例外として削除する
 - `pluginSsg()`のpath optionはproject root相対のslashなしをdefaultとし、従来の先頭slash付き表記もVite adapter境界で同じroot pathへ変換する
 - accidental internal contract (`.minista` path、virtual ID、plugin name、generated source name) は互換対象外
 - documented output URL / HTML semanticsの変更はmigration noteとdiagnosticを必要とする

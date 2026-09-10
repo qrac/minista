@@ -26,7 +26,7 @@ function capability(value) {
 }
 
 describe("entry feature", () => {
-  test("analyzes root assets, bundles them, and composes output URLs", async () => {
+  test.each(["continuous", "handoff"])("analyzes root assets, bundles them, and composes output URLs (%s)", async (mode) => {
     const diagnostics = new DiagnosticCollector()
     const artifacts = new MemoryArtifactStore()
     const documents = new MemoryHtmlDocumentStore()
@@ -121,9 +121,13 @@ describe("entry feature", () => {
       },
     )
 
-    const result = await runner.run({
-      phases: ["analyze", "bundle", "compose"],
-    })
+    expect((await runner.run({ phases: ["analyze"] })).ok).toBe(true)
+    if (mode === "handoff") graph.removeArtifactsByOwner(new Set([ENTRY_FEATURE_ID]))
+    const result = await runner.run({ phases: ["bundle", "compose"] })
+    const snapshot = graph.snapshot()
+    const plan = snapshot.artifacts.get(createNodeId("artifact", "entry-bundle-plan"))
+    expect(plan?.dependencies).toHaveLength(1)
+    for (const id of plan?.dependencies ?? []) expect(snapshot.artifacts.has(id)).toBe(true)
     const html = document.serialize()
 
     expect(references.map(({ source }) => source)).toEqual([

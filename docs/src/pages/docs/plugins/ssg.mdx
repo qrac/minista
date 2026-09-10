@@ -5,7 +5,7 @@ layout: docs
 
 # pluginSsg
 
-ReactのJSX・TSX・MDX・Markdownファイルを静的なHTMLに変換し、ページから参照されたCSS・画像を出力するプラグイン。
+ReactのJSX・TSX・MDX・Markdownファイルを静的なHTMLに変換し、ページから参照されたCSS・JavaScript・画像を出力するプラグイン。
 
 ## Table of Contents
 
@@ -108,6 +108,52 @@ pageとlayoutから参照されたCSS・画像をrender結果と同じ変換結�
 - デフォルト: `{ frontmatter: { name: "metadata" }, remarkPlugins: [], rehypePlugins: [] }`
 
 MDX・Markdownの変換設定です。YAML／TOML frontmatterは`frontmatter.name`で指定した名前のMDX exportへ変換され、`frontmatter: false`でfrontmatter変換だけを無効化できます。YAMLは`---`、TOMLは`+++`で囲みます。MDX全体はデフォルトで有効ですが、`@mdx-js/mdx`とprocessorは最初の`.md`または`.mdx`が読み込まれるまでロードされません。無効にする場合は`mdx: false`を指定します。`src`を省略している場合、無効化に合わせてdefaultの探索対象もJSX・TSXだけになります。
+
+## HTML Assets
+
+HTML属性へ直接書いた`/src/assets/style.css`や`/src/assets/script.ts`も`pluginSsg()`がbuild対象にします。v5では`pluginEntry()`の追加は不要です。scriptはbrowserで実行するentryであり、ページmodule自体をbrowserで実行する機能ではありません。
+
+```jsx title="./src/pages/index.jsx"
+import { Head } from "minista/head"
+
+export default function Page() {
+  return <>
+    <Head>
+      <link rel="stylesheet" href="/css/reset.css" />
+      <script src="/js/legacy.js" />
+      <link rel="stylesheet" href="/src/assets/style.css" />
+      <script type="module" src="/src/assets/script.ts" />
+    </Head>
+    <img src="/src/assets/image.png" width={76} height={76} />
+  </>
+}
+```
+
+この例では`public/css/reset.css`と`public/js/legacy.js`をそのままコピーし、`src/assets`のCSS・JS・画像をViteでbundleしてHTMLを出力先URLへ書き換えます。publicのCSS・JSとentryは同じページで併用できます。devではViteが元の参照を配信し、bundle・URL書換えはbuild時に行います。
+
+ページやLayoutのmodule importから参照するCSS・画像も引き続きSSGが出力します。
+
+### 対象の要素と属性
+
+収集と書換えは同じ対象に限定します。
+
+| 要素 | 属性 | 値の扱い |
+| --- | --- | --- |
+| `link` | `href` | 単一URL。`rel`では限定しない |
+| `script` | `src` | 単一URL |
+| `img` | `src` | 単一URL |
+| `img`、`source` | `srcset` | 各候補のURL。`1x`や`640w`は保持 |
+| SVGの`use` | `href` | 単一URL。symbolのfragmentは保持 |
+
+`/`で始まるproject root相対の参照だけを収集し、root内に実ファイルがあるものをbundleします。`https://`、`//cdn.example.com/`、`data:`、`#icon`、`./image.png`などは変更しません。単一URL内のカンマと、srcsetのdata URL内のカンマも保持します。srcsetのURLとdescriptorの間には空白を入れてください。
+
+`meta[content]`、`video[poster]`、`a[href]`、`source[src]`、SVGの`image[href]`／`use[xlink:href]`、任意の要素の同名属性は対象外です。例えば`<meta property="og:image" content="/src/image.png" />`だけでは画像を出力しません。これらにはSSGでimportした画像URLかpublic assetのURLを指定してください。
+
+`/public.svg`として参照する`public/public.svg`はViteがコピーし、EntryはURLを変更しません。root直下に実ファイルがない参照はそのまま残し、欠落診断もしません。同じURLに対応するファイルをproject rootとpublicの両方へ置くと、Entryはroot側をbundleするため、この配置は避けてください。public assetのURLへのbase付与も利用者側で行います。
+
+`/src/app.ts?v=1#start`は`src/app.ts`をbundleし、出力URLに`?v=1#start`を保持します。queryはViteの`?raw`／`?url`などのmodule変換指定としては渡しません。出力URLはViteの`base`に従い、`/site/`、CDNの絶対URL、`./`や空文字によるページ相対URLに対応します。入力の`/src/…`にはbaseを付けません。
+
+entryがimportするCSSは、そのentryを参照するページにだけ挿入します。同じURLのstylesheetが既にある場合や、複数entryが同じCSSを使う場合は重複挿入しません。query／fragmentが異なるstylesheet URLは別扱いです。
 
 ## Head
 

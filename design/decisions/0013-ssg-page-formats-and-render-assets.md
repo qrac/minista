@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-28
 - Amended: 2026-09-06
+- Amended: 2026-09-10 by [ADR-0019](0019-ssg-entry-composition.md)
 
 ## Context
 
@@ -52,3 +53,7 @@ MDXを使わないprojectもcompilerとunified processorのload costを負うた
 ### render asset出力を任意に無効化する
 
 HTMLが参照するclassやasset URLに対応するoutputが欠落し得るため、`useExportCss`相当のoptionは設けません。
+
+## HTML参照Entryの統合（2026-09-10）
+
+公開composition rootの責務をHTML属性のsource entryへ拡張する。`pluginEntry()`を削除し、SSGから内部Entry adapterを構成する。内部Featureとphase・出力所有権を維持し、Vite plugin配列で既存schedulerへ登録する。詳細はADR-0019を参照。

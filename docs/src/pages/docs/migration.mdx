@@ -910,8 +910,22 @@ export default function () {
 
 内部IDは決定的なprefix付きに変わります。元IDへの外部CSS／JavaScript参照を避け、classや明示propsを使用してください。Spriteの公開symbol IDは維持しますが、重複は上書きせず`MINISTA_SPRITE_DUPLICATE_SYMBOL` errorになります。衝突するsymbolを改名してください。Spriteは元のルート描画属性と共有defsも保持するようになります。
 
+## pluginEntryのSSG統合
+
+v5では`pluginEntry()`を削除しました。HTMLのCSS・JavaScript・画像参照は`pluginSsg()`だけでビルドされます。importとplugins配列から`pluginEntry`を削除してください。既存の参照やViteの出力設定はそのまま利用でき、publicのCSS・JSとも併用できます。
+
+```js title="./vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({ plugins: [pluginSsg()] })
+```
+
+JSがimportしたCSSへscriptのURLが誤って置換される場合と、Legacy buildでpublic CSSが重複挿入される場合も修正しました。
+
+`pluginSsg()`の戻り値は内部Viteプラグインの配列になりました。通常の`plugins: [pluginSsg()]`は変更不要です。独自コードで戻り値を直接調べている場合は、配列を展開してから各プラグインを参照してください。
+
 ## EntryのHTML参照
 
-`pluginEntry()`の書換え対象を収集対象と同じ`link[href]`、`script[src]`、`img[src]`、`img[srcset]`、`source[srcset]`、`use[href]`へ揃えました。別の要素で収集されたURLと同じ値でも、`meta[content]`、`video[poster]`、`a[href]`などの対象外属性は変更しません。これらの属性で生成assetを使う場合は、SSGのmodule importから得たURLかpublic assetのURLを指定してください。
+SSGに統合したEntry機能の書換え対象を収集対象と同じ`link[href]`、`script[src]`、`img[src]`、`img[srcset]`、`source[srcset]`、`use[href]`へ揃えました。別の要素で収集されたURLと同じ値でも、`meta[content]`、`video[poster]`、`a[href]`などの対象外属性は変更しません。これらの属性で生成assetを使う場合は、SSGのmodule importから得たURLかpublic assetのURLを指定してください。
 
-entryがimportするCSSは参照ページにだけ一度挿入します。別ページのentryを通じた暗黙のCSS適用に依存していた場合は、対象ページ／LayoutからCSSをimportするか、明示的なstylesheet linkを追加してください。`//`で始まる外部URLは収集せず、CDNの絶対URLを指定した`base`はprotocolを保持します。query／fragmentは保持しますが、Viteのmodule変換queryとしては解釈しません。詳細は[pluginEntry](/docs/plugins/entry/)を参照してください。
+entryがimportするCSSは参照ページにだけ一度挿入します。別ページのentryを通じた暗黙のCSS適用に依存していた場合は、対象ページ／LayoutからCSSをimportするか、明示的なstylesheet linkを追加してください。`//`で始まる外部URLは収集せず、CDNの絶対URLを指定した`base`はprotocolを保持します。query／fragmentは保持しますが、Viteのmodule変換queryとしては解釈しません。詳細は[pluginSsgのHTMLアセット参照](/docs/plugins/ssg/#html-assets)を参照してください。

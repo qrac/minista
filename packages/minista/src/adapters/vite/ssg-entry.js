@@ -1,27 +1,23 @@
-import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+import { registerViteFeatureLifecycle } from "./feature-lifecycle.js"
 
-/** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('./types.js').PluginOptions} PluginOptions */
-/** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
 /** @typedef {import('../../features/ssg/index.js').RenderedPage} RenderedPage */
-/** @typedef {import('../../adapters/vite/environment-preparation.js').ViteEnvironmentPreparation} ViteEnvironmentPreparation */
+/** @typedef {import('./environment-preparation.js').ViteEnvironmentPreparation} ViteEnvironmentPreparation */
 
 import fs from "node:fs"
 import path from "node:path"
 import { normalizePath } from "vite"
 
-import { getViteBuildSession } from "../../adapters/vite/build-session.js"
-import { ViteBuildDataReader } from "../../adapters/vite/build-data-reader.js"
+import { getViteBuildSession } from "./build-session.js"
 import {
   getViteAppEnvironmentNames,
   isViteAppClientEnvironment,
-} from "../../adapters/vite/app-config.js"
+} from "./app-config.js"
 import {
   createViteCompatibilityTraceHooks,
   processViteDocuments,
-} from "../../adapters/vite/compatibility-lifecycle.js"
-import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
-import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
+} from "./compatibility-lifecycle.js"
+import { ViteEnvironmentInputAdapter } from "./environment-input.js"
+import { ViteEnvironmentState } from "./environment-state.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createEntryFeature, createEntryFeatureDescriptor } from "../../features/entry/index.js"
 import { getRootDir } from "../../shared/path.js"
@@ -31,22 +27,20 @@ import { regScript } from "../../shared/reg.js"
 import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
 import { createAssetEntryId } from "../../shared/asset.js"
 
-/** @type {PluginOptions} */
-export const defaultOptions = {}
-
 /**
- * @param {UserPluginOptions} uOpts
- * @returns {Plugin}
+ * Internal SSG client-entry adapter. The composition root supplies its rendered
+ * snapshot; Entry owns analysis, client inputs, output claims and composition.
+ * @param {(environment: import("vite").Environment) => readonly RenderedPage[]} readPages
  */
-export function pluginEntry(uOpts = {}) {
-  /** @type {PluginOptions} */
-  const opts = { ...defaultOptions, ...uOpts }
+export function createSsgEntryAdapter(readPages) {
+  const opts = {}
   const cwd = process.cwd()
 
   const createEntryState = () => ({
     entries: /** @type {{[pathId: string]: string}} */ ({}),
     entryIds: /** @type {Set<string>} */ (new Set()),
     entrySources: /** @type {{[entryId: string]: string}} */ ({}),
+    referenceArtifacts: /** @type {import("../../core/artifacts/index.js").ArtifactRecord[]} */ ([]),
     entryPageUrls: /** @type {Map<string, Set<string>>} */ (new Map()),
   })
   const entryStates = new ViteEnvironmentState(createEntryState)
@@ -54,24 +48,19 @@ export function pluginEntry(uOpts = {}) {
   const claimStates = new ViteEnvironmentState(() => ({
     claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
   }))
-  const externalBuildId = process.env.MINISTA_EXTERNAL_BUILD_ID
   const environmentInput = new ViteEnvironmentInputAdapter()
 
   /**
    * @param {ReturnType<typeof createEntryState>} state
+   * @param {readonly RenderedPage[]} ssgPages
    * @param {string} rootDir
-   * @param {import("../../adapters/vite/build-session.js").ViteBuildSession | undefined} buildSession
+   * @param {import("./build-session.js").ViteBuildSession | undefined} buildSession
    */
-  async function prepareEntries(state, rootDir, buildSession) {
+  async function prepareEntries(state, ssgPages, rootDir, buildSession) {
     state.entries = {}
     state.entryIds = new Set()
     state.entrySources = {}
     state.entryPageUrls = new Map()
-    const ssgPages = await new ViteBuildDataReader({
-      root: rootDir,
-      session: buildSession,
-      externalBuildId,
-    }).readRenderedPages()
 
     const analysis = await processViteDocuments(
       ssgPages.map(({ fileName, url, html }) => ({ fileName, url, html })),
@@ -83,11 +72,11 @@ export function pluginEntry(uOpts = {}) {
       ["analyze"],
       createViteCompatibilityTraceHooks(buildSession, "entry:prepare"),
     )
+    state.referenceArtifacts = analysis.artifacts.filter((record) =>
+      record.mediaType === "application/vnd.minista.entry-references+json"
+    )
     /** @type {import("../../features/entry/index.js").EntryReference[]} */
-    const references = analysis.artifacts
-      .filter((record) =>
-        record.mediaType === "application/vnd.minista.entry-references+json"
-      )
+    const references = state.referenceArtifacts
       .flatMap((record) => JSON.parse(String(record.content)))
     const pageUrls = new Map(
       [...analysis.graph.pages.values()].map(({ id, url }) => [id, url]),
@@ -139,15 +128,23 @@ export function pluginEntry(uOpts = {}) {
     const rootDir = getRootDir(cwd, preparation.client.config.root || "")
     await prepareEntries(
       state,
+      readPages(preparation.client),
       rootDir,
       getViteBuildSession(topLevelConfig),
     )
     environmentInput.merge(preparation.client, state.entries)
   }
 
-  return registerViteFeatureLifecycle({
+  const plugin = registerViteFeatureLifecycle({
     name: "vite-plugin:minista-entry",
-    api: { minista: { prepareClient: prepareAppClient, outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: createEntryFeatureDescriptor(opts) } },
+    api: {
+      minista: {
+        prepareClient: prepareAppClient,
+        /** @param {import("vite").Environment | undefined} environment */
+        outputClaims: (environment) => claimStates.get(environment).claims,
+        feature: createEntryFeatureDescriptor(opts),
+      },
+    },
     enforce: "pre",
     apply(config, { command, isSsrBuild }) {
       const isAppBuild = command === "build" &&
@@ -156,26 +153,6 @@ export function pluginEntry(uOpts = {}) {
       return isLegacyBuild || isAppBuild
     },
     applyToEnvironment: isViteAppClientEnvironment,
-    config: async (config) => {
-      if (getViteAppEnvironmentNames(config)) return
-
-      const rootDir = getRootDir(cwd, config.root || "")
-      await prepareEntries(
-        legacyState,
-        rootDir,
-        getViteBuildSession(config),
-      )
-
-      return {
-        build: {
-          rolldownOptions: {
-            input: {
-              ...legacyState.entries,
-            },
-          },
-        },
-      }
-    },
     async generateBundle(options, bundle) {
       const appEnvironmentNames = getViteAppEnvironmentNames(
         this.environment.getTopLevelConfig(),
@@ -212,6 +189,10 @@ export function pluginEntry(uOpts = {}) {
           })
           break
         }
+
+        // Vite may attribute imported CSS to the JS entry's source as well.
+        // Keep the executable chunk and attach its CSS through viteMetadata.
+        if (bundleOutputs.has(entrySources[entryId])) continue
 
         for (const item of Object.values(outputAssets)) {
           const source = entrySources[entryId]
@@ -306,8 +287,9 @@ export function pluginEntry(uOpts = {}) {
             },
           },
         )],
-        ["analyze", "bundle", "compose"],
+        ["bundle", "compose"],
         createViteCompatibilityTraceHooks(buildSession, "entry:bundle", {
+          inputArtifacts: state.referenceArtifacts,
           beforeCompose({ graph }) {
             for (const page of graph.pages.values()) {
               const route = graph.routes.get(page.routeId)
@@ -325,4 +307,19 @@ export function pluginEntry(uOpts = {}) {
       }
     },
   })
+
+  return {
+    plugin,
+    /**
+     * Legacy config hooks cannot use late preparation. SSG calls this explicitly
+     * after rendering, rather than relying on the order of separate config hooks.
+     * @param {readonly RenderedPage[]} pages
+     * @param {string} rootDir
+     * @param {import("./build-session.js").ViteBuildSession | undefined} session
+     */
+    async prepareLegacy(pages, rootDir, session) {
+      await prepareEntries(legacyState, pages, rootDir, session)
+      return legacyState.entries
+    },
+  }
 }

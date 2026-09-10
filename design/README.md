@@ -56,3 +56,5 @@
 - [ADR-0017: Beautifyの整形境界とSSGのimage preload方針](decisions/0017-beautify-output-and-ssg-preload.md)
 
 - [ADR-0018: Archiveのstream出力port](decisions/0018-archive-stream-publication.md)
+
+- [ADR-0019: HTML参照Entryの公開APIをSSGへ統合する](decisions/0019-ssg-entry-composition.md)

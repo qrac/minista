@@ -35,6 +35,7 @@ import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-inp
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createViteMdxTransformer } from "../../adapters/vite/mdx-transform.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import { createSsgEntryAdapter } from "../../adapters/vite/ssg-entry.js"
 import { renderViteSsgPages } from "../../adapters/vite/ssg-render-lifecycle.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
@@ -105,7 +106,7 @@ const { version: ministaVersion } = require("../../../package.json")
 
 /**
  * @param {UserPluginOptions} uOpts
- * @returns {Plugin}
+ * @returns {Plugin[]}
  */
 export function pluginSsg(uOpts = {}) {
   /** @type {PluginOptions} */
@@ -144,6 +145,9 @@ export function pluginSsg(uOpts = {}) {
   })
   const buildStates = new ViteEnvironmentState(createBuildState)
   const legacyState = createBuildState()
+  const entryAdapter = createSsgEntryAdapter((environment) =>
+    getBuildState(environment).ssgPages
+  )
   const devServers = new ViteDevServerRegistry()
   const devStates = new ViteEnvironmentState(() => ({
     rootDir: "",
@@ -589,7 +593,7 @@ export function pluginSsg(uOpts = {}) {
     return [...htmlClaims, ...assetClaims]
   }
 
-  return registerViteFeatureLifecycle({
+  const ssgPlugin = registerViteFeatureLifecycle({
     name: "vite-plugin:minista-ssg",
     api: {
       minista: {
@@ -663,6 +667,7 @@ export function pluginSsg(uOpts = {}) {
                   },
                 },
                 outDir: ssrDir,
+                copyPublicDir: false,
                 emitAssets: true,
               },
             },
@@ -705,6 +710,7 @@ export function pluginSsg(uOpts = {}) {
               },
             },
             outDir: ssrDir,
+            copyPublicDir: false,
             emitAssets: true,
           },
           ssr: {
@@ -718,6 +724,9 @@ export function pluginSsg(uOpts = {}) {
       if (isBuild) {
         await prepareClientPages(legacyState, config)
         await collectLegacyRenderAssets(legacyState, config)
+        const entries = await entryAdapter.prepareLegacy(
+          legacyState.ssgPages, rootDir, getViteBuildSession(config),
+        )
         await composeClientAssets(legacyState, config)
 
         return {
@@ -725,6 +734,7 @@ export function pluginSsg(uOpts = {}) {
             rolldownOptions: {
               input: {
                 [tempName]: throughFile,
+                ...entries,
               },
             },
           },
@@ -1192,4 +1202,6 @@ export function pluginSsg(uOpts = {}) {
       )
     },
   })
+
+  return [ssgPlugin, entryAdapter.plugin]
 }
