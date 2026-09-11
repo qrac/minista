@@ -10,7 +10,7 @@
 
 ## Context
 
-v5レビューで、plugin配列順によるSearch結果の差、同名pluginのSSR設定の取り違え、App Build hookの未実行、emptyOutDir:falseでの既存file消失、metadata失敗時のdistとの不整合を再現しました。公開plugin APIを維持しながらapplication境界を明確にします。
+v5レビューで、plugin配列順によるSearch結果の差、同名pluginのSSR設定の取り違え、`buildApp` hookの未実行、emptyOutDir:falseでの既存file消失、metadata失敗時のdistとの不整合を再現しました。公開plugin APIを維持しながらapplication境界を明確にします。
 
 ## Decision
 
@@ -26,7 +26,7 @@ devではdomain mutationをserver単位のqueueへ直列化し、失敗したreq
 
 devとbuildは同じanalyzerで、除外selectorに一致した全要素と子孫を読み飛ばします。共有Documentは変更せず、除外後の本文tokenと独立して取得したtitle tokenから語彙を作り、tocも同じ本文tokenの位置を使います。React UIの入力とhighlightはliteral検索とし、正規表現検索の公開optionは追加しません。index取得後は現在の入力から結果を再計算します。JSON schemaと公開optionは維持します。P06で実施した内部境界は末尾に記録します。
 
-### App Buildとconfig互換性
+### Vite app buildとconfig互換性
 
 Ministaがconfig.builder.buildAppを所有し、Viteのbuilder.buildApp()を呼びます。pluginのpre／post buildApp hookを含めて実行し、その内側でrender → prepareClient → clientを順にbuildします。user configやconfig pluginによるcallback置換と、application hookからの直接buildはMINISTA_VITE_APP_BUILD_RESERVEDで拒否します。追加environmentはtransactionの出力対象として扱わず、Viteの既定ssr以外を拒否します。
 
@@ -36,7 +36,7 @@ config関数のisSsrBuild参照をgetterで検出し、MINISTA_VITE_APP_CONFIG_L
 
 ### Output transaction
 
-Appとprogrammatic Legacyは共通のclient確定処理を使います。Appではpre buildApp hookの前、Legacyではclient build前にbackupを作り、build、output reconciliation、claim検証、manifest／diagnosticsのatomic writeまで完了してからcommitします。error diagnosticが残るbuildは成功にしません。
+Vite app buildとprogrammatic Legacyは共通のclient確定処理を使います。Vite app buildではpre buildApp hookの前、Legacyではclient build前にbackupを作り、build、output reconciliation、claim検証、manifest／diagnosticsのatomic writeまで完了してからcommitします。error diagnosticが残るbuildは成功にしません。
 
 emptyOutDir:falseとproject外outDirの既定動作ではbackupを作ったうえで出力をcopy backし、既存fileを保持します。root・祖先・それらを指すsymlink経路と直接のoutDir symlinkを拒否します。別のrolldown output.dir／output.fileも拒否し、transactionの対象をbuild.outDirへ限定します。
 

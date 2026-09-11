@@ -16,7 +16,7 @@ Node adapterは同じArchiver option／glob／ignoreで生成し、Node pipeline
 
 adapterはoutput名のdirectory外への脱出を拒否する。featureは同名recipeを処理前に拒否する。成功したpublish群からVite adapterが明示claimを作り、既存の出力再照合で実在・byte sizeを確認する。公開manifestには従来のlogical fileName／ownershipのみが入り、private staging pathは入らない。file名からproducerを推測しない。
 
-programmatic App／Legacyは既存のoutDir transaction内でpublishする。後続archive、post hook、metadata処理の失敗では、完成済みarchiveも含め旧outDirとmetadataへrollbackする。外部Vite CLI fallbackは従来どおりbuild全体のtransaction対象外だが、単一archiveのpartial fileは公開しない。
+Vite app build／programmatic Legacyは既存のoutDir transaction内でpublishする。後続archive、post hook、metadata処理の失敗では、完成済みarchiveも含め旧outDirとmetadataへrollbackする。外部Vite CLI fallbackは従来どおりbuild全体のtransaction対象外だが、単一archiveのpartial fileは公開しない。
 
 ## Limits
 

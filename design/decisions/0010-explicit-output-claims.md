@@ -22,7 +22,7 @@ Vite adapterはclient build完了後にfeature descriptorとclaimを収集しま
 - route → page → generated asset／artifact → outputを安定IDで追跡できる
 - plugin間でHTML文字列、一時file、module global stateを共有しない
 - claimは実在outputとの照合後だけGraphへ入る
-- 同じprotocolをApp Build、programmatic legacy、外部CLI handoffで使用できる
+- 同じprotocolをVite app build、programmatic legacy、外部CLI handoffで使用できる
 - 同じplugin instanceを複数environmentが使用してもclaimが混ざらない
 - outputを生成しないdocument変換featureはclaimを持たない
 

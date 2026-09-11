@@ -14,7 +14,7 @@ EntryはSSGのRenderedPageを前提にclient inputを収集し、Vite出力へHT
 
 - `features/entry`のanalyze／bundle／compose、descriptor、Artifact schemaを維持する
 - Vite連携は`adapters/vite/ssg-entry.js`へ分離し、SSG本体へHTML解析やbundle出力照合を詰め込まない
-- App Buildは`html-documents`のrequiresによりSSGのprepareClientの後にEntryを準備する。Comment／SvgのoptionalAfterと後続featureの依存も既存schedulerで解決する
+- Vite app buildは`html-documents`のrequiresによりSSGのprepareClientの後にEntryを準備する。Comment／SvgのoptionalAfterと後続featureの依存も既存schedulerで解決する
 - SSGのenvironment別RenderedPage snapshotを明示callbackで渡す。Entry専用のArtifact／外部JSON読戻しは行わない
 - Legacy／外部CLIのclient configはSSGがrender後にEntry準備を直接awaitし、得られたinputを返す。別々のconfig hook順への依存を除く
 - Entryは参照Artifactを準備時に一度生成し、client build後はそのArtifactを明示inputとしてbundle／composeへ渡す。composeはComment／Svgなどが変更した現在のDocumentへ適用する

@@ -18,7 +18,7 @@ Project Manifestの `diagnosticSummary` は件数だけを持ち、stable code�
 
 `.minista/diagnostics.json` schema v1をworkspace内の直近実行snapshotとします。`schemaVersion`, `generator`, `command`, optionalな `buildId`, `summary`, `diagnostics`, `createdAt` を持ちます。
 
-`check` は成功とvalidation errorの両方でreportを置換します。通常のApp Buildとprogrammatic legacy fallbackはclient outputのcommit前に成功したbuild sessionのdiagnosticsを保存します。adapterは捕捉可能な失敗時に旧出力とmetadataを復元し、その後CLIがsession、errorの単一 `diagnostic`、lifecycle errorの `diagnostics` を重複排除して失敗reportを保存します。Vite config読込、Builder生成、render／client build、client preparationのerrorをこの境界へ含めます。別processの外部Vite CLI fallbackは両process成功後に空の成功reportを保存し、processの起動失敗、signal終了、非zero終了時は `MINISTA_VITE_CLI_FAILED` を持つ失敗reportを保存します。外部processのstderrは構造化せず、元のVite出力としてterminalへ維持します。
+`check` は成功とvalidation errorの両方でreportを置換します。通常のVite app buildとprogrammatic legacy fallbackはclient outputのcommit前に成功したbuild sessionのdiagnosticsを保存します。adapterは捕捉可能な失敗時に旧出力とmetadataを復元し、その後CLIがsession、errorの単一 `diagnostic`、lifecycle errorの `diagnostics` を重複排除して失敗reportを保存します。Vite config読込、Builder生成、render／client build、client preparationのerrorをこの境界へ含めます。別processの外部Vite CLI fallbackは両process成功後に空の成功reportを保存し、processの起動失敗、signal終了、非zero終了時は `MINISTA_VITE_CLI_FAILED` を持つ失敗reportを保存します。外部processのstderrは構造化せず、元のVite出力としてterminalへ維持します。
 
 Project Manifest writerとDiagnostics writerは同じstable JSON serializerとatomic workspace writerを使います。同一directoryの一時ファイルへwriteした後でrenameし、失敗時は一時ファイルを削除します。
 

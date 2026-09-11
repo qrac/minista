@@ -9,7 +9,7 @@ nextUrl: "/docs/config"
 
 # CLI
 
-ministaのdev／previewコマンドはViteを基盤に動作します。`minista build`はrender environmentとclient environmentを1つのApp Build lifecycleとして実行し、静的HTMLとアセットを生成します。
+ministaのdev／previewコマンドはViteを基盤に動作します。`minista build`はrender environmentとclient environmentを単一のVite app buildで順にビルドし、静的HTMLとアセットを生成します。
 
 通常の開発、CLI実行、testにminista自身の事前buildは必要ありません。
 
@@ -22,7 +22,7 @@ contents list
 |コマンド|内容|
 | --- | --- |
 | `minista [root]` |ModuleRunnerを使った開発モード（`Ctrl + C`で停止）|
-| `minista build [root]` |App Build lifecycleによる静的書き出し|
+| `minista build [root]` |Vite app buildによる静的書き出し|
 | `minista preview [root]` |静的書き出し後の動作確認|
 | `minista check [root]` |page moduleと`getStaticData()`を評価し、route／pageの問題を検査|
 | `minista inspect [root]` |sourceからProject Graphの概要を表示|
@@ -67,7 +67,7 @@ diagnosticsは直近に記録されたcheck／buildの結果なので、manifest
 
 ## Options
 
-[ViteのCLIオプション](https://ja.vitejs.dev/guide/cli.html)はdev／build／previewへ引き渡されます。App Buildで処理できないbuild optionを指定した場合はcompatibility fallbackを使用することがあります。
+[ViteのCLIオプション](https://ja.vitejs.dev/guide/cli.html)はdev／build／previewへ引き渡されます。Vite app buildで処理できないbuild optionを指定した場合はcompatibility fallbackを使用することがあります。
 
 |独自のオプション|対象|内容|
 | --- | --- | --- |
@@ -75,4 +75,4 @@ diagnosticsは直近に記録されたcheck／buildの結果なので、manifest
 | `--write` |`agents`|AGENTS.mdのminista案内を追加・更新|
 | `--manifest` |`inspect`|workspaceの`manifest.json`だけを読み取る|
 
-v4の`--oneBuild`はv5で削除されました。指定すると`MINISTA_CLI_OPTION_REMOVED`で終了するため、commandから削除してください。標準の`minista build`が1つのApp Build lifecycleを使用します。
+v4の`--oneBuild`はv5で削除されました。指定すると`MINISTA_CLI_OPTION_REMOVED`で終了するため、commandから削除してください。標準の`minista build`が単一のVite app buildを使用します。

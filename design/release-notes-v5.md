@@ -15,7 +15,7 @@
 
 ## Build lifecycle
 
-- 通常buildを単一processのVite App Buildへ移行
+- 通常buildを単一processのVite app buildへ移行
 - render／client environment間をbuild session、Project Graph、Artifact Storeで接続
 - feature descriptorのcapability、`requires`、`after`からphase順を決定
 - partial outputを防ぐoutDir transactionとstable diagnosticを実装

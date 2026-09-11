@@ -41,7 +41,7 @@ export default defineConfig({
 
 ### Environment-specific config
 
-ministaはrender environmentとclient environmentを1つのApp Build lifecycleで順に実行します。多くのVite設定はそのまま両environmentへ適用できます。Node.jsでpageをrenderする側とbrowser向けassetを生成する側で設定を分ける場合は、named environmentの設定かpluginのenvironment-aware hookを使用します。
+ministaはrender environmentとclient environmentを単一のVite app buildで順にビルドします。多くのVite設定はそのまま両environmentへ適用できます。Node.jsでpageをrenderする側とbrowser向けassetを生成する側で設定を分ける場合は、named environmentの設定かpluginのenvironment-aware hookを使用します。
 
 例として、client environmentだけminifyを無効にします。
 

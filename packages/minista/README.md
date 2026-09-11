@@ -17,7 +17,7 @@ minista（ミニスタ）は、ReactのJSXとViteで100%静的なサイトを作
 ## Features
 
 - すべての機能をViteプラグインとして提供
-- Vite App Buildでrender／client environmentを1つのbuild lifecycleとして実行
+- Vite Environment APIを利用し、render／client environmentを単一のVite app buildで順にビルド
 - route、page、asset、diagnosticを`.minista`のJSONへ出力
 
 ## Setup
@@ -71,7 +71,7 @@ export default function () {
 | コマンド                 | 内容                                          |
 | ------------------------ | --------------------------------------------- |
 | `minista [root]`         | 開発モード（`Ctrl + C` で停止）               |
-| `minista build [root]`   | App Build lifecycleによる静的書き出し         |
+| `minista build [root]`   | Vite app buildによる静的書き出し         |
 | `minista preview [root]` | 静的書き出し後の動作確認                      |
 | `minista check [root]`   | route／pageと`getStaticData()`の検査           |
 | `minista inspect [root]` | Project Graphの概要表示                        |
@@ -79,7 +79,7 @@ export default function () {
 
 `check`、`inspect`、`explain`は`--json`に対応します。build後の`.minista/manifest.json`だけを確認する場合は`minista inspect --manifest --json`を使用できます。
 
-v4の`--oneBuild`はv5で削除されました。指定すると`MINISTA_CLI_OPTION_REMOVED`で終了します。標準の`minista build`が1つのApp Build lifecycleを使用します。
+v4の`--oneBuild`はv5で削除されました。指定すると`MINISTA_CLI_OPTION_REMOVED`で終了します。標準の`minista build`が単一のVite app buildを使用します。
 
 ## Config
 
@@ -94,7 +94,7 @@ export default defineConfig({
 })
 ```
 
-ministaはrender environmentとclient environmentを1つのApp Build lifecycleで実行します。既存の`isSsrBuild`を使ったconfig関数もcompatibility adapterがenvironmentごとに評価するため、Node.js向けrender設定とbrowser向けclient設定を分けられます。
+ministaはrender environmentとclient environmentを単一のVite app buildで順にビルドします。既存の`isSsrBuild`を使ったconfig関数もcompatibility adapterがenvironmentごとに評価するため、Node.js向けrender設定とbrowser向けclient設定を分けられます。
 
 ```ts
 // ./vite.config.ts

@@ -17,7 +17,7 @@ minista（ミニスタ）は、ReactのJSXとViteで100%静的なサイトを作
 ## Features
 
 - すべての機能をViteプラグインとして提供
-- Vite App Buildでrender／client environmentを1つのbuild lifecycleとして実行
+- Vite Environment APIを利用し、render／client environmentを単一のVite app buildで順にビルド
 - route、page、asset、diagnosticを`.minista`のJSONへ出力
 
 ## Packages

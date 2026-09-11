@@ -9,7 +9,7 @@
 
 ## Context
 
-通常のApp Buildとprogrammatic legacy fallbackは同一processの`MemoryArtifactStore`でrendered pagesとIsland snippetsを渡します。一方、未対応CLI flagからVite CLIを二回起動するfallbackではprocess memoryを共有できず、`.minista`へJavaScript moduleを書き、client processがdynamic importしていました。
+通常のVite app buildとprogrammatic legacy fallbackは同一processの`MemoryArtifactStore`でrendered pagesとIsland snippetsを渡します。一方、未対応CLI flagからVite CLIを二回起動するfallbackではprocess memoryを共有できず、`.minista`へJavaScript moduleを書き、client processがdynamic importしていました。
 
 この方式はdata受渡しのためにcode executionを必要とし、schema validationがなく、globで過去buildのfileを拾う可能性がありました。
 

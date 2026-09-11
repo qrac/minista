@@ -34,11 +34,29 @@
 - 外部APIのstatusは公式資料と確認日を添える。
 - machine-readable schemaには `schemaVersion` を持たせ、互換性方針をADRに残す。
 
+## Build用語
+
+標準表現は「Vite Environment APIを利用し、render／client environmentを単一のVite app buildで順にビルドする」とします。各environmentのbundleは分離したまま、Ministaのbuild lifecycleとbuild sessionを共有します。
+
+| 用語 | 意味 |
+| --- | --- |
+| Vite Environment API | 複数のenvironmentを扱うViteの仕組み |
+| Vite app build | 複数environmentのビルドをまとめて制御する実行単位。通常のMinista buildでは`createBuilder()`／`builder.buildApp()`を使用する |
+| render environment | SSG用のNode.js向けbundleを生成する環境。Ministaはその出力を評価してpageをrenderする |
+| client environment | browser向けのJS／CSS／assetをbundleし、生成HTMLとともに出力する環境 |
+| build lifecycle | Minista側でビルド全体の処理・phase・終了処理を管理する流れ |
+| build session | buildId、Artifact Store、diagnosticsなどをビルド中に共有する状態とその有効範囲 |
+| bundle | 各environmentが生成する出力。renderとclientでは分離する |
+
+本文・見出しとも概念名は「Vite app build」に統一します。API名の`buildApp()`、pluginの`buildApp` hook、実装名の`ViteAppBuilderAdapter`、既存の識別子やファイル名は維持します。ADR・レビュー・benchmarkは記録時点の判断、実装状況、測定条件を保ち、用語だけを整理します。compatibility fallbackは通常のVite app buildと区別して記述します。
+
+表記の確認: [Vite Environment API for Frameworks](https://vite.dev/guide/api-environment-frameworks#environments-during-build)（2026-09-11）。
+
 ## Decision log
 
 - [ADR-0001: Core / Feature / Vite Adapterの分離](decisions/0001-core-feature-vite-adapter.md)
 - [ADR-0002: Project Graphと明示的Build Phase](decisions/0002-project-graph-and-phases.md)
-- [ADR-0003: Vite App Buildによる単一lifecycle](decisions/0003-vite-app-build.md)
+- [ADR-0003: Vite app buildによる単一build lifecycle](decisions/0003-vite-app-build.md)
 - [ADR-0004: 公開plugin APIをcompatibility facadeとして維持](decisions/0004-plugin-api-compatibility.md)
 - [ADR-0005: React static rendererを交換可能にする](decisions/0005-react-static-renderer.md)
 - [ADR-0006: ランタイム実装をJavaScript + JSDocに統一する](decisions/0006-javascript-jsdoc-runtime.md)
