@@ -34,9 +34,9 @@ contents list
 `check`、`inspect`、`explain`は`--json`で機械可読な結果を標準出力へ返します。diagnosticには安定した`code`、`severity`、`message`、必要に応じて`hint`、`location`、`phase`、`nodeId`が含まれます。
 
 ```sh
-minista check --json
-minista inspect --json
-minista explain "page:route%3Asrc/pages/index.jsx#/" --json
+$ minista check --json
+$ minista inspect --json
+$ minista explain "page:route%3Asrc/pages/index.jsx#/" --json
 ```
 
 生成workspaceはroot直下にpackage.jsonがある場合は`node_modules/.minista/`、ない場合はroot直下の`.minista/`です。起動ディレクトリやnode_modulesの有無で保存先は変わりません。
@@ -46,15 +46,15 @@ minista explain "page:route%3Asrc/pages/index.jsx#/" --json
 build済みmanifestだけを読み、Vite serverやuser moduleを起動せずに確認する場合は`--manifest`を使います。
 
 ```sh
-minista inspect --manifest --json
+$ minista inspect --manifest --json
 ```
 
 ## Agent guide
 
 ```sh
-minista agents
-minista agents --json
-minista agents --write
+$ minista agents
+$ minista agents --json
+$ minista agents --write
 ```
 
 `agents`はministaに同梱された利用ガイドを表示します。`--json`はバージョン、ガイド本文とpath、解決済みworkspace directory、manifest／diagnosticsのpathと存在状態を返します。configやpage moduleを評価せず、ファイルも生成しません。

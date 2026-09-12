@@ -1,48 +1,8 @@
 ---
-title: CSS・画像の出力
+title: CSS・画像の出力（移転）
 layout: docs
 ---
 
-# CSS・画像の出力
+# CSS・画像の出力（移転）
 
-pageとlayout内でimportしたCSS・画像は`pluginSsg`が自動的に出力します。
-
-## Table of Contents
-
-contents list
-
-## How To Use
-
-```js title="./minista.config.js"
-import { pluginSsg } from "minista"
-
-export default {
-  plugins: [pluginSsg({ bundle: { outName: "bundle" } })],
-}
-```
-
-```jsx title="./src/pages/index.jsx"
-import "../assets/image.css"
-import iconUrl from "../assets/image.png"
-
-export default function () {
-  return <img src={iconUrl} alt="icon" width={76} height={76} />
-}
-```
-
-## Options
-
-```js title="Default"
-pluginSsg({
-  bundle: {
-    outName: "bundle",
-  },
-})
-```
-
-### outName
-
-- 型: `string`
-- デフォルト: `"bundle"`
-
-pageとlayoutから参照されたCSSを結合出力する場合のentry名（拡張子なし）。CSS ModulesはHTMLを生成したrender environmentの変換結果をそのまま使用します。
+この機能はv5で`pluginSsg()`へ統合しました。使い方は[pluginSsg](/docs/plugins/ssg/#bundle)、旧プラグインからの移行は[Migration](/docs/migration)を参照してください。

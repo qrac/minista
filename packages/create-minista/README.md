@@ -8,16 +8,18 @@
 
 ```sh
 # Interactive
-$ npm create minista@latest
+npm create minista@latest
 
 # Shortcut
-$ npm create minista@latest my-minista-project -- --template minimal-ts
+npm create minista@latest my-minista-project -- --template minimal-ts
 ```
 
-|テンプレート|内容                            |
-| ------------ | ------------------------------- |
-| `minimal-js` | JavaScriptを使った最低限の構成|
-| `minimal-ts` | TypeScriptを使った最低限の構成|
+| テンプレート | 内容 |
+| --- | --- |
+| `basic-js` | JavaScriptを使った基本構成 |
+| `basic-ts` | TypeScriptを使った基本構成 |
+| `minimal-js` | JavaScriptを使った最低限の構成 |
+| `minimal-ts` | TypeScriptを使った最低限の構成 |
 
 ## License
 

@@ -27,15 +27,16 @@ Node.js 20.19以上または22.12以上、Vite 8.1以上、React／React DOM 19�
 ### Automatic
 
 ```sh
-$ npm create minista@latest
+npm create minista@latest
 ```
 
 ### Manual
 
 ```sh
-$ npm install --save-dev minista vite react react-dom
-$ touch ./vite.config.js
-$ touch ./src/pages/index.jsx
+npm install --save-dev minista vite react react-dom
+touch ./vite.config.js
+mkdir -p ./src/pages
+touch ./src/pages/index.jsx
 ```
 
 ```js
@@ -75,9 +76,10 @@ export default function () {
 | `minista preview [root]` | 静的書き出し後の動作確認                      |
 | `minista check [root]`   | route／pageと`getStaticData()`の検査           |
 | `minista inspect [root]` | Project Graphの概要表示                        |
+| `minista agents [root]` | agent向けガイドの表示・`--write`で案内を追加 |
 | `minista explain <node-id> [root]` | Graph nodeの関係を説明               |
 
-`check`、`inspect`、`explain`は`--json`に対応します。build後の`.minista/manifest.json`だけを確認する場合は`minista inspect --manifest --json`を使用できます。
+`check`、`inspect`、`explain`は`--json`に対応します。build後の生成workspace内の`manifest.json`だけを確認する場合は`minista inspect --manifest --json`を使用できます。
 
 v4の`--oneBuild`はv5で削除されました。指定すると`MINISTA_CLI_OPTION_REMOVED`で終了します。標準の`minista build`が単一のVite app buildを使用します。
 
@@ -94,19 +96,25 @@ export default defineConfig({
 })
 ```
 
-ministaはrender environmentとclient environmentを単一のVite app buildで順にビルドします。既存の`isSsrBuild`を使ったconfig関数もcompatibility adapterがenvironmentごとに評価するため、Node.js向けrender設定とbrowser向けclient設定を分けられます。
+ministaはrender environmentとclient environmentを単一のVite app buildで順にビルドします。environmentごとに設定を分ける場合は、`environments`を使用します。
 
 ```ts
 // ./vite.config.ts
 import { defineConfig, pluginSsg } from "minista"
 
-export default defineConfig(({ command, isSsrBuild }) => {
-  const isDev = command === "serve"
-  const isSsr = command === "build" && isSsrBuild
-  const isBuild = command === "build" && !isSsrBuild
-  return { plugins: [pluginSsg()], build: { minify: isBuild ? false : true } }
+export default defineConfig({
+  plugins: [pluginSsg()],
+  environments: {
+    client: {
+      build: { minify: false },
+    },
+  },
 })
 ```
+
+既存の`isSsrBuild`を参照するconfigはcompatibility builderへfallbackします。詳細は[Config](https://minista.qranoko.jp/docs/config)を参照してください。
+
+生成workspaceはproject rootに`package.json`があれば`node_modules/.minista/`、なければ`.minista/`です。
 
 ## Plugins
 

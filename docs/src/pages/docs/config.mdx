@@ -27,7 +27,7 @@ contents list
 
 ministaはv4以降、すべての機能をViteプラグイン化しています。プロジェクトに必要なプラグインを選び、コンフィグの `plugins` に追加してください。
 
-例えば、基本のSSGに加えてMDXやアセットのエントリー機能を追加する場合は以下のように記述を増やします。プラグインの使い方は各ページを参照ください。
+JSX・MDX・Markdownのページ生成と、CSS・JavaScript・画像の参照処理は`pluginSsg()`に含まれます。基本設定は以下だけで利用できます。画像最適化やIslandなどが必要な場合に、対応するプラグインを追加してください。各機能の使い方はプラグインのページを参照してください。
 
 ```ts title="./vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"

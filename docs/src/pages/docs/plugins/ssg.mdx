@@ -100,14 +100,75 @@ Beautifyの有無と整形対象の指定は、この設定に影響しません
 - 型: `{ outName: string }`
 - デフォルト: `{ outName: "bundle" }`
 
-pageとlayoutから参照されたCSS・画像をrender結果と同じ変換結果から出力します。`outName`はCSSをまとめるentry名に使用されます。
+pageとlayoutから参照されたCSS・画像をrender結果と同じ変換結果から出力します。`outName`はCSSをまとめるentry名（拡張子なし）に使用されます。CSS ModulesもHTMLを生成したrender environmentの変換結果をそのまま使用します。
 
 ### mdx
 
-- 型: `false | (CompileOptions & { frontmatter?: false | { name?: string } })`
+- 型: `false | (MdxCompileOptions & { frontmatter?: false | { name?: string } })`
 - デフォルト: `{ frontmatter: { name: "metadata" }, remarkPlugins: [], rehypePlugins: [] }`
 
 MDX・Markdownの変換設定です。YAML／TOML frontmatterは`frontmatter.name`で指定した名前のMDX exportへ変換され、`frontmatter: false`でfrontmatter変換だけを無効化できます。YAMLは`---`、TOMLは`+++`で囲みます。MDX全体はデフォルトで有効ですが、`@mdx-js/mdx`とprocessorは最初の`.md`または`.mdx`が読み込まれるまでロードされません。無効にする場合は`mdx: false`を指定します。`src`を省略している場合、無効化に合わせてdefaultの探索対象もJSX・TSXだけになります。
+
+## CSS・画像のimport
+
+```jsx title="./src/pages/index.jsx"
+import "../assets/image.css"
+import iconUrl from "../assets/image.png"
+
+export default function () {
+  return <img src={iconUrl} alt="icon" width={76} height={76} />
+}
+```
+
+## MDX・Markdown
+
+`pluginSsg()`だけで`.mdx`・`.md`のページを利用できます。変換には`@mdx-js/mdx`を直接使用し、Markdown用とMDX用のprocessorを再利用します。
+
+`mdx`の`frontmatter`以外は、MDXの`CompileOptions`から`development`、`format`、`SourceMapGenerator`を除いた設定です。
+
+### Frontmatter
+
+フロントマターは `props` としてLayoutやPageで使用可能です。`draft` を `true` にしたページは本番ビルドから除外されます。
+
+YAML／TOML frontmatterはデフォルトで`metadata`という名前のMDX exportへ変換されます。YAMLは`---`、TOMLは`+++`で囲みます。export名は`frontmatter.name`で変更でき、変換を無効にする場合は`frontmatter: false`を指定します。SSGがページデータとして読み取るexport名は`metadata`です。別名に変更した場合、LayoutやPageのpropsへ渡すには`metadata`としてもexportしてください。
+
+```js title="Custom export name"
+pluginSsg({
+  mdx: {
+    frontmatter: { name: "pageData" },
+  },
+})
+```
+
+```mdx title="./src/pages/index.mdx"
+---
+title: Index
+draft: false # true = Don't build the page
+---
+
+# {props.title}
+```
+
+```mdx title="./src/pages/toml.mdx"
++++
+title = "TOML"
+draft = false
++++
+
+# {props.title}
+```
+
+### Component
+
+MDX・Markdownのファイルはレイアウトテンプレートやページテンプレート内でコンポーネントとして使用できます。
+
+```jsx title="./src/pages/index.jsx"
+import Content from "../components/content.mdx"
+
+export default function () {
+  return <Content />
+}
+```
 
 ## HTML Assets
 
@@ -235,9 +296,9 @@ document Layoutでも既存の`Head`コンポーネントを併用できます�
 
 ## Page
 
-各HTMLページの元となるJSX形式のテンプレート。
+各HTMLページの元となるJSX・TSX・MDX・Markdown形式のテンプレート。
 
-- `src/pages/**/*.{tsx,jsx}`:デフォルトで使用されるファイル
+- `src/pages/**/*.{tsx,jsx,mdx,md}`:デフォルトで使用されるファイル
 - `export default`:使用されるコンポーネント
 - `export const metadata`:レイアウトとマージして使えるデータ
 - `props: PageProps`:レイアウトとマージされたデータ

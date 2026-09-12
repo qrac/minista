@@ -22,13 +22,13 @@ minista（ミニスタ）は、ReactのJSXとViteで100%静的なサイトを作
 
 ## Packages
 
-- [minista](https://github.com/qrac/minista/tree/main/packages/minista) — minista本体
-- [create-minista](https://github.com/qrac/minista/tree/main/packages/create-minista) — ministaの環境を作るCLI
+- [minista](./packages/minista) — minista本体
+- [create-minista](./packages/create-minista) — ministaの環境を作るCLI
 
 ## Quick Start
 
 ```sh
-$ npm create minista@latest
+npm create minista@latest
 ```
 
 ## Media

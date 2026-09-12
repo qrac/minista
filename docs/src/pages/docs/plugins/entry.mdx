@@ -1,16 +1,8 @@
 ---
-title: pluginEntryからの移行
+title: HTMLアセット参照（移転）
 layout: docs
 ---
 
-# pluginEntryからの移行
+# HTMLアセット参照（移転）
 
-v5では`pluginEntry()`を削除し、HTML属性に直接指定したCSS・JavaScript・画像のビルドを`pluginSsg()`へ統合しました。importとplugins配列から`pluginEntry`を削除してください。追加オプションは不要です。
-
-```js title="./vite.config.js"
-import { defineConfig, pluginSsg } from "minista"
-
-export default defineConfig({ plugins: [pluginSsg()] })
-```
-
-対象の要素・属性、publicとの併用、URLやCSSの扱いは[pluginSsgのHTMLアセット参照](/docs/plugins/ssg/#html-assets)を参照してください。
+この機能はv5で`pluginSsg()`へ統合しました。使い方は[pluginSsg](/docs/plugins/ssg/#html-assets)、旧プラグインからの移行は[Migration](/docs/migration)を参照してください。
