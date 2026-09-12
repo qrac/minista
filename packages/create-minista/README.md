@@ -2,7 +2,7 @@
 
 ## About
 
-簡単なコマンド入力で[minista](https://minista.qranoko.jp/)のプロジェクトを開始できます。
+Start a [minista](https://minista.qranoko.jp/) project with a simple command.
 
 ## How To Use
 
@@ -14,12 +14,12 @@ npm create minista@latest
 npm create minista@latest my-minista-project -- --template minimal-ts
 ```
 
-| テンプレート | 内容 |
-| --- | --- |
-| `basic-js` | JavaScriptを使った基本構成 |
-| `basic-ts` | TypeScriptを使った基本構成 |
-| `minimal-js` | JavaScriptを使った最低限の構成 |
-| `minimal-ts` | TypeScriptを使った最低限の構成 |
+| Template     | Description                   |
+| ------------ | ----------------------------- |
+| `basic-js`   | Basic setup with JavaScript   |
+| `basic-ts`   | Basic setup with TypeScript   |
+| `minimal-js` | Minimal setup with JavaScript |
+| `minimal-ts` | Minimal setup with TypeScript |
 
 ## License
 
@@ -30,6 +30,14 @@ npm create minista@latest my-minista-project -- --template minimal-ts
 - Author: [Qrac](https://qrac.jp)
 - Organization: [QRANOKO](https://qranoko.jp)
 
-## Agent guide
+## Agent Guide
 
-Every template creates a short `AGENTS.md` pointing to `npx --no-install minista agents`. Existing instructions are preserved; after installation, run `npx --no-install minista agents --write` to add or update only the minista block. The detailed guide ships with the installed minista version.
+Every template creates a short `AGENTS.md` that points to `npx --no-install minista agents`.
+
+Existing instructions are preserved. After installation, run the following command to add or update only the minista block:
+
+```sh
+npx --no-install minista agents --write
+```
+
+The detailed guide is included with the installed version of minista.
