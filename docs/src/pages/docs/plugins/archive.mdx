@@ -11,10 +11,6 @@ layout: docs
 
 contents list
 
-## v5での処理
-
-圧縮対象と出力はArtifact ownershipを持つ`finalize` phaseで確定します。filesystemへの書込はCoreではなくNode adapterが担当し、圧縮処理の失敗時は`MINISTA_ARCHIVE_FAILED` diagnosticを返します。入力ディレクトリの欠落は`MINISTA_ARCHIVE_SOURCE_NOT_FOUND`、ディレクトリ以外の指定は`MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY` errorでbuildを停止します。存在する空ディレクトリや、全ファイルが除外された入力は空archiveとして正常生成します。
-
 ## How To Use
 
 ```js title="./minista.config.js"

@@ -11,10 +11,6 @@ layout: docs
 
 contents list
 
-## v5での処理
-
-HTML・CSSはViteの出力を共有Emitterへ投影し、他pluginの変更後に`finalize` phaseで整形します。JavaScript chunkは`renderChunk`で整形し、その内容からViteがhashと参照を確定します。整形は遅延ロードするjs-beautify adapterへ委譲します。image preloadは変更しません。
-
 ## How To Use
 
 ```js title="./minista.config.js"
