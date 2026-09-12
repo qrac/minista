@@ -38,6 +38,8 @@ MDXは`pluginSsg().mdx`へ統合し、`@mdx-js/mdx`を直接使う遅延compiler
 
 ## Dataとdiagnostics
 
+Searchは`indexes`による複数indexに対応しました。`<Search index="ja" />`で選択し、indexごとに検索範囲とJSON出力を分けます。既存の`pluginSearch({ src })`と`<Search />`は変更不要です。解析条件が同じindexはpage解析Artifactを共有し、dev／Vite app build／legacy buildで同じ選択・検証・出力契約を使います（[ADR-0020](decisions/0020-search-multiple-indexes.md)）。
+
 - executable temp module handoffを削除し、`RenderedPage` Artifactまたはschema付きJSONへ移行
 - output claimからPage、Artifact、Asset、出力fileの関係をProject Graphへ統合
 - `check`、`inspect`、`explain`とJSON出力を共通query serviceへ接続

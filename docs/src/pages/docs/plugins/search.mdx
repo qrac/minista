@@ -224,6 +224,7 @@ export default function () {
 
 ```ts
 type SearchProps = {
+  index?: string
   className?: string
   minHitLength?: number
   maxHitPages?: number
@@ -321,3 +322,94 @@ type SearchProps = {
 - デフォルト: `true`
 
 検索結果にURLを表示させるか否か。
+
+## 複数の検索index
+
+`pluginSearch()`の`indexes`を使うと、多言語サイトやdocs／blogを1ビルドで生成し、検索対象を独立したindexへ分割できます。各キーがindex名になり、`<Search index="ja" />`で選択します。
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg, pluginIsland, pluginSearch } from "minista"
+import react from "@vitejs/plugin-react"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg(),
+    pluginIsland(),
+    pluginSearch({
+      indexes: {
+        en: {
+          src: ["**/*.html"],
+          ignore: ["ja/**", "404.html"],
+        },
+        ja: {
+          src: ["ja/**/*.html"],
+          ignore: ["ja/404.html"],
+        },
+      },
+    }),
+    react(),
+  ],
+})
+```
+
+```tsx
+import { Search } from "minista/assets"
+
+// English page
+<Search index="en" client:load />
+
+// Japanese page
+<Search index="ja" client:load />
+```
+
+URLによる自動判定はありません。1ページに複数のSearchを置いたり、複数indexに同じページを含めたりすることもできます。各Searchは選択したindexのJSONだけを取得します。
+
+### オプションの継承
+
+| オプション                                       | multi-indexでの指定場所 | 省略時                         |
+| ------------------------------------------------ | ----------------------- | ------------------------------ |
+| `src`                                            | 各index                 | `["**/*.html"]`                |
+| `ignore`                                         | 各index                 | `["404.html"]`                 |
+| `outName`                                        | 各index                 | `search-${indexName}`          |
+| `trimTitle`、`targetSelector`、`ignoreSelectors` | トップレベルと各index   | トップレベル、次に既存の既定値 |
+| `hit`                                            | トップレベルと各index   | フィールドごとに継承           |
+| `inputAttr`、`relativeAttr`                      | トップレベルと各index   | トップレベル、次に既存の既定値 |
+
+`src`と`ignore`は、出力先を基準にしたHTMLファイル名のglobです。例として`/ja/`は`ja/index.html`、`/ja/guide`は`ja/guide.html`に対応します。既定の`ignore: ["404.html"]`は`ja/404.html`を除外しないため、必要な除外範囲を明示してください。
+
+```js
+pluginSearch({
+  targetSelector: "main",
+  ignoreSelectors: [".navigation"],
+  hit: { minLength: 2 },
+  indexes: {
+    en: { ignore: ["ja/**", "404.html"] },
+    ja: {
+      src: ["ja/**/*.html"],
+      ignore: ["ja/404.html"],
+      ignoreSelectors: [".navigation", ".translation-note"],
+      hit: { hiragana: true },
+      outName: "japanese-search",
+    },
+  },
+})
+```
+
+`ja`の`hit.minLength`は`2`を継承します。配列は結合せず置き換えるため、上の`ignoreSelectors`には共通の除外項目も記載しています。空配列を指定するとその除外を解除できます。`indexes`を使うときに`src`・`ignore`・`outName`をトップレベルへ置くとエラーになります。
+
+### 生成されるJSON
+
+最初の例の出力名は`search-en.json`と`search-ja.json`です。ディレクトリとハッシュはViteの`build.rolldownOptions.output.assetFileNames`に従い、Searchは確定したファイル名を参照します。`outName`は拡張子を含めず、index間で重複させないでください。
+
+multi-indexのJSONには`index`名が入り、既存の`words`・`hits`・`pages`形式をそのまま使います。対象ページがないindexも出力されます。
+
+```json
+{
+  "index": "ja",
+  "words": [],
+  "hits": [],
+  "pages": []
+}
+```
+
+解析条件が同じindexはページ解析を共有します。devとbuildで同じ選択・生成処理を使い、devでは変換後のページ集合が変わるまで生成結果を再利用します。

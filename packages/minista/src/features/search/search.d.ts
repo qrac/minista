@@ -26,6 +26,16 @@ export interface SearchFeatureOptions extends SearchAnalyzeOptions {
   readonly hit: SearchHitOptions
 }
 
+export interface SearchIndexOptions extends SearchFeatureOptions {
+  readonly name?: string
+}
+
+export type SearchFeatureConfig = SearchFeatureOptions | {
+  readonly indexes: readonly SearchIndexOptions[]
+}
+
+export declare function getSearchIndexes(options: SearchFeatureConfig): readonly SearchIndexOptions[]
+
 export interface SearchDocumentAnalysis {
   readonly words: readonly string[]
   readonly title: readonly string[]
@@ -45,6 +55,7 @@ export interface SearchDocumentAnalyzer {
 }
 
 export interface SearchData {
+  readonly index?: string
   readonly words: readonly string[]
   readonly hits: readonly number[]
   readonly pages: readonly {
@@ -74,9 +85,9 @@ export declare function composeSearchOutputDocument(
   options: SearchFeatureOptions,
 ): number
 export declare function createSearchFeature(
-  options: SearchFeatureOptions,
+  options: SearchFeatureConfig,
   analyzer: SearchDocumentAnalyzer,
-): MinistaFeature<SearchFeatureOptions>
+): MinistaFeature<SearchFeatureConfig>
 export declare function createSearchFeatureDescriptor(
-  options: SearchFeatureOptions,
-): Omit<MinistaFeature<SearchFeatureOptions>, "hooks">
+  options: SearchFeatureConfig,
+): Omit<MinistaFeature<SearchFeatureConfig>, "hooks">

@@ -76,3 +76,4 @@
 - [ADR-0018: Archiveのstream出力port](decisions/0018-archive-stream-publication.md)
 
 - [ADR-0019: HTML参照Entryの公開APIをSSGへ統合する](decisions/0019-ssg-entry-composition.md)
+- [ADR-0020: Searchの複数indexと解析Artifactの共有](decisions/0020-search-multiple-indexes.md)

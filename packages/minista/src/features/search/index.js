@@ -10,4 +10,5 @@ export {
   createSearchFeatureDescriptor,
   getSearchPageFileName,
   getSearchPageUrl,
+  getSearchIndexes,
 } from "./search.js"

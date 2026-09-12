@@ -14,13 +14,15 @@ import { createNodeId } from "../../core/graph/index.js"
 /** @typedef {import("./search.js").SearchData} SearchData */
 /** @typedef {import("./search.js").SearchDocumentAnalyzer} SearchDocumentAnalyzer */
 /** @typedef {import("./search.js").SearchFeatureOptions} SearchFeatureOptions */
+/** @typedef {import("./search.js").SearchFeatureConfig} SearchFeatureConfig */
+/** @typedef {import("./search.js").SearchIndexOptions} SearchIndexOptions */
 /** @typedef {import("./search.js").SearchPageAnalysis} SearchPageAnalysis */
 
 export const SEARCH_FEATURE_ID = createNodeId("feature", "search")
 
 /**
- * @param {SearchFeatureOptions} options
- * @returns {Omit<import("../../core/lifecycle/index.js").MinistaFeature<SearchFeatureOptions>, "hooks">}
+ * @param {SearchFeatureConfig} options
+ * @returns {Omit<import("../../core/lifecycle/index.js").MinistaFeature<SearchFeatureConfig>, "hooks">}
  */
 export function createSearchFeatureDescriptor(options) {
   return Object.freeze({
@@ -61,9 +63,14 @@ export function createSearchDataArtifactId(outName) {
   return createNodeId("artifact", `search/${outName}.json`)
 }
 
-/** @param {string} pageId */
-function createSearchAnalysisArtifactId(pageId) {
-  return createNodeId("artifact", "search-analysis", pageId)
+/** @param {SearchFeatureConfig} options @returns {readonly SearchIndexOptions[]} */
+export function getSearchIndexes(options) {
+  return "indexes" in options ? options.indexes : [options]
+}
+
+/** @param {string} pageId @param {string} [groupName] */
+function createSearchAnalysisArtifactId(pageId, groupName) {
+  return createNodeId("artifact", groupName === undefined ? "search-analysis" : `search-analysis/${groupName}`, pageId)
 }
 
 /**
@@ -95,11 +102,23 @@ export function composeSearchOutputDocument(document, url, options) {
 }
 
 /**
- * @param {SearchFeatureOptions} options
+ * @param {SearchFeatureConfig} options
  * @param {SearchDocumentAnalyzer} analyzer
- * @returns {import("../../core/lifecycle/index.js").MinistaFeature<SearchFeatureOptions>}
+ * @returns {import("../../core/lifecycle/index.js").MinistaFeature<SearchFeatureConfig>}
  */
 export function createSearchFeature(options, analyzer) {
+  const indexes = getSearchIndexes(options)
+  const multiIndex = "indexes" in options
+  // Only extraction options affect document analysis. Selection and hit filters
+  // remain independent, so overlapping indexes can share one page artifact.
+  /** @type {Map<string, SearchIndexOptions[]>} */
+  const groups = new Map()
+  for (const index of [...indexes].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""))) {
+    const key = JSON.stringify([index.trimTitle, index.targetSelector, index.ignoreSelectors])
+    const group = groups.get(key) ?? []
+    group.push(index)
+    groups.set(key, group)
+  }
   return Object.freeze({
     ...createSearchFeatureDescriptor(options),
     hooks: Object.freeze({
@@ -109,36 +128,37 @@ export function createSearchFeature(options, analyzer) {
           const page = context.graph.getPage(document.pageId)
           if (!page) continue
           const fileName = getSearchPageFileName(page.url)
-          if (
-            !picomatch.isMatch(fileName, [...options.src], {
-              ignore: [...options.ignore],
-            })
-          ) {
-            continue
-          }
-          const analysis = await analyzer.analyze(document, options)
-          const record = {
-            ...analysis,
-            url: page.url,
-          }
-          const id = createSearchAnalysisArtifactId(page.id)
-          await context.artifacts.put({
-            schemaVersion: "1",
-            id,
-            owner: SEARCH_FEATURE_ID,
-            mediaType: "application/vnd.minista.search-page+json",
-            content: JSON.stringify(record),
-            scope: { kind: "page", pageId: page.id },
-          })
-          if (context.graph.hasFeature(SEARCH_FEATURE_ID)) {
-            context.graph.addArtifact({
+          for (const group of groups.values()) {
+            const selected = group.filter((index) => picomatch.isMatch(fileName, [...index.src], {
+              ignore: [...index.ignore],
+            }))
+            const first = selected[0]
+            if (!first) continue
+            const analysis = await analyzer.analyze(document, first)
+            const record = {
+              ...analysis,
+              url: page.url,
+              ...(multiIndex ? { indexes: selected.map((index) => index.name) } : {}),
+            }
+            const id = createSearchAnalysisArtifactId(page.id, multiIndex ? group[0]?.name : undefined)
+            await context.artifacts.put({
+              schemaVersion: "1",
               id,
-              kind: "data",
               owner: SEARCH_FEATURE_ID,
-              source: `page:${page.id}`,
-              dependencies: [],
+              mediaType: "application/vnd.minista.search-page+json",
+              content: JSON.stringify(record),
               scope: { kind: "page", pageId: page.id },
             })
+            if (context.graph.hasFeature(SEARCH_FEATURE_ID)) {
+              context.graph.addArtifact({
+                id,
+                kind: "data",
+                owner: SEARCH_FEATURE_ID,
+                source: `page:${page.id}`,
+                dependencies: [],
+                scope: { kind: "page", pageId: page.id },
+              })
+            }
           }
         }
       },
@@ -149,37 +169,47 @@ export function createSearchFeature(options, analyzer) {
             record.owner === SEARCH_FEATURE_ID &&
             record.mediaType === "application/vnd.minista.search-page+json",
         )
-        /** @type {SearchPageAnalysis[]} */
-        const analyses = records.map((record) =>
-          JSON.parse(String(record.content)),
-        )
-        const id = createSearchDataArtifactId(options.outName)
-        const data = createSearchData(analyses, options.hit)
-        await context.artifacts.put({
-          schemaVersion: "1",
-          id,
-          owner: SEARCH_FEATURE_ID,
-          mediaType: "application/json",
-          content: JSON.stringify(data),
-        })
-        if (context.graph.hasFeature(SEARCH_FEATURE_ID)) {
-          context.graph.addArtifact({
+        const parsed = records.map((record) => ({
+          id: record.id,
+          analysis: /** @type {SearchPageAnalysis & {indexes?: string[]}} */ (JSON.parse(String(record.content))),
+        }))
+        for (const index of indexes) {
+          const selected = parsed.filter(({ analysis }) => !multiIndex || analysis.indexes?.includes(index.name ?? ""))
+          const id = createSearchDataArtifactId(index.outName)
+          const data = {
+            // Named data remains identifiable even when two indexes have the
+            // same pages (or are empty). Bundlers must not deduplicate them.
+            ...(multiIndex ? { index: index.name } : {}),
+            ...createSearchData(selected.map(({ analysis }) => analysis), index.hit),
+          }
+          await context.artifacts.put({
+            schemaVersion: "1",
             id,
-            kind: "data",
             owner: SEARCH_FEATURE_ID,
-            source: `search:${options.outName}`,
-            dependencies: records.map(({ id: dependency }) => dependency),
+            mediaType: "application/json",
+            content: JSON.stringify(data),
           })
+          if (context.graph.hasFeature(SEARCH_FEATURE_ID)) {
+            context.graph.addArtifact({
+              id,
+              kind: "data",
+              owner: SEARCH_FEATURE_ID,
+              source: `search:${index.name ?? index.outName}`,
+              dependencies: selected.map(({ id: dependency }) => dependency),
+            })
+          }
         }
       },
       /** @param {PhaseContext} context */
       compose(context) {
         for (const document of context.documents.list()) {
-          composeSearchDocument(
-            document,
-            context.graph.getPage(document.pageId),
-            options,
-          )
+          for (const index of indexes) {
+            composeSearchDocument(
+              document,
+              context.graph.getPage(document.pageId),
+              index,
+            )
+          }
         }
       },
     }),

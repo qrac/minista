@@ -1,4 +1,6 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test, vi } from "vitest"
+import { processViteDocuments } from "../../../src/adapters/vite/compatibility-lifecycle.js"
+import { createViteBuildSession } from "../../../src/adapters/vite/build-session.js"
 
 import {
   NodeHtmlDocumentFactory,
@@ -164,4 +166,44 @@ test("can exclude the target element itself", async () => {
   expect(await new NodeSearchDocumentAnalyzer().analyze(document, {
     ...options, ignoreSelectors: [".skip"],
   })).toEqual({ words: ["Fixture"], title: ["Fixture"], content: [], toc: [] })
+})
+
+test("shares page analysis across overlapping indexes and replaces scoped artifacts on a new snapshot", async () => {
+  const analyzer = new NodeSearchDocumentAnalyzer()
+  const analyze = vi.spyOn(analyzer, 'analyze')
+  const feature = createSearchFeature({ indexes: [
+    { ...options, name: 'en', outName: 'search-en', ignore: ['ja/**'] },
+    { ...options, name: 'ja', outName: 'search-ja', src: ['ja/**/*.html'] },
+    { ...options, name: 'all', outName: 'search-all', hit: { ...options.hit, english: false } },
+    { ...options, name: 'alternate', outName: 'search-alternate', src: ['index.html'], targetSelector: 'aside' },
+  ] }, analyzer)
+  const session = createViteBuildSession()
+  const pages = [
+    { fileName: '/', url: '/', html: '<title>English | Site</title><main data-search>Visible</main><aside>Alternate</aside>' },
+    { fileName: '/ja/', url: '/ja/', html: '<title>日本語 | Site</title><main data-search>Japanese</main>' },
+  ]
+  const result = await processViteDocuments(pages, [feature], undefined, { session })
+  expect(analyze).toHaveBeenCalledTimes(3)
+  const analysisArtifacts = result.artifacts.filter((record) => record.scope?.kind === 'page')
+  expect(analysisArtifacts).toHaveLength(3)
+  /** @param {string} name */
+  const data = (name) => JSON.parse(String(result.artifacts.find((record) => record.id === createSearchDataArtifactId(`search-${name}`))?.content))
+  expect(data('en').pages.map((/** @type {any} */ page) => page.url)).toEqual(['/'])
+  expect(data('ja').pages.map((/** @type {any} */ page) => page.url)).toEqual(['/ja/'])
+  expect(data('alternate').words).toContain('Alternate')
+  expect(data('alternate').words).not.toContain('Visible')
+  expect(data('all').words).toContain('Visible')
+  expect(data('all').hits).not.toContain(data('all').words.indexOf('Visible'))
+  const dependencies = ['en', 'ja', 'all', 'alternate'].map((name) => result.graph.artifacts.get(createSearchDataArtifactId(`search-${name}`))?.dependencies ?? [])
+  expect(dependencies.map((ids) => ids.length)).toEqual([1, 1, 2, 1])
+  expect(new Set(dependencies[2])).toEqual(new Set([...dependencies[0], ...dependencies[1]]))
+  expect(dependencies[3]).not.toEqual(dependencies[0])
+
+  // Removed pages must not leak from the server's shared Document Store.
+  const updated = await processViteDocuments([pages[0]], [feature], undefined, { session })
+  const ja = updated.artifacts.find((record) => record.id === createSearchDataArtifactId('search-ja'))
+  expect(JSON.parse(String(ja?.content)).pages).toEqual([])
+  expect(updated.graph.artifacts.get(createSearchDataArtifactId('search-ja'))?.dependencies).toEqual([])
+  expect(updated.artifacts.filter((record) => record.scope?.kind === 'page')).toHaveLength(2)
+  expect(updated.graph.artifacts.size).toBe(updated.artifacts.length)
 })

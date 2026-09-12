@@ -14,6 +14,9 @@ defineConfig({ plugins: [
   pluginSvg({ config: { multipass: true } }), pluginSprite({ config: { multipass: true } }), pluginComment(),
   pluginIsland({ rootDOMElement: "span", rootStyle: { display: "contents" } }),
   pluginSearch({ hit: { minLength: 2 } }),
+  pluginSearch({ ignoreSelectors: ['.skip'], hit: { minLength: 2 }, indexes: {
+    en: { ignore: ['ja/**'] }, ja: { src: ['ja/**/*.html'], outName: 'japanese', hit: { hiragana: true } },
+  } }),
   pluginBeautify({ htmlOptions: { indent_size: 2 }, jsOptions: { brace_style: "collapse" } }),
   pluginArchive({ archives: [{ outName: "site", options: { zlib: { level: 9 } } }, { outName: "site", format: "tar", options: { gzip: true } }] }),
 ] })
@@ -51,6 +54,16 @@ const badImage = <Image />
 // @ts-expect-error Invalid component prop.
 const badSearch = <Search maxHitPages="five" />
 void [badImage, badSearch]
+
+const namedSearch = <Search index="ja" />
+void namedSearch
+// @ts-expect-error index names are strings.
+const invalidSearchIndex = <Search index={2} />
+void invalidSearchIndex
+// @ts-expect-error Index-specific options retain their types.
+pluginSearch({ indexes: { ja: { hit: { minLength: 'two' } } } })
+// @ts-expect-error Selection belongs inside each index in multi-index mode.
+pluginSearch({ src: ['**/*.html'], indexes: { ja: {} } })
 
 // @ts-expect-error Picture source required.
 const badPicture = <Picture />

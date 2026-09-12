@@ -20,11 +20,22 @@ type HitOptions = {
 export type PluginOptions = PluginOptionBase & {
   hit: HitOptions
 }
-export type UserPluginOptions = Partial<PluginOptionBase> & {
+export type SearchIndexOptions = Partial<PluginOptionBase> & {
   hit?: Partial<HitOptions>
 }
+export type UserPluginOptions = (SearchIndexOptions & { indexes?: undefined }) | (
+  Omit<SearchIndexOptions, "outName" | "src" | "ignore"> & {
+    /** Named indexes. Each index inherits common options; arrays replace them. */
+    indexes: Record<string, SearchIndexOptions>
+    outName?: never
+    src?: never
+    ignore?: never
+  }
+)
 
 export type SearchData = {
+  /** Present only for named indexes. */
+  index?: string
   words: string[]
   hits: number[]
   pages: SearchPage[]
@@ -43,6 +54,8 @@ export type SearchResult = {
 }
 
 export type SearchProps = {
+  /** Required when pluginSearch defines indexes; omit in single-index mode. */
+  index?: string
   className?: string
   minHitLength?: number
   maxHitPages?: number

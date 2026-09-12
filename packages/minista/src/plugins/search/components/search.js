@@ -1,4 +1,5 @@
 import { escapeRegExp, prepareSearchQuery, querySearch } from "../internal/query.js"
+import { resolveSearchIndex } from "../../../features/search/reference.js"
 
 /** @typedef {import('../types').SearchData} SearchData */
 /** @typedef {import('../types').SearchPage} SearchPage */
@@ -11,14 +12,15 @@ import { useState, useRef, useEffect, createElement, cloneElement } from "react"
 const apply = "serve"
 /** @type {string} */
 const base = "/"
-const relativeAttr = "data-search-relative"
-const inputAttr = "data-search-input"
+/** @type {{multiIndex: boolean, indexes: {name: string | null, filePath: string, relativeAttr: string, inputAttr: string}[]}} */
+const searchConfig = { multiIndex: false, indexes: [{ name: null, filePath: "/@__minista_search_json", relativeAttr: "data-search-relative", inputAttr: "data-search-input" }] }
 
 /**
  * @param {SearchProps} props
  */
 export function Search(props) {
   const {
+    index,
     className = "search",
     minHitLength = 2,
     maxHitPages = 5,
@@ -28,6 +30,7 @@ export function Search(props) {
     list = {},
     ...wrapperRest
   } = props
+  const { filePath: searchFilePath, relativeAttr, inputAttr } = resolveSearchIndex(searchConfig.indexes, index, searchConfig.multiIndex)
   const {
     className: fieldClassName = "search-field",
     placeholder = "",
@@ -175,9 +178,11 @@ export function Search(props) {
 
   useEffect(() => {
     if (!callSearchData) return
+    let active = true
+    setPreparedQuery(prepareSearchQuery(defaultSearchData))
 
     const getSearchData = async () => {
-      let filePath = "/@__minista_search_json"
+      let filePath = searchFilePath
 
       if (apply === "build") {
         const el = document.querySelector(`[${relativeAttr}]`)
@@ -188,15 +193,18 @@ export function Search(props) {
         const newRoot = "/" + segments.join("/") + "/"
         filePath = newRoot.replace(/\/+$/, "/") + filePath
         setRoot(newRoot)
+      } else {
+        filePath = basedUrl(filePath)
       }
 
       const response = await fetch(filePath)
       /** @type {SearchData} */
       const data = await response.json()
-      setPreparedQuery(prepareSearchQuery(data))
+      if (active) setPreparedQuery(prepareSearchQuery(data))
     }
     getSearchData()
-  }, [callSearchData])
+    return () => { active = false }
+  }, [callSearchData, searchFilePath, relativeAttr])
 
   return createElement(
     "div",

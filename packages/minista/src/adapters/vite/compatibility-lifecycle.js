@@ -256,17 +256,18 @@ export async function processViteDocuments(
   for (const artifact of hooks.inputArtifacts ?? []) {
     await lifecycle.artifacts.put(artifact)
   }
-  if (hooks.artifactUpdate === "input-pages") {
-    const scopedDocuments = new MemoryHtmlDocumentStore()
-    for (const { document } of states) scopedDocuments.put(document)
-    lifecycle.runner = new LifecycleRunner(lifecycle.features, {
-      graph: lifecycle.graph,
-      diagnostics: lifecycle.diagnostics,
-      documents: scopedDocuments,
-      artifacts: lifecycle.artifacts,
-      emitter: lifecycle.emitter,
-    })
-  }
+  // Reuse the session's parsed documents, but only expose this operation's
+  // inputs. Other dev requests (including base-prefixed URLs) and removed pages
+  // must not become inputs to a complete Search snapshot.
+  const scopedDocuments = new MemoryHtmlDocumentStore()
+  for (const { document } of states) scopedDocuments.put(document)
+  lifecycle.runner = new LifecycleRunner(lifecycle.features, {
+    graph: lifecycle.graph,
+    diagnostics: lifecycle.diagnostics,
+    documents: scopedDocuments,
+    artifacts: lifecycle.artifacts,
+    emitter: lifecycle.emitter,
+  })
 
   const composeIndex = phases.indexOf("compose")
   if (hooks.beforeCompose && composeIndex >= 0) {

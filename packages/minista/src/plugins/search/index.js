@@ -2,7 +2,6 @@ import { registerViteFeatureLifecycle, runViteDevLifecycle, transformViteDocumen
 
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
-/** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('../../features/ssg/index.js').RenderedPage} RenderedPage */
 
 import path from "node:path"
@@ -24,8 +23,11 @@ import {
   createSearchFeatureDescriptor,
   createSearchDataArtifactId,
   getSearchPageUrl,
+  getSearchIndexes,
 } from "../../features/search/index.js"
-import { mergeObj } from "../../shared/obj.js"
+import { resolveSearchIndex } from "../../features/search/reference.js"
+import { resolveSearchOptions } from "./internal/options.js"
+export { defaultOptions } from "./internal/options.js"
 import { getServeBase } from "../../shared/url.js"
 import {
   mergeSsrNoExternal,
@@ -36,34 +38,22 @@ import {
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-/** @type {PluginOptions} */
-export const defaultOptions = {
-  outName: "search",
-  src: ["**/*.html"],
-  ignore: ["404.html"],
-  trimTitle: "",
-  targetSelector: "[data-search]",
-  ignoreSelectors: [],
-  relativeAttr: "data-search-relative",
-  inputAttr: "data-search-input",
-  hit: {
-    minLength: 3,
-    number: false,
-    english: true,
-    hiragana: false,
-    katakana: true,
-    kanji: true,
-  },
-}
 const analyzer = new NodeSearchDocumentAnalyzer()
+const devEndpoint = "/@__minista_search_json"
+
+/** @param {string | undefined} name */
+function getSearchEndpoint(name) {
+  return name === undefined ? devEndpoint : `${devEndpoint}?index=${encodeURIComponent(name)}`
+}
 
 /**
  * @param {UserPluginOptions} uOpts
  * @returns {Plugin}
  */
 export function pluginSearch(uOpts = {}) {
-  /** @type {PluginOptions} */
-  const opts = mergeObj(defaultOptions, uOpts)
+  const opts = resolveSearchOptions(uOpts)
+  const indexes = getSearchIndexes(opts)
+  const multiIndex = "indexes" in opts
   const cpSearchPath = normalizePath(
     path.resolve(__dirname, "components/search.js"),
   )
@@ -81,11 +71,6 @@ export function pluginSearch(uOpts = {}) {
     name: "vite-plugin:minista-search",
     api: { minista: { outputClaims: getOutputClaims, feature: createSearchFeatureDescriptor(opts) } },
     enforce: "pre",
-    apply(config, { command, isSsrBuild }) {
-      const isAppBuild = Boolean(getViteAppEnvironmentNames(config))
-      return command === "serve" ||
-        (command === "build" && (isAppBuild || !isSsrBuild))
-    },
     config: async (config, { command, isSsrBuild }) => {
       if (command === "serve") {
         return {
@@ -107,14 +92,19 @@ export function pluginSearch(uOpts = {}) {
       }
     },
     configureServer(server) {
+      const basePath = new URL(getServeBase(server.config.base), "http://minista.local").pathname.replace(/\/$/, "")
       /** @type {ViteDevModuleEvaluator | undefined} */
       let evaluator
+      /** @type {{pages: import("../../adapters/vite/compatibility-lifecycle.js").ViteCompatibilityDocumentInput[], result: import("../../adapters/vite/compatibility-lifecycle.js").ViteCompatibilityDocumentResult} | undefined} */
+      let snapshot
       server.middlewares.use(async (req, res, next) => {
-        if (req.url !== "/@__minista_search_json") {
+        const request = new URL(req.url ?? "/", "http://minista.local")
+        if (request.pathname !== devEndpoint && request.pathname !== `${basePath}${devEndpoint}`) {
           next()
           return
         }
         try {
+          const index = resolveSearchIndex(indexes, request.searchParams.get("index") ?? undefined, multiIndex)
           evaluator ??= new ViteDevModuleEvaluator(server)
           /** @type {{default?: RenderedPage[]}} */
           const mod = await evaluator.importModule("virtual:ssg-pages")
@@ -131,7 +121,13 @@ export function pluginSearch(uOpts = {}) {
                 }),
               })
             }
-            return processViteDocuments(
+            // All indexes belong to one transformed page snapshot. Consecutive
+            // requests reuse its artifacts; edits/deletions change the inputs.
+            if (snapshot && pages.length === snapshot.pages.length && pages.every((page, i) => {
+              const previous = snapshot?.pages[i]
+              return previous?.url === page.url && previous.html === page.html
+            })) return snapshot.result
+            const result = await processViteDocuments(
               pages,
               [createSearchFeature(opts, analyzer)],
               ["analyze", "generate"],
@@ -140,9 +136,11 @@ export function pluginSearch(uOpts = {}) {
                 "search:dev",
               ),
             )
+            snapshot = { pages, result }
+            return result
           })
           const searchArtifact = result.artifacts.find(
-            ({ id }) => id === createSearchDataArtifactId(opts.outName),
+            ({ id }) => id === createSearchDataArtifactId(index.outName),
           )
           if (!searchArtifact) {
             throw new Error("Search lifecycle did not generate search data.")
@@ -175,18 +173,26 @@ export function pluginSearch(uOpts = {}) {
 
       const regBase = /(const base = )"\/"/
       const regApply = /(const apply = )"serve"/
-      const regRelativeAttr = /(const relativeAttr = )"data-search-relative"/
-      const regInputAttr = /(const inputAttr = )"data-search-input"/
 
       if (isDev) {
         const base = getServeBase(environment.config.base || "/")
-        newCode = newCode.replace(regBase, `$1"${base}"`)
+        newCode = newCode.replace(regBase, (_, prefix) => prefix + JSON.stringify(base))
       }
       if (isLegacyClient || isAppClient) {
         newCode = newCode.replace(regApply, `$1"build"`)
-        newCode = newCode.replace(regRelativeAttr, `$1"${opts.relativeAttr}"`)
       }
-      newCode = newCode.replace(regInputAttr, `$1"${opts.inputAttr}"`)
+      // The same reference table validates SSR and browser renders, including
+      // the legacy render build. Final asset names are resolved in generateBundle.
+      const searchConfig = {
+        multiIndex,
+        indexes: indexes.map((index) => ({
+          name: index.name ?? null,
+          filePath: getSearchEndpoint(index.name),
+          relativeAttr: index.relativeAttr,
+          inputAttr: index.inputAttr,
+        })),
+      }
+      newCode = newCode.replace(/^const searchConfig = .*$/m, () => `const searchConfig = ${JSON.stringify(searchConfig)}`)
       return newCode
     },
     async generateBundle(options, bundle) {
@@ -224,37 +230,39 @@ export function pluginSearch(uOpts = {}) {
           "search:build",
         ),
       )
-      const searchArtifact = result.artifacts.find(
-        ({ id }) => id === createSearchDataArtifactId(opts.outName),
-      )
-      if (!searchArtifact) {
-        throw new Error("Search lifecycle did not generate search data.")
-      }
-      /** @type {import("../../features/search/index.js").SearchData} */
-      const searchData = JSON.parse(String(searchArtifact.content))
-      const outputPageUrls = searchData.pages.map(({ url }) => url)
-      const referenceId = this.emitFile({
-        type: "asset",
-        name: `${opts.outName}.json`,
-        source: JSON.stringify(searchData),
-      })
-      const after = this.getFileName(referenceId)
-      outputClaims.push(Object.freeze({
-        id: createSearchDataArtifactId(opts.outName),
-        kind: /** @type {const} */ ("data"),
-        owner: createNodeId("feature", "search"),
-        source: "search-data",
-        fileName: after,
-        pageUrls: Object.freeze(outputPageUrls),
-        dependencies: Object.freeze([]),
-      }))
+      for (const index of indexes) {
+        const searchArtifact = result.artifacts.find(
+          ({ id }) => id === createSearchDataArtifactId(index.outName),
+        )
+        if (!searchArtifact) {
+          throw new Error("Search lifecycle did not generate search data.")
+        }
+        /** @type {import("../../features/search/index.js").SearchData} */
+        const searchData = JSON.parse(String(searchArtifact.content))
+        const outputPageUrls = searchData.pages.map(({ url }) => url)
+        const referenceId = this.emitFile({
+          type: "asset",
+          name: `${index.outName}.json`,
+          source: JSON.stringify(searchData),
+        })
+        const after = this.getFileName(referenceId)
+        outputClaims.push(Object.freeze({
+          id: createSearchDataArtifactId(index.outName),
+          kind: /** @type {const} */ ("data"),
+          owner: createNodeId("feature", "search"),
+          source: index.name === undefined ? "search-data" : `search:${index.name}`,
+          fileName: after,
+          pageUrls: Object.freeze(outputPageUrls),
+          dependencies: Object.freeze([]),
+        }))
 
-      const fetchItems = Object.values(outputChunks).filter((item) => {
-        return item.moduleIds.includes(cpSearchPath)
-      })
-      for (const item of fetchItems) {
-        const beforeFetch = "/@__minista_search_json"
-        item.code = item.code.replace(beforeFetch, after)
+        // Match complete literals, including quotes/templates chosen by a minifier.
+        // Search may be moved into a shared chunk by the client bundler.
+        const beforeFetch = getSearchEndpoint(index.name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        const reference = new RegExp("([\"'`])" + beforeFetch + "\\1", "g")
+        for (const item of Object.values(outputChunks)) {
+          item.code = item.code.replace(reference, () => JSON.stringify(after))
+        }
       }
 
       const outputDocuments = new Map(

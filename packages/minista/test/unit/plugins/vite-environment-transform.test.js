@@ -1,4 +1,5 @@
 import path from "node:path"
+import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 
 import { describe, expect, test } from "vitest"
@@ -64,31 +65,28 @@ describe("App Build environment source transforms", () => {
     expect(client).toBeUndefined()
   })
 
-  test("separates Search render attributes from client behavior", async () => {
+  test.each([false, true])("shares Search index references between render and client (multi-index: %s)", async (multiIndex) => {
     const plugin = pluginSearch({
       relativeAttr: "data-result-depth",
       inputAttr: "data-query-input",
+      ...(multiIndex ? { indexes: { en: {}, ja: {} } } : {}),
     })
-    if (typeof plugin.apply !== "function") throw new Error("apply missing")
-    expect(plugin.apply(createViteAppConfig({}), configEnvironment)).toBe(true)
     const id = path.resolve(
       here,
       "../../../src/plugins/search/components/search.js",
     )
-    const source = [
-      'const apply = "serve"',
-      'const relativeAttr = "data-search-relative"',
-      'const inputAttr = "data-search-input"',
-    ].join("\n")
+    const source = await readFile(id, "utf8")
 
     const render = await transform(plugin, "render", source, id)
     const client = await transform(plugin, "client", source, id)
 
     expect(render).toContain('const apply = "serve"')
-    expect(render).toContain('const relativeAttr = "data-search-relative"')
-    expect(render).toContain('const inputAttr = "data-query-input"')
     expect(client).toContain('const apply = "build"')
-    expect(client).toContain('const relativeAttr = "data-result-depth"')
-    expect(client).toContain('const inputAttr = "data-query-input"')
+    for (const output of [render, client]) {
+      expect(output).toContain('"relativeAttr":"data-result-depth"')
+      expect(output).toContain('"inputAttr":"data-query-input"')
+      expect(output).toContain(`"multiIndex":${multiIndex}`)
+      expect(output).toContain(multiIndex ? '"filePath":"/@__minista_search_json?index=ja"' : '"filePath":"/@__minista_search_json"')
+    }
   })
 })
