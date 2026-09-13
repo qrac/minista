@@ -8,6 +8,7 @@ import {
 import type { Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import remarkGfm from "remark-gfm"
+import remarkCustomHeaderId from "remark-custom-header-id"
 import remarkToc from "remark-toc"
 import rehypeSlug from "rehype-slug"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
@@ -56,7 +57,11 @@ export default defineConfig({
   plugins: [
     pluginSsg({
       mdx: {
-        remarkPlugins: [remarkGfm, [remarkToc, remarkTocOptions]],
+        remarkPlugins: [
+          remarkGfm,
+          remarkCustomHeaderId,
+          [remarkToc, remarkTocOptions],
+        ],
         rehypePlugins: [
           rehypeSlug,
           rehypeAutolinkHeadings,
