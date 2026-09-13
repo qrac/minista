@@ -5,7 +5,6 @@ import {
   pluginIsland,
   pluginSearch,
 } from "minista"
-import type { Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import remarkGfm from "remark-gfm"
 import remarkCustomHeaderId from "remark-custom-header-id"
@@ -14,7 +13,8 @@ import rehypeSlug from "rehype-slug"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
 import rehypePrettyCode from "rehype-pretty-code"
 
-import { pluginSeo } from "./.vite/plugins/seo.js"
+import { pluginSeo } from "./.vite-plugins/seo.js"
+import { pluginPreact } from "./.vite-plugins/preact.js"
 
 const remarkTocOptions = {
   maxDepth: 3,
@@ -27,30 +27,6 @@ const rehypePrettyCodeOptions = {
   },
   keepBackground: false,
   keepFigure: false,
-}
-const preactAlias = {
-  react: "preact/compat",
-  "react-dom": "preact/compat",
-}
-
-function pluginClientPreactAlias(): Plugin {
-  return {
-    name: "minista-docs:client-preact-alias",
-    enforce: "pre",
-    apply: "build",
-    applyToEnvironment: (environment) =>
-      environment.config.consumer === "client",
-    resolveId(source, importer, options) {
-      for (const [find, replacement] of Object.entries(preactAlias)) {
-        if (source !== find && !source.startsWith(`${find}/`)) continue
-        const resolvedSource = `${replacement}${source.slice(find.length)}`
-        return this.resolve(resolvedSource, importer, {
-          ...options,
-          skipSelf: true,
-        })
-      }
-    },
-  }
 }
 
 export default defineConfig({
@@ -93,7 +69,7 @@ export default defineConfig({
         "[data-stage]",
       ],
     }),
-    pluginClientPreactAlias(),
+    pluginPreact(),
     react(),
   ],
   build: {

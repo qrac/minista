@@ -37,7 +37,7 @@ export function pluginSeo(uOpts: {
   const opts = { ...defaultOptions, ...uOpts }
 
   return {
-    name: "vite-plugin:minista-local-seo",
+    name: "vite-plugin:local-seo",
     enforce: "pre",
     apply: "build",
     applyToEnvironment: (environment) =>
