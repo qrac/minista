@@ -12,8 +12,8 @@
   },
   "devDependencies": {
     "minista": "^5.0.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "vite": "^8.2.2"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "vite": "^8.3.0"
   }
 }
