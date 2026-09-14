@@ -1,0 +1,181 @@
+---
+layout: docs
+locale: ja
+title: TypeScript
+hasPrev: true
+hasNext: true
+---
+
+# TypeScript
+
+ministaはTSXのページやコンポーネント、TypeScriptの設定ファイルに対応しています。クライアント向けの宣言は`minista/client`、ページデータなどの公開型は`minista/types`から利用します。
+
+## インストール
+
+TypeScriptのテンプレートには設定済みです。手動で追加する場合は、次をインストールします。
+
+```sh
+npm install --save-dev typescript @types/react@^19 @types/react-dom@^19
+```
+
+ReactとReact DOMの型は、使用するReactのバージョンに合わせてください。Node.jsのAPIを使う設定やデータ取得処理の型が必要な場合は、`@types/node`も追加します。
+
+## tsconfig.json
+
+```json title="./tsconfig.json"
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "noErrorTruncation": true,
+    "jsx": "react-jsx",
+    "types": ["minista/client"]
+  },
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+これはテンプレートに合わせた基本設定です。`strict: true`を加えると、より厳密な型チェックを利用できます。依存パッケージの宣言も検査したい場合は`skipLibCheck: false`にします。
+
+`types`を既に設定している場合は、必要な既存項目を残して`minista/client`を追加してください。Node.jsのグローバル型も明示的に読み込む場合は`"node"`を含めます。
+
+## minista/client
+
+次の宣言をまとめて読み込みます。
+
+- Viteのクライアント型：アセットのimportや`import.meta.env`など
+- `.md`・`.mdx`のdefault exportをReactコンポーネントとして扱う型
+- `client:*`のIslandディレクティブ
+
+`.md`・`.mdx`の任意のnamed exportやフロントマターの項目まで、自動で具体的な型が生成されるわけではありません。
+
+## minista/types
+
+```ts
+import type {
+  Metadata,
+  PageProps,
+  LayoutProps,
+  StaticData,
+  GetStaticData,
+} from "minista/types"
+```
+
+| 型 | 主な項目 |
+| --- | --- |
+| `Metadata` | 省略可能な`title: string`、`draft: boolean` |
+| `PageProps` | `url: string`、`title: string`、`draft: boolean` |
+| `LayoutProps` | PagePropsと同じ基本項目、および`children: React.ReactNode` |
+| `StaticData` | `props`と、省略可能な`paths` |
+| `GetStaticData` | `Promise<StaticData \| StaticData[]>`を返す関数 |
+
+`StaticData.paths`は文字列のキーと文字列の値を持ちます。数値のIDを動的ルートに使う場合は`String(id)`へ変換してください。
+
+## ページ固有のprops
+
+ページにだけ必要なデータは、`PageProps`との交差型で定義します。
+
+```tsx title="./src/pages/news/[slug].tsx"
+import type { GetStaticData, PageProps } from "minista/types"
+
+type Article = { slug: string; title: string; body: string }
+type Props = PageProps & { article: Article }
+
+export const getStaticData: GetStaticData = async () => {
+  const article: Article = {
+    slug: "hello",
+    title: "サイトを公開しました",
+    body: "最初のお知らせです。",
+  }
+  return [{
+    paths: { slug: article.slug },
+    props: { title: article.title, article },
+  }]
+}
+
+export default function ArticlePage({ article }: Props) {
+  return <article><h1>{article.title}</h1><p>{article.body}</p></article>
+}
+```
+
+`StaticData.props`の型は任意の値を許容します。`GetStaticData`を付けるだけでは、返すpropsとページの引数の対応まで検査されません。APIから取得するデータの形は、利用者側で型や実行時の検証を定義してください。
+
+## 共通のmetadataを型へ追加する
+
+すべてのページやレイアウトで使う項目は、モジュール拡張で追加できます。
+
+```ts title="./types.d.ts"
+import "minista/types"
+
+declare module "minista/types" {
+  interface Metadata {
+    description?: string
+  }
+  interface PageProps {
+    description?: string
+  }
+  interface LayoutProps {
+    description?: string
+  }
+}
+```
+
+このファイルをTypeScriptの対象に含めます。例えば`compilerOptions.types`へ`"./types.d.ts"`を追加します。
+
+```tsx title="./src/pages/about.tsx"
+import type { Metadata } from "minista/types"
+
+export const metadata: Metadata = {
+  title: "私たちについて",
+  description: "事業の紹介です。",
+}
+
+export default function About() {
+  return <h1>私たちについて</h1>
+}
+```
+
+型の追加だけではHTMLのmeta要素は生成されません。レイアウトや`Head`で`description`を使って出力してください。
+
+## プラグインの設定型
+
+`defineConfig()`とプラグインの引数で、設定値の補完や型チェックを利用できます。オプションを別の変数へ切り出す場合は、公開関数から引数型を取得できます。
+
+```ts title="./vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+type SsgOptions = NonNullable<Parameters<typeof pluginSsg>[0]>
+
+const ssgOptions = {
+  src: ["src/pages/**/*.{tsx,jsx,mdx,md}"],
+} satisfies SsgOptions
+
+export default defineConfig({
+  plugins: [pluginSsg(ssgOptions)],
+})
+```
+
+パッケージ内部のファイルパスから型をimportせず、公開エントリーを使ってください。
+
+## 型チェック
+
+```sh
+npx tsc --noEmit
+```
+
+`minista build`のTSX変換は、TypeScriptの型チェックを代替しません。型チェックをCIへ加える場合は、独立したnpm scriptとして実行します。
+
+```json title="./package.json（scripts）"
+{
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "minista build"
+  }
+}
+```
+
+`minista check`はルートやページ構成を検査するコマンドです。型の検査には`tsc`を使用してください。

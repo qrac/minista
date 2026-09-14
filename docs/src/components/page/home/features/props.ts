@@ -13,7 +13,7 @@ export const initialProps: Props = {
   items: [
     {
       tabletColumn: 6,
-      href: "/docs/config#plugins",
+      href: "/ja/docs/reference/config#plugins",
       title: "⚡️ Unified Vite Plugins",
       description:
         "すべての機能をViteプラグイン化しました。ユーザーはViteのコンフィグを用いて自由に組み立てられます。",

@@ -1,10 +1,12 @@
+import project from "../../../project.json"
+
 export default {
   main: {
     name: "Main",
     items: [
       {
         name: "Docs",
-        url: "/docs/",
+        url: "/ja/docs/",
         externalLink: false,
       },
       {
@@ -25,78 +27,13 @@ export default {
     ],
   },
   docs: {
-    name: "Docs",
-    items: [
-      {
-        name: "Guides",
-        items: [
-          {
-            name: "Introduction",
-            url: "/docs/",
-          },
-          {
-            name: "Setup",
-            url: "/docs/setup",
-          },
-          {
-            name: "TypeScript",
-            url: "/docs/typescript",
-          },
-          {
-            name: "CLI",
-            url: "/docs/cli",
-          },
-          {
-            name: "Config",
-            url: "/docs/config",
-          },
-          {
-            name: "Migration",
-            url: "/docs/migration",
-          },
-        ],
-      },
-      {
-        name: "Plugins",
-        items: [
-          {
-            name: "pluginSsg",
-            url: "/docs/plugins/ssg",
-          },
-          {
-            name: "pluginImage",
-            url: "/docs/plugins/image",
-          },
-          {
-            name: "pluginSvg",
-            url: "/docs/plugins/svg",
-          },
-          {
-            name: "pluginSprite",
-            url: "/docs/plugins/sprite",
-          },
-          {
-            name: "pluginComment",
-            url: "/docs/plugins/comment",
-          },
-          {
-            name: "pluginIsland",
-            url: "/docs/plugins/island",
-          },
-          {
-            name: "pluginSearch",
-            url: "/docs/plugins/search",
-          },
-          {
-            name: "pluginBeautify",
-            url: "/docs/plugins/beautify",
-          },
-          {
-            name: "pluginArchive",
-            url: "/docs/plugins/archive",
-          },
-        ],
-      },
-    ],
+    name: project.navigation.docs.name.ja,
+    items: project.navigation.docs.groups.map((group) => ({
+      name: group.name.ja,
+      items: group.items.map((item) => ({
+        name: typeof item.name === "string" ? item.name : item.name.ja,
+        url: `${project.i18n.paths.ja.replace(/\/$/, "")}${item.url}`,
+      })),
+    })),
   },
 }

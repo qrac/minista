@@ -1,0 +1,43 @@
+---
+layout: docs
+locale: ja
+title: 歴史
+hasPrev: true
+hasNext: true
+---
+
+# 歴史
+
+ministaは、ReactのJSXでHTMLコーディングを行い、静的なファイルを納品するためのツールとして始まりました。その目的を保ちながら、開発環境とビルドの仕組みを更新してきました。
+
+## 2021年：JSXでHTMLを制作するために
+
+初期のministaは、JSXのコンポーネントでページを組み立て、Reactの静的レンダリングでHTMLを書き出す構成でした。アセットの処理にはwebpackを利用し、Reactで書く制作体験をHTML納品へ持ち込むことが出発点になりました。
+
+当時の背景は、作者による[初期版の紹介記事](https://zenn.dev/qrac/articles/7537521afcd1bf)にまとめられています。
+
+## v2：Viteとesbuildを採用
+
+v2ではwebpackからViteとesbuildへ移行しました。開発環境にはVite、本番の静的HTML生成にはesbuildを使い、開発サーバーの起動やビルドの改善を進めました。データからページを生成する`getStaticData()`やMDXも導入されています。
+
+設計の背景は、[v2の紹介記事](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)を参照してください。
+
+## v3：開発と本番の処理を近づける
+
+v3では、開発中にも静的HTMLを配信する方式へ変更し、本番ビルドのSSGにもViteを採用しました。開発と本番で異なる処理を使うことによる差を減らし、通常のブラウザ用JavaScriptと組み合わせやすくしています。
+
+画像最適化や納品向けの機能も整備しました。詳しくは[v3の紹介記事](https://zenn.dev/qrac/articles/980efced76634f)を参照してください。
+
+## v4：機能をViteプラグインへ
+
+v4では、ministaの機能をViteプラグインとして設定する構成へ移行しました。必要な機能を`plugins`へ追加し、Viteの処理の中で他のプラグインと組み合わせられるようになりました。
+
+ページの一部をReactで動かす機能も、`client:*`ディレクティブを使うIsland形式へ変更しています。詳しくは[v4の紹介記事](https://zenn.dev/qrac/articles/48d43fdc4a4822)を参照してください。
+
+## v5：基本構成とビルドを整理
+
+このドキュメントが扱うv5では、ページ生成、Markdown・MDX、ページやレイアウトから参照するアセットの処理を`pluginSsg()`へ統合しました。基本的なサイトを一つのプラグインから始められます。
+
+ビルドにはVite Environment APIを利用し、render／client environmentを単一のVite app buildで順にビルドします。また、`minista check`による検査や、`minista inspect`によるページ構成の確認ができるようになりました。
+
+過去の記事にあるAPIや設定は、そのバージョンのものです。新しいプロジェクトでは、[はじめる](/ja/docs/guide/)から現行の手順を確認してください。

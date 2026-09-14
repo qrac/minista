@@ -1,0 +1,108 @@
+---
+layout: docs
+locale: ja
+title: 画像とアセット
+hasPrev: true
+hasNext: true
+---
+
+# 画像とアセット
+
+画像やJavaScriptなどのアセットは、Viteで処理するファイルと、`public/`からそのままコピーするファイルに分けて管理できます。画像のサイズや形式も変換したい場合は`pluginImage()`を追加します。
+
+## 画像をimportする
+
+```tsx title="./src/pages/index.tsx"
+import photoUrl from "../assets/photo.jpg"
+
+export default function Page() {
+  return <img src={photoUrl} alt="制作スタジオの風景" width={1200} height={800} />
+}
+```
+
+`src/assets/photo.jpg`を用意して利用します。`pluginSsg()`が画像の出力とURLの反映を行います。通常のimportでは、画像のリサイズやWebPへの変換は行いません。
+
+Viteの設定に応じてファイル名にハッシュが付き、小さい画像はインライン化される場合があります。独立した画像ファイルとして出力したい場合は`build.assetsInlineLimit: 0`を設定します。
+
+## publicのファイルを参照する
+
+`public/`の内容は出力先のルートへコピーされます。
+
+```text
+public/
+├── favicon.svg
+└── downloads/
+    └── brochure.pdf
+```
+
+```tsx
+<a href="/downloads/brochure.pdf">パンフレットをダウンロード</a>
+```
+
+ファイル名を保持したい画像や、ダウンロード用PDFなどに使います。サブディレクトリへの公開では、手書きURLにも公開先のパスを反映してください。
+
+## HTML属性でソースを参照する
+
+`pluginSsg()`は、HTML属性から参照されたプロジェクト内のファイルもビルドできます。
+
+```tsx title="./src/pages/index.tsx"
+import { Head } from "minista/head"
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <script type="module" src="/src/assets/scripts.ts" />
+      </Head>
+      <button type="button" data-greeting>挨拶する</button>
+      <img src="/src/assets/photo.jpg" alt="制作スタジオの風景" width={1200} height={800} />
+    </>
+  )
+}
+```
+
+```ts title="./src/assets/scripts.ts"
+document.querySelector("[data-greeting]")?.addEventListener("click", () => {
+  window.alert("こんにちは！")
+})
+```
+
+scriptはブラウザで実行され、ページのTSX自体は静的HTMLの生成に使われます。ページmoduleのトップレベルへ`document`操作を書かず、このようにブラウザ用のentryへ分けます。
+
+対象には`script[src]`、`link[href]`、`img[src]`などがあります。すべてのURL属性を変換するわけではありません。例えば`a[href]`や`meta[content]`には、publicのURLかimportで得たURLを指定します。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。
+
+## 画像を最適化する
+
+設定へ`pluginImage()`を追加します。
+
+```ts title="./vite.config.ts"
+import { defineConfig, pluginSsg, pluginImage } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginImage()],
+})
+```
+
+`Image`を使うと、サイズ違いの画像や`srcset`などを生成できます。
+
+```tsx title="./src/pages/index.tsx"
+import { Image, Picture } from "minista/assets"
+
+export default function Page() {
+  return (
+    <>
+      <Image src="/src/assets/photo.jpg" alt="制作スタジオの風景" format="webp" />
+      <Picture
+        src="/src/assets/photo.jpg"
+        alt="制作スタジオの風景"
+        formats={["webp", "inherit"]}
+        loading="lazy"
+      />
+    </>
+  )
+}
+```
+
+`Picture`は複数形式や、画面幅によって元画像を変える用途に使います。ファーストビューの主要画像など、すぐに表示したい画像の読み込みは遅延させず、画面外の画像に`loading="lazy"`を指定します。
+
+リモート画像の取得、キャッシュ、サイズや品質の調整は[pluginImage](/ja/docs/plugins/image)を参照してください。SVGの最適化やスプライト化には、[pluginSvg](/ja/docs/plugins/svg)と[pluginSprite](/ja/docs/plugins/sprite)を利用できます。

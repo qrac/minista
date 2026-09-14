@@ -1,0 +1,128 @@
+---
+layout: docs
+locale: ja
+title: ページとルーティング
+hasPrev: true
+hasNext: true
+---
+
+# ページとルーティング
+
+ministaはページファイルの配置からURLを決めます。各ページをビルド時に静的HTMLへ変換するため、公開後のルーティングはWebサーバーのファイル配信で行います。
+
+## ページを作る
+
+`src/pages/`にJSXまたはTSXファイルを作り、Reactコンポーネントをdefault exportします。
+
+```tsx title="./src/pages/about.tsx"
+import type { Metadata } from "minista/types"
+
+export const metadata: Metadata = {
+  title: "私たちについて",
+}
+
+export default function About() {
+  return <h1>私たちについて</h1>
+}
+```
+
+`metadata`はページとレイアウトへ渡すデータです。タイトルをHTMLのheadへ出すには、[レイアウトやHead](/ja/docs/guide/components-layouts)で利用します。
+
+## ファイル名とURL
+
+| ページファイル | ページURL | ビルド結果 |
+| --- | --- | --- |
+| `src/pages/index.tsx` | `/` | `dist/index.html` |
+| `src/pages/about.tsx` | `/about` | `dist/about.html` |
+| `src/pages/company/index.tsx` | `/company/` | `dist/company/index.html` |
+| `src/pages/news/article.mdx` | `/news/article` | `dist/news/article.html` |
+
+拡張子を省略したURLの配信方法はホスティング側の設定によります。ディレクトリのindexを配信する構成にしたい場合は`about/index.tsx`のように配置します。
+
+ページ間の移動には通常のリンクを使います。
+
+```tsx
+<a href="/company/">会社情報</a>
+```
+
+同じURLになる複数のファイルを作らないでください。例えば`about.tsx`と`about.mdx`は競合します。
+
+## ページへデータを渡す
+
+ページの`getStaticData()`から`props`を返すと、そのデータをページとレイアウトで利用できます。
+
+```tsx title="./src/pages/news/index.tsx"
+import type { PageProps, StaticData } from "minista/types"
+
+export async function getStaticData(): Promise<StaticData> {
+  return {
+    props: {
+      title: "お知らせ",
+      items: ["サイトを公開しました", "新しいサービスを追加しました"],
+    },
+  }
+}
+
+type Props = PageProps & { items: string[] }
+
+export default function News({ title, items }: Props) {
+  return (
+    <>
+      <h1>{title}</h1>
+      <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul>
+    </>
+  )
+}
+```
+
+関数内では`fetch()`でCMSやAPIから取得することもできます。HTTPエラーを確認し、必要なデータを取得できなければ例外を投げることで、不完全な内容のままビルドが成功することを防げます。
+
+`getStaticData()`は開発時やビルド時、`check`・`inspect`などの検査時に実行されます。公開サイトへのアクセスごとに実行されるものではありません。
+
+## データから複数のページを生成する
+
+ファイル名に`[slug]`を使い、`getStaticData()`からページごとの配列を返します。`paths`のキーをファイル名のパラメーターと一致させます。
+
+```tsx title="./src/pages/news/[slug].tsx"
+import type { PageProps, StaticData } from "minista/types"
+
+const articles = [
+  { slug: "hello", title: "サイトを公開しました", body: "最初のお知らせです。" },
+  { slug: "update", title: "更新しました", body: "サービスの紹介を追加しました。" },
+]
+
+export async function getStaticData(): Promise<StaticData[]> {
+  return articles.map((article) => ({
+    paths: { slug: article.slug },
+    props: { title: article.title, body: article.body },
+  }))
+}
+
+type Props = PageProps & { body: string }
+
+export default function Article({ title, body }: Props) {
+  return <article><h1>{title}</h1><p>{body}</p></article>
+}
+```
+
+この例では`/news/hello`と`/news/update`が生成されます。`paths`の値には文字列を指定します。IDが数値の場合は`String(id)`で変換します。
+
+## 下書きを本番出力から除外する
+
+```tsx
+export const metadata = {
+  title: "制作中のページ",
+  draft: true,
+}
+```
+
+`draft: true`のページは開発中に確認でき、本番ビルドからは除外されます。Markdown・MDXではフロントマターへ同じ値を書けます。
+
+## ページ構成を確認する
+
+```sh
+npx minista check --json
+npx minista inspect --json
+```
+
+重複したURLや動的ページの設定を確認できます。検査が成功しても、アセットの出力や公開先のURL解決はビルドとプレビューで確認してください。

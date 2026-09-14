@@ -1,0 +1,102 @@
+---
+layout: docs
+locale: ja
+title: Islands
+hasPrev: true
+hasNext: true
+---
+
+# Islands
+
+Islandは、静的ページの一部だけをReactで動かす仕組みです。ページの本文やレイアウトは静的HTMLにし、状態やイベントを持つUIに必要なJavaScriptを追加できます。
+
+## プラグインを追加する
+
+ReactのViteプラグインをインストールします。
+
+```sh
+npm install --save-dev @vitejs/plugin-react
+```
+
+```ts title="./vite.config.ts"
+import { defineConfig, pluginSsg, pluginIsland } from "minista"
+import react from "@vitejs/plugin-react"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginIsland(), react()],
+})
+```
+
+TypeScriptでは`tsconfig.json`の`types`に`minista/client`を含めてください。テンプレートには設定済みです。
+
+## 操作できるコンポーネントを作る
+
+```tsx title="./src/components/counter.tsx"
+import { useState } from "react"
+
+type Props = { initialCount?: number }
+
+export default function Counter({ initialCount = 0 }: Props) {
+  const [count, setCount] = useState(initialCount)
+  return (
+    <button type="button" onClick={() => setCount(count + 1)}>
+      カウント：{count}
+    </button>
+  )
+}
+```
+
+ページからimportし、`client:load`を付けます。
+
+```tsx title="./src/pages/index.tsx"
+import Counter from "../components/counter"
+
+export default function Page() {
+  return (
+    <>
+      <h1>カウンター</h1>
+      <p>この見出しと説明文は静的HTMLです。</p>
+      <Counter initialCount={3} client:load />
+    </>
+  )
+}
+```
+
+初期表示のHTMLに対して、ブラウザでReactを接続して操作可能にすることをハイドレーションと呼びます。`client:*`を付けずに静的コンポーネントとして使うと、`onClick`などのイベント処理はブラウザで動作しません。
+
+## 動かし始めるタイミングを選ぶ
+
+| ディレクティブ | 動作 |
+| --- | --- |
+| `client:load` | ページ読み込み時にハイドレーション |
+| `client:idle` | ブラウザの待機時間にハイドレーション |
+| `client:visible` | コンポーネントが画面内に入ったらハイドレーション |
+| `client:media="(max-width: 640px)"` | メディアクエリを満たしたらハイドレーション |
+| `client:only` | 静的HTMLを生成せず、ブラウザでレンダリング |
+
+すぐに操作するUIには`client:load`を使います。画面外のUIには、例えば次の指定ができます。
+
+```tsx
+<Counter client:visible={{ rootMargin: "200px" }} />
+```
+
+`client:visible`・`client:media`・`client:idle`は条件が成立してから対象のJavaScriptを取得します。条件が成立する前は静的HTMLとして表示され、Reactのイベントは動作しません。
+
+## ブラウザのAPIを使う
+
+通常のIslandはビルド時にもレンダリングされます。`window`や`document`を使う処理は、イベントハンドラーや`useEffect()`の中へ置きます。初回の表示内容も、ビルド時とブラウザ側で一致させます。
+
+静的HTMLを生成しないUIには`client:only`を使えますが、JavaScriptが動くまで本体は表示されません。読み込み中の表示が必要なら、fallbackを用意します。
+
+```tsx
+<div client:only>
+  <p slot="fallback">読み込み中です…</p>
+  <Counter />
+</div>
+```
+
+## Islandの範囲を決める
+
+状態を共有するUIは一つの親コンポーネントにまとめ、その親をIslandにします。子コンポーネントへそれぞれ`client:*`を付ける必要はありません。
+
+Reactを使わない小さなDOM操作は、[通常のscript](/ja/docs/guide/images-assets)で実装することもできます。オプションの詳細は[pluginIsland](/ja/docs/plugins/island)を参照してください。

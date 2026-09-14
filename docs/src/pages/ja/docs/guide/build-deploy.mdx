@@ -1,0 +1,106 @@
+---
+layout: docs
+locale: ja
+title: ビルドとデプロイ
+hasPrev: true
+hasNext: true
+---
+
+# ビルドとデプロイ
+
+ministaは、ビルドで生成した静的ファイルを公開します。本番環境でministaやNode.jsのサーバーを起動し続ける必要はありません。
+
+## ページを検査する
+
+公開前にページ構成を検査します。
+
+```sh
+npx minista check --json
+npx minista inspect --json
+```
+
+`check`はページやルートの問題を検査し、`inspect`はプロジェクトの構成を表示します。いずれもページmoduleや`getStaticData()`を実行するため、データ取得に必要な環境変数などを用意してください。
+
+TypeScriptの型チェックを行う場合は、別途実行します。
+
+```sh
+npx tsc --noEmit
+```
+
+## 本番用ファイルを生成する
+
+```sh
+npm run build
+```
+
+`build`スクリプトには`minista build`を設定します。標準の出力先は`dist/`です。
+
+```text
+dist/
+├── index.html
+├── about.html
+├── assets/
+│   └── ...
+└── favicon.svg
+```
+
+出力内容はページやプラグインの設定によって変わります。`public/`のファイルも出力先へコピーされ、`draft: true`のページは除外されます。
+
+`getStaticData()`で取得したデータは、このビルド時点の内容です。公開後にCMSなどを更新したら、再ビルドして成果物を更新します。
+
+## ビルド結果を確認する
+
+```sh
+npm run preview
+```
+
+`preview`スクリプトには`minista preview`を設定します。表示されたURLで、ページ、画像、リンク、Islandの操作を確認します。previewは生成済みファイルの確認用で、変更を自動ビルドするコマンドではありません。
+
+## 静的ホスティングへ公開する
+
+ホスティングサービスのビルド設定には、次を指定します。
+
+| 項目 | 設定例 |
+| --- | --- |
+| 依存関係のインストール | lockfileを管理しているnpmプロジェクトでは`npm ci` |
+| ビルドコマンド | `npm run build` |
+| 公開ディレクトリ | `dist` |
+| Node.js | [対応範囲](/ja/docs/guide/)内のバージョン |
+
+手動で配置する場合も、`dist/`の中身を公開先へコピーします。拡張子を省略したURLや404ページの扱いは、ホスティング側で設定します。例えば`about.html`を`/about`で配信するかは、公開先のルールに依存します。
+
+## サブディレクトリへ公開する
+
+`https://example.com/site/`のように公開する場合は、`base`を設定します。
+
+```ts title="./vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  base: "/site/",
+  plugins: [pluginSsg()],
+})
+```
+
+Viteで処理されるアセットのURLには`base`が反映されます。ページ内のリンクやpublicファイルへの手書きURLには、自分で公開パスを付けます。
+
+```tsx
+<a href={`${import.meta.env.BASE_URL}about`}>私たちについて</a>
+```
+
+`base`はページの配置を変更する設定ではありません。`dist/`の内容を公開先の`/site/`に対応する場所へ設置します。
+
+## 出力先や納品形式を調整する
+
+出力ディレクトリは`build.outDir`で変更できます。
+
+```ts
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+  build: { outDir: "output" },
+})
+```
+
+納品用にHTMLを整えたり、ZIPへまとめたりする場合は、[pluginBeautify](/ja/docs/plugins/beautify)と[pluginArchive](/ja/docs/plugins/archive)を参照してください。ファイル名のハッシュや圧縮設定は[設定](/ja/docs/guide/configuration)で紹介します。

@@ -1,0 +1,63 @@
+---
+layout: docs
+locale: ja
+title: ministaを選ぶ理由
+hasPrev: true
+hasNext: true
+---
+
+# ministaを選ぶ理由
+
+ministaは、Reactのコンポーネントで制作し、HTML・CSS・JavaScriptとして公開・納品したいときに役立ちます。制作中の扱いやすさと、完成したファイルの扱いやすさを両立するためのSSGです。
+
+## JSXとTypeScriptを制作に活かせる
+
+ヘッダーやカードなどの共通パーツをコンポーネントに分け、propsで内容や見た目を切り替えられます。繰り返しは配列の`map()`、出し分けはJavaScriptの条件式で記述できます。
+
+TSXを使えば、コンポーネントへ渡す値を型で定義し、エディターの補完や型チェックを利用できます。静的なページでも、Reactで身につけた書き方をそのまま活かせます。
+
+```tsx title="./src/components/service-card.tsx"
+type Props = {
+  title: string
+  href: string
+}
+
+export default function ServiceCard({ title, href }: Props) {
+  return (
+    <article className="service-card">
+      <h2><a href={href}>{title}</a></h2>
+    </article>
+  )
+}
+```
+
+このコンポーネントを静的ページで使うだけなら、ブラウザにReactを読み込む必要はありません。
+
+## 成果物を静的ファイルとして扱える
+
+ビルド結果は通常のHTMLとアセットです。静的ホスティングへの公開だけでなく、既存のWebサーバーへの設置や、別の開発チームへのHTML納品にも使えます。
+
+HTMLの整形やアーカイブ生成が必要な場合は、[pluginBeautify](/ja/docs/plugins/beautify)や[pluginArchive](/ja/docs/plugins/archive)を追加できます。出力ファイル名やディレクトリもViteの設定で調整できます。
+
+## 必要なUIだけを動かせる
+
+本文やレイアウトは静的HTMLにし、カウンターや検索など、操作が必要な部分だけをIslandにできます。ページ全体へクライアントサイドReactを適用する必要はありません。
+
+Reactが不要な処理には、通常のJavaScriptやTypeScriptのscriptを追加することもできます。詳しくは[Islands](/ja/docs/guide/islands)と[画像とアセット](/ja/docs/guide/images-assets)を参照してください。
+
+## 小さな構成から始められる
+
+ページ生成、Markdown・MDX、CSSや画像の出力は`pluginSsg()`だけで利用できます。画像最適化や検索などは、必要になった時点で対応するプラグインを追加します。
+
+Viteを基盤としているため、設定やアセット処理にもViteの仕組みを利用できます。
+
+## 向いているプロジェクト
+
+- 共通コンポーネントを使って複数ページを制作するコーポレートサイト
+- HTMLを成果物として引き渡すランディングページやサービスサイト
+- MarkdownやMDXで本文を管理するドキュメントやブログ
+- ビルド時にCMSからデータを取得して公開するコンテンツサイト
+
+ministaは、アクセスのたびにサーバーでページを生成する仕組みを提供しません。ログイン状態によるページ生成やリクエストごとのデータ処理が中心となる場合は、別のサーバーやAPIとの役割分担が必要です。ビルド後のデータ更新には再ビルド、またはブラウザからのデータ取得を使います。
+
+設計の考え方は[理念](/ja/docs/philosophy)、具体的な導入方法は[はじめる](/ja/docs/guide/)で紹介します。

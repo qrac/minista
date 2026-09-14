@@ -8,7 +8,7 @@ hasNext: true
 
 # Config
 
-[Viteのコンフィグ](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `vite.config.{ts,js}`・`minista.config.{ts,js}` のどちらでも動作し、`defineConfig` も使用できます。
+ministaの設定にはViteのconfigを使います。`vite.config.ts`または`vite.config.js`にプラグインとViteのオプションを記述します。`defineConfig`はViteと同じ設定型を提供します。基本的な導入例は[設定ガイド](/ja/docs/guide/configuration)を参照してください。
 
 ```ts title="./vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"
@@ -18,9 +18,25 @@ export default defineConfig({
 })
 ```
 
-## Table of Contents
+## 設定ファイル
 
-contents list
+`minista.config.*`も後方互換のため利用できます。新しいプロジェクトでは`vite.config.*`を使用してください。複数の設定ファイルを検出すると、`MINISTA_CLI_CONFIG_CONFLICT`で終了します。一つにまとめてください。
+
+`project.json`はサイト情報などをまとめるための利用者のデータファイルであり、ministaが自動的に読み込むconfigではありません。
+
+## 主な設定項目
+
+| 項目 | 用途 |
+| --- | --- |
+| `plugins` | ministaや他のViteプラグインを登録 |
+| `base` | アセットの公開ベースパス。ページへの手書きリンクには利用者側で反映 |
+| `publicDir` | 内容をそのままコピーするディレクトリ。デフォルトは`public` |
+| `server` | 開発サーバーのポートなどを設定 |
+| `build.outDir` | 出力ディレクトリ。デフォルトは`dist` |
+| `build.assetsInlineLimit` | 小さいアセットのインライン化を制御 |
+| `build.minify`・`build.cssMinify` | JavaScript・CSSの圧縮を制御 |
+| `build.rolldownOptions.output` | ファイル名やコード分割を設定 |
+| `environments` | render／client environmentごとの設定 |
 
 ## Plugins
 
@@ -36,9 +52,9 @@ export default defineConfig({
 })
 ```
 
-## Troubleshooting
+## 用途別の設定
 
-### Environment-specific config
+### 環境ごとの設定
 
 ministaはrender environmentとclient environmentを単一のVite app buildで順にビルドします。多くのVite設定はそのまま両environmentへ適用できます。Node.jsでpageをrenderする側とbrowser向けassetを生成する側で設定を分ける場合は、named environmentの設定かpluginのenvironment-aware hookを使用します。
 
@@ -61,13 +77,11 @@ export default defineConfig({
 
 `builder.buildApp`はministaがbuild順序を管理するために使用します。application全体の前後処理にはpluginの`buildApp` hookを使用してください。このhookからenvironmentを直接buildすることはできません。
 
-通常のbuild／devはprogrammatic Vite adapterを使用します。programmatic configへ安全に変換できないVite CLI flagを指定した場合だけ外部CLIへfallbackします。Coreはどちらの経路でもViteのenvironment型やhookに依存しません。
+通常のbuild／devはprogrammatic Vite adapterを使用します。programmatic configへ安全に変換できないVite CLI flagを指定した場合だけ外部CLIへfallbackします。
 
-### Asset inline error
+### 画像のインライン化
 
-pageからimportした画像をバンドルした際にビルドが失敗する場合があります。これは主にViteが小さい画像をclientではインライン判定したものの、Node.js向けrender environmentでは同じ形に変換されないことが原因です。
-
-対策の一つとしては、`build.assetsInlineLimit` を `0` に設定し、インライン化を無効化する方法があります。納品時には特にこの対策が効果的です。
+画像をファイルとして出力したい場合は、`build.assetsInlineLimit` を `0` に設定し、インライン化を無効化する方法があります。
 
 ```ts title="./vite.config.ts"
 export default {
@@ -87,27 +101,27 @@ export default function () {
 }
 ```
 
-### Deactivate minify
+### 圧縮を無効にする
 
-Viteのデフォルト設定では、ビルド時にコードが圧縮（minify）されます。納品データに圧縮が不要な場合は `build.minify` を `false` に設定してください。
+圧縮を無効にするには、JavaScriptは`build.minify`、CSSは`build.cssMinify`を`false`にします。HTMLなどの整形は[pluginBeautify](/ja/docs/plugins/beautify)で設定します。
 
 ```ts title="./vite.config.ts"
-export default { build: { minify: false } }
+export default { build: { minify: false, cssMinify: false } }
 ```
 
-### Remove preload
+### 画像のpreloadを制御する
 
-`pluginSsg`はrenderer出力に含まれるimage preloadを既定で除去します。残したい場合は`pluginSsg({ removeImagePreload: false })`を指定してください。`Head` APIで明示したpreloadは既定でも保持します。詳細は[pluginSsg](/docs/plugins/ssg)を参照してください。
+`pluginSsg`はrenderer出力に含まれるimage preloadを既定で除去します。残したい場合は`pluginSsg({ removeImagePreload: false })`を指定してください。`Head` APIで明示したpreloadは既定でも保持します。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。
 
-### Remove hash
+### ファイル名のハッシュを外す
 
-Viteのデフォルト設定では、出力ファイル名にハッシュが付与されます。ハッシュは納品データには不要な場合が多いです。これを無効化するには、以下のプロパティを設定し `[hash]` を削除してください。
+Viteのデフォルト設定では、出力ファイル名にハッシュが付与されます。ハッシュを外すには、以下のプロパティを設定し `[hash]` を削除してください。
 
 - CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
 - JavaScript（chunk）: `build.rolldownOptions.output.chunkFileNames`
 - JavaScript（entry）: `build.rolldownOptions.output.entryFileNames`
 
-※これらを設定した場合 `build.assetsDir` は無視されます。
+これらを設定した場合、出力先はパターン内のパスで決まります。同名ファイルの衝突と公開先のキャッシュ更新方法を確認してください。
 
 ```ts title="./vite.config.ts"
 export default {
@@ -123,7 +137,7 @@ export default {
 }
 ```
 
-### Separate asset directories
+### アセットの種類ごとに出力先を分ける
 
 Viteのデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
 
@@ -131,25 +145,17 @@ Viteのデフォルト設定では、すべてのアセットが同じディレ�
 - JavaScript（chunk）: `build.rolldownOptions.output.chunkFileNames`
 - JavaScript（entry）: `build.rolldownOptions.output.entryFileNames`
 
-※これらを設定した場合 `build.assetsDir` は無視されます。
+これらを設定した場合、出力先はパターン内のパスで決まります。同名ファイルの衝突と公開先のキャッシュ更新方法を確認してください。
 
 `assetFileNames` は拡張子ごとに分けることができます。
 
 ```ts title="./vite.config.ts"
 import type { PreRenderedAsset } from "rolldown"
-import { normalizePath } from "vite"
 
 const assetFileNames = (assetInfo: PreRenderedAsset) => {
   const name = assetInfo.name ?? ""
-  const originalNames = assetInfo.originalFileNames ?? []
-  const isSprite = originalNames.some((file) =>
-    normalizePath(file).includes("/.minista/sprite/"),
-  )
   if (name.endsWith(".css")) {
     return "assets/css/[name][extname]"
-  }
-  if (isSprite) {
-    return "assets/sprites/[name][extname]"
   }
   if (/\.(png|jpe?g|gif|bmp|svg|webp|avif)$/.test(name)) {
     return "assets/images/[name][extname]"
@@ -173,7 +179,7 @@ export default {
 }
 ```
 
-### Split chunks
+### JavaScriptを分割する
 
 JavaScriptから特定のコードを分割したい場合は以下のプロパティを設定してください。
 
@@ -215,21 +221,18 @@ export default {
 }
 ```
 
-※`codeSplitting` を使った際に以下のような条件が発生した場合、Viteは `rolldown-runtime.js` 出力して互換性を保とうとします。
+### クライアント側をPreactへ置き換える
 
-- CJSとESMが混在
-- default exportとnamed exportが混在
-
-### Replace with preact
-
-`pluginIsland` などでバンドルした `react` `react-dom` のファイルサイズは190KB（gzip: 60KB）ほどになります。これを軽量な `preact` に置き換えることで、ファイルサイズを約25KB（gzip: 10KB）に削減できます。
+ブラウザ向けReactの代わりにPreactの互換層を使う例です。Reactを使うライブラリとの互換性を確認したうえで採用してください。実際の容量は依存関係やビルド設定によって変わります。render environmentではReactを維持し、client environmentのビルドにだけaliasを適用します。
 
 ```sh
-$ npm install preact
+npm install preact
+npm install --save-dev @vitejs/plugin-react
 ```
 
 ```ts title="./vite.config.ts"
-import { defineConfig } from "minista"
+import { defineConfig, pluginSsg, pluginIsland } from "minista"
+import react from "@vitejs/plugin-react"
 import type { Plugin } from "vite"
 
 const preactAlias = {
@@ -258,13 +261,13 @@ function pluginClientPreactAlias(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [pluginClientPreactAlias()],
+  plugins: [pluginSsg(), pluginIsland(), pluginClientPreactAlias(), react()],
 })
 ```
 
-### Empty dist
+### 出力ディレクトリを空にする
 
-Viteのデフォルト設定では、プロジェクトルート配下にない出力ディレクトリは安全を考えて空にしません。srcとdistが別の場所にあるプロジェクトは不要なファイルが残る可能性があるため、`build.emptyOutDir` を `true` に設定してください。
+Viteのデフォルト設定では、プロジェクトルート配下にない出力ディレクトリは安全を考えて空にしません。その場所の既存ファイルを削除してよい場合に限り、`build.emptyOutDir`を`true`にします。出力先をソースや他の用途のディレクトリと共有しないでください。
 
 ```ts title="./vite.config.ts"
 export default { build: { emptyOutDir: true } }

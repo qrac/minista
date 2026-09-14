@@ -1,0 +1,121 @@
+---
+layout: docs
+locale: ja
+title: MarkdownとMDX
+hasPrev: true
+hasNext: true
+---
+
+# MarkdownとMDX
+
+本文中心のページにはMarkdown、本文の中でReactコンポーネントを使いたい場合にはMDXを利用できます。どちらも`pluginSsg()`で標準対応しており、追加のministaプラグインは不要です。
+
+## Markdownのページを作る
+
+```md title="./src/pages/about.md"
+---
+title: 私たちについて
+---
+
+# 私たちについて
+
+小さなチームでWebサイトを制作しています。
+
+- 設計
+- デザイン
+- 実装
+```
+
+このファイルから`/about`のページが生成されます。JSX・TSXのページと同じ共通レイアウトが適用されます。
+
+## フロントマターでページデータを指定する
+
+ファイル先頭の`---`で囲んだ部分をフロントマターと呼びます。デフォルトでは`metadata`として読み込まれ、レイアウトやページのpropsへ渡されます。
+
+```md
+---
+title: 制作中の記事
+draft: true
+---
+
+# 制作中の記事
+```
+
+`draft: true`は本番ビルドから除外されます。タイトルをheadへ反映するには、レイアウト側で`title`を利用してください。独自の項目も追加できますが、項目を書くだけでHTMLの要素やレイアウトの切り替えが自動生成されるわけではありません。
+
+`+++`で囲んだTOML形式のフロントマターも利用できます。
+
+## MDXでコンポーネントを使う
+
+次のコンポーネントを用意します。
+
+```tsx title="./src/components/note.tsx"
+import type { ReactNode } from "react"
+
+export default function Note({ children }: { children: ReactNode }) {
+  return <aside className="note">{children}</aside>
+}
+```
+
+`.mdx`ファイルでは、importしたコンポーネントを本文へ挿入できます。
+
+```mdx title="./src/pages/guide.mdx"
+---
+title: ご利用ガイド
+---
+
+import Note from "../components/note"
+
+# ご利用ガイド
+
+はじめに設定を確認してください。
+
+<Note>設定変更後は再ビルドしてください。</Note>
+```
+
+静的なコンポーネントとして使う限り、MDXのためのクライアントサイドJavaScriptは配信されません。
+
+## 本文をコンポーネントとして読み込む
+
+ページとして公開しない本文は、`src/pages/`以外へ置いてimportします。
+
+```md title="./src/components/terms.md"
+## 利用条件
+
+ご利用前に内容をご確認ください。
+```
+
+```tsx title="./src/pages/terms.tsx"
+import Terms from "../components/terms.md"
+
+export default function TermsPage() {
+  return <article><h1>利用規約</h1><Terms /></article>
+}
+```
+
+## Markdownの変換を拡張する
+
+例えば表や取り消し線などのGFM構文を利用するには、`remark-gfm`を追加します。
+
+```sh
+npm install --save-dev remark-gfm
+```
+
+```ts title="./vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+import remarkGfm from "remark-gfm"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg({
+      mdx: {
+        remarkPlugins: [remarkGfm],
+      },
+    }),
+  ],
+})
+```
+
+Markdownの処理には`remarkPlugins`、HTMLへ変換した後の処理には`rehypePlugins`を設定します。シンタックスハイライトや見出しIDも、用途に合うプラグインで追加できます。
+
+MDXを利用しない構成で変換を無効にする場合は、`pluginSsg({ mdx: false })`を指定します。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。

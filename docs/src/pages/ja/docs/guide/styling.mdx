@@ -1,0 +1,117 @@
+---
+layout: docs
+locale: ja
+title: スタイル
+hasPrev: true
+hasNext: true
+---
+
+# スタイル
+
+CSSはページやレイアウト、コンポーネントからimportできます。`pluginSsg()`が参照されたCSSを出力するため、CSS用のministaプラグインを追加する必要はありません。
+
+## サイト共通のCSS
+
+レイアウトからCSSをimportすると、共通のスタイルとして管理できます。
+
+```tsx title="./src/layouts/index.tsx"
+import type { LayoutProps } from "minista/types"
+import "../assets/styles.css"
+
+export default function Layout({ children }: LayoutProps) {
+  return <main className="site-main">{children}</main>
+}
+```
+
+```css title="./src/assets/styles.css"
+:root {
+  font-family: sans-serif;
+  color: #222;
+  background: #fff;
+}
+
+body {
+  margin: 0;
+}
+
+.site-main {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 2rem 1rem;
+}
+```
+
+通常のCSSのセレクターはグローバルに作用します。コンポーネント内からimportしても、自動的にそのコンポーネント専用になるわけではありません。
+
+## CSS Modules
+
+クラス名の衝突を避けたい場合は、`.module.css`を使います。
+
+```css title="./src/components/card.module.css"
+.card {
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+}
+```
+
+```tsx title="./src/components/card.tsx"
+import type { ReactNode } from "react"
+import styles from "./card.module.css"
+
+type Props = { children: ReactNode }
+
+export default function Card({ children }: Props) {
+  return <article className={styles.card}>{children}</article>
+}
+```
+
+生成したクラス名はHTMLとCSSへ反映されます。CSS Modulesを使うだけでブラウザへReactの実行コードが追加されることはありません。
+
+## link要素でCSSを参照する
+
+HTMLの構造としてstylesheetを指定することもできます。
+
+```tsx
+import { Head } from "minista/head"
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <link rel="stylesheet" href="/src/assets/styles.css" />
+        <link rel="stylesheet" href="/css/legacy.css" />
+      </Head>
+      <h1>スタイルの例</h1>
+    </>
+  )
+}
+```
+
+`src/assets/styles.css`はViteで処理され、ビルド後のURLに書き換わります。`public/css/legacy.css`はそのままコピーされます。importとlinkで同じCSSを二重に登録せず、用途に合わせて読み込み方を選びます。
+
+## Sassを使う
+
+Sassを使う場合はプリプロセッサーを追加します。
+
+```sh
+npm install --save-dev sass-embedded
+```
+
+その後は`.scss`や`.module.scss`をCSSと同様にimportできます。
+
+```tsx
+import "../assets/styles.scss"
+```
+
+## インラインスタイル
+
+Reactの`style`属性も利用できます。
+
+```tsx
+<p style={{ color: "tomato", marginBlock: "1rem" }}>お知らせ</p>
+```
+
+これは静的な`style`属性として出力されます。状態に応じてブラウザで値を変えたい場合は、通常のscriptや[Island](/ja/docs/guide/islands)を使います。
+
+CSSの圧縮や出力先は[設定](/ja/docs/guide/configuration)と[ビルドとデプロイ](/ja/docs/guide/build-deploy)を参照してください。

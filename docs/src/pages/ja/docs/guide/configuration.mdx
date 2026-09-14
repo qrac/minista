@@ -1,0 +1,137 @@
+---
+layout: docs
+locale: ja
+title: 設定
+hasPrev: true
+hasNext: true
+---
+
+# 設定
+
+ministaのプラグインとViteの設定は、プロジェクトルートの`vite.config.ts`または`vite.config.js`にまとめます。
+
+## 最小の設定
+
+```ts title="./vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+`defineConfig`はministaから利用できます。`pluginSsg()`には、JSX・TSXのページ生成、Markdown・MDX、参照されたCSS・JavaScript・画像の出力が含まれます。
+
+`minista.config.*`も後方互換のため利用できますが、新しいプロジェクトでは`vite.config.*`を使います。複数の設定ファイルがあると競合エラーになるため、一つにまとめてください。
+
+## 必要なプラグインを追加する
+
+```ts title="./vite.config.ts"
+import { defineConfig, pluginSsg, pluginImage, pluginIsland } from "minista"
+import react from "@vitejs/plugin-react"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg(),
+    pluginImage(),
+    pluginIsland(),
+    react(),
+  ],
+})
+```
+
+この例のIslandには`@vitejs/plugin-react`のインストールも必要です。静的ページだけであれば、最小設定から始められます。
+
+| 目的 | プラグイン |
+| --- | --- |
+| ページ生成・Markdown・MDX・アセット出力 | [pluginSsg](/ja/docs/plugins/ssg) |
+| 画像最適化 | [pluginImage](/ja/docs/plugins/image) |
+| SVG最適化・SVGスプライト | [pluginSvg](/ja/docs/plugins/svg)・[pluginSprite](/ja/docs/plugins/sprite) |
+| HTMLコメント | [pluginComment](/ja/docs/plugins/comment) |
+| Reactによる部分的な操作UI | [pluginIsland](/ja/docs/plugins/island) |
+| 静的サイト内検索 | [pluginSearch](/ja/docs/plugins/search) |
+| コードの整形・アーカイブ生成 | [pluginBeautify](/ja/docs/plugins/beautify)・[pluginArchive](/ja/docs/plugins/archive) |
+
+各プラグインの引数に、その機能のオプションを渡します。MDXなどSSGに含まれる機能は、`pluginSsg({ mdx: { ... } })`のように指定します。
+
+## 開発サーバーと出力先
+
+```ts title="./vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+  server: {
+    port: 3000,
+    open: true,
+  },
+  build: {
+    outDir: "dist",
+    assetsInlineLimit: 0,
+  },
+})
+```
+
+`assetsInlineLimit: 0`は、小さな画像などをインライン化せずファイルとして出力したい場合に指定します。
+
+## TypeScriptを設定する
+
+TypeScriptのテンプレートを使わない場合は、必要なパッケージを追加します。
+
+```sh
+npm install --save-dev typescript @types/react @types/react-dom
+```
+
+```json title="./tsconfig.json"
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "types": ["minista/client"]
+  },
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+`minista/client`にはMDX・Markdown・IslandやViteの型定義が含まれます。型チェックは`npx tsc --noEmit`で別途実行します。ministaのビルドだけでは型エラーの検査を代替しません。
+
+## ファイル名と圧縮を調整する
+
+納品などでファイル名のハッシュを外したい場合は、出力パターンを指定します。
+
+```ts title="./vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+  build: {
+    assetsInlineLimit: 0,
+    minify: false,
+    cssMinify: false,
+    rolldownOptions: {
+      output: {
+        assetFileNames: "assets/[name][extname]",
+        chunkFileNames: "assets/[name].js",
+        entryFileNames: "assets/[name].js",
+      },
+    },
+  },
+})
+```
+
+`minify: false`はJavaScript、`cssMinify: false`はCSSの圧縮を無効にします。HTMLなどの整形には[pluginBeautify](/ja/docs/plugins/beautify)を使います。
+
+ハッシュを外す場合は、同名ファイルの衝突や、公開先のキャッシュ更新方法も考慮してください。これらの出力パターンを指定した場合、アセットのディレクトリはパターン内のパスで決まります。
+
+## 環境変数を利用する
+
+ビルド時のデータ取得には、Node.js側で`process.env`を参照できます。例えばCIやターミナルで設定したAPIの認証情報を`getStaticData()`内で使います。
+
+ブラウザへ公開するViteの環境変数は`import.meta.env.VITE_*`で参照します。認証情報を`VITE_`付きの変数へ入れたり、ページのpropsやHTMLへ出力したりしないでください。
+
+公開先の`base`設定と確認手順は[ビルドとデプロイ](/ja/docs/guide/build-deploy)を参照してください。

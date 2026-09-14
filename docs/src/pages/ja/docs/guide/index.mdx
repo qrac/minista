@@ -1,0 +1,117 @@
+---
+layout: docs
+locale: ja
+title: はじめる
+hasPrev: true
+hasNext: true
+---
+
+# はじめる
+
+このガイドではminista v5のプロジェクトを作り、最初のページを表示するまでを紹介します。以下の例はnpmを使います。
+
+## 必要な環境
+
+minista v5の対応範囲は次のとおりです。
+
+| パッケージ | 対応範囲 |
+| --- | --- |
+| Node.js | `^20.19.0 \|\| >=22.12.0` |
+| Vite | `^8.1.0` |
+| React・React DOM | `>=19.0.0` |
+
+ターミナルでNode.jsとnpmが利用できることを確認します。
+
+```sh
+node --version
+npm --version
+```
+
+## テンプレートから作る
+
+次のコマンドを実行し、案内に従ってテンプレートと言語を選びます。
+
+```sh
+npm create minista@latest my-minista-project
+cd my-minista-project
+npm install
+npm run dev
+```
+
+表示されたローカルURLをブラウザで開きます。開発サーバーは`Ctrl + C`で停止できます。
+
+テンプレートを指定して作成することもできます。
+
+```sh
+npm create minista@latest my-minista-project -- --template minimal-ts
+```
+
+| テンプレート | 内容 |
+| --- | --- |
+| `minimal-ts` | TypeScriptの最小構成 |
+| `minimal-js` | JavaScriptの最小構成 |
+| `basic-ts` | レイアウトや共通パーツを含むTypeScriptの基本構成 |
+| `basic-js` | レイアウトや共通パーツを含むJavaScriptの基本構成 |
+
+## 最初のページを編集する
+
+TypeScriptのテンプレートでは`src/pages/index.tsx`を開いて編集します。JavaScriptの場合は`index.jsx`です。
+
+```tsx title="./src/pages/index.tsx"
+export default function Page() {
+  return (
+    <main>
+      <h1>Hello, minista!</h1>
+      <p>最初の静的ページです。</p>
+    </main>
+  )
+}
+```
+
+保存すると開発サーバーへ変更が反映されます。ページはReactコンポーネントとして書きますが、表示のためにブラウザでReactを実行する必要はありません。
+
+## 手動でセットアップする
+
+テンプレートを使わずに始める場合は、空のディレクトリで次を実行します。
+
+```sh
+npm init -y
+npm pkg set type=module
+npm install --save-dev minista@^5 vite@^8.1 react@^19 react-dom@^19
+```
+
+`package.json`へスクリプトを追加します。
+
+```json title="./package.json（scripts）"
+{
+  "scripts": {
+    "dev": "minista",
+    "build": "minista build",
+    "preview": "minista preview",
+    "check": "minista check"
+  }
+}
+```
+
+プロジェクトルートに設定ファイルを作成します。
+
+```js title="./vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+`src/pages/index.jsx`を作り、前のページ例と同じコンポーネントを記述すれば、`npm run dev`で起動できます。手動構成へTypeScriptを加える方法は[設定](/ja/docs/guide/configuration)を参照してください。
+
+## ビルドして確認する
+
+```sh
+npm run build
+npm run preview
+```
+
+`dist/`へ静的HTMLとアセットが生成されます。公開するファイルはこのディレクトリの中身です。
+
+次は[プロジェクト構成](/ja/docs/guide/project-structure)で、ページや共通パーツを置く場所を確認しましょう。
