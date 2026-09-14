@@ -1,10 +1,9 @@
 ---
 layout: docs
+locale: ja
 title: CLI
-prevTitle: "TypeScript"
-prevUrl: "/docs/typescript"
-nextTitle: "Config"
-nextUrl: "/docs/config"
+hasPrev: true
+hasNext: true
 ---
 
 # CLI
@@ -19,15 +18,15 @@ contents list
 
 ## Commands
 
-|コマンド|内容|
-| --- | --- |
-| `minista [root]` |ModuleRunnerを使った開発モード（`Ctrl + C`で停止）|
-| `minista build [root]` |Vite app buildによる静的書き出し|
-| `minista preview [root]` |静的書き出し後の動作確認|
-| `minista check [root]` |page moduleと`getStaticData()`を評価し、route／pageの問題を検査|
-| `minista inspect [root]` |sourceからProject Graphの概要を表示|
-| `minista agents [root]` |インストール済みバージョンのagent向けガイドを表示|
-| `minista explain <node-id> [root]` |指定したGraph nodeの関係を説明|
+| コマンド                           | 内容                                                            |
+| ---------------------------------- | --------------------------------------------------------------- |
+| `minista [root]`                   | ModuleRunnerを使った開発モード（`Ctrl + C`で停止）              |
+| `minista build [root]`             | Vite app buildによる静的書き出し                                |
+| `minista preview [root]`           | 静的書き出し後の動作確認                                        |
+| `minista check [root]`             | page moduleと`getStaticData()`を評価し、route／pageの問題を検査 |
+| `minista inspect [root]`           | sourceからProject Graphの概要を表示                             |
+| `minista agents [root]`            | インストール済みバージョンのagent向けガイドを表示               |
+| `minista explain <node-id> [root]` | 指定したGraph nodeの関係を説明                                  |
 
 ## Machine-readable commands
 
@@ -69,10 +68,10 @@ diagnosticsは直近に記録されたcheck／buildの結果なので、manifest
 
 [ViteのCLIオプション](https://ja.vitejs.dev/guide/cli.html)はdev／build／previewへ引き渡されます。Vite app buildで処理できないbuild optionを指定した場合はcompatibility fallbackを使用することがあります。
 
-|独自のオプション|対象|内容|
-| --- | --- | --- |
-| `--json` |`check`／`inspect`／`explain`／`agents`|結果とdiagnosticをJSONで出力|
-| `--write` |`agents`|AGENTS.mdのminista案内を追加・更新|
-| `--manifest` |`inspect`|workspaceの`manifest.json`だけを読み取る|
+| 独自のオプション | 対象                                    | 内容                                     |
+| ---------------- | --------------------------------------- | ---------------------------------------- |
+| `--json`         | `check`／`inspect`／`explain`／`agents` | 結果とdiagnosticをJSONで出力             |
+| `--write`        | `agents`                                | AGENTS.mdのminista案内を追加・更新       |
+| `--manifest`     | `inspect`                               | workspaceの`manifest.json`だけを読み取る |
 
 v4の`--oneBuild`はv5で削除されました。指定すると`MINISTA_CLI_OPTION_REMOVED`で終了するため、commandから削除してください。標準の`minista build`が単一のVite app buildを使用します。

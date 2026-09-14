@@ -1,0 +1,649 @@
+{
+  "i18n": {
+    "defaultLocale": "en",
+    "locales": ["en", "ja"],
+    "paths": {
+      "en": "/",
+      "ja": "/ja/"
+    }
+  },
+
+  "site": {
+    "name": "minista",
+
+    "description": {
+      "en": "minista is a React static site generator for Vite that turns JSX and TSX into 100% static HTML, featuring TypeScript, MDX, image optimization, and optional Islands architecture.",
+      "ja": "minista（ミニスタ）は、React（JSX/TSX）とViteで100%静的なHTMLを生成するスタティックサイトジェネレーターです。TypeScript、MDX、画像最適化、Islandアーキテクチャに対応。"
+    },
+
+    "url": "https://minista.qranoko.jp",
+
+    "assets": {
+      "ogp": "/ogp.png",
+      "appleTouchIcon": "/apple-touch-icon.png",
+      "favicon": "/favicon.png"
+    },
+
+    "social": {
+      "x": {
+        "card": "summary_large_image",
+        "id": "Qrac_JP",
+        "name": "Qrac",
+        "url": "https://x.com/Qrac_JP"
+      },
+      "github": {
+        "url": "https://github.com/qrac/minista"
+      }
+    },
+
+    "copyright": {
+      "since": 2021,
+      "holder": "QRANOKO",
+      "url": "https://qranoko.jp"
+    },
+
+    "software": {
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Cross-platform",
+      "license": "MIT",
+      "repository": "https://github.com/qrac/minista",
+      "package": "https://www.npmjs.com/package/minista",
+      "isAccessibleForFree": true
+    }
+  },
+
+  "home": {
+    "hero": {
+      "title": {
+        "en": "React Static Site Generator for Vite",
+        "ja": "ViteのためのReactスタティックサイトジェネレーター"
+      },
+
+      "description": {
+        "en": "Build 100% static websites with React JSX, TypeScript, and Vite. Add client-side JavaScript only where you need it.",
+        "ja": "React JSX、TypeScript、Viteで100%静的なWebサイトを構築。必要な場所にだけクライアントサイドJavaScriptを追加できます。"
+      },
+
+      "actions": [
+        {
+          "id": "get-started",
+          "name": {
+            "en": "Get Started",
+            "ja": "はじめる"
+          },
+          "url": "/docs/",
+          "external": false,
+          "variant": "primary"
+        },
+        {
+          "id": "github",
+          "name": {
+            "en": "View on GitHub",
+            "ja": "GitHubで見る"
+          },
+          "url": "https://github.com/qrac/minista",
+          "external": true,
+          "variant": "secondary"
+        }
+      ],
+
+      "quickStart": {
+        "default": "npm",
+        "items": [
+          {
+            "id": "npm",
+            "name": "npm",
+            "command": "npm create minista@latest"
+          },
+          {
+            "id": "pnpm",
+            "name": "pnpm",
+            "command": "pnpm create minista"
+          },
+          {
+            "id": "yarn",
+            "name": "Yarn",
+            "command": "yarn create minista"
+          },
+          {
+            "id": "bun",
+            "name": "Bun",
+            "command": "bun create minista"
+          }
+        ]
+      }
+    },
+
+    "about": {
+      "eyebrow": {
+        "en": "About minista",
+        "ja": "ministaについて"
+      },
+
+      "title": {
+        "en": "What is minista?",
+        "ja": "ministaとは？"
+      },
+
+      "description": {
+        "en": "minista is an open-source static site generator for React and Vite. Write pages and components with familiar JSX and TypeScript, then generate lightweight, production-ready static HTML.",
+        "ja": "ministaはReactとViteのためのオープンソースのスタティックサイトジェネレーターです。使い慣れたJSXとTypeScriptでページやコンポーネントを作り、軽量で本番環境に適した静的HTMLを生成できます。"
+      }
+    },
+
+    "benefits": {
+      "eyebrow": {
+        "en": "Why minista",
+        "ja": "ministaを選ぶ理由"
+      },
+
+      "title": {
+        "en": "Static by default. Interactive when needed.",
+        "ja": "基本は静的。必要な場所だけインタラクティブ。"
+      },
+
+      "description": {
+        "en": "Use React as a powerful template system without turning every page into a client-side application.",
+        "ja": "すべてのページをクライアントサイドアプリにすることなく、Reactを強力なテンプレートシステムとして利用できます。"
+      },
+
+      "items": [
+        {
+          "id": "static-html",
+          "title": {
+            "en": "100% Static HTML",
+            "ja": "100% 静的HTML"
+          },
+          "description": {
+            "en": "Pages are generated as static HTML with no client-side runtime required by default.",
+            "ja": "ページは静的HTMLとして生成され、デフォルトではクライアントサイドのランタイムを必要としません。"
+          }
+        },
+        {
+          "id": "react-typescript",
+          "title": {
+            "en": "React + TypeScript",
+            "ja": "React + TypeScript"
+          },
+          "description": {
+            "en": "Build pages and reusable components with JSX, TSX, props, and TypeScript.",
+            "ja": "JSX・TSX・props・TypeScriptを使って、ページや再利用可能なコンポーネントを構築できます。"
+          }
+        },
+        {
+          "id": "vite",
+          "title": {
+            "en": "Built on Vite",
+            "ja": "Viteベース"
+          },
+          "description": {
+            "en": "Use Vite's fast development experience and extend your build with Vite plugins.",
+            "ja": "Viteの高速な開発体験を利用し、Viteプラグインでビルドを拡張できます。"
+          }
+        },
+        {
+          "id": "islands",
+          "title": {
+            "en": "Optional Islands",
+            "ja": "必要な部分だけIsland化"
+          },
+          "description": {
+            "en": "Add client-side React hydration only to components that require interactivity.",
+            "ja": "インタラクティブ性が必要なコンポーネントにのみ、ピンポイントでクライアントサイドReactを適用できます。"
+          }
+        }
+      ]
+    },
+
+    "features": {
+      "eyebrow": {
+        "en": "Features",
+        "ja": "機能"
+      },
+
+      "title": {
+        "en": "Everything you need to build static sites.",
+        "ja": "静的サイト制作に必要な機能をひとつに。"
+      },
+
+      "description": {
+        "en": "A modern toolkit for building, optimizing, and shipping static websites with React and Vite.",
+        "ja": "ReactとViteで静的サイトを構築・最適化・公開するためのモダンなツールキットです。"
+      },
+
+      "items": [
+        {
+          "id": "ssg",
+          "title": {
+            "en": "File-based SSG",
+            "ja": "ファイルベースSSG"
+          },
+          "description": {
+            "en": "Create static pages from JSX and TSX with simple file-based routing.",
+            "ja": "JSX・TSXとシンプルなファイルベースルーティングから静的ページを生成します。"
+          }
+        },
+        {
+          "id": "mdx",
+          "title": {
+            "en": "MDX",
+            "ja": "MDX"
+          },
+          "description": {
+            "en": "Write content in Markdown while using React components where needed.",
+            "ja": "Markdownでコンテンツを書きながら、必要な場所でReactコンポーネントを利用できます。"
+          }
+        },
+        {
+          "id": "image",
+          "title": {
+            "en": "Image Optimization",
+            "ja": "画像最適化"
+          },
+          "description": {
+            "en": "Optimize local and remote images automatically during the build.",
+            "ja": "ローカル画像やリモート画像をビルド時に自動で最適化します。"
+          }
+        },
+        {
+          "id": "island",
+          "title": {
+            "en": "Islands",
+            "ja": "Islands"
+          },
+          "description": {
+            "en": "Hydrate interactive React components independently from the static page.",
+            "ja": "静的ページの中でインタラクティブなReactコンポーネントだけを個別にハイドレートします。"
+          }
+        },
+        {
+          "id": "search",
+          "title": {
+            "en": "Static Site Search",
+            "ja": "静的サイト内検索"
+          },
+          "description": {
+            "en": "Generate a lightweight search index for your static content.",
+            "ja": "静的コンテンツから軽量なサイト内検索インデックスを生成します。"
+          }
+        },
+        {
+          "id": "archive",
+          "title": {
+            "en": "Production Archive",
+            "ja": "納品用アーカイブ"
+          },
+          "description": {
+            "en": "Package production-ready static output into a deliverable zip archive.",
+            "ja": "本番用の静的出力を納品用アーカイブとしてまとめられます。"
+          }
+        }
+      ]
+    },
+
+    "useCases": {
+      "eyebrow": {
+        "en": "Use Cases",
+        "ja": "ユースケース"
+      },
+
+      "title": {
+        "en": "Built for content-driven static websites.",
+        "ja": "コンテンツ中心の静的サイトに。"
+      },
+
+      "description": {
+        "en": "Use minista for documentation, marketing sites, corporate websites, and other content-focused projects.",
+        "ja": "ドキュメント、マーケティングサイト、コーポレートサイトなど、コンテンツ中心のプロジェクトに利用できます。"
+      },
+
+      "items": [
+        {
+          "id": "documentation",
+          "title": {
+            "en": "Documentation",
+            "ja": "ドキュメント"
+          }
+        },
+        {
+          "id": "marketing",
+          "title": {
+            "en": "Marketing Sites",
+            "ja": "マーケティングサイト"
+          }
+        },
+        {
+          "id": "corporate",
+          "title": {
+            "en": "Corporate Sites",
+            "ja": "コーポレートサイト"
+          }
+        },
+        {
+          "id": "content",
+          "title": {
+            "en": "Content Sites",
+            "ja": "コンテンツサイト"
+          }
+        }
+      ]
+    },
+
+    "cta": {
+      "title": {
+        "en": "Ready to build with minista?",
+        "ja": "ministaではじめませんか？"
+      },
+
+      "description": {
+        "en": "Start building fast, static websites with React and Vite.",
+        "ja": "ReactとViteで、高速な静的Webサイトを作り始めましょう。"
+      },
+
+      "actions": [
+        {
+          "id": "get-started",
+          "name": {
+            "en": "Get Started",
+            "ja": "はじめる"
+          },
+          "url": "/docs/",
+          "external": false,
+          "variant": "primary"
+        },
+        {
+          "id": "github",
+          "name": {
+            "en": "View on GitHub",
+            "ja": "GitHubで見る"
+          },
+          "url": "https://github.com/qrac/minista",
+          "external": true,
+          "variant": "secondary"
+        }
+      ]
+    }
+  },
+
+  "navigation": {
+    "main": {
+      "name": {
+        "en": "Main",
+        "ja": "メイン"
+      },
+
+      "items": [
+        {
+          "id": "docs",
+          "name": {
+            "en": "Docs",
+            "ja": "ドキュメント"
+          },
+          "url": "/docs/",
+          "external": false
+        },
+        {
+          "id": "github",
+          "name": {
+            "en": "GitHub",
+            "ja": "GitHub"
+          },
+          "url": "https://github.com/qrac/minista",
+          "external": true
+        }
+      ]
+    },
+
+    "versions": {
+      "name": {
+        "en": "Versions",
+        "ja": "バージョン"
+      },
+
+      "archives": [
+        {
+          "id": "v3",
+          "name": "v3.1.12",
+          "url": "https://minista-archive-v3.netlify.app/",
+          "external": true
+        }
+      ]
+    },
+
+    "docs": {
+      "name": {
+        "en": "Docs",
+        "ja": "ドキュメント"
+      },
+
+      "groups": [
+        {
+          "id": "introduction",
+          "name": {
+            "en": "Introduction",
+            "ja": "イントロダクション"
+          },
+          "items": [
+            {
+              "id": "what-is-minista",
+              "name": {
+                "en": "What is minista?",
+                "ja": "ministaとは？"
+              },
+              "url": "/docs/"
+            },
+            {
+              "id": "why-minista",
+              "name": {
+                "en": "Why minista?",
+                "ja": "ministaを選ぶ理由"
+              },
+              "url": "/docs/why"
+            },
+            {
+              "id": "philosophy",
+              "name": {
+                "en": "Philosophy",
+                "ja": "理念"
+              },
+              "url": "/docs/philosophy"
+            },
+            {
+              "id": "history",
+              "name": {
+                "en": "History",
+                "ja": "歴史"
+              },
+              "url": "/docs/history"
+            }
+          ]
+        },
+        {
+          "id": "guide",
+          "name": {
+            "en": "Guide",
+            "ja": "ガイド"
+          },
+          "items": [
+            {
+              "id": "getting-started",
+              "name": {
+                "en": "Getting Started",
+                "ja": "はじめる"
+              },
+              "url": "/docs/guide/"
+            },
+            {
+              "id": "project-structure",
+              "name": {
+                "en": "Project Structure",
+                "ja": "プロジェクト構成"
+              },
+              "url": "/docs/guide/project-structure"
+            },
+            {
+              "id": "pages-routing",
+              "name": {
+                "en": "Pages & Routing",
+                "ja": "ページとルーティング"
+              },
+              "url": "/docs/guide/pages-routing"
+            },
+            {
+              "id": "components-layouts",
+              "name": {
+                "en": "Components & Layouts",
+                "ja": "コンポーネントとレイアウト"
+              },
+              "url": "/docs/guide/components-layouts"
+            },
+            {
+              "id": "styling",
+              "name": {
+                "en": "Styling",
+                "ja": "スタイル"
+              },
+              "url": "/docs/guide/styling"
+            },
+            {
+              "id": "mdx",
+              "name": {
+                "en": "Markdown & MDX",
+                "ja": "MarkdownとMDX"
+              },
+              "url": "/docs/guide/mdx"
+            },
+            {
+              "id": "images-assets",
+              "name": {
+                "en": "Images & Assets",
+                "ja": "画像とアセット"
+              },
+              "url": "/docs/guide/images-assets"
+            },
+            {
+              "id": "islands",
+              "name": {
+                "en": "Islands",
+                "ja": "Islands"
+              },
+              "url": "/docs/guide/islands"
+            },
+            {
+              "id": "build-deploy",
+              "name": {
+                "en": "Build & Deploy",
+                "ja": "ビルドとデプロイ"
+              },
+              "url": "/docs/guide/build-deploy"
+            },
+            {
+              "id": "configuration",
+              "name": {
+                "en": "Configuration",
+                "ja": "設定"
+              },
+              "url": "/docs/guide/configuration"
+            }
+          ]
+        },
+        {
+          "id": "reference",
+          "name": {
+            "en": "Reference",
+            "ja": "リファレンス"
+          },
+          "items": [
+            {
+              "id": "cli",
+              "name": {
+                "en": "CLI",
+                "ja": "CLI"
+              },
+              "url": "/docs/reference/cli"
+            },
+            {
+              "id": "config",
+              "name": {
+                "en": "Config",
+                "ja": "Config"
+              },
+              "url": "/docs/reference/config"
+            },
+            {
+              "id": "typescript",
+              "name": {
+                "en": "TypeScript",
+                "ja": "TypeScript"
+              },
+              "url": "/docs/reference/typescript"
+            },
+            {
+              "id": "migration",
+              "name": {
+                "en": "Migration v4 to v5",
+                "ja": "v4からv5への移行"
+              },
+              "url": "/docs/reference/migration"
+            }
+          ]
+        },
+        {
+          "id": "plugins",
+          "name": {
+            "en": "Plugins",
+            "ja": "プラグイン"
+          },
+
+          "items": [
+            {
+              "id": "plugin-ssg",
+              "name": "pluginSsg",
+              "url": "/docs/plugins/ssg"
+            },
+            {
+              "id": "plugin-image",
+              "name": "pluginImage",
+              "url": "/docs/plugins/image"
+            },
+            {
+              "id": "plugin-svg",
+              "name": "pluginSvg",
+              "url": "/docs/plugins/svg"
+            },
+            {
+              "id": "plugin-sprite",
+              "name": "pluginSprite",
+              "url": "/docs/plugins/sprite"
+            },
+            {
+              "id": "plugin-comment",
+              "name": "pluginComment",
+              "url": "/docs/plugins/comment"
+            },
+            {
+              "id": "plugin-island",
+              "name": "pluginIsland",
+              "url": "/docs/plugins/island"
+            },
+            {
+              "id": "plugin-search",
+              "name": "pluginSearch",
+              "url": "/docs/plugins/search"
+            },
+            {
+              "id": "plugin-beautify",
+              "name": "pluginBeautify",
+              "url": "/docs/plugins/beautify"
+            },
+            {
+              "id": "plugin-archive",
+              "name": "pluginArchive",
+              "url": "/docs/plugins/archive"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

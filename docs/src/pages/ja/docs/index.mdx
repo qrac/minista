@@ -1,0 +1,113 @@
+---
+layout: docs
+locale: ja
+title: ministaとは？
+hasPrev: false
+hasNext: true
+---
+
+# ministaとは？
+
+minista（ミニスタ）は、ReactのJSX・TSXとViteを使って、100%静的なHTMLを生成するスタティックサイトジェネレーター（SSG）です。
+
+名前の「minista」は、**mini static site generator** を短縮し、語呂よく整えたものです。
+
+Reactのコンポーネントベースな開発体験を活かしながら、通常のHTML・CSS・JavaScriptとして扱える静的なWebサイトを作ることを目的としています。
+
+デフォルトではクライアントサイドのReactランタイムを必要としません。インタラクティブなUIが必要な場合だけ、IslandとしてReactをクライアント側で動かすことができます。
+
+## Reactで静的サイトを作る
+
+ministaでは、ページや共通パーツをReactコンポーネントとして記述します。
+
+```tsx
+export default function Page() {
+  return (
+    <main>
+      <h1>Hello, minista!</h1>
+      <p>Built with React and Vite.</p>
+    </main>
+  )
+}
+```
+
+これらのJSX・TSXはビルド時にHTMLへ変換されます。
+
+ブラウザ上でページ全体をReactアプリケーションとして実行するのではなく、Reactを静的HTMLを構築するためのテンプレートシステムとして利用するのがministaの基本的な考え方です。
+
+そのため、Reactのコンポーネント、props、TypeScriptなどを利用しながら、最終的には軽量な静的サイトとして公開できます。
+
+## ViteをベースにしたSSG
+
+ministaはViteを開発環境とビルド基盤として利用しています。
+
+Viteの高速な開発体験をそのまま利用できるだけでなく、minista自身の機能もViteのプラグインとして構成されています。
+
+そのため、必要に応じて通常のViteプラグインを追加し、ministaのビルド処理を拡張できます。
+
+```ts
+import { defineConfig } from "vite"
+import minista from "minista"
+
+export default defineConfig({
+  plugins: [minista()],
+})
+```
+
+minista独自のビルド環境の中にViteを組み込むのではなく、Viteを中心に静的サイト生成の仕組みを構築することを重視しています。
+
+## Static by default
+
+ministaで作るページは、基本的に静的HTMLとして出力されます。
+
+ページを表示するためだけにクライアントサイドJavaScriptやReactのランタイムを読み込む必要はありません。
+
+これは、次のようなWebサイトと相性の良い設計です。
+
+- コーポレートサイト
+- プロダクト・サービスサイト
+- ランディングページ
+- ドキュメントサイト
+- ブログやメディア
+- その他のコンテンツ中心のWebサイト
+
+静的ファイルとして生成されるため、特定のサーバーランタイムに依存せず、さまざまな静的ホスティング環境やCDNへデプロイできます。
+
+## Interactive when needed
+
+すべてを静的にする必要はありません。
+
+フォーム、検索、タブ、メニューなど、ブラウザ上で状態を持つUIが必要な場合は、そのコンポーネントだけをIslandとしてクライアントサイドで動かすことができます。
+
+```tsx
+<Counter client:load />
+```
+
+静的HTMLを基本としながら、必要な部分にだけJavaScriptを追加することで、静的サイトとReactのインタラクティブなUIを組み合わせられます。
+
+## 主な機能
+
+ministaには、静的サイト制作に必要な機能が用意されています。
+
+- JSX・TSXによるページとコンポーネント
+- TypeScript
+- ファイルベースルーティング
+- Layout
+- Markdown・MDX
+- Island
+- 画像最適化
+- SVG最適化・SVGスプライト
+- 静的サイト内検索
+- HTMLの整形
+- 納品用アーカイブの生成
+- Viteプラグインによる拡張
+
+各機能の使い方は[ガイド](/docs/guide/)で順番に紹介します。設定値やAPIの詳細については、リファレンスと各プラグインのドキュメントを参照してください。
+
+## ministaの考え方
+
+ministaが重視しているのは、Reactを使うこと自体ではなく、Webサイト制作における開発体験と最終的な成果物の両方をシンプルにすることです。
+
+「なぜReactで静的HTMLを生成するのか」「なぜViteを中心に設計しているのか」「なぜJavaScriptをデフォルトで配信しないのか」といった背景については、次のページで詳しく説明します。
+
+[なぜministaを選ぶのか →](/docs/why)
