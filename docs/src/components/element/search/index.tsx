@@ -6,6 +6,24 @@ import { initialProps } from "./props"
 
 export default function ElementSearch(props: Partial<Props>) {
   const { locale } = { ...initialProps, ...props }
+
+  if (locale === "ja") {
+    return (
+      <Search
+        client:load
+        field={{
+          beforeElement: <LuSearch />,
+          clearElement: (
+            <button type="button" className="search-field-clear">
+              <LuX />
+            </button>
+          ),
+          placeholder: "Search...",
+        }}
+        index="ja"
+      />
+    )
+  }
   return (
     <Search
       client:load
@@ -18,7 +36,7 @@ export default function ElementSearch(props: Partial<Props>) {
         ),
         placeholder: "Search...",
       }}
-      index={locale}
+      index="en"
     />
   )
 }
