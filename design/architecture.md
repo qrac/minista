@@ -66,6 +66,8 @@ Image／Sprite／Islandは `transformIndexHtml()` からserver lifetimeのcompat
 
 `pluginSsg()` のHMRは `hotUpdate` から `ViteDevUpdateAdapter` を呼び、environment別module graphの存在確認・invalidationと `environment.hot` によるreloadをadapterへ閉じています。page固有のdocument変更ではdev HTMLへ注入したlistenerへ影響PageNodeのURLだけを送り、layout変更またはrouteを限定できない変更だけ標準full reloadを送ります。Spriteは `DevSpritePageIndex` にsource directoryと参照ページURL、Imageは `DevImagePageIndex` にlocal sourceと参照ページURLのedgeを保存し、source変更時は該当ページだけをreloadします。plugin内の `server.ws`、mixed `server.environments`、module graph直接操作は除去済みです。route source／PageNodeとSprite／Image Artifactのinvalidation対応付けは実装済みです。
 
+page／layoutの追加・削除は、未読込sourceでも検知できるよう設定globとproject root相対pathを照合します。該当時はglob moduleとroute／render／page cacheを無効化し、次のrequestで一覧を再構成します。新規URLとlayoutの影響範囲がまだ確定しないため、この場合は標準full reloadを送ります。
+
 ### Data model
 
 render後の互換処理で共有する最小snapshotはdomainの`RenderedPage`です。

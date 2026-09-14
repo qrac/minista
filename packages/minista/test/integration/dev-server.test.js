@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, test, vi } from "vitest"
 
 import { ViteDevServerAdapter } from "../../src/adapters/vite/dev-server.js"
 import { getViteBuildSession } from "../../src/adapters/vite/build-session.js"
+import { pluginSsg } from "../../src/plugins/ssg/index.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const packageDir = path.resolve(here, "../..")
@@ -327,4 +328,111 @@ export default function Other() {
     hotSend.mockRestore()
     throw new Error("The changed image artifact did not target its page.")
   }, 15_000)
+
+  test.each([
+    ["added.jsx", "/added", 'export default function Page() { return <h1>Added JSX page</h1> }', "Added JSX page"],
+    ["nested/added.tsx", "/nested/added", 'export default function Page() { return <h1>Added TSX page</h1> }', "Added TSX page"],
+    ["added.md", "/added", "# Added Markdown page\n", "Added Markdown page"],
+    ["added.mdx", "/added", "# Added MDX page\n", "Added MDX page"],
+    ["dynamic/[slug].jsx", "/dynamic/added", `export function getStaticData() {
+  return [{ paths: { slug: "added" }, props: { title: "Added dynamic page" } }]
+}
+export default function Page({ title }) { return <h1>{title}</h1> }`, "Added dynamic page"],
+  ])("discovers and removes %s without restarting", async (sourceFile, url, source, title) => {
+    if (!running) throw new Error("The dev server is not running.")
+    const hotSend = vi.spyOn(running.server.environments.client.hot, "send")
+    const pageFile = path.resolve(fixtureDir, "src/pages", sourceFile)
+    try {
+      const missing = await fetch(`${origin}${url}`)
+      expect(missing.status).toBe(404)
+      await missing.text()
+      await fs.promises.mkdir(path.dirname(pageFile), { recursive: true })
+      await fs.promises.writeFile(pageFile, source, "utf8")
+
+      await vi.waitFor(async () => {
+        const response = await fetch(`${origin}${url}`)
+        const body = await response.text()
+        expect(response.status).toBe(200)
+        expect(body).toContain(`<h1>${title}</h1>`)
+      }, { timeout: 10_000, interval: 100 })
+      expect(hotSend).toHaveBeenCalledWith({ type: "full-reload" })
+
+      await fs.promises.unlink(pageFile)
+      await vi.waitFor(async () => {
+        const response = await fetch(`${origin}${url}`)
+        await response.text()
+        expect(response.status).toBe(404)
+      }, { timeout: 10_000, interval: 100 })
+    } finally {
+      hotSend.mockRestore()
+      await fs.promises.rm(pageFile, { force: true })
+    }
+  }, 25_000)
 })
+
+test("discovers custom page and layout sources from an initially empty project", async () => {
+  const temp = path.resolve(packageDir, "test/.tmp")
+  await fs.promises.mkdir(temp, { recursive: true })
+  const root = await fs.promises.mkdtemp(path.join(temp, "dev-discovery-"))
+  let running
+  try {
+    await fs.promises.writeFile(path.join(root, "package.json"), '{"type":"module"}')
+    running = await new ViteDevServerAdapter().start({
+      root, configFile: false, base: "/preview/", logLevel: "silent",
+      plugins: [pluginSsg({
+        src: ["/routes/**/*.jsx"], srcBases: ["routes"], layout: "/shell/layout.jsx",
+      })],
+      server: { host: "127.0.0.1", port: 0 },
+    }, { printUrls: false, bindShortcuts: false })
+    const address = running.server.httpServer?.address()
+    if (!address || typeof address === "string") throw new Error("Missing port")
+    const origin = `http://127.0.0.1:${address.port}/preview`
+    const missing = await fetch(`${origin}/first`)
+    await missing.text()
+    expect(missing.status).toBe(404)
+
+    const pageFile = path.join(root, "routes/first.jsx")
+    const renamedFile = path.join(root, "routes/second.jsx")
+    const layoutFile = path.join(root, "shell/layout.jsx")
+    await fs.promises.mkdir(path.dirname(pageFile), { recursive: true })
+    await fs.promises.writeFile(pageFile,
+      'import { createElement } from "react"; export default () => createElement("h1", null, "Custom page")')
+    await vi.waitFor(async () => {
+      const response = await fetch(`${origin}/first`)
+      const body = await response.text()
+      expect(response.status).toBe(200)
+      expect(body).toContain("<h1>Custom page</h1>")
+    }, { timeout: 10_000, interval: 100 })
+
+    await fs.promises.mkdir(path.dirname(layoutFile), { recursive: true })
+    await fs.promises.writeFile(layoutFile,
+      'import { createElement } from "react"; export default ({ children }) => createElement("main", null, children)')
+    await vi.waitFor(async () => {
+      const body = await fetch(`${origin}/first`).then((response) => response.text())
+      expect(body).toContain("<main><h1>Custom page</h1></main>")
+    }, { timeout: 10_000, interval: 100 })
+
+    await fs.promises.rename(pageFile, renamedFile)
+    await vi.waitFor(async () => {
+      const previous = await fetch(`${origin}/first`)
+      await previous.text()
+      expect(previous.status).toBe(404)
+      const response = await fetch(`${origin}/second`)
+      const body = await response.text()
+      expect(response.status).toBe(200)
+      expect(body).toContain("<main><h1>Custom page</h1></main>")
+    }, { timeout: 10_000, interval: 100 })
+
+    await fs.promises.unlink(layoutFile)
+    await vi.waitFor(async () => {
+      const response = await fetch(`${origin}/second`)
+      const body = await response.text()
+      expect(response.status).toBe(200)
+      expect(body).toContain("<h1>Custom page</h1>")
+      expect(body).not.toContain("<main>")
+    }, { timeout: 10_000, interval: 100 })
+  } finally {
+    await running?.close()
+    await fs.promises.rm(root, { recursive: true, force: true })
+  }
+}, 45_000)

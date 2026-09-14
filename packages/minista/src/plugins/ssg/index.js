@@ -18,6 +18,7 @@ import path from "node:path"
 import { pathToFileURL } from "url"
 import { createRequire } from "node:module"
 import pc from "picocolors"
+import picomatch from "picomatch"
 import { normalizePath } from "vite"
 
 import { NodeHtmlDocumentFactory } from "../../adapters/html/index.js"
@@ -48,7 +49,7 @@ import { DiagnosticCollector } from "../../core/diagnostics/index.js"
 import { applyOutputClaims } from "../../core/graph/index.js"
 import { DevPageCache } from "../../features/ssg/dev-page-cache.js"
 import { DevRenderCache } from "../../features/ssg/dev-render-cache.js"
-import { getGlobImportCode } from "./utils/code.js"
+import { getGlobImportCode, toViteRootPath } from "./utils/code.js"
 import { formatLayout, resolveLayout } from "./utils/layout.js"
 import { transformHtml } from "./utils/html.js"
 import { getHtmlFileName } from "../../shared/filename.js"
@@ -131,6 +132,10 @@ export function pluginSsg(uOpts = {}) {
   const mdxTransformer = opts.mdx === false
     ? undefined
     : createViteMdxTransformer(opts.mdx)
+  const matchesSsgSource = picomatch(
+    [opts.layout, ...opts.src].map(toViteRootPath),
+    { noextglob: true, ignore: ["**/node_modules/**"] },
+  )
 
   const createBuildState = () => ({
     ssgPages: /** @type {RenderedPage[]} */ ([]),
@@ -903,15 +908,20 @@ export function pluginSsg(uOpts = {}) {
     },
     hotUpdate: {
       order: "pre",
-      handler({ modules, server, timestamp }) {
+      handler({ type, file, modules, server, timestamp }) {
         if (this.environment.name !== "ssr") return
         const ownerServer = devServers.resolve({
           path: "",
-          filename: modules[0]?.id ?? "",
+          filename: file,
           server,
         }) ?? server
         const state = devStates.get(ownerServer)
         const updates = new ViteDevUpdateAdapter(server)
+        // New sources have no module/importer yet. Detect discovery changes
+        // directly, without depending on Vite's import-glob hotUpdate order.
+        const sourceSetChanged = type !== "update" && matchesSsgSource(
+          `/${normalizePath(path.relative(state.rootDir, file))}`,
+        )
 
         /**
          * @param {string | undefined | null} id
@@ -966,11 +976,20 @@ export function pluginSsg(uOpts = {}) {
           true,
         )
 
-        if (touchSsrHtml) {
+        if (touchSsrHtml || sourceSetChanged) {
+          if (sourceSetChanged) {
+            updates.invalidateModuleById(
+              this.environment.name,
+              normalizePath(state.globFile),
+              timestamp,
+              true,
+            )
+            state.routeCache.clear()
+          }
           /** @type {string[] | undefined} */
           let affectedPageUrls
           const snapshot = state.pageCache.peek()
-          if (snapshot) {
+          if (snapshot && !sourceSetChanged) {
             const routeBySourceFile = new Map(
               [...snapshot.graph.routes.values()].map((route) => [
                 path.resolve(state.rootDir, route.sourceFile),
@@ -1013,9 +1032,7 @@ export function pluginSsg(uOpts = {}) {
             state.renderCache.invalidate()
           }
           state.pageCache.invalidate()
-          const rel = modules[0]?.id
-            ? stripQuery(path.relative(server.config.root, modules[0].id))
-            : ""
+          const rel = normalizePath(path.relative(server.config.root, file))
           server.config.logger.info(
             [pc.dim("(ssr)"), pc.green("page reload"), pc.dim(rel)]
               .filter(Boolean)

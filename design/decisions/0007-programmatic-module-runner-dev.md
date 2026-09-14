@@ -23,6 +23,12 @@ CoreはVite server、ModuleRunner、module graphの型を持ちません。modul
 
 手順1〜5は実装済みです。`ViteDevServerAdapter` はcreate、listen、起動後設定、closeの失敗をoperation付き `MINISTA_VITE_DEV_SERVER_FAILED` diagnosticへ正規化し、listen後の設定失敗でもserverを閉じます。`ViteDevModuleEvaluator` はViteのdefault `ssr` environmentをguardし、SSG、Island、Search、project commandのmodule評価を共有します。ModuleRunnerのimport失敗はstacktrace補正後に `MINISTA_VITE_DEV_MODULE_FAILED` へ正規化し、environmentとmodule ID、project root内に限ったsource locationを保持します。`LegacySsgRouteCache` は変更moduleから特定したrouteだけdiscovery、`getStaticData()`、PageNode解決を再実行し、Project Graph全体をcache entryから再構成します。Sprite／Imageはlocal sourceから参照ページへのArtifact edgeも保持します。generator、watch対象、Page indexはVite server identity単位に分離し、optionalなHTML context serverと登録済みserverの対応は `ViteDevServerRegistry` が単一serverまたはfilename rootから明示的に解決します。`ViteDevUpdateAdapter` はenvironment別module graphとhot channelを所有し、pluginからmixed graph／直接WebSocket操作を除去しました。page固有変更とSprite／Image変更はcustom HMR eventで該当URLだけをreloadし、全体変更だけ標準full reloadへfallbackします。
 
+### Source追加・削除のinvalidation（2026-09-15）
+
+新規page／layoutはmodule graphにまだ存在しないため、`hotUpdate`のimporter chainだけではpage snapshotを無効化できません。`create`／`delete`では設定された`src`／`layout`のglobにfile pathを照合し、一致時にglob moduleとroute／render／page cacheを無効化します。次のrequestで新しいsource集合を解決し、標準full reloadでbrowserへ通知します。Viteのimport-glob hookより後に実行する順序依存やrequestごとの再探索は追加しません。通常の編集に対するroute単位cacheとtargeted reloadは維持します。
+
+実際のdev serverへのHTTP requestで、既存snapshot作成後のJSX／TSX／Markdown／MDX／dynamic routeの追加・削除と、新規directoryを含むsource追加を検証します。
+
 ## Consequences
 
 - Ministaがdev middleware orderとserver shutdownを管理できる

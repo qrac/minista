@@ -130,6 +130,8 @@ ModuleRunner評価、dev page snapshot cache、route単位のdiscovery／resolve
 
 ### Dev adapter ownership
 
+SSGの`hotUpdate`は`create`／`delete`時に`src`／`layout`のglobとfile pathを照合します。新規fileはmodule graphに存在せず、Viteのimport-glob hookによるmodule列挙より前に通知されるため、importer chainだけではdiscovery変更を検知できません。pathによる判定は既存hook内で行い、Vite内部hookの順序には依存しません。一致時は`ViteDevUpdateAdapter`でglob moduleをhard invalidateし、route／render／page cacheを破棄して標準full reloadを送ります。通常のsource編集は既存のPageNode単位invalidationを維持します。Viteの新規API採用や対応versionの変更はありません。
+
 | 責務 | 所有者 | contract |
 | --- | --- | --- |
 | HTTP request／response、middleware error伝播 | Vite adapter | domain errorをViteのerror chainへ渡し、CoreはHTTP objectを受け取らない |
