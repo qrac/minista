@@ -102,7 +102,7 @@ function NavMain(props: Partial<Props>) {
                 className="box is-flex is-middle is-gap-xxs"
                 target={item.external ? "_blank" : undefined}
               >
-                <span className="text is-weight-500">
+                <span className="text is-weight-500 is-sm">
                   {localizeName(item.name, locale)}
                 </span>
                 {item.external && <LuExternalLink className="icon is-dark-4" />}
@@ -136,8 +136,8 @@ function NavLocale(props: Partial<Props>) {
           {items.map(([key, item]) => (
             <li key={key} className="box is-flex">
               {key === locale ? (
-                <span className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full">
-                  <span className="text is-weight-700">
+                <span className="box is-flex is-middle is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full">
+                  <span className="text is-primary">
                     {localizeName(item.name, locale)}
                   </span>
                 </span>
