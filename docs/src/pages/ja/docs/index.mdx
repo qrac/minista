@@ -16,12 +16,16 @@ Reactのコンポーネントベースな開発体験を活かしながら、通
 
 デフォルトではクライアントサイドのReactランタイムを必要としません。インタラクティブなUIが必要な場合だけ、IslandとしてReactをクライアント側で動かすことができます。
 
-## Reactで静的サイトを作る
+## Table of Contents
+
+contents list
+
+## Reactで静的サイトを作る ||building-static-sites-with-react||
 
 ministaでは、ページや共通パーツをReactコンポーネントとして記述します。
 
-```tsx
-export default function Page() {
+```jsx title="src/pages/index.jsx"
+export default function () {
   return (
     <main>
       <h1>Hello, minista!</h1>
@@ -37,7 +41,7 @@ export default function Page() {
 
 そのため、Reactのコンポーネント、props、TypeScriptなどを利用しながら、最終的には軽量な静的サイトとして公開できます。
 
-## ViteをベースにしたSSG
+## ViteをベースにしたSSG ||ssg-based-on-vite||
 
 ministaはViteを開発環境とビルド基盤として利用しています。
 
@@ -45,18 +49,17 @@ Viteの高速な開発体験をそのまま利用できるだけでなく、mini
 
 そのため、必要に応じて通常のViteプラグインを追加し、ministaのビルド処理を拡張できます。
 
-```ts
-import { defineConfig } from "vite"
-import minista from "minista"
+```js title="vite.config.js"
+import { pluginSsg } from "minista"
 
-export default defineConfig({
-  plugins: [minista()],
-})
+export default {
+  plugins: [pluginSsg()],
+}
 ```
 
 minista独自のビルド環境の中にViteを組み込むのではなく、Viteを中心に静的サイト生成の仕組みを構築することを重視しています。
 
-## Static by default
+## デフォルトで静的 ||static-by-default||
 
 ministaで作るページは、基本的に静的HTMLとして出力されます。
 
@@ -73,19 +76,23 @@ ministaで作るページは、基本的に静的HTMLとして出力されます
 
 静的ファイルとして生成されるため、特定のサーバーランタイムに依存せず、さまざまな静的ホスティング環境やCDNへデプロイできます。
 
-## Interactive when needed
+## 必要なときだけインタラクティブ ||interactive-when-needed||
 
 すべてを静的にする必要はありません。
 
 フォーム、検索、タブ、メニューなど、ブラウザ上で状態を持つUIが必要な場合は、そのコンポーネントだけをIslandとしてクライアントサイドで動かすことができます。
 
-```tsx
-<Counter client:load />
+```jsx title="src/pages/index.jsx"
+import { Counter } from "../components/counter"
+
+export default function () {
+  return <Counter client:load />
+}
 ```
 
 静的HTMLを基本としながら、必要な部分にだけJavaScriptを追加することで、静的サイトとReactのインタラクティブなUIを組み合わせられます。
 
-## 主な機能
+## 主な機能 ||main-features||
 
 ministaには、静的サイト制作に必要な機能が用意されています。
 
@@ -94,20 +101,19 @@ ministaには、静的サイト制作に必要な機能が用意されていま�
 - ファイルベースルーティング
 - Layout
 - Markdown・MDX
-- Island
 - 画像最適化
-- SVG最適化・SVGスプライト
+- SVG最適化
+- SVGスプライト
+- Island
 - 静的サイト内検索
 - HTMLの整形
 - 納品用アーカイブの生成
 - Viteプラグインによる拡張
 
-各機能の使い方は[ガイド](/docs/guide/)で順番に紹介します。設定値やAPIの詳細については、リファレンスと各プラグインのドキュメントを参照してください。
+各機能の使い方は[ガイド](/ja/docs/guide/)で順番に紹介します。設定値やAPIの詳細については、リファレンスと各プラグインのドキュメントを参照してください。
 
-## ministaの考え方
+## ministaの考え方 ||minista-concept||
 
 ministaが重視しているのは、Reactを使うこと自体ではなく、Webサイト制作における開発体験と最終的な成果物の両方をシンプルにすることです。
 
 「なぜReactで静的HTMLを生成するのか」「なぜViteを中心に設計しているのか」「なぜJavaScriptをデフォルトで配信しないのか」といった背景については、次のページで詳しく説明します。
-
-[なぜministaを選ぶのか →](/docs/why)
