@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: Islands
-hasPrev: true
-hasNext: true
 ---
 
 # Islands
@@ -66,13 +64,13 @@ export default function Page() {
 
 ## 動かし始めるタイミングを選ぶ
 
-| ディレクティブ | 動作 |
-| --- | --- |
-| `client:load` | ページ読み込み時にハイドレーション |
-| `client:idle` | ブラウザの待機時間にハイドレーション |
-| `client:visible` | コンポーネントが画面内に入ったらハイドレーション |
-| `client:media="(max-width: 640px)"` | メディアクエリを満たしたらハイドレーション |
-| `client:only` | 静的HTMLを生成せず、ブラウザでレンダリング |
+| ディレクティブ                      | 動作                                             |
+| ----------------------------------- | ------------------------------------------------ |
+| `client:load`                       | ページ読み込み時にハイドレーション               |
+| `client:idle`                       | ブラウザの待機時間にハイドレーション             |
+| `client:visible`                    | コンポーネントが画面内に入ったらハイドレーション |
+| `client:media="(max-width: 640px)"` | メディアクエリを満たしたらハイドレーション       |
+| `client:only`                       | 静的HTMLを生成せず、ブラウザでレンダリング       |
 
 すぐに操作するUIには`client:load`を使います。画面外のUIには、例えば次の指定ができます。
 

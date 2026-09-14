@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: TypeScript
-hasPrev: true
-hasNext: true
 ---
 
 # TypeScript
@@ -65,13 +63,13 @@ import type {
 } from "minista/types"
 ```
 
-| 型 | 主な項目 |
-| --- | --- |
-| `Metadata` | 省略可能な`title: string`、`draft: boolean` |
-| `PageProps` | `url: string`、`title: string`、`draft: boolean` |
-| `LayoutProps` | PagePropsと同じ基本項目、および`children: React.ReactNode` |
-| `StaticData` | `props`と、省略可能な`paths` |
-| `GetStaticData` | `Promise<StaticData \| StaticData[]>`を返す関数 |
+| 型              | 主な項目                                                   |
+| --------------- | ---------------------------------------------------------- |
+| `Metadata`      | 省略可能な`title: string`、`draft: boolean`                |
+| `PageProps`     | `url: string`、`title: string`、`draft: boolean`           |
+| `LayoutProps`   | PagePropsと同じ基本項目、および`children: React.ReactNode` |
+| `StaticData`    | `props`と、省略可能な`paths`                               |
+| `GetStaticData` | `Promise<StaticData \| StaticData[]>`を返す関数            |
 
 `StaticData.paths`は文字列のキーと文字列の値を持ちます。数値のIDを動的ルートに使う場合は`String(id)`へ変換してください。
 
@@ -91,14 +89,21 @@ export const getStaticData: GetStaticData = async () => {
     title: "サイトを公開しました",
     body: "最初のお知らせです。",
   }
-  return [{
-    paths: { slug: article.slug },
-    props: { title: article.title, article },
-  }]
+  return [
+    {
+      paths: { slug: article.slug },
+      props: { title: article.title, article },
+    },
+  ]
 }
 
 export default function ArticlePage({ article }: Props) {
-  return <article><h1>{article.title}</h1><p>{article.body}</p></article>
+  return (
+    <article>
+      <h1>{article.title}</h1>
+      <p>{article.body}</p>
+    </article>
+  )
 }
 ```
 

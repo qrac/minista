@@ -1,47 +1,24 @@
 import "minista/types"
 import type pkg from "minista/package.json"
-import type site from "./src/assets/data/site"
-import type menu from "./src/assets/data/menu"
+import type pjt from "./project.json"
 
 type Pkg = typeof pkg
-type Site = typeof site
-type Menu = typeof menu
+type Pjt = typeof pjt
+type Locale = keyof Pjt["i18n"]["locales"]
+
+type CustomProps = {
+  layout: string
+  locale: Locale
+  description: string
+  hasPrev: boolean
+  hasNext: boolean
+  noindex: boolean
+  pkg: Pkg
+  pjt: Pjt
+}
 
 declare module "minista/types" {
-  interface Metadata {
-    layout?: string
-    description?: string
-    prevTitle?: string
-    prevUrl?: string
-    nextTitle?: string
-    nextUrl?: string
-    noindex?: boolean
-    pkg?: Pkg
-    site?: Site
-    menu?: Menu
-  }
-  interface PageProps {
-    layout: string
-    description: string
-    prevTitle: string
-    prevUrl: string
-    nextTitle: string
-    nextUrl: string
-    noindex: boolean
-    pkg: Pkg
-    site: Site
-    menu: Menu
-  }
-  interface LayoutProps {
-    layout: string
-    description: string
-    prevTitle: string
-    prevUrl: string
-    nextTitle: string
-    nextUrl: string
-    noindex: boolean
-    pkg: Pkg
-    site: Site
-    menu: Menu
-  }
+  interface Metadata extends Partial<CustomProps> {}
+  interface PageProps extends CustomProps {}
+  interface LayoutProps extends CustomProps {}
 }

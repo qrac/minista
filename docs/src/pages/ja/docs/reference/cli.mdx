@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: CLI
-hasPrev: true
-hasNext: true
 ---
 
 # CLI
@@ -14,15 +12,15 @@ ministaのCLIは、開発サーバーの起動、静的ファイルの生成、�
 
 表の`[root]`は省略可能なプロジェクトルートです。省略すると現在のディレクトリを使います。
 
-| コマンド | 内容 |
-| --- | --- |
-| `minista [root]` | 開発サーバーを起動 |
-| `minista build [root]` | 静的HTMLとアセットを生成 |
-| `minista preview [root]` | ビルド済みファイルをローカルで配信 |
-| `minista check [root]` | ページやルートの問題を検査 |
-| `minista inspect [root]` | Project Graphの概要を表示 |
-| `minista explain <node-id> [root]` | 指定したGraph nodeの関係を表示 |
-| `minista agents [root]` | インストール済みバージョンのagent向けガイドを表示 |
+| コマンド                           | 内容                                              |
+| ---------------------------------- | ------------------------------------------------- |
+| `minista [root]`                   | 開発サーバーを起動                                |
+| `minista build [root]`             | 静的HTMLとアセットを生成                          |
+| `minista preview [root]`           | ビルド済みファイルをローカルで配信                |
+| `minista check [root]`             | ページやルートの問題を検査                        |
+| `minista inspect [root]`           | Project Graphの概要を表示                         |
+| `minista explain <node-id> [root]` | 指定したGraph nodeの関係を表示                    |
+| `minista agents [root]`            | インストール済みバージョンのagent向けガイドを表示 |
 
 ## 開発・ビルド・プレビュー
 
@@ -110,11 +108,11 @@ npx minista agents --write
 
 ## 独自オプション
 
-| オプション | 対象 | 内容 |
-| --- | --- | --- |
-| `--json` | `check`・`inspect`・`explain`・`agents` | 結果をJSON形式で出力 |
-| `--manifest` | `inspect` | 保存済みmanifestだけを読み取る |
-| `--write` | `agents` | `AGENTS.md`へ案内を追加・更新 |
+| オプション   | 対象                                    | 内容                           |
+| ------------ | --------------------------------------- | ------------------------------ |
+| `--json`     | `check`・`inspect`・`explain`・`agents` | 結果をJSON形式で出力           |
+| `--manifest` | `inspect`                               | 保存済みmanifestだけを読み取る |
+| `--write`    | `agents`                                | `AGENTS.md`へ案内を追加・更新  |
 
 v4の`--oneBuild`は削除されました。指定すると`MINISTA_CLI_OPTION_REMOVED`で終了します。標準の`minista build`を使用してください。
 
@@ -122,10 +120,10 @@ v4の`--oneBuild`は削除されました。指定すると`MINISTA_CLI_OPTION_R
 
 保存先はプロジェクトルート直下の`package.json`の有無で決まります。
 
-| 条件 | 保存先 |
-| --- | --- |
+| 条件                         | 保存先                   |
+| ---------------------------- | ------------------------ |
 | ルートに`package.json`がある | `node_modules/.minista/` |
-| ルートに`package.json`がない | `.minista/` |
+| ルートに`package.json`がない | `.minista/`              |
 
 `check`は検査結果を`diagnostics.json`へ保存します。成功した`build`は構成と出力情報を`manifest.json`へ保存し、ビルドの診断も`diagnostics.json`へ記録します。
 

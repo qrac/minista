@@ -1,23 +1,24 @@
-import { FiSearch, FiX } from "react-icons/fi"
+import { LuSearch, LuX } from "react-icons/lu"
 import { Search } from "minista/assets"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
 
 export default function ElementSearch(props: Partial<Props>) {
-  const {} = { ...initialProps, ...props }
+  const { locale } = { ...initialProps, ...props }
   return (
     <Search
       client:load
       field={{
-        beforeElement: <FiSearch />,
+        beforeElement: <LuSearch />,
         clearElement: (
           <button type="button" className="search-field-clear">
-            <FiX />
+            <LuX />
           </button>
         ),
         placeholder: "Search...",
       }}
+      index={locale}
     />
   )
 }

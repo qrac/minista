@@ -1,7 +1,7 @@
-import { jsTheme } from "../utils/theme/script"
-import { jsSidetoc } from "../utils/sidetoc/script"
-import { jsCodeCopy } from "../utils/code-copy/script"
-import { jsModal } from "../utils/modal/script"
+import { jsTheme } from "./js/theme/script"
+import { jsSidetoc } from "./js/sidetoc/script"
+import { jsCodeCopy } from "./js/code-copy/script"
+import { jsModal } from "./js/modal/script"
 
 jsTheme.init()
 jsSidetoc.init()

@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: ministaを選ぶ理由
-hasPrev: true
-hasNext: true
 ---
 
 # ministaを選ぶ理由
@@ -25,7 +23,9 @@ type Props = {
 export default function ServiceCard({ title, href }: Props) {
   return (
     <article className="service-card">
-      <h2><a href={href}>{title}</a></h2>
+      <h2>
+        <a href={href}>{title}</a>
+      </h2>
     </article>
   )
 }

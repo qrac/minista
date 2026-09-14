@@ -48,7 +48,6 @@ export default defineConfig({
     pluginSvg(),
     pluginIsland(),
     pluginSearch({
-      src: ["docs/**/*.html"],
       ignoreSelectors: [
         "h1",
         "#table-of-contents",
@@ -57,6 +56,16 @@ export default defineConfig({
         "[data-stage]",
       ],
       trimTitle: " - minista",
+      indexes: {
+        en: {
+          src: ["docs/**/*.html"],
+          ignore: ["ja/docs/**", "404.html"],
+        },
+        ja: {
+          src: ["ja/docs/**/*.html"],
+          ignore: ["404.html"],
+        },
+      },
     }),
     pluginSeo({
       src: ["docs/**/*.html"],

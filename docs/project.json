@@ -1,10 +1,15 @@
 {
   "i18n": {
     "defaultLocale": "en",
-    "locales": ["en", "ja"],
-    "paths": {
-      "en": "/",
-      "ja": "/ja/"
+    "locales": {
+      "en": {
+        "name": "English",
+        "path": "/"
+      },
+      "ja": {
+        "name": "日本語",
+        "path": "/ja/"
+      }
     }
   },
 
@@ -423,6 +428,7 @@
             "en": "Introduction",
             "ja": "イントロダクション"
           },
+          "pager": true,
           "items": [
             {
               "id": "what-is-minista",
@@ -464,6 +470,7 @@
             "en": "Guide",
             "ja": "ガイド"
           },
+          "pager": true,
           "items": [
             {
               "id": "getting-started",
@@ -553,6 +560,7 @@
             "en": "Reference",
             "ja": "リファレンス"
           },
+          "pager": false,
           "items": [
             {
               "id": "cli",
@@ -594,7 +602,7 @@
             "en": "Plugins",
             "ja": "プラグイン"
           },
-
+          "pager": false,
           "items": [
             {
               "id": "plugin-ssg",

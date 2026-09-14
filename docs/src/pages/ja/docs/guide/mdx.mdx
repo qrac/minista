@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: MarkdownとMDX
-hasPrev: true
-hasNext: true
 ---
 
 # MarkdownとMDX
@@ -89,7 +87,12 @@ import Note from "../components/note"
 import Terms from "../components/terms.md"
 
 export default function TermsPage() {
-  return <article><h1>利用規約</h1><Terms /></article>
+  return (
+    <article>
+      <h1>利用規約</h1>
+      <Terms />
+    </article>
+  )
 }
 ```
 

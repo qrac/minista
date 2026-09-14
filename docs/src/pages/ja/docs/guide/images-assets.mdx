@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: 画像とアセット
-hasPrev: true
-hasNext: true
 ---
 
 # 画像とアセット
@@ -16,7 +14,9 @@ hasNext: true
 import photoUrl from "../assets/photo.jpg"
 
 export default function Page() {
-  return <img src={photoUrl} alt="制作スタジオの風景" width={1200} height={800} />
+  return (
+    <img src={photoUrl} alt="制作スタジオの風景" width={1200} height={800} />
+  )
 }
 ```
 
@@ -54,8 +54,15 @@ export default function Page() {
       <Head>
         <script type="module" src="/src/assets/scripts.ts" />
       </Head>
-      <button type="button" data-greeting>挨拶する</button>
-      <img src="/src/assets/photo.jpg" alt="制作スタジオの風景" width={1200} height={800} />
+      <button type="button" data-greeting>
+        挨拶する
+      </button>
+      <img
+        src="/src/assets/photo.jpg"
+        alt="制作スタジオの風景"
+        width={1200}
+        height={800}
+      />
     </>
   )
 }
@@ -91,7 +98,11 @@ import { Image, Picture } from "minista/assets"
 export default function Page() {
   return (
     <>
-      <Image src="/src/assets/photo.jpg" alt="制作スタジオの風景" format="webp" />
+      <Image
+        src="/src/assets/photo.jpg"
+        alt="制作スタジオの風景"
+        format="webp"
+      />
       <Picture
         src="/src/assets/photo.jpg"
         alt="制作スタジオの風景"

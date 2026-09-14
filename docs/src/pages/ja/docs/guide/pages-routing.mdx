@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: ページとルーティング
-hasPrev: true
-hasNext: true
 ---
 
 # ページとルーティング
@@ -30,12 +28,12 @@ export default function About() {
 
 ## ファイル名とURL
 
-| ページファイル | ページURL | ビルド結果 |
-| --- | --- | --- |
-| `src/pages/index.tsx` | `/` | `dist/index.html` |
-| `src/pages/about.tsx` | `/about` | `dist/about.html` |
-| `src/pages/company/index.tsx` | `/company/` | `dist/company/index.html` |
-| `src/pages/news/article.mdx` | `/news/article` | `dist/news/article.html` |
+| ページファイル                | ページURL       | ビルド結果                |
+| ----------------------------- | --------------- | ------------------------- |
+| `src/pages/index.tsx`         | `/`             | `dist/index.html`         |
+| `src/pages/about.tsx`         | `/about`        | `dist/about.html`         |
+| `src/pages/company/index.tsx` | `/company/`     | `dist/company/index.html` |
+| `src/pages/news/article.mdx`  | `/news/article` | `dist/news/article.html`  |
 
 拡張子を省略したURLの配信方法はホスティング側の設定によります。ディレクトリのindexを配信する構成にしたい場合は`about/index.tsx`のように配置します。
 
@@ -69,7 +67,11 @@ export default function News({ title, items }: Props) {
   return (
     <>
       <h1>{title}</h1>
-      <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
     </>
   )
 }
@@ -87,8 +89,16 @@ export default function News({ title, items }: Props) {
 import type { PageProps, StaticData } from "minista/types"
 
 const articles = [
-  { slug: "hello", title: "サイトを公開しました", body: "最初のお知らせです。" },
-  { slug: "update", title: "更新しました", body: "サービスの紹介を追加しました。" },
+  {
+    slug: "hello",
+    title: "サイトを公開しました",
+    body: "最初のお知らせです。",
+  },
+  {
+    slug: "update",
+    title: "更新しました",
+    body: "サービスの紹介を追加しました。",
+  },
 ]
 
 export async function getStaticData(): Promise<StaticData[]> {
@@ -101,7 +111,12 @@ export async function getStaticData(): Promise<StaticData[]> {
 type Props = PageProps & { body: string }
 
 export default function Article({ title, body }: Props) {
-  return <article><h1>{title}</h1><p>{body}</p></article>
+  return (
+    <article>
+      <h1>{title}</h1>
+      <p>{body}</p>
+    </article>
+  )
 }
 ```
 

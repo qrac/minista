@@ -3,9 +3,9 @@ export type Props = {
   repositoryUrl: string
   xId: string
   xName: string
-  copyrightStartYear: number
+  copyrightSince: number
   copyrightUrl: string
-  copyrightName: string
+  copyrightHolder: string
 }
 
 export const initialProps: Props = {
@@ -13,7 +13,7 @@ export const initialProps: Props = {
   repositoryUrl: "https://example.com",
   xId: "Qrac_JP",
   xName: "Qrac",
-  copyrightStartYear: 2021,
+  copyrightSince: 2021,
   copyrightUrl: "https://qranoko.jp",
-  copyrightName: "QRANOKO",
+  copyrightHolder: "QRANOKO",
 }

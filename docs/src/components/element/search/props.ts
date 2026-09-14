@@ -1,3 +1,9 @@
-export type Props = {}
+import type { Locale } from "../../../../types"
 
-export const initialProps: Props = {}
+export type Props = {
+  locale: Locale
+}
+
+export const initialProps: Props = {
+  locale: "en",
+}

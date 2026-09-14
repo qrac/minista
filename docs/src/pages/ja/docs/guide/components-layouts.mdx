@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: コンポーネントとレイアウト
-hasPrev: true
-hasNext: true
 ---
 
 # コンポーネントとレイアウト
@@ -19,7 +17,9 @@ export default function Header({ siteName }: Props) {
   return (
     <header>
       <a href="/">{siteName}</a>
-      <nav aria-label="メイン"><a href="/about">私たちについて</a></nav>
+      <nav aria-label="メイン">
+        <a href="/about">私たちについて</a>
+      </nav>
     </header>
   )
 }

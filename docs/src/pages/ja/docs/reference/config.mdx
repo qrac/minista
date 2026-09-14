@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: Config
-hasPrev: true
-hasNext: true
 ---
 
 # Config
@@ -26,17 +24,17 @@ export default defineConfig({
 
 ## 主な設定項目
 
-| 項目 | 用途 |
-| --- | --- |
-| `plugins` | ministaや他のViteプラグインを登録 |
-| `base` | アセットの公開ベースパス。ページへの手書きリンクには利用者側で反映 |
-| `publicDir` | 内容をそのままコピーするディレクトリ。デフォルトは`public` |
-| `server` | 開発サーバーのポートなどを設定 |
-| `build.outDir` | 出力ディレクトリ。デフォルトは`dist` |
-| `build.assetsInlineLimit` | 小さいアセットのインライン化を制御 |
-| `build.minify`・`build.cssMinify` | JavaScript・CSSの圧縮を制御 |
-| `build.rolldownOptions.output` | ファイル名やコード分割を設定 |
-| `environments` | render／client environmentごとの設定 |
+| 項目                              | 用途                                                               |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `plugins`                         | ministaや他のViteプラグインを登録                                  |
+| `base`                            | アセットの公開ベースパス。ページへの手書きリンクには利用者側で反映 |
+| `publicDir`                       | 内容をそのままコピーするディレクトリ。デフォルトは`public`         |
+| `server`                          | 開発サーバーのポートなどを設定                                     |
+| `build.outDir`                    | 出力ディレクトリ。デフォルトは`dist`                               |
+| `build.assetsInlineLimit`         | 小さいアセットのインライン化を制御                                 |
+| `build.minify`・`build.cssMinify` | JavaScript・CSSの圧縮を制御                                        |
+| `build.rolldownOptions.output`    | ファイル名やコード分割を設定                                       |
+| `environments`                    | render／client environmentごとの設定                               |
 
 ## Plugins
 

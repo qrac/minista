@@ -2,8 +2,6 @@
 layout: docs
 locale: ja
 title: 設定
-hasPrev: true
-hasNext: true
 ---
 
 # 設定
@@ -31,26 +29,21 @@ import { defineConfig, pluginSsg, pluginImage, pluginIsland } from "minista"
 import react from "@vitejs/plugin-react"
 
 export default defineConfig({
-  plugins: [
-    pluginSsg(),
-    pluginImage(),
-    pluginIsland(),
-    react(),
-  ],
+  plugins: [pluginSsg(), pluginImage(), pluginIsland(), react()],
 })
 ```
 
 この例のIslandには`@vitejs/plugin-react`のインストールも必要です。静的ページだけであれば、最小設定から始められます。
 
-| 目的 | プラグイン |
-| --- | --- |
-| ページ生成・Markdown・MDX・アセット出力 | [pluginSsg](/ja/docs/plugins/ssg) |
-| 画像最適化 | [pluginImage](/ja/docs/plugins/image) |
-| SVG最適化・SVGスプライト | [pluginSvg](/ja/docs/plugins/svg)・[pluginSprite](/ja/docs/plugins/sprite) |
-| HTMLコメント | [pluginComment](/ja/docs/plugins/comment) |
-| Reactによる部分的な操作UI | [pluginIsland](/ja/docs/plugins/island) |
-| 静的サイト内検索 | [pluginSearch](/ja/docs/plugins/search) |
-| コードの整形・アーカイブ生成 | [pluginBeautify](/ja/docs/plugins/beautify)・[pluginArchive](/ja/docs/plugins/archive) |
+| 目的                                    | プラグイン                                                                             |
+| --------------------------------------- | -------------------------------------------------------------------------------------- |
+| ページ生成・Markdown・MDX・アセット出力 | [pluginSsg](/ja/docs/plugins/ssg)                                                      |
+| 画像最適化                              | [pluginImage](/ja/docs/plugins/image)                                                  |
+| SVG最適化・SVGスプライト                | [pluginSvg](/ja/docs/plugins/svg)・[pluginSprite](/ja/docs/plugins/sprite)             |
+| HTMLコメント                            | [pluginComment](/ja/docs/plugins/comment)                                              |
+| Reactによる部分的な操作UI               | [pluginIsland](/ja/docs/plugins/island)                                                |
+| 静的サイト内検索                        | [pluginSearch](/ja/docs/plugins/search)                                                |
+| コードの整形・アーカイブ生成            | [pluginBeautify](/ja/docs/plugins/beautify)・[pluginArchive](/ja/docs/plugins/archive) |
 
 各プラグインの引数に、その機能のオプションを渡します。MDXなどSSGに含まれる機能は、`pluginSsg({ mdx: { ... } })`のように指定します。
 
