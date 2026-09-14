@@ -82,6 +82,7 @@ export default function (props: LayoutProps) {
       <body className="layout">
         <CommonHeader
           url={url}
+          layout={layout}
           locale={locale}
           locales={pjt.i18n.locales}
           currentVersion={pkg.version.replace(/-.*/, "")}

@@ -102,7 +102,7 @@ function NavMain(props: Partial<Props>) {
                 className="box is-flex is-middle is-gap-xxs"
                 target={item.external ? "_blank" : undefined}
               >
-                <span className="text is-weight-500 is-sm">
+                <span className="text is-weight-500">
                   {localizeName(item.name, locale)}
                 </span>
                 {item.external && <LuExternalLink className="icon is-dark-4" />}
