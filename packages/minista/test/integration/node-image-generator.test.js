@@ -8,11 +8,11 @@ import { afterAll, beforeAll, describe, expect, test, vi } from "vitest"
 import {
   NodeImageError,
   NodeImageGenerator,
-} from "../../../src/adapters/image/index.js"
-import { createNodeId } from "../../../src/core/index.js"
+} from "../../src/adapters/image/index.js"
+import { createNodeId } from "../../src/core/index.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
-const fixtureDir = path.resolve(here, "../../fixtures/compat-basic")
+const fixtureDir = path.resolve(here, "../fixtures/compat-basic")
 let cacheDir = ""
 
 /** @param {string} source */

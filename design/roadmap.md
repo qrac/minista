@@ -104,7 +104,7 @@ Project Manifest schema v1、diagnostics snapshot、atomic writer、migration re
 
 全descriptorを検証してdomain operationを依存順にdispatchし、devの共有mutationをserver単位で直列化します。`buildApp`前後hook、同名pluginのSSR設定、emptyOutDirの保持、metadata失敗時のrollback、error diagnosticによるphase停止、同一processの再buildを回帰テストに追加しました。
 
-追加の中核強化としてGraphのpattern／URL indexと軽量queryを実装し、1,000／10,000ページの構築benchmarkを記録しました。Page／Route削除は関連nodeのPage参照とpage scope Artifactも除去します。domain featureと公開facadeは同じdescriptor生成元を使用します。PRの全test／typecheck、Vite 8.1.0／lockfile版／対応minor最新、React 19、PreactのCI gateはNode.js 22.12で実行し、Node.js 20.19は独立したCLI互換jobで検証します。Vite 8.0.0は実contractでlate client inputが欠落したためpeer rangeから除外しました。
+追加の中核強化としてGraphのpattern／URL indexと軽量queryを実装し、1,000／10,000ページの構築benchmarkを記録しました。Page／Route削除は関連nodeのPage参照とpage scope Artifactも除去します。domain featureと公開facadeは同じdescriptor生成元を使用します。当初のPR全test／typecheck gateは検証方針の整理で削除しました。Vite／React／PreactとNode.js 20.19のCLI互換jobは必要時に手動実行します。現在の分類と実行方法は[検証構成](testing.md)を参照してください。Vite 8.0.0は実contractでlate client inputが欠落したためpeer rangeから除外しました。
 
 ## 今後の移行候補
 

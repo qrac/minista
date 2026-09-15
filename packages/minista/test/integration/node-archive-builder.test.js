@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest"
 import {
   NodeArchiveBuilder,
   NodeArchiveError,
-} from "../../../src/adapters/archive/index.js"
+} from "../../src/adapters/archive/index.js"
 
 describe("Node archive builder", () => {
   test("normalizes Archiver failures into a structured diagnostic", async () => {
@@ -34,7 +34,7 @@ import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { vi } from "vitest"
-import { NodeArchivePublisher } from "../../../src/adapters/archive/node.js"
+import { NodeArchivePublisher } from "../../src/adapters/archive/node.js"
 
 for (const format of /** @type {const} */ (["zip", "tar"])) {
   test(`${format}: streaming preserves bytes and removes staging files`, async () => {

@@ -335,11 +335,7 @@ P06追記・tokenizer内製化（2026-09-09）:
 
 ## 検証と記録
 
-各実装変更では対象の回帰テストと、少なくとも次を実行する。
-
-```sh
-npm run test:ci
-```
+現在の検証はAGENTS.mdと[検証構成](../testing.md)に従い、変更箇所に直接関係するunit test、型チェック、または対象playgroundの確認だけを選ぶ。過去の実行記録にある`test:ci`は削除済みであり、全test／typecheckを各変更の必須条件にしない。
 
 CLI／buildに関係する変更は隔離したfixtureで次を確認する。既存fixture向けのまとめたscriptは`npm run test:cli-contracts`。
 

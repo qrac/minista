@@ -20,7 +20,7 @@ monorepoは主に次で構成されています。
 
 package runtime entryは `src/node.js` です。CLI、test、workspace packageは `src/` のJavaScriptを直接実行し、通常の開発にcompile済み `dist/` を必要としません。公開型は `src/*.d.ts` を参照します。`src/node.js` はViteの `defineConfig` と9個の `pluginXXX()`をexportします。MDX変換、page／layout参照assetの出力、HTML属性のEntry処理は`pluginSsg()`へ統合されています。
 
-公開宣言が必要とするArchive／Beautifyの型依存はministaのdependenciesに含みます。SSGのMDX compile optionは隣接宣言に分離し、上流型との一致を型テストで確認します。`minista/client`はSSG配下のMD／MDX宣言を参照します。通常CIでは`npm run test:public-types`がpackした配布物をReact 19の隔離consumerで`skipLibCheck:false`により検証します。詳細は[ADR-0006](decisions/0006-javascript-jsdoc-runtime.md)を参照してください。
+公開宣言が必要とするArchive／Beautifyの型依存はministaのdependenciesに含みます。SSGのMDX compile optionは隣接宣言に分離し、上流型との一致を型テストで確認します。`minista/client`はSSG配下のMD／MDX宣言を参照します。公開宣言・配布依存の変更時に明示実行する`npm run test:public-types`がpackした配布物をReact 19の隔離consumerで`skipLibCheck:false`により検証します。詳細は[ADR-0006](decisions/0006-javascript-jsdoc-runtime.md)を参照してください。
 
 `pluginSsg()`はSSG・Entryの内部Viteプラグイン配列を返します。通常の`plugins: [pluginSsg()]`でViteが展開し、Entryのdescriptorと出力ownerを維持して既存schedulerへ登録します。LegacyではSSGのclient configがrender後にEntry準備をawaitします。詳細は[ADR-0019](decisions/0019-ssg-entry-composition.md)を参照してください。
 
@@ -150,7 +150,9 @@ packages/minista/src/
 
 Core用 `tsconfig.core.json` はJavaScript + JSDocと隣接 `.d.ts` をstrict modeで直接型検査します。repository全体の `tsc --noEmit` でも同じsourceを検査します。
 
-`main`向けPRと`main`へのpushでは`.github/workflows/ci.yml`がVitest 5の対応範囲内であるNode.js 22.12上で`npm run test:ci`を実行します。Vite 8.1.0、lockfile版、対応minor最新、Preact、公開engine最低版のNode.js 20.19は`.github/workflows/compatibility.yml`へ分離し、対応範囲へ影響する変更またはリリース前に対象suiteを手動実行します。Node.js 20.19ではVitestを介さずCLI check／inspect／buildを検証します。
+`npm test`と`npm run test:w`は`vitest.config.ts`でunit／shared／cli／pluginsの局所的な検証だけを実行します。build、dev server、CLI子process、画像・archive生成はintegrationへ、旧tokenizerとの網羅比較はregressionへ分離し、分類ごとのVitest設定を指定するscriptから必要時だけ実行します。分類と対象別コマンドは[検証構成](testing.md)を参照してください。
+
+通常CIの`.github/workflows/ci.yml`と`test:ci`は削除しています。`.github/workflows/compatibility.yml`は`workflow_dispatch`だけで起動し、Vite／React／PreactまたはNode.js 20.19の互換性確認が必要な場合に対象suiteを選びます。Node.js 20.19ではVitestを介さずCLI check／inspect／buildを検証します。デプロイ用workflowは独立して維持します。
 
 package entry、CLI、testは `src/` を直接参照します。`prepare`、`prepack`、test前のruntime buildは行わず、編集直後のsourceをそのまま検証できます。
 

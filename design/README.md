@@ -11,6 +11,7 @@
 5. [`decisions/`](decisions/): 重要な設計判断と却下案
 
 性能比較の測定条件と結果は [`benchmarks/`](benchmarks/) に記録します。
+日常のテストと必要時の検証の分類・実行方法は [`testing.md`](testing.md) を参照してください。
 
 ## 改善計画
 

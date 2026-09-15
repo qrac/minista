@@ -67,11 +67,13 @@
     "play-preview:create": "cd ./packages/create-minista/templates/basic-ts && npm run preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "test:ci": "npm run test && npm run typecheck",
-    "test:contracts": "vitest run packages/minista/test/integration/application-contract.test.js packages/minista/test/integration/compat-app-build.test.js packages/minista/test/integration/ssg-app-build.test.js packages/minista/test/integration/ssg-entry.test.js packages/minista/test/integration/vite-app-builder.test.js packages/minista/test/unit/core/project-manifest.test.js",
-    "test:preact": "vitest run packages/minista/test/integration/preact-app-build.test.js",
+    "test:contracts": "vitest run --config vitest.integration.config.ts packages/minista/test/integration/application-contract.test.js packages/minista/test/integration/compat-app-build.test.js packages/minista/test/integration/ssg-app-build.test.js packages/minista/test/integration/ssg-entry.test.js packages/minista/test/integration/vite-app-builder.test.js",
+    "test:preact": "vitest run --config vitest.integration.config.ts packages/minista/test/integration/preact-app-build.test.js",
     "test:cli-contracts": "node packages/minista/bin/minista.js check packages/minista/test/fixtures/check-basic --json && node packages/minista/bin/minista.js inspect packages/minista/test/fixtures/check-basic --json && node packages/minista/bin/minista.js build packages/minista/test/fixtures/compat-basic --logLevel silent",
     "test:w": "vitest watch",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:regression": "vitest run --config vitest.regression.config.ts",
+    "test:public-types": "node scripts/test-public-types.js",
     "audit": "node scripts/audit-tree.ts",
     "up": "npx npm-check-updates --deep --cooldown 1",
     "up:u": "npx npm-check-updates --deep --cooldown 1 -u",
@@ -81,8 +83,7 @@
     "release:create": "cd ./packages/create-minista && npm publish",
     "release-next": "npm run release-next:main && npm run release-next:create",
     "release-next:main": "cd ./packages/minista && npm publish --tag=next",
-    "release-next:create": "cd ./packages/create-minista && npm publish --tag=next",
-    "test:public-types": "node scripts/test-public-types.js"
+    "release-next:create": "cd ./packages/create-minista && npm publish --tag=next"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
