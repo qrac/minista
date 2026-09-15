@@ -78,3 +78,5 @@
 
 - [ADR-0019: HTML参照Entryの公開APIをSSGへ統合する](decisions/0019-ssg-entry-composition.md)
 - [ADR-0020: Searchの複数indexと解析Artifactの共有](decisions/0020-search-multiple-indexes.md)
+
+- [ADR-0021: IslandのpropsをSSR時にserializationする](decisions/0021-island-serialized-props.md)

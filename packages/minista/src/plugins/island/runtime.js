@@ -4,14 +4,14 @@
 const scheduled = new WeakSet()
 
 /**
- * @param {Record<number, () => Promise<{ default: any }>>} loaders
+ * @param {Record<number, () => Promise<{ default: any, components?: any[] }>>} loaders
  * @param {string} rootAttrName
- * @param {() => Promise<{ renderIsland: (el: Element, component: any, only: boolean) => void }>} loadRenderer
+ * @param {() => Promise<{ renderIsland: (el: Element, component: any, only: boolean, payload: string, components: any[]) => void }>} loadRenderer
  */
 export function runIslands(loaders, rootAttrName, loadRenderer) {
   const prefix = rootAttrName ? `${rootAttrName}-` : ""
   const attr = `data-${prefix}client-`
-  /** @type {Map<number, Promise<{ default: any }>>} */
+  /** @type {Map<number, Promise<{ default: any, components?: any[] }>>} */
   const modules = new Map()
   /** @type {ReturnType<typeof loadRenderer> | undefined} */
   let renderer
@@ -34,9 +34,8 @@ export function runIslands(loaders, rootAttrName, loadRenderer) {
         renderer ??= loadRenderer()
         const [component, runtime] = await Promise.all([module, renderer])
         if (!el.isConnected) return
-        // Preserve the existing normalization, but only when hydration actually starts.
-        el.innerHTML = el.innerHTML.replace(/\>[\r\n ]+/g, ">")
-        runtime.renderIsland(el, component.default, directive === "only")
+        runtime.renderIsland(el, component.default, directive === "only",
+          el.getAttribute(`${attr}props`) || "", component.components ?? [])
       } catch (cause) {
         console.error({
           code: "MINISTA_ISLAND_LOAD_FAILED",

@@ -117,6 +117,30 @@ export default function () {
 
 ※ハイドレーションを行うコンポーネン配下で読み込んだ画像パスはルートパス・または絶対パスとなり、埋め込み用の相対パスは反映されません
 
+## Props
+
+propsはSSR時の実際の値をserializationしてHTMLへ保存し、ハイドレーションの開始時に復元します。ページの変数、spread、`getStaticData()`の結果、ループ内の値を渡せます。値やclient directiveが異なっても、同じcomponent entryを共有します。
+
+```tsx
+import { Counter } from "../components/counter"
+
+export default function Page() {
+  const initialCount = 3
+  return <Counter initialCount={initialCount} client:load />
+}
+```
+
+対応する値は文字列、有限数値、真偽値、`null`、`undefined`、配列、plain objectです。JSX childrenやJSX-valued propsはHTMLタグ／Fragment／そのIslandのJSXに現れる静的importのcomponent参照として復元します。propsはHTMLから読めるため、秘密の値を渡さないでください。
+
+関数、symbol、`BigInt`、非有限数値、`Date`／`Map`／`Set`／`RegExp`／class instance、accessor、循環参照は非対応です。従来のsnippetで動作したインラインのイベント関数も渡せません。イベント処理をimportするIslandコンポーネント内へ移してください。
+
+- `MINISTA_ISLAND_PROPS_UNSUPPORTED`: serializationできない値。診断にpropsの位置を表示
+- `MINISTA_ISLAND_COMPONENT_UNRESOLVED`: 静的importで解決できないコンポーネント。別ファイルからimportする
+- `MINISTA_ISLAND_DIRECTIVE_CONFLICT`: 一つの要素に複数のclient directiveを指定
+- `MINISTA_ISLAND_NESTED`: 同じJSX内でIslandを入れ子に指定。最も外側へまとめる
+
+開発時はページの値を変更するとSSR payloadが更新されます。コンポーネントの変更はViteの更新経路で反映されます。Reactの初期renderとSSRの表示は一致させてください。
+
 ## Client Directive
 
 静的なHTMLに変換されるJSXの一部をReact Appとして動作させる効果があります。`client:*` ディレクティブ配下ではReactの `useState` `useEffect` などインタラクティブな実装がすべて使えます。`client:*` ディレクティブはReact ComponentsまたはHTMLタグに付与でき、同時にpropsを渡すことも可能です。
@@ -203,7 +227,9 @@ export default function () {
 }
 ```
 
-- `slot="fallback"`:直下要素に付与することでレンダリング前に表示
+`client:only`でもpropsとchildrenの式はサーバーで評価・serializationします。本体コンポーネントはrenderしませんが、静的importのmodule評価を止める指定ではありません。moduleのtop-levelでbrowser globalを使わず、イベントや`useEffect()`内へ置いてください。
+
+- `slot="fallback"`:直下要素に付与することでレンダリング前に表示。本体のprops／childrenからは取り除かれ、clientへ渡されません
 
 ```tsx
 import { Counter } from "../components/counter"

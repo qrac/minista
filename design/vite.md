@@ -255,3 +255,7 @@ Rolldownの[OutputOptions](https://rolldown.rs/reference/Interface.OutputOptions
 ## EntryのSSG統合（2026-09-10）
 
 `pluginSsg()`はSSG・Entryの内部Plugin配列を返し、Viteが既存のPluginOptionとして展開します。Entryは引き続きclient限定のdescriptorを持ち、prepareClientとoutput operationはcapability／optionalAfterでscheduleされます。LegacyのEntry inputはSSGのconfig内でrender後に明示的に準備します。参照Artifactは一度解析してbuild後のbundle／composeへ再利用し、public assetと出力claimの契約を維持します。新しいVite API、対応range、fallbackは追加しません。[ADR-0019](decisions/0019-ssg-entry-composition.md)を参照してください。
+
+## IslandのSSR props（2026-09-15）
+
+[ADR-0021](decisions/0021-island-serialized-props.md)に従い、server environmentのsource transformでSSR boundaryを追加する。browserのcomponent moduleにはserver helperを追加しない。component entryとSSR payloadを分離するが、既存のArtifact／external JSON handoff、late client input、dynamic importとHMR経路は維持する。Vite APIの新規採用とfallbackの追加はない。

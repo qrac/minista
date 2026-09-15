@@ -62,6 +62,8 @@ describe("Preact legacy config routing", () => {
       .sort()
 
     expect(html).toContain("<h1>Preact compatibility</h1>")
+    expect(html).toContain("data-island-client-props=")
+    expect(html).toMatch(/Count: (?:<!-- -->)?5/)
     expect(html).toMatch(/src="\/assets\/island-1-[^"]+\.js"/)
     expect(
       files.some((file) => /^assets\/island-1-.+\.js$/.test(file)),

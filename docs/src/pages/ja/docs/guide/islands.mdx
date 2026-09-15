@@ -62,6 +62,34 @@ export default function Page() {
 
 初期表示のHTMLに対して、ブラウザでReactを接続して操作可能にすることをハイドレーションと呼びます。`client:*`を付けずに静的コンポーネントとして使うと、`onClick`などのイベント処理はブラウザで動作しません。
 
+## 変数をpropsとして渡す
+
+ページ内の変数や`getStaticData()`で取得した値を渡せます。ビルド時に評価したpropsをHTMLへ保存し、ブラウザで復元してからハイドレーションします。同じコンポーネントを複数配置しても、それぞれの値が保持されます。
+
+```tsx title="./src/pages/index.tsx"
+import Counter from "../components/counter"
+
+export function getStaticData() {
+  return { props: { counts: [3, 7] } }
+}
+
+export default function Page({ counts }: { counts: number[] }) {
+  return (
+    <main>
+      {counts.map((count) => (
+        <Counter key={count} initialCount={count} client:load />
+      ))}
+    </main>
+  )
+}
+```
+
+渡せる値は文字列、有限の数値、真偽値、`null`、`undefined`、配列、plain objectと、それらの組み合わせです。propsはブラウザへ公開されるため、秘密の値を含めないでください。
+
+関数、`Date`、`Map`、`Set`、`RegExp`、`BigInt`、class instance、循環参照などは渡せません。未対応の値は`MINISTA_ISLAND_PROPS_UNSUPPORTED`で通知されます。イベントハンドラーはページからpropsとして渡さず、Islandコンポーネント内へ置きます。
+
+Islandにするコンポーネントは別ファイルから静的にimportしてください。HTMLタグで囲む使い方やJSX childrenにも対応します。children内のコンポーネントも、そのIslandのJSXに静的importした名前で記述します。ページ内で定義した関数コンポーネントや、変数から動的に選択するコンポーネントは対象にできません。
+
 ## 動かし始めるタイミングを選ぶ
 
 | ディレクティブ                      | 動作                                             |
@@ -84,6 +112,8 @@ export default function Page() {
 
 通常のIslandはビルド時にもレンダリングされます。`window`や`document`を使う処理は、イベントハンドラーや`useEffect()`の中へ置きます。初回の表示内容も、ビルド時とブラウザ側で一致させます。
 
+`client:only`でもpropsとchildrenの式はサーバーで評価され、同じserializationの制約が適用されます。本体のrenderを省略する指定であり、importしたmoduleのtop-levelで`window`などを使うことは保証しません。
+
 静的HTMLを生成しないUIには`client:only`を使えますが、JavaScriptが動くまで本体は表示されません。読み込み中の表示が必要なら、fallbackを用意します。
 
 ```tsx
@@ -95,6 +125,6 @@ export default function Page() {
 
 ## Islandの範囲を決める
 
-状態を共有するUIは一つの親コンポーネントにまとめ、その親をIslandにします。子コンポーネントへそれぞれ`client:*`を付ける必要はありません。
+状態を共有するUIは一つの親コンポーネントにまとめ、その親をIslandにします。子コンポーネントへそれぞれ`client:*`を付ける必要はありません。同じJSX内でIslandを入れ子にするとエラーになります。
 
 Reactを使わない小さなDOM操作は、[通常のscript](/ja/docs/guide/images-assets)で実装することもできます。オプションの詳細は[pluginIsland](/ja/docs/plugins/island)を参照してください。

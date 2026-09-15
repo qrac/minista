@@ -93,3 +93,18 @@ test("idle fallback runs and detached elements are not hydrated", async () => {
   expect(load).toHaveBeenCalledTimes(1)
   expect(renderIsland).not.toHaveBeenCalled()
 })
+
+test("shared component loading passes each instance's payload", async () => {
+  const elements = [3, 7].map((count) => {
+    const el = element("load")
+    const getAttribute = el.getAttribute
+    return { ...el, getAttribute: (/** @type {string} */ name) => name.endsWith("props") ? `payload:${count}` : getAttribute(name) }
+  })
+  vi.stubGlobal("document", { querySelectorAll: () => elements })
+  const load = vi.fn(async () => ({ default: "Counter", components: ["Counter"] }))
+  const renderIsland = vi.fn()
+  runIslands({ 1: load }, "island", async () => ({ renderIsland }))
+  await flush()
+  expect(load).toHaveBeenCalledTimes(1)
+  expect(renderIsland.mock.calls.map((args) => args.slice(3))).toEqual([["payload:3", ["Counter"]], ["payload:7", ["Counter"]]])
+})

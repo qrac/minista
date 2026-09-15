@@ -48,8 +48,8 @@ describe("island feature", () => {
     )
 
     expect(transformed.snippets).toHaveLength(1)
-    expect(transformed.code).toContain('data-island-client-directive="load"')
-    expect(transformed.code).toContain("data-island-client-snippet=")
+    expect(transformed.code).toContain('directive="load"')
+    expect(transformed.code).toContain("snippet=")
     expect(transformed.map).toBeTruthy()
   })
 
@@ -73,15 +73,12 @@ export default () => (
     expect(() => parseAst(transformed.code, { lang: "tsx" })).not.toThrow()
     expect(transformed.code).toContain("<Count slot=\"fallback\">Loading...</Count>")
     expect(transformed.code).not.toContain("<Wrapper client:only")
-    expect(transformed.code).toContain(
-      'data-island-client-directive-params={"{\\\"timeout\\\":10}"}',
-    )
+    expect(transformed.code).toContain('parameters={{ timeout: 10 }}')
     const snippet = decodeSnippet(transformed.snippets[0])
-    expect(snippet).toContain('import Wrapper from "/project/src/wrapper.jsx"')
-    expect(snippet).toContain(
-      'import { Counter as Count } from "/project/src/counter.jsx"',
-    )
-    expect(snippet).toContain("{/* keep this comment */}")
+    expect(snippet).toContain('import IslandComponent0 from "/project/src/wrapper.jsx"')
+    expect(snippet).toContain('import { Counter as IslandComponent1 } from "/project/src/counter.jsx"')
+    expect(snippet).toContain('export default IslandComponent0')
+    expect(snippet).not.toContain('initial')
     expect(snippet).not.toContain("Loading...")
     expect(snippet).not.toContain("client:only")
   })
@@ -101,10 +98,41 @@ export default ({ show }) => (
     ).transform(source, "/project/src/page.jsx", options)
 
     expect(transformed.snippets).toHaveLength(2)
-    expect(transformed.code.match(/data-island-client-directive=/g)).toHaveLength(2)
+    expect(transformed.code.match(/ directive=/g)).toHaveLength(2)
     expect(transformed.code).not.toContain("client:load")
     expect(transformed.code).not.toContain("client:visible")
     expect(() => parseAst(transformed.code, { lang: "tsx" })).not.toThrow()
+  })
+
+  test("component entries are independent of values, directives and local import aliases", () => {
+    const transformer = new RolldownIslandSourceTransformer(parseAst)
+    const first = transformer.transform('import Counter from "./counter"; export default ({ value }) => <Counter client:load {...value} />', "/project/page.jsx", options)
+    const second = transformer.transform('import Count from "./counter"; export default ({ other }) => <Count client:idle={other.timing} count={other.count} />', "/project/page.jsx", options)
+    expect(first.snippets).toEqual(second.snippets)
+    expect(decodeSnippet(first.snippets[0])).not.toMatch(/value|other|count=|client:/)
+    expect(second.code).toContain("parameters={other.timing}")
+  })
+
+  test("namespace components and keyed variable children keep expressions in the server module", () => {
+    const transformed = new RolldownIslandSourceTransformer(parseAst).transform(
+      'import * as UI from "./ui"; export default ({ items }) => <div client:load>{items.map(item => <UI.Counter key={item.id} {...item} />)}</div>',
+      "/project/page.jsx", options,
+    )
+    expect(transformed.code).toContain("items.map")
+    expect(decodeSnippet(transformed.snippets[0])).toContain("IslandComponent0.Counter")
+    expect(decodeSnippet(transformed.snippets[0])).not.toContain("items")
+    expect(() => parseAst(transformed.code, { lang: "tsx" })).not.toThrow()
+  })
+
+  test.each([
+    ['const Local = () => null; export default () => <Local client:load />', "MINISTA_ISLAND_COMPONENT_UNRESOLVED"],
+    ['import Counter from "./counter"; export default ({ Counter }) => <Counter client:load />', "MINISTA_ISLAND_COMPONENT_UNRESOLVED"],
+    ['import Counter from "./counter"; export default () => <div client:load>{[1].map(Counter => <Counter />)}</div>', "MINISTA_ISLAND_COMPONENT_UNRESOLVED"],
+    ['export default () => <div client:load client:only />', "MINISTA_ISLAND_DIRECTIVE_CONFLICT"],
+    ['export default () => <div client:load><span client:idle /></div>', "MINISTA_ISLAND_NESTED"],
+  ])("rejects ambiguous component and boundary ownership: %s", (source, code) => {
+    expect(() => new RolldownIslandSourceTransformer(parseAst).transform(source, "/project/page.jsx", options))
+      .toThrow(expect.objectContaining({ diagnostic: expect.objectContaining({ code }) }))
   })
 
   test("analyzes snippets, generates entries, bundles, and composes documents", async () => {

@@ -408,9 +408,13 @@ manifest snapshotだけに依存せず、graph invariant、diagnostic code、dis
 
 SvgSourceは最適化後の描画用ルート属性を明示allowlistで保持し、composeは明示propsを優先します。任意のdata属性、イベント属性、ルートIDは取り込みません。dev adapterはresolverへの参照をpageごとに記録し、sourceの追加・変更・削除でcacheを無効化して参照ページだけをreloadします。参照とcacheはserver identityごとに分離し、buildではbundle処理の開始時にcacheをclearします。invalidation前から進行中の読込結果はcacheへ戻しません。
 
+### IslandのSSR props
+
+IslandのAST変換はprops式を元のpage scopeに残し、評価済みelementをSSR boundaryへ渡す。boundaryはpropsをschemaVersion付きpayloadとしてrendererの属性escapingでHTMLへ保存する。client entryは静的importのcomponent参照だけを持ち、propsやdirectiveによってsourceを分割しない。JSX childrenはタグ／Fragment／静的component参照とpropsに分解して復元する。関数など未対応の値と循環参照はprops path付きのstructured diagnosticにする。`client:only`はpropsを保存してfallbackだけをrenderする。詳細と互換性境界は[ADR-0021](decisions/0021-island-serialized-props.md)を参照する。
+
 ### Islandのbrowser読み込み
 
-Islandのdev/build entryは共通runtimeとsnippet loader表を持ちます。`visible`／`media`／`idle`は条件成立時にsnippetとReact rendererをdynamic importし、`load`／`only`はentry評価時に取得を開始します。要素ごとの開始guardと取得Promiseの共有で重複hydrateを防ぎます。取得失敗はSSRを保持し、browserのstructured diagnosticへ接続します。Vite adapterは静的・動的chunkとCSSの到達関係からoutput claimを生成し、遅延出力をHTMLの先行取得へ変換しません。
+Islandのdev/build entryは共通runtimeとsnippet loader表を持ちます。`visible`／`media`／`idle`は条件成立時にsnippetとReact rendererをdynamic importし、`load`／`only`はentry評価時に取得を開始します。要素ごとの開始guardと取得Promiseの共有で重複hydrateを防ぎます。各要素のpayloadをrendererが復元して初期propsとして渡し、React／Preactのelement生成をCoreから分離します。取得失敗はSSRを保持し、browserのstructured diagnosticへ接続します。Vite adapterは静的・動的chunkとCSSの到達関係からoutput claimを生成し、遅延出力をHTMLの先行取得へ変換しません。
 
 ## Svg／SpriteのID（2026-09-09）
 

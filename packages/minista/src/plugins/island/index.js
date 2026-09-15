@@ -58,7 +58,7 @@ const entryGenerator = new NodeIslandEntryGenerator()
 
 /** @param {string} directory */
 async function writeIslandRuntime(directory) {
-  await Promise.all(["runtime.js", "renderer.js"].map((name) =>
+  await Promise.all(["runtime.js", "renderer.js", "props.js"].map((name) =>
     fs.promises.copyFile(new URL(`./${name}`, import.meta.url), path.resolve(directory, name)),
   ))
 }
@@ -341,6 +341,7 @@ export function pluginIsland(uOpts = {}) {
       if (!/\.(tsx|jsx)$/.test(id)) return null
       const environment = this.environment
       const isDev = environment.config.command === "serve"
+      if (isDev && environment.config.consumer === "client") return null
       if (!isDev && !environment.config.build.ssr) return null
 
       let newCode = code
