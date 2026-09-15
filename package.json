@@ -74,7 +74,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:regression": "vitest run --config vitest.regression.config.ts",
     "test:public-types": "node scripts/test-public-types.js",
-    "audit": "node scripts/audit-tree.ts",
+    "audit": "npx npm-audit-trace",
     "up": "npx npm-check-updates --deep --cooldown 1",
     "up:u": "npx npm-check-updates --deep --cooldown 1 -u",
     "rev": "npx npm-replace-versions --deps minista --ignore node_modules",
