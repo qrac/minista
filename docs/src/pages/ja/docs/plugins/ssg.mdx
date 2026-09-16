@@ -193,13 +193,13 @@ export default function Page() {
 }
 ```
 
-この例では`public/css/reset.css`と`public/js/legacy.js`をそのままコピーし、`src/assets`のCSS・JS・画像をViteでbundleしてHTMLを出力先URLへ書き換えます。publicのCSS・JSとentryは同じページで併用できます。devではViteが元の参照を配信し、bundle・URL書換えはbuild時に行います。
+この例では`public/css/reset.css`と`public/js/legacy.js`をそのままコピーし、`src/assets`のCSS・JS・画像をViteでbundleしてHTMLを出力先URLへ書き換えます。publicのCSS・JSとentryは同じページで併用できます。build時はpublicへの参照にもViteの`base`を適用します。devでは既存のViteのHTML変換・配信を使用します。
 
 ページやLayoutのmodule importから参照するCSS・画像も引き続きSSGが出力します。
 
 ### 対象の要素と属性
 
-収集と書換えは同じ対象に限定します。
+project root内のsourceをEntryとしてbundleする場合、収集と書換えは次の対象に限定します。publicファイルは後述の「Public Assets」を参照してください。
 
 | 要素            | 属性     | 値の扱い                        |
 | --------------- | -------- | ------------------------------- |
@@ -213,11 +213,28 @@ export default function Page() {
 
 `meta[content]`、`video[poster]`、`a[href]`、`source[src]`、SVGの`image[href]`／`use[xlink:href]`、任意の要素の同名属性は対象外です。例えば`<meta property="og:image" content="/src/image.png" />`だけでは画像を出力しません。これらにはSSGでimportした画像URLかpublic assetのURLを指定してください。
 
-`/public.svg`として参照する`public/public.svg`はViteがコピーし、EntryはURLを変更しません。root直下に実ファイルがない参照はそのまま残し、欠落診断もしません。同じURLに対応するファイルをproject rootとpublicの両方へ置くと、Entryはroot側をbundleするため、この配置は避けてください。public assetのURLへのbase付与も利用者側で行います。
+`/public.svg`として参照する`public/public.svg`はViteがコピーし、SSGが参照URLへbaseを適用します。rootにもpublicにも実ファイルがない参照はそのまま残し、欠落診断もしません。同じURLに対応するファイルをproject rootとpublicの両方へ置くと、Entryはroot側をbundleするため、この配置は避けてください。
 
 `/src/app.ts?v=1#start`は`src/app.ts`をbundleし、出力URLに`?v=1#start`を保持します。queryはViteの`?raw`／`?url`などのmodule変換指定としては渡しません。出力URLはViteの`base`に従い、`/site/`、CDNの絶対URL、`./`や空文字によるページ相対URLに対応します。入力の`/src/…`にはbaseを付けません。
 
 entryがimportするCSSは、そのentryを参照するページにだけ挿入します。同じURLのstylesheetが既にある場合や、複数entryが同じCSSを使う場合は重複挿入しません。query／fragmentが異なるstylesheet URLは別扱いです。
+
+## Public Assets
+
+`public/logo.svg`はJSXやMDXで`/logo.svg`と指定します。build時に`pluginSsg()`が実在するpublicファイルを判定し、参照URLへViteの`base`を自動適用します。追加optionは不要です。`publicDir`の変更と`publicDir: false`にも対応します。
+
+| `base` | `index.html` | `demos/index.html` |
+| --- | --- | --- |
+| `/` | `/logo.svg` | `/logo.svg` |
+| `/test/` | `/test/logo.svg` | `/test/logo.svg` |
+| `./`または空文字 | `logo.svg` | `../logo.svg` |
+| `https://cdn.example.com/` | `https://cdn.example.com/logo.svg` | `https://cdn.example.com/logo.svg` |
+
+画像の`src`／`srcset`、linkの`href`／`imagesrcset`、scriptの`src`、動画・音声・trackの`src`、動画の`poster`、SVGの`image`／`use`の`href`／`xlink:href`、`object[data]`、`embed[src]`、`input[src]`が対象です。`og:image`／`og:audio`／`og:video`とURL関連の派生property、`twitter:image`、Microsoftのtile画像・configのmetaも補正します。
+
+`a[href]`はpublic実ファイルへのリンクだけ補正します。style属性と`<style>`内の通常の`url()`にも対応します。`/logo.svg?v=1#mark`のquery／fragment、srcsetのdescriptorは保持します。外部URL、data URL、fragmentのみ、`./`などの相対参照、通常のページリンク、独自data属性は変更しません。
+
+publicファイル本体は無加工でコピーします。public内のCSS・JS・JSONなどに書かれたURL、inline CSSのescape付きURL・`@import`文字列・image-set文字列、ブラウザ実行時のURLは自動補正しません。Island内部（`client:only`のfallbackを含む）もSSRとクライアントの一致を保つため対象外です。必要なURLはSSRとクライアントへ同じpropsとして渡してください。
 
 ## Head
 

@@ -310,6 +310,14 @@ export function createSsgEntryAdapter(readPages) {
 
   return {
     plugin,
+    /** @param {import("vite").Environment} environment */
+    getSources(environment) {
+      const state = getViteAppEnvironmentNames(environment.getTopLevelConfig())
+        ? entryStates.get(environment) : legacyState
+      return new Set(Object.entries(state.entrySources)
+        .filter(([id]) => Object.hasOwn(state.entries, id))
+        .map(([, source]) => source))
+    },
     /**
      * Legacy config hooks cannot use late preparation. SSG calls this explicitly
      * after rendering, rather than relying on the order of separate config hooks.

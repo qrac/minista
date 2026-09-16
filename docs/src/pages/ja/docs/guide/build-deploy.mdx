@@ -80,7 +80,7 @@ export default defineConfig({
 })
 ```
 
-Viteで処理されるアセットのURLには`base`が反映されます。ページ内のリンクやpublicファイルへの手書きURLには、自分で公開パスを付けます。
+Viteで処理されるアセットと、SSGのHTML内にあるpublic実ファイルへの参照URLには`base`が反映されます。public参照の[対象属性と制限](/ja/docs/plugins/ssg#public-assets)も確認してください。通常のページへのリンクには、自分で公開パスを付けます。
 
 ```tsx
 <a href={`${import.meta.env.BASE_URL}about`}>私たちについて</a>

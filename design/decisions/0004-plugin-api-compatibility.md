@@ -80,7 +80,7 @@ SVGOの`prefixIds`でURL・href・CSS ID selectorを変換し、ARIA IDREFも追
 
 P10では収集と書換えを同じelement／attribute表とURL range parserに揃える。対象は`link[href]`、`script[src]`、`img[src]`、`img[srcset]`、`source[srcset]`、`use[href]`。`link`のrelとscriptのtypeによる追加制限は設けない。無条件に`content`／`poster`や任意の要素の同名属性を書き換える挙動は廃止する。対象外属性に対する新しいerrorは追加せず、そのまま保持する。対象外属性も同時に変換されることへ依存した利用者は、module importのURLまたはpublic assetへ移行する。
 
-単一URLとsrcset候補を区別し、単一URLのカンマ、data URL、query／fragment、descriptorを保持する。`//`を外部URLとして除外する。query／fragmentはsource解決前に切り離し、確定URLへ戻す。queryをVite module変換指定として扱うAPIは追加しない。project root内に実在する参照だけをadapterがclient inputへ登録し、publicのみの参照と欠落参照は従来どおり未変更・診断なしとする。publicとrootの同名pathはrootの実ファイルが優先される。
+単一URLとsrcset候補を区別し、単一URLのカンマ、data URL、query／fragment、descriptorを保持する。`//`を外部URLとして除外する。query／fragmentはsource解決前に切り離し、確定URLへ戻す。queryをVite module変換指定として扱うAPIは追加しない。project root内に実在する参照だけをadapterがclient inputへ登録し、欠落参照は従来どおり未変更・診断なしとする。publicとrootの同名pathはrootの実ファイルが優先される。publicのみの参照はEntryではbundleせず、2026-09-16以降は[ADR-0022](0022-ssg-public-asset-base.md)のSSG処理でbaseを補正する。
 
 元の属性値のrangeだけを書き換え、生成URLを別sourceとして再解釈しない。imported CSSは参照が解決したページにだけ挿入し、書換え後の既存stylesheetと生成CSSをURLで重複排除する。query／fragment違いは同一視しない。claimのconsumerは解析済み参照から求める既存契約を維持する。CSSの全ページ注入はclaimと一致しないため採用しない。
 

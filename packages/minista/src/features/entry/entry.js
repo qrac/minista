@@ -1,6 +1,7 @@
 // @ts-check
 
 import { createNodeId, toProjectPath } from "../../core/graph/index.js"
+import { htmlUrlRanges } from "../../core/document/url-ranges.js"
 
 /** @typedef {import("../../core/document/index.js").HtmlDocument} HtmlDocument */
 /** @typedef {import("../../core/graph/index.js").PageId} PageId */
@@ -48,29 +49,7 @@ const targets = [
  * @param {string} attribute
  */
 function referenceRanges(value, attribute) {
-  const ranges = []
-  if (attribute !== "srcset") {
-    const start = value.search(/\S/)
-    if (start >= 0) ranges.push({ start, end: value.trimEnd().length })
-  } else {
-    let cursor = 0
-    while (cursor < value.length) {
-      while (/[\t\n\f\r ,]/.test(value[cursor] ?? "") && cursor < value.length) cursor++
-      const start = cursor
-      while (cursor < value.length && !/[\t\n\f\r ]/.test(value[cursor])) cursor++
-      let end = cursor
-      while (value[end - 1] === ",") end--
-      if (end > start) ranges.push({ start, end })
-      if (end < cursor) continue
-      let parentheses = 0
-      while (cursor < value.length) {
-        const character = value[cursor++]
-        if (character === "(") parentheses++
-        if (character === ")") parentheses--
-        if (character === "," && parentheses === 0) break
-      }
-    }
-  }
+  const ranges = htmlUrlRanges(value, attribute === "srcset")
   return ranges.flatMap(({ start, end }) => {
     const url = value.slice(start, end)
     const source = url.split(/[?#]/)[0]

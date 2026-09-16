@@ -21,7 +21,7 @@ EntryはSSGのRenderedPageを前提にclient inputを収集し、Vite出力へHT
 - bundle phaseは参照Artifactを再利用するときにGraph上の参照nodeも復元し、bundle planの依存edgeを維持する
 - client input、参照Artifact、出力claimをenvironment単位に分離し、prepare時に再作成する。ownerは`feature:entry`を維持する
 
-HTML参照の対象要素・属性、base、query／fragment、ページ別imported CSS、publicのみの参照を未変更にする契約はADR-0004のP10を維持する。project rootとpublicの同名pathは従来どおりrootが優先される。通常のbuild回数、Vite／React／Node.js対応range、採用API、fallback条件は変更しない。
+HTML参照の対象要素・属性、base、query／fragment、ページ別imported CSSはADR-0004のP10を維持する。project rootとpublicの同名pathは従来どおりrootが優先される。publicのみの参照はEntryではbundleせず、2026-09-16以降は[ADR-0022](0022-ssg-public-asset-base.md)のSSG処理でbaseを補正する。通常のbuild回数、Vite／React／Node.js対応range、採用API、fallback条件は変更しない。
 
 ## Consequences
 

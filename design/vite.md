@@ -259,3 +259,9 @@ Rolldownの[OutputOptions](https://rolldown.rs/reference/Interface.OutputOptions
 ## IslandのSSR props（2026-09-15）
 
 [ADR-0021](decisions/0021-island-serialized-props.md)に従い、server environmentのsource transformでSSR boundaryを追加する。browserのcomponent moduleにはserver helperを追加しない。component entryとSSR payloadを分離するが、既存のArtifact／external JSON handoff、late client input、dynamic importとHMR経路は維持する。Vite APIの新規採用とfallbackの追加はない。
+
+## SSGのpublicアセットbase（2026-09-16）
+
+clientの`buildStart`で解決済み`publicDir`のfile一覧を収集し、生成HTMLのemit前にbaseを補正する。通常app／legacy／外部CLIで同じ処理を使用する。Entry登録済みsourceを優先し、publicの出力claimやコピー処理は追加しない。devは既存の`server.transformIndexHtml()`を維持する。新しいVite API、対応range、fallbackは追加しない。[ADR-0022](decisions/0022-ssg-public-asset-base.md)を参照。
+
+公式仕様の確認: [Vite public directory](https://vite.dev/guide/assets#the-public-directory)、[Public Base Path](https://vite.dev/guide/build#public-base-path)（2026-09-16）。public本体の無加工コピーとbaseの意味を維持し、生成HTMLの処理はMinistaが所有する。

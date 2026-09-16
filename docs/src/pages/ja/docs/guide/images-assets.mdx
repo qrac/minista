@@ -39,7 +39,7 @@ public/
 <a href="/downloads/brochure.pdf">パンフレットをダウンロード</a>
 ```
 
-ファイル名を保持したい画像や、ダウンロード用PDFなどに使います。サブディレクトリへの公開では、手書きURLにも公開先のパスを反映してください。
+ファイル名を保持したい画像や、ダウンロード用PDFなどに使います。`pluginSsg()`はbuild時にpublic実ファイルへの参照へViteの`base`を自動適用します。例えば`base: "/test/"`なら上のリンクは`/test/downloads/brochure.pdf`になり、`base: "./"`なら出力ページからの相対URLになります。[対象の属性と制限](/ja/docs/plugins/ssg#public-assets)を確認してください。
 
 ## HTML属性でソースを参照する
 

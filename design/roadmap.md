@@ -14,6 +14,10 @@ v5のStage 0〜8は完了しました。この文書は各Stageの完了状態�
 - manifest schemaをinternal typeより小さく保ち、秘密情報とarbitrary propsを含めない
 - 通常の開発、CLI、testに事前buildを要求しない
 
+## publicアセットURLの追加検討
+
+[ADR-0022](decisions/0022-ssg-public-asset-base.md)ではSSG HTMLのpublic参照を補正する。Island／ブラウザ実行時のURL共有、publicファイル本体の再compile、inline CSSのescape／`@import`文字列／image-set文字列は対象外。必要性を確認してから別のcontractとして検討する。
+
 ## Stage 0: baselineを固定する
 
 進捗: 完了。

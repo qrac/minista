@@ -48,6 +48,16 @@ function directiveAttribute(options) {
   return `data-${prefix}client-directive`
 }
 
+/**
+ * Expose the client-owned subtree through the owning feature, so document
+ * composers do not need to interpret Island's configurable HTML markers.
+ * @param {HtmlDocument} document
+ * @param {IslandFeatureOptions} options
+ */
+export function selectIslandContent(document, options) {
+  return document.select(`[${markerAttribute(options)}] *`)
+}
+
 /** @param {string} value */
 function stableKey(value) {
   let hash = 2166136261

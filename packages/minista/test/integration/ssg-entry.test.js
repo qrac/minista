@@ -49,13 +49,13 @@ afterEach(async () => {
 
 test.each(["app", "legacy", "external"])("SSG alone bundles entries alongside public CSS/JS (%s)", async (mode) => {
   const root = await fixture(mode === "legacy")
-  await runMinista(["build", root, "--logLevel", "silent", ...(mode === "external" ? ["--minify", "false"] : [])])
+  await runMinista(["build", root, "--base", "/test/", "--logLevel", "silent", ...(mode === "external" ? ["--minify", "false"] : [])])
   const html = await read(root, "dist/index.html")
-  expect(html.match(/href="\/css\/reset.css"/g)).toHaveLength(1)
-  expect(html).toContain('src="/js/legacy.js"')
-  expect(html).toContain('href="/assets/style.css"')
-  expect(html).toContain('href="/assets/client.css"')
-  expect(html).toContain('src="/assets/client.js?v=1#start"')
+  expect(html.match(/href="\/test\/css\/reset.css"/g)).toHaveLength(1)
+  expect(html).toContain('src="/test/js/legacy.js"')
+  expect(html).toContain('href="/test/assets/style.css"')
+  expect(html).toContain('href="/test/assets/client.css"')
+  expect(html).toContain('src="/test/assets/client.js?v=1#start"')
   expect(await read(root, "dist/css/reset.css")).toBe(await read(root, "public/css/reset.css"))
   expect(await read(root, "dist/js/legacy.js")).toBe(await read(root, "public/js/legacy.js"))
   expect(await read(root, "dist/assets/client.js")).toContain("entry-client")
@@ -63,6 +63,34 @@ test.each(["app", "legacy", "external"])("SSG alone bundles entries alongside pu
   const outputs = manifest.artifacts.filter((/** @type {{owner: string}} */ a) => a.owner === "feature:entry")
   expect(outputs.map((/** @type {{output?: {fileName: string}}} */ a) => a.output?.fileName)).toEqual(expect.arrayContaining(["assets/client.js", "assets/style.css", "assets/client.css"]))
   expect(outputs.some((/** @type {{source: string}} */ a) => /reset|legacy/.test(a.source))).toBe(false)
+}, 60_000)
+
+test("SSG resolves a custom public directory relative to each output page", async () => {
+  const root = await fixture()
+  await fs.rename(path.join(root, "public"), path.join(root, "static-files"))
+  await fs.writeFile(path.join(root, "static-files/logo.svg"), '<svg xmlns="http://www.w3.org/2000/svg"/>')
+  await fs.writeFile(path.join(root, "static-files/app.js"), 'console.log("public-app")')
+  await fs.writeFile(path.join(root, "app.js"), 'console.log("source-app")')
+  const source = page.replace("<h1>SSG entries</h1>", `<h1>SSG entries</h1>
+    <img src="/logo.svg?v=1#mark" /><a href="/logo.svg">Download</a>
+    <script type="module" src="/app.js" />
+    <div style={{backgroundImage:'url(/logo.svg)'}} />`)
+  await fs.writeFile(path.join(root, "src/pages/index.jsx"), source)
+  await fs.mkdir(path.join(root, "src/pages/demos"))
+  await fs.writeFile(path.join(root, "src/pages/demos/index.jsx"), source)
+  await new ViteAppBuilderAdapter().build({
+    root, configFile: false, plugins: [pluginSsg()], logLevel: "silent", base: "", publicDir: "static-files",
+  })
+  for (const [file, prefix] of [["index.html", ""], ["demos/index.html", "../"]]) {
+    const html = await read(root, `dist/${file}`)
+    expect(html).toContain(`src="${prefix}logo.svg?v=1#mark"`)
+    expect(html).toContain(`href="${prefix}logo.svg"`)
+    expect(html).toContain(`href="${prefix}css/reset.css"`)
+    expect(html).toContain(`src="${prefix}js/legacy.js"`)
+    expect(html).toContain(`background-image:url(${prefix}logo.svg)`)
+    expect(html).toMatch(new RegExp(`src="${prefix.replaceAll(".", "\\.")}assets/app-[^\"]+\\.js"`))
+  }
+  expect(await read(root, "dist/app.js")).toContain("public-app")
 }, 60_000)
 
 test("SSG analyzes entries once and isolates reused plugins between builds and roots", async () => {
@@ -93,17 +121,20 @@ test("SSG analyzes entries once and isolates reused plugins between builds and r
 test("SSG alone serves source entries and public CSS/JS in dev", async () => {
   const root = await fixture()
   const running = await new ViteDevServerAdapter().start({
-    root, configFile: path.join(root, "vite.config.js"), logLevel: "silent",
+    root, configFile: path.join(root, "vite.config.js"), logLevel: "silent", base: "/test/",
     server: { host: "127.0.0.1", port: 0, strictPort: true },
   }, { printUrls: false, bindShortcuts: false })
   try {
     const address = running.server.httpServer?.address()
     if (!address || typeof address === "string") throw new Error("No dev server address")
-    const origin = `http://127.0.0.1:${address.port}`
-    const response = await fetch(origin, { signal: AbortSignal.timeout(10_000) })
+    const origin = `http://127.0.0.1:${address.port}/test`
+    const response = await fetch(origin + "/", { signal: AbortSignal.timeout(10_000) })
     const html = await response.text()
-    expect(html).toContain('src="/src/client.js?v=1#start"')
-    expect(html).toContain('href="/src/style.css"')
+    expect(html).toContain('src="/test/src/client.js?v=1#start"')
+    expect(html).toContain('href="/test/src/style.css"')
+    expect(html).toContain('href="/test/css/reset.css"')
+    expect(html).toContain('src="/test/js/legacy.js"')
+    expect(html).not.toContain("/test/test/")
     for (const [url, content] of [["/css/reset.css", "margin: 0"], ["/js/legacy.js", "public-legacy"], ["/src/style.css", "entry-style"], ["/src/client.js?v=1", "entry-client"]]) {
       const asset = await fetch(origin + url, { signal: AbortSignal.timeout(10_000) })
       expect(asset.status).toBe(200)

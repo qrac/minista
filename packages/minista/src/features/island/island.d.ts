@@ -66,6 +66,10 @@ export declare function createIslandSnippetsArtifactId(): import("../../core/gra
 export declare function createIslandSourcePlanArtifactId(): import("../../core/graph/index.js").ArtifactId
 export declare function createIslandBundleArtifactId(): import("../../core/graph/index.js").ArtifactId
 export declare function parseIslandSnippets(value: unknown): readonly string[]
+export declare function selectIslandContent(
+  document: HtmlDocument,
+  options: IslandFeatureOptions,
+): readonly import("../../core/document/index.js").HtmlElement[]
 export declare function collectIslandReferences(
   document: HtmlDocument,
   options: IslandFeatureOptions,

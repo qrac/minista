@@ -37,6 +37,7 @@ import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createViteMdxTransformer } from "../../adapters/vite/mdx-transform.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createSsgEntryAdapter } from "../../adapters/vite/ssg-entry.js"
+import { composeViteSsgPublicAssets } from "../../adapters/vite/ssg-public-assets.js"
 import { renderViteSsgPages } from "../../adapters/vite/ssg-render-lifecycle.js"
 import { createNodeId } from "../../core/graph/index.js"
 import { createProjectManifest } from "../../core/manifest/index.js"
@@ -1094,8 +1095,13 @@ export function pluginSsg(uOpts = {}) {
       state.externalClientPlugins = []
       if (!state.ssgPages.length) return
 
+      const pages = await composeViteSsgPublicAssets(
+        state.ssgPages,
+        this.environment.getTopLevelConfig(),
+        entryAdapter.getSources(this.environment),
+      )
       await Promise.all(
-        state.ssgPages.map((ssgPage) => {
+        pages.map((ssgPage) => {
           this.emitFile({
             type: "asset",
             source: ssgPage.html,

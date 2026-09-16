@@ -80,3 +80,4 @@
 - [ADR-0020: Searchの複数indexと解析Artifactの共有](decisions/0020-search-multiple-indexes.md)
 
 - [ADR-0021: IslandのpropsをSSR時にserializationする](decisions/0021-island-serialized-props.md)
+- [ADR-0022: SSGのpublicアセット参照へbaseを適用する](decisions/0022-ssg-public-asset-base.md)

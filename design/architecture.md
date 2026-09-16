@@ -54,6 +54,8 @@ Vite app buildではViteが全environmentのconfigをbuild前に解決するた�
 
 ### Domain operationの集約
 
+SSGはclient preparation後、生成HTMLのemit前にpublicファイルへの参照を補正します。Vite adapterが解決済みpublicDirのcatalogとEntry登録済みsourceを渡し、SSG featureがHTMLのURL属性とinline CSSの通常の`url()`を変換します。URLはViteのbaseと出力HTMLのfileNameから計算し、publicファイル本体はViteがコピーします。Island featureのsubtree queryでclient所有部分を除外し、SSRだけのURL変換を避けます。詳細は[ADR-0022](decisions/0022-ssg-public-asset-base.md)を参照してください。
+
 `feature-lifecycle.js`は対象environmentの全descriptorをCore schedulerで検証し、generateBundle／writeBundleの各境界でdomain operationを一度だけ依存順にdispatchします。Comment→Svg→asset feature→Search→BeautifyのoptionalAfterを宣言し、plugin配列順による検索内容の差を除去しています。各feature内のanalyze／generate／composeはscope付きCore runnerが実行します。全feature共通の単一phase loopではありません。Core runnerはerror diagnosticのあるphaseから先へ進みません。
 
 ### Dev lifecycle
