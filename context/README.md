@@ -1,4 +1,4 @@
-# minista v5 design
+# minista v5 context
 
 contributorとAI coding tool向けの内部設計資料です。作業に関係する文書・節だけを参照してください。通読や固定の読む順番は不要です。
 

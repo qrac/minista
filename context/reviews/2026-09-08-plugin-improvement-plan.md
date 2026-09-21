@@ -172,7 +172,7 @@
 - barrel exportやdescriptorのID参照だけで、別featureの重い実装が読み込まれる経路を除く。ArchiveからBeautifyのIDを取るためにformatterを読み込む経路も対象。
 - module loadのcacheとbuild／serverごとの可変stateを区別する。
 
-完了条件: `minista`のimportのみ、SSGのみ、各featureの初回利用と再利用をfresh processで検証する。未使用libraryの評価が発生せず、初期化失敗も既存のstructured diagnosticへ接続される。cold import／起動／初回処理の測定条件と結果を`design/benchmarks/`へ記録する。
+完了条件: `minista`のimportのみ、SSGのみ、各featureの初回利用と再利用をfresh processで検証する。未使用libraryの評価が発生せず、初期化失敗も既存のstructured diagnosticへ接続される。cold import／起動／初回処理の測定条件と結果を`context/benchmarks/`へ記録する。
 
 完了記録（2026-09-08）:
 
