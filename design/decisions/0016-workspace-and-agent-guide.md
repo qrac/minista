@@ -24,6 +24,10 @@ create-ministaは全template共通処理で同じbootstrapを生成します。�
 
 ガイドはsnapshot参照と現在のsource解析を区別します。`inspect --manifest`は保存済み情報だけをqueryし、通常のcheck／inspect／explainはuser moduleを評価します。manifest不在時の自動buildは行いません。manifestとdiagnosticsの時点が異なることも明示します。
 
+### ガイドの参照条件（2026-09-21）
+
+bootstrapはministaのAPI・routing・render・buildの仕様確認が必要な場合にガイドを案内し、すべての編集前の読込みは要求しません。同梱ガイドは利用アプリ向けであり、本体contributorの検証手順と区別します。検証は変更した挙動に応じて選び、文書だけの変更にCLI checkやbuildを要求しません。コマンド・schema・marker blockの契約は変更しません。
+
 ## Rejected alternatives
 
 - node_modulesの有無や親package探索で保存先を変える: install状態やmonorepoの構造によって別projectと共有されるため。

@@ -318,7 +318,7 @@ App／programmatic Legacyは共通のclient確定処理でmanifestと成功diagn
 
 `minista agents [root]`はministaパッケージ同梱の利用者向け`AGENTS.md`を表示します。`--json`はschemaVersion `"1"`、version、絶対root、ガイドのpath／content、workspaceとsnapshotのpath／existsを返します。config評価やworkspace生成は行いません。`--write`はprojectのAGENTS.md内のminista marker blockだけを追加・更新し、その他の内容を保持します。
 
-create-ministaは4種類のtemplateに共通の短いbootstrapを生成します。既存AGENTS.mdは保持して追加コマンドを案内します。bootstrapは`npx --no-install minista agents`でバージョン固有ガイドを取得します。詳細は[ADR-0016](decisions/0016-workspace-and-agent-guide.md)を参照してください。
+create-ministaは4種類のtemplateに共通の短いbootstrapを生成します。既存AGENTS.mdは保持して追加コマンドを案内します。bootstrapはministaの仕様確認が必要な場合に`npx --no-install minista agents`でバージョン固有ガイドを取得するよう案内します。同梱ガイドのCLI検証は利用アプリ向けで、本体contributorの検証手順とは区別します。詳細は[ADR-0016](decisions/0016-workspace-and-agent-guide.md)を参照してください。
 
 ### Structured diagnostics
 

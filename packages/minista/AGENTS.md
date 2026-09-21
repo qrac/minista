@@ -1,9 +1,10 @@
 # Using minista
 
-This guide describes the installed minista version for application authors.
-Use the project's own instructions and configuration alongside this guide.
+This guide is for applications using the installed minista version; its application
+commands are not contributor checks for minista itself. Consult the relevant section
+when framework behavior is unclear, alongside the project's instructions and configuration.
 
-## Inspect before editing
+## Inspect when needed
 
 Run commands from the application root, or pass its path as `[root]`.
 Use the installed CLI (for example `npx --no-install minista ...`).
@@ -71,7 +72,8 @@ node_modules. Do not edit generated files or use private temporary modules as AP
 Old root-level snapshots are not read when the new location applies; regenerate
 with check/build after upgrading. No automatic deletion of old directories occurs.
 
-After changes, run the project's relevant tests and `minista check --json`.
-Run `minista build` for changes affecting rendered output, assets, or build behavior,
-and inspect affected pages in dev when changing browser behavior.
+Choose verification for the changed behavior: relevant tests or `minista check --json`
+for routes/page data, `minista build` for generated output/assets/build behavior, and
+affected pages in dev for browser behavior. Documentation-only edits need no CLI check
+or build. Once relevant checks pass, expand them only for unresolved concerns or new changes.
 The CLI and package use JavaScript source directly; minista itself needs no prior build.
