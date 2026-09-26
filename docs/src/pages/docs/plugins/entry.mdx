@@ -39,6 +39,16 @@ export default function () {
 }
 ```
 
+```js
+// ❌ Unsupported paths.
+<link rel="stylesheet" href="src/assets/style.css" /> // Relative path
+<link rel="stylesheet" href="../src/assets/style.css" /> // Relative path
+
+// ❌ Imports are not supported
+import "/src/assets/style.css" // Used for pluginBundle
+import "/src/assets/script.ts" // Removed from HTML
+```
+
 ## Options
 
 ※オプションはありません
