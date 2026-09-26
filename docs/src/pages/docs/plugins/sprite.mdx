@@ -16,10 +16,10 @@ contents list
 ## How To Use
 
 ```js title="./vite.config.js"
-import { pluginSprite } from "minista"
+import { pluginSsg, pluginSprite } from "minista"
 
 export default {
-  plugins: [pluginSprite()],
+  plugins: [pluginSsg(), pluginSprite()],
 }
 ```
 

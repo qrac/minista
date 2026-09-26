@@ -14,10 +14,10 @@ contents list
 ## How To Use
 
 ```js title="./vite.config.js"
-import { pluginBeautify } from "minista"
+import { pluginSsg, pluginBeautify } from "minista"
 
 export default {
-  plugins: [pluginBeautify()],
+  plugins: [pluginSsg(), pluginBeautify()],
 }
 ```
 

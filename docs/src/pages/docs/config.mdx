@@ -27,6 +27,8 @@ contents list
 
 ministaはv4以降、すべての機能をViteプラグイン化しています。プロジェクトに必要なプラグインを選び、コンフィグの `plugins` に追加してください。
 
+`pluginSsg()` は静的ページ生成の基盤です。他のministaプラグインを使う場合も、`pluginSsg()` を先に登録してください。
+
 例えば、基本のSSGに加えてMDXやアセットのエントリー機能を追加する場合は以下のように記述を増やします。プラグインの使い方は各ページを参照ください。
 
 ```ts title="./vite.config.ts"
@@ -97,9 +99,9 @@ React 19はHTML内の[画像パスを読み取って自動的にPreloadタグを
 そこでministaの `pluginBeautify` を使います。デフォルトの状態でHTMLに出力する画像用のPreloadタグを削除します。
 
 ```ts title="./vite.config.ts"
-import { pluginBeautify } from "minista"
+import { pluginSsg, pluginBeautify } from "minista"
 
-export default { plugins: [pluginBeautify()] }
+export default { plugins: [pluginSsg(), pluginBeautify()] }
 ```
 
 ### Remove hash

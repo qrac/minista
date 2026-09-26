@@ -171,10 +171,10 @@ export default { assets: { images: { remoteName: "remote" } } }
 ```
 
 ```ts title="After"
-import { pluginImage } from "minista"
+import { pluginSsg, pluginImage } from "minista"
 
 export default {
-  plugins: [pluginImage({ optimize: { remoteName: "remote-[index]" } })],
+  plugins: [pluginSsg(), pluginImage({ optimize: { remoteName: "remote-[index]" } })],
 }
 ```
 
@@ -187,10 +187,11 @@ export default { assets: { images: { optimize: { layout: "constrained" } } } }
 ```
 
 ```ts title="After"
-import { pluginImage } from "minista"
+import { pluginSsg, pluginImage } from "minista"
 
 export default {
   plugins: [
+    pluginSsg(),
     pluginImage({
       optimize: { outName: "[name]-[width]x[height]", layout: "constrained" },
     }),
@@ -211,9 +212,9 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginSvg } from "minista"
+import { pluginSsg, pluginSvg } from "minista"
 
-export default { plugins: [pluginSvg({ config: { plugins: [] } })] }
+export default { plugins: [pluginSsg(), pluginSvg({ config: { plugins: [] } })] }
 ```
 
 ### assets.icons
@@ -259,10 +260,11 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginSprite } from "minista"
+import { pluginSsg, pluginSprite } from "minista"
 
 export default {
   plugins: [
+    pluginSsg(),
     pluginSprite({
       config: {
         plugins: [
@@ -296,9 +298,9 @@ export default { assets: { bundle: { outName: "bundle" } } }
 ```
 
 ```ts title="After"
-import { pluginBundle } from "minista"
+import { pluginSsg, pluginBundle } from "minista"
 
-export default { plugins: [pluginBundle({ outName: "bundle" })] }
+export default { plugins: [pluginSsg(), pluginBundle({ outName: "bundle" })] }
 ```
 
 ### assets.partial
@@ -362,9 +364,9 @@ export default { assets: { partial: { outName: "hydrate" } } }
 ```
 
 ```ts title="After"
-import { pluginIsland } from "minista"
+import { pluginSsg, pluginIsland } from "minista"
 
-export default { plugins: [pluginIsland({ outName: "hydrate-[index]" })] }
+export default { plugins: [pluginSsg(), pluginIsland({ outName: "hydrate-[index]" })] }
 ```
 
 #### rootAttrSuffix, rootValuePrefix
@@ -380,10 +382,10 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginIsland } from "minista"
+import { pluginSsg, pluginIsland } from "minista"
 
 export default {
-  plugins: [pluginIsland({ rootAttrName: "partial-hydration" })],
+  plugins: [pluginSsg(), pluginIsland({ rootAttrName: "partial-hydration" })],
 }
 ```
 
@@ -416,10 +418,11 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginIsland } from "minista"
+import { pluginSsg, pluginIsland } from "minista"
 
 export default {
   plugins: [
+    pluginSsg(),
     pluginIsland({ rootDOMElement: "div", rootStyle: { display: "contents" } }),
   ],
 }
@@ -469,11 +472,11 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginMdx } from "minista"
+import { pluginSsg, pluginMdx } from "minista"
 import remarkGfm from "remark-gfm"
 
 export default {
-  plugins: [pluginMdx({ remarkPlugins: [[remarkGfm, {}]] })],
+  plugins: [pluginSsg(), pluginMdx({ remarkPlugins: [[remarkGfm, {}]] })],
 }
 ```
 
@@ -491,11 +494,11 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginMdx } from "minista"
+import { pluginSsg, pluginMdx } from "minista"
 import rehypeHighlight from "rehype-highlight"
 
 export default {
-  plugins: [pluginMdx({ rehypePlugins: [[rehypeHighlight, {}]] })],
+  plugins: [pluginSsg(), pluginMdx({ rehypePlugins: [[rehypeHighlight, {}]] })],
 }
 ```
 
@@ -515,10 +518,10 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginMdx } from "minista"
+import { pluginSsg, pluginMdx } from "minista"
 
 export default {
-  plugins: [pluginMdx({ remarkPlugins: [], rehypePlugins: [] })],
+  plugins: [pluginSsg(), pluginMdx({ remarkPlugins: [], rehypePlugins: [] })],
 }
 ```
 
@@ -541,11 +544,12 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginIsland, pluginSearch } from "minista"
+import { pluginSsg, pluginIsland, pluginSearch } from "minista"
 import react from "@vitejs/plugin-react"
 
 export default {
   plugins: [
+    pluginSsg(),
     pluginIsland(),
     pluginSearch({
       outName: "search",
@@ -591,10 +595,11 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginSearch } from "minista"
+import { pluginSsg, pluginSearch } from "minista"
 
 export default {
   plugins: [
+    pluginSsg(),
     pluginSearch({
       hit: {
         minLength: 3,
@@ -624,10 +629,11 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginArchive } from "minista"
+import { pluginSsg, pluginArchive } from "minista"
 
 export default {
   plugins: [
+    pluginSsg(),
     pluginArchive({
       archives: [{ srcDir: "dist", outName: "dist" }],
     }),
@@ -652,10 +658,11 @@ export default {
 ```
 
 ```ts title="After"
-import { pluginBeautify } from "minista"
+import { pluginSsg, pluginBeautify } from "minista"
 
 export default {
   plugins: [
+    pluginSsg(),
     pluginBeautify({
       src: ["**/*.{html,css,js}"],
       htmlOptions: {},
