@@ -1,9 +1,5 @@
 import type { Metadata, LayoutProps } from "minista/types"
 
-import pkg from "minista/package.json"
-import pjt from "../../project.json"
-import themeSetup from "../assets/js/theme/setup.js?raw"
-
 import CommonHeader from "../components/common/header"
 import CommonSidebar from "../components/common/sidebar"
 import CommonDocs from "../components/common/docs"
@@ -14,6 +10,11 @@ import ElementSpacer from "../components/element/spacer"
 import ElementPager from "../components/element/pager"
 import { formatDesc } from "../components/utils/text"
 import { formatPager } from "../components/utils/pager"
+
+import pkg from "minista/package.json"
+import pjt from "../../project.json"
+import themeSetup from "../assets/js/theme/setup.js?raw"
+import "./style.css"
 
 export const metadata: Metadata = {
   locale: "en",
@@ -76,7 +77,6 @@ export default function (props: LayoutProps) {
         {noindex && <meta name="robots" content="noindex" />}
         <link rel="apple-touch-icon" href={appleTouchIcon} />
         <link rel="icon" href={favicon} />
-        <link rel="stylesheet" href="/src/assets/styles.css" />
         <script type="module" src="/src/assets/scripts.ts" />
       </head>
       <body className="layout">
