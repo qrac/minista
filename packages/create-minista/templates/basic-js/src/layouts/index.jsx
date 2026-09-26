@@ -1,8 +1,8 @@
 import Header from "../components/header"
 import Footer from "../components/footer"
-import "./style.css"
 
 import pjt from "../../project.json"
+import "./style.css"
 
 /** @param {import("minista/types").LayoutProps} props */
 export default function (props) {

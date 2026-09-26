@@ -2,9 +2,9 @@ import type { LayoutProps } from "minista/types"
 
 import Header from "../components/header"
 import Footer from "../components/footer"
-import "./style.css"
 
 import pjt from "../../project.json"
+import "./style.css"
 
 export default function (props: LayoutProps) {
   const { siteName, navItems } = pjt
