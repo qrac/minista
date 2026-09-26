@@ -15,10 +15,10 @@ contents list
 ## How To Use
 
 ```js title="./minista.config.js"
-import { pluginArchive } from "minista"
+import { pluginSsg, pluginArchive } from "minista"
 
 export default {
-  plugins: [pluginArchive()],
+  plugins: [pluginSsg(), pluginArchive()],
 }
 ```
 
@@ -47,9 +47,11 @@ pluginArchive({
 archive内のパスはproject root相対のディレクトリ名を含みます。例えば`build.outDir: "output"`なら`output/index.html`になります。project外の入力では入力ディレクトリのbasenameから始まります。
 
 ```js
+import { pluginSsg, pluginArchive } from "minista"
+
 export default {
   build: { outDir: "output" },
-  plugins: [pluginArchive({ archives: [{ outName: "site" }] })],
+  plugins: [pluginSsg(), pluginArchive({ archives: [{ outName: "site" }] })],
 }
 ```
 

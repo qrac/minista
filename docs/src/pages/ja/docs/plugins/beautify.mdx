@@ -15,7 +15,7 @@ contents list
 ## How To Use
 
 ```js title="./minista.config.js"
-import { pluginBeautify } from "minista"
+import { pluginSsg, pluginBeautify } from "minista"
 
 export default {
   build: {
@@ -27,7 +27,7 @@ export default {
       },
     },
   },
-  plugins: [pluginBeautify()],
+  plugins: [pluginSsg(), pluginBeautify()],
 }
 ```
 
@@ -92,4 +92,4 @@ js-beautifyはsourcemapを生成しないため、整形対象のJS／CSSとsour
 
 ## preload設定の移行
 
-`removeImagePreload`は`pluginSsg`へ移動し、既定値は`true`です。旧Beautify optionは移行期間中のみdeprecatedな型として残し、明示指定には`MINISTA_BEAUTIFY_OPTION_MOVED`を返します。同じ値を`pluginSsg`へ移し、Beautify側の指定を削除してください。詳細は[pluginSsg](/docs/plugins/ssg)を参照してください。
+`removeImagePreload`は`pluginSsg`へ移動し、既定値は`true`です。旧Beautify optionは移行期間中のみdeprecatedな型として残し、明示指定には`MINISTA_BEAUTIFY_OPTION_MOVED`を返します。同じ値を`pluginSsg`へ移し、Beautify側の指定を削除してください。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。

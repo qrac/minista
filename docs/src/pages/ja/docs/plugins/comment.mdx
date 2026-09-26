@@ -15,10 +15,10 @@ contents list
 ## How To Use
 
 ```js title="./minista.config.js"
-import { pluginComment } from "minista"
+import { pluginSsg, pluginComment } from "minista"
 
 export default {
-  plugins: [pluginComment()],
+  plugins: [pluginSsg(), pluginComment()],
 }
 ```
 

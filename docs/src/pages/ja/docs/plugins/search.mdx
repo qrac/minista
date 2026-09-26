@@ -24,11 +24,11 @@ $ npm install --save-dev @vitejs/plugin-react
 ```
 
 ```js title="./minista.config.js"
-import { pluginIsland, pluginSearch } from "minista"
+import { pluginSsg, pluginIsland, pluginSearch } from "minista"
 import react from "@vitejs/plugin-react"
 
 export default {
-  plugins: [pluginIsland(), pluginSearch(), react()],
+  plugins: [pluginSsg(), pluginIsland(), pluginSearch(), react()],
 }
 ```
 
