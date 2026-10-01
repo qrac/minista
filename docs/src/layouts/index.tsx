@@ -14,6 +14,7 @@ import { formatPager } from "../components/utils/pager"
 import pkg from "minista/package.json"
 import pjt from "../../project.json"
 import themeSetup from "../assets/js/theme/setup.js?raw"
+import "../assets/styles.css"
 import "./style.css"
 
 export const metadata: Metadata = {
