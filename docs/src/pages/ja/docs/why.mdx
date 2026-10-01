@@ -6,50 +6,41 @@ title: ministaを選ぶ理由
 
 # ministaを選ぶ理由
 
-ministaは、Reactのコンポーネントで制作し、HTML・CSS・JavaScriptとして公開・納品したいときに役立ちます。制作中の扱いやすさと、完成したファイルの扱いやすさを両立するためのSSGです。
+なぜ？「Next.jsのように書いて、Astroのように出力」したいからです。
 
-## JSXとTypeScriptを制作に活かせる
+ministaは、ReactのJSX・TSXで制作し、通常のHTML・CSS・JavaScriptとして公開・納品したいときに役立ちます。
 
-ヘッダーやカードなどの共通パーツをコンポーネントに分け、propsで内容や見た目を切り替えられます。繰り返しは配列の`map()`、出し分けはJavaScriptの条件式で記述できます。
+## Table of Contents
 
-TSXを使えば、コンポーネントへ渡す値を型で定義し、エディターの補完や型チェックを利用できます。静的なページでも、Reactで身につけた書き方をそのまま活かせます。
+contents list
 
-```tsx title="./src/components/service-card.tsx"
-type Props = {
-  title: string
-  href: string
-}
+## すべてをJSXとTypeScriptで書く
 
-export default function ServiceCard({ title, href }: Props) {
-  return (
-    <article className="service-card">
-      <h2>
-        <a href={href}>{title}</a>
-      </h2>
-    </article>
-  )
-}
-```
+- Vue.jsのエディタサポートに苦しんだ経験はありませんか？
+- Hugoのテンプレート記法に苦しんだ経験は？
+- AstroのページがJSXで書けないことに不満は？
 
-このコンポーネントを静的ページで使うだけなら、ブラウザにReactを読み込む必要はありません。
+ministaは独自の言語を必要としません。JavaScript標準の文法で書くReactの恩恵を受け、シンタックスハイライト・型補完・自動整形までエディタの機能を100%活かせます。
 
-## 成果物を静的ファイルとして扱える
+## 納品しやすい出力
 
-ビルド結果は通常のHTMLとアセットです。静的ホスティングへの公開だけでなく、既存のWebサーバーへの設置や、別の開発チームへのHTML納品にも使えます。
+- Next.jsやGatsby.jsの独自タグが納品の邪魔になった経験は？
+- Astroの出力を案件に合わせきれなかったことは？
+- ViteでSSGできれば良いのにと思ったことは？
 
-HTMLの整形やアーカイブ生成が必要な場合は、[pluginBeautify](/ja/docs/plugins/beautify)や[pluginArchive](/ja/docs/plugins/archive)を追加できます。出力ファイル名やディレクトリもViteの設定で調整できます。
+必要なのはモダンで書きやすくも、真に静的に出力できるフレームワークです。ministaは最初からレガシーなWebサイトの楽に改修したいという目的で作られました。
 
-## 必要なUIだけを動かせる
+更に、minifyされていないフォーマッターを通した綺麗なHTML・CSS・JavaScriptを出力する機能と、ファイルをzipアーカイブとしてまとめる機能を内蔵しています。
 
-本文やレイアウトは静的HTMLにし、カウンターや検索など、操作が必要な部分だけをIslandにできます。ページ全体へクライアントサイドReactを適用する必要はありません。
+## サーバーに依存しない出力
 
-Reactが不要な処理には、通常のJavaScriptやTypeScriptのscriptを追加することもできます。詳しくは[Islands](/ja/docs/guide/islands)と[画像とアセット](/ja/docs/guide/images-assets)を参照してください。
+- Next.jsやAstroの機能が特定のサーバー依存で落胆した経験は？
+- 全文検索でAlgoliaの利用をためらったことは？
+- 外部連携サービスの管理コストをゼロにしたいと思ったことは？
 
-## 小さな構成から始められる
+ministaが出力したWebサイトは昔からあるレンタルサーバーにFTPで放り込むだけでも使えます。
 
-ページ生成、Markdown・MDX、CSSや画像の出力は`pluginSsg()`だけで利用できます。画像最適化や検索などは、必要になった時点で対応するプラグインを追加します。
-
-Viteを基盤としているため、設定やアセット処理にもViteの仕組みを利用できます。
+HTMLの解析からJSONを生成しクライアントサイドのみで全文検索を実装する機能も備えています。
 
 ## 向いているプロジェクト
 

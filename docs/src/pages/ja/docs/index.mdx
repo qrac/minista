@@ -8,9 +8,11 @@ title: ministaとは？
 
 minista（ミニスタ）は、ReactのJSX・TSXとViteを使って、100%静的なHTMLを生成するスタティックサイトジェネレーター（SSG）です。
 
-名前の「minista」は、mini static site generatorの略。
+※名前の「minista」は、mini static site generatorの略。
 
-Reactのコンポーネントベースな開発体験を活かしながら、通常のHTML・CSS・JavaScriptとして扱える静的なWebサイトを作ることを目的としています。
+Reactのコンポーネントベースな開発体験を活かしながら、静的なWebサイト（通常のHTML・CSS・JavaScript）を出力することを目的としています。
+
+端的に言うと「Next.jsのように書いて、Astroのように出力」するSSGです。
 
 ## Table of Contents
 
@@ -54,7 +56,7 @@ export default function () {
 
 ministaはViteを開発環境とビルド基盤として利用しています。
 
-Viteの高速な開発体験をそのまま利用し、必要に応じてプラグインを追加できます。
+Viteの高速な開発体験をそのまま利用し、必要な機能をViteプラグインとして追加して使います。
 
 ```js title="vite.config.js"
 import { pluginSsg } from "minista"
@@ -73,12 +75,10 @@ ministaの出力するHTMLは、基本的に100%静的です。
 - LP
 - コーポレートサイト
 - プロダクト・サービスサイト
+- ブログ・メディア
 - ドキュメントサイト
-- ブログやメディア
 
 特定のサーバーランタイムに依存せず、さまざまな静的ホスティング環境やCDNへデプロイできます。
-
-要するに、Next.js系ではなくAstro系です。
 
 ## 必要なときだけインタラクティブ ||interactive-when-needed||
 
