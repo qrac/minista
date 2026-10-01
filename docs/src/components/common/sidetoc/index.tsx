@@ -1,5 +1,6 @@
 import type { Props } from "./props"
 import { initialProps } from "./props"
+import "./style.css"
 
 export default function CommonSidetoc(props: Partial<Props>) {
   const {} = { ...initialProps, ...props }

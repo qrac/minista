@@ -3,6 +3,7 @@ import { Search } from "minista/assets"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
+import "./style.css"
 
 export default function ElementSearch(props: Partial<Props>) {
   const { locale } = { ...initialProps, ...props }

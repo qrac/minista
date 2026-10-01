@@ -10,6 +10,7 @@ import brandVite from "../../../../assets/images/brand-vite.svg"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
+import "./style.css"
 
 export default function PageHomeHero(props: Partial<Props>) {
   const {} = { ...initialProps, ...props }

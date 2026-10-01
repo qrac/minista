@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
+import "./style.css"
 
 export default function ElementModal(props: Partial<Props>) {
   const { modalId, position, slide, children } = {

@@ -3,6 +3,7 @@ import { cloneElement } from "react"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
+import "./style.css"
 
 export default function ElementPulldown(props: Partial<Props>) {
   const { id, buttonNode, radius, children } = {

@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
+import "./style.css"
 
 export default function ElementSectionTitle(props: Partial<Props>) {
   const { DOMElement, text, color, align, fixPosition, fixTop } = {
