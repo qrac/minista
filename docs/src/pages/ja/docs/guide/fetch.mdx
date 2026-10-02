@@ -1,0 +1,157 @@
+---
+layout: docs
+locale: ja
+title: APIを活用したルーティングと流し込み
+---
+
+# APIを活用したルーティングと流し込み
+
+`getStaticData()`でAPIやCMSのデータを取得し、ページへ渡せます。一覧を一つのページに流し込む方法と、データごとに詳細ページを生成する方法を紹介します。
+
+ここでのデータ取得は開発・ビルド時に行います。公開サイトへのアクセスごとにAPIを呼ぶ機能ではありません。
+
+## Table of Contents
+
+contents list
+
+## APIのレスポンスを用意する ||api-response||
+
+この例では、次の形のJSONを返すAPIを使います。`https://api.example.com/news`は説明用のURLなので、実際のAPIへ置き換えてください。
+
+```json title="APIのレスポンス例"
+[
+  { "slug": "hello", "title": "サイトを公開しました", "body": "最初のお知らせです。" },
+  { "slug": "update", "title": "更新しました", "body": "サービス紹介を追加しました。" }
+]
+```
+
+取得処理を`src/data/news.ts`へまとめます。APIをまだ用意していない場合は、関数の中からこの例と同じ配列を返して試せます。
+
+```ts title="src/data/news.ts"
+export type Article = { slug: string; title: string; body: string }
+
+export async function getArticles(): Promise<Article[]> {
+  const response = await fetch("https://api.example.com/news")
+  if (!response.ok) {
+    throw new Error(`お知らせの取得に失敗しました: ${response.status}`)
+  }
+  const data: unknown = await response.json()
+  if (!Array.isArray(data)) throw new Error("お知らせの形式が正しくありません")
+  return data.map((item) => {
+    if (
+      typeof item !== "object" || item === null ||
+      typeof item.slug !== "string" || !/^[a-z0-9-]+$/.test(item.slug) ||
+      typeof item.title !== "string" || typeof item.body !== "string"
+    ) {
+      throw new Error("お知らせの記事データが正しくありません")
+    }
+    return { slug: item.slug, title: item.title, body: item.body }
+  })
+}
+```
+
+HTTPエラーとデータの形を確認し、取得できなければビルドを失敗させます。APIごとの認証や検証は、この関数内で実装します。
+
+## 一覧ページへデータを渡す ||static-page-data||
+
+`getStaticData()`から`props`を返すと、ページとレイアウトで利用できます。
+
+```tsx title="src/pages/news/index.tsx"
+import type { GetStaticData, PageProps } from "minista/types"
+import { getArticles, type Article } from "../../data/news"
+
+type Props = PageProps & { articles: Article[] }
+
+export const getStaticData: GetStaticData = async () => ({
+  props: { title: "お知らせ", articles: await getArticles() },
+})
+
+export default function News({ title, articles }: Props) {
+  return (
+    <>
+      <h1>{title}</h1>
+      <ul>
+        {articles.map((article) => (
+          <li key={article.slug}>
+            <a href={`/news/${article.slug}`}>{article.title}</a>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+```
+
+ここでは取得した本文をHTMLへ出力します。サイト閲覧時にこのAPIへ接続する必要はありません。
+
+## データごとのページを作る ||dynamic-routes||
+
+ファイル名へ`[slug]`を使い、ページごとの`paths`と`props`を配列で返します。前のガイドで`news/hello.tsx`を作った場合は削除して、同じURLの競合を避けてください。
+
+```tsx title="src/pages/news/[slug].tsx"
+import type { GetStaticData, PageProps } from "minista/types"
+import { getArticles, type Article } from "../../data/news"
+
+type Props = PageProps & { article: Article }
+
+export const getStaticData: GetStaticData = async () => {
+  const articles = await getArticles()
+  return articles.map((article) => ({
+    paths: { slug: article.slug },
+    props: { title: article.title, article },
+  }))
+}
+
+export default function ArticlePage({ article }: Props) {
+  return (
+    <article>
+      <h1>{article.title}</h1>
+      <p>{article.body}</p>
+    </article>
+  )
+}
+```
+
+`paths`のキーは`[slug]`の名前と一致させます。値は文字列です。数値のIDを使う場合は`String(id)`へ変換します。
+
+## 入力と出力を確認する ||data-driven-output||
+
+```text title="プロジェクト構成"
+src/
+├── data/
+│   └── news.ts
+└── pages/
+    └── news/
+        ├── index.tsx
+        └── [slug].tsx
+```
+
+```text title="ビルド結果"
+dist/news/
+├── index.html
+├── hello.html
+└── update.html
+```
+
+`[slug].html`というファイルが出るのではなく、APIから返した各値でファイル名が決まります。APIのデータが変わったら、再ビルドしてHTMLと関連アセットを更新します。
+
+## 認証情報と実行タイミング ||data-fetching-environment||
+
+認証が必要なAPIでは、ビルド環境に設定した環境変数を利用できます。例えば`process.env.CMS_TOKEN`を取得し、リクエストのヘッダーへ渡します。
+
+認証情報はページのprops、HTML、Islandへ渡す値に含めないでください。ブラウザへ公開する`VITE_*`変数にも入れません。必要な環境変数は、ターミナルやCIなどビルドを実行する環境へ設定してください。
+
+`getStaticData()`は開発中のページ表示や`check`・`inspect`でも実行されます。一覧と詳細の取得関数を共通化しても、APIリクエストが自動的に一回へまとまるわけではありません。
+
+## 生成するページを検査する ||validate-generated-pages||
+
+```sh
+npx minista check --json
+npx minista inspect --json
+npm run build
+npm run preview
+```
+
+URLの重複、API取得の失敗、ページの表示を確認します。複数のパラメーターには`[category]/[slug].tsx`のような構成を使えます。公開型は[TypeScript](/ja/docs/reference/typescript)、APIの契約は[pluginSsg](/ja/docs/plugins/ssg#fetch)を参照してください。
+
+次は[ビルドとデプロイ](/ja/docs/guide/build-deploy)で、完成した静的ファイルを公開します。

@@ -10,58 +10,30 @@ title: pluginSprite
 
 - スプライト生成時にSVGOでコードを最適化
 
+導入手順と使用例は[ガイド](/ja/docs/guide/sprite)を参照してください。このページは設定値、コンポーネントのprops、制約をまとめています。
+
 ## Table of Contents
 
 contents list
 
-## How To Use
+## オプション ||options||
 
-```js title="./minista.config.js"
-import { pluginSsg, pluginSprite } from "minista"
-
-export default {
-  plugins: [pluginSsg(), pluginSprite()],
-}
-```
-
-```jsx title="./src/pages/index.jsx"
-import { Sprite } from "minista/assets"
-
-export default function () {
-  return <Sprite src="/src/assets/sprite/square.svg" />
-}
-```
-
-## Options
-
-```js title="Default"
+```js title="既定値"
 pluginSprite({})
 ```
 
-### config
+### config ||config||
 
 - 型: `Config`
 - デフォルト: `undefined`
 
 [svgo](https://www.npmjs.com/package/svgo)のConfigを渡して最適化処理の内容を変更できます。
 
-## Sprite
+## Sprite ||sprite||
 
-ルートパスのSVGファイルを読み込んで `<svg>` タグに展開するコンポーネント。
+SVGファイルをスプライトにまとめ、`svg`と`use`で参照するコンポーネント。
 
 - スプライト生成時にSVGOでコードを最適化
-
-```jsx title="./src/pages/index.jsx"
-import { Sprite } from "minista/assets"
-
-export default function () {
-  return <Sprite src="/src/assets/sprite/square.svg" />
-}
-```
-
-```xml title="Dist"
-<svg><use href="/assets/sprite.svg#square"></use>
-```
 
 ```ts
 export type SpriteProps = {
@@ -73,7 +45,7 @@ export type SpriteProps = {
 } & React.SVGProps<SVGSVGElement>
 ```
 
-### src
+### src ||src||
 
 `src` のファイル名が `symbolId` になり、ディレクトリ名が出力されるSVGスプライトのファイル名になります。
 
@@ -84,40 +56,27 @@ src: "/src/assets/sprite/square.svg"
 
 対象となったディレクトリ内のSVGファイルは1つのSVGスプライトファイルとしてまとめられ、ビルドパイプラインに乗せられます。
 
-SVGスプライトファイル内の `symbol` は `symbolId` 順に並べ替えられ、重複した `symbolId` が存在する場合は後から読み込まれたもので上書きされます。
+SVGスプライトファイル内の`symbol`は`symbolId`順に並べ替えられます。同じ出力内でIDが重複した場合は、`MINISTA_SPRITE_DUPLICATE_SYMBOL`で停止します。
 
-### symbolId
+### symbolId ||symbolid||
 
 スプライト対象ディレクトリ内には既存のSVGスプライトファイルを混ぜることもできます。その場合、SVGスプライトのファイル名は `symbolId` にならないため、既存のSVGスプライトファイル内の `symbol` を使う場合はコンポーネントに `symbolId` を設定します。
 
-```tsx title="./src/pages/index.jsx"
-import { Sprite } from "minista/assets"
+## 診断 ||diagnostics||
 
-export default function () {
-  return (
-    <Sprite
-      src="/src/assets/sprite/common-sprite.svg"
-      symbolId="common-square"
-    />
-  )
-}
-```
+Sprite生成に失敗した場合、ビルドは次の診断コードを出力します。
 
-## Diagnostics
-
-Sprite生成に失敗した場合、buildは次のstable diagnostic codeを出力します。
-
-- `MINISTA_SPRITE_DISCOVERY_FAILED`: SVG sourceの探索失敗
-- `MINISTA_SPRITE_READ_FAILED`: SVG fileの読込失敗
-- `MINISTA_SPRITE_PARSE_FAILED`: SVG／symbol markupの解析失敗
+- `MINISTA_SPRITE_DISCOVERY_FAILED`: SVG 元ファイルの探索失敗
+- `MINISTA_SPRITE_READ_FAILED`: SVG ファイルの読込失敗
+- `MINISTA_SPRITE_PARSE_FAILED`: SVG／シンボル マークアップの解析失敗
 - `MINISTA_SPRITE_OPTIMIZE_FAILED`: SVGOによる最適化失敗
 
-project内のSVGにはproject相対locationが含まれます。
+診断にはSVGのプロジェクト内の相対パスが含まれます。
 
-## SVGの内部ID
+## SVGの内部ID ||svg-internal-ids||
 
-gradient・clipPathなどの内部IDと参照には、衝突を避ける決定的なprefixを付けます。同じSVGの複数配置にも対応します。元の内部IDを外部CSSやJavaScriptから参照しないでください。class名は維持します。
+グラデーション・clipPathなどの内部IDと参照には、衝突を避ける決定的な接頭辞を付けます。同じSVGの複数配置にも対応します。元の内部IDを外部CSSやJavaScriptから参照しないでください。class名は維持します。
 
-ファイル名由来のsymbol IDと、元ファイル内のsymbol IDは維持します。同じ出力内のsymbol IDが重複すると、`MINISTA_SPRITE_DUPLICATE_SYMBOL`で両方のsourceを示して停止します。IDを一意に変更してください。ルートの描画属性と共有defsも保持します。
+ファイル名由来のシンボルIDと、元ファイル内のシンボルIDは維持します。同じ出力内のシンボルIDが重複すると、`MINISTA_SPRITE_DUPLICATE_SYMBOL`で両方の元ファイルを示して停止します。IDを一意に変更してください。ルートの描画属性と共有defsも保持します。
 
-SVGOの独自設定で公開symbolを削除・改名すると`MINISTA_SPRITE_OPTIMIZE_FAILED`になります。`cleanupIds`と`removeHiddenElems`を無効にしてください。
+SVGOの独自設定で公開シンボルを削除・改名すると`MINISTA_SPRITE_OPTIMIZE_FAILED`になります。`cleanupIds`と`removeHiddenElems`を無効にしてください。

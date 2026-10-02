@@ -1,14 +1,18 @@
 ---
 layout: docs
 locale: ja
-title: Islands
+title: Island
 ---
 
-# Islands
+# Island
 
 Islandは、静的ページの一部だけをReactで動かす仕組みです。ページの本文やレイアウトは静的HTMLにし、状態やイベントを持つUIに必要なJavaScriptを追加できます。
 
-## プラグインを追加する
+## Table of Contents
+
+contents list
+
+## プラグインを追加する ||add-island-plugin||
 
 ReactのViteプラグインをインストールします。
 
@@ -16,7 +20,7 @@ ReactのViteプラグインをインストールします。
 npm install --save-dev @vitejs/plugin-react
 ```
 
-```ts title="./vite.config.ts"
+```ts title="vite.config.ts"
 import { defineConfig, pluginSsg, pluginIsland } from "minista"
 import react from "@vitejs/plugin-react"
 
@@ -27,9 +31,9 @@ export default defineConfig({
 
 TypeScriptでは`tsconfig.json`の`types`に`minista/client`を含めてください。テンプレートには設定済みです。
 
-## 操作できるコンポーネントを作る
+## 操作できるコンポーネントを作る ||interactive-component||
 
-```tsx title="./src/components/counter.tsx"
+```tsx title="src/components/counter.tsx"
 import { useState } from "react"
 
 type Props = { initialCount?: number }
@@ -46,7 +50,7 @@ export default function Counter({ initialCount = 0 }: Props) {
 
 ページからimportし、`client:load`を付けます。
 
-```tsx title="./src/pages/index.tsx"
+```tsx title="src/pages/index.tsx"
 import Counter from "../components/counter"
 
 export default function Page() {
@@ -62,11 +66,31 @@ export default function Page() {
 
 初期表示のHTMLに対して、ブラウザでReactを接続して操作可能にすることをハイドレーションと呼びます。`client:*`を付けずに静的コンポーネントとして使うと、`onClick`などのイベント処理はブラウザで動作しません。
 
-## 変数をpropsとして渡す
+## 構成と出力を確認する ||island-output||
+
+```text title="プロジェクト構成"
+src/
+├── components/
+│   └── counter.tsx
+└── pages/
+    └── index.tsx
+```
+
+```text title="ビルド結果の例"
+dist/
+├── index.html
+└── assets/
+    ├── island-1-[hash].js
+    └── ...（ReactやCounterのJavaScriptなど）
+```
+
+JavaScriptの分割結果は設定や依存関係で変わります。`npm run build`と`npm run preview`を実行し、カウントが増えることを確認してください。HTMLを直接開くより、ローカルサーバー経由で動作を確認できます。
+
+## 変数をpropsとして渡す ||island-props||
 
 ページ内の変数や`getStaticData()`で取得した値を渡せます。ビルド時に評価したpropsをHTMLへ保存し、ブラウザで復元してからハイドレーションします。同じコンポーネントを複数配置しても、それぞれの値が保持されます。
 
-```tsx title="./src/pages/index.tsx"
+```tsx title="src/pages/index.tsx"
 import Counter from "../components/counter"
 
 export function getStaticData() {
@@ -75,22 +99,22 @@ export function getStaticData() {
 
 export default function Page({ counts }: { counts: number[] }) {
   return (
-    <main>
+    <>
       {counts.map((count) => (
         <Counter key={count} initialCount={count} client:load />
       ))}
-    </main>
+    </>
   )
 }
 ```
 
-渡せる値は文字列、有限の数値、真偽値、`null`、`undefined`、配列、plain objectと、それらの組み合わせです。propsはブラウザへ公開されるため、秘密の値を含めないでください。
+渡せる値は文字列、有限の数値、真偽値、`null`、`undefined`、配列、通常のオブジェクトと、それらの組み合わせです。propsはブラウザへ公開されるため、秘密の値を含めないでください。
 
-関数、`Date`、`Map`、`Set`、`RegExp`、`BigInt`、class instance、循環参照などは渡せません。未対応の値は`MINISTA_ISLAND_PROPS_UNSUPPORTED`で通知されます。イベントハンドラーはページからpropsとして渡さず、Islandコンポーネント内へ置きます。
+関数、`Date`、`Map`、`Set`、`RegExp`、`BigInt`、クラスのインスタンス、循環参照などは渡せません。未対応の値は`MINISTA_ISLAND_PROPS_UNSUPPORTED`で通知されます。イベントハンドラーはページからpropsとして渡さず、Islandコンポーネント内へ置きます。
 
 Islandにするコンポーネントは別ファイルから静的にimportしてください。HTMLタグで囲む使い方やJSX childrenにも対応します。children内のコンポーネントも、そのIslandのJSXに静的importした名前で記述します。ページ内で定義した関数コンポーネントや、変数から動的に選択するコンポーネントは対象にできません。
 
-## 動かし始めるタイミングを選ぶ
+## 動かし始めるタイミングを選ぶ ||client-directives||
 
 | ディレクティブ                      | 動作                                             |
 | ----------------------------------- | ------------------------------------------------ |
@@ -108,13 +132,13 @@ Islandにするコンポーネントは別ファイルから静的にimportし�
 
 `client:visible`・`client:media`・`client:idle`は条件が成立してから対象のJavaScriptを取得します。条件が成立する前は静的HTMLとして表示され、Reactのイベントは動作しません。
 
-## ブラウザのAPIを使う
+## ブラウザのAPIを使う ||browser-apis||
 
 通常のIslandはビルド時にもレンダリングされます。`window`や`document`を使う処理は、イベントハンドラーや`useEffect()`の中へ置きます。初回の表示内容も、ビルド時とブラウザ側で一致させます。
 
-`client:only`でもpropsとchildrenの式はサーバーで評価され、同じserializationの制約が適用されます。本体のrenderを省略する指定であり、importしたmoduleのtop-levelで`window`などを使うことは保証しません。
+`client:only`でもpropsとchildrenの式はサーバーで評価され、同じ値のシリアライズの制約が適用されます。本体の描画を省略する指定であり、importしたモジュールのトップレベルで`window`などを使うことは保証しません。
 
-静的HTMLを生成しないUIには`client:only`を使えますが、JavaScriptが動くまで本体は表示されません。読み込み中の表示が必要なら、fallbackを用意します。
+静的HTMLを生成しないUIには`client:only`を使えますが、JavaScriptが動くまで本体は表示されません。読み込み中の表示が必要なら、フォールバックを用意します。
 
 ```tsx
 <div client:only>
@@ -123,8 +147,8 @@ Islandにするコンポーネントは別ファイルから静的にimportし�
 </div>
 ```
 
-## Islandの範囲を決める
+## Islandの範囲を決める ||island-boundaries||
 
 状態を共有するUIは一つの親コンポーネントにまとめ、その親をIslandにします。子コンポーネントへそれぞれ`client:*`を付ける必要はありません。同じJSX内でIslandを入れ子にするとエラーになります。
 
-Reactを使わない小さなDOM操作は、[通常のscript](/ja/docs/guide/images-assets)で実装することもできます。オプションの詳細は[pluginIsland](/ja/docs/plugins/island)を参照してください。
+Reactを使わない小さなDOM操作は、[通常のscript](/ja/docs/guide/entry)で実装することもできます。オプションの詳細は[pluginIsland](/ja/docs/plugins/island)を参照してください。次は[静的サイト内検索](/ja/docs/guide/search)で、Islandとして検索UIを追加します。

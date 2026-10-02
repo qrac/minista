@@ -1,27 +1,47 @@
 ---
 layout: docs
 locale: ja
-title: スタイル
+title: CSSのバンドル
 ---
 
-# スタイル
+# CSSのバンドル
 
-CSSはページやレイアウト、コンポーネントからimportできます。`pluginSsg()`が参照されたCSSを出力するため、CSS用のministaプラグインを追加する必要はありません。
+ここでは[レイアウト](/ja/docs/guide/components-layouts)に共通のCSSを追加します。CSSはページやレイアウト、コンポーネントからimportできます。`pluginSsg()`が参照されたCSSを出力するため、CSS用のministaプラグインを追加する必要はありません。
 
-## サイト共通のCSS
+## Table of Contents
+
+contents list
+
+## サイト共通のCSS ||shared-css||
 
 レイアウトからCSSをimportすると、共通のスタイルとして管理できます。
 
-```tsx title="./src/layouts/index.tsx"
+```tsx title="src/layouts/index.tsx"
 import type { LayoutProps } from "minista/types"
+import Header from "../components/header"
 import "../assets/styles.css"
 
-export default function Layout({ children }: LayoutProps) {
-  return <main className="site-main">{children}</main>
+export const metadata = { title: "My Site" }
+
+export default function Layout({ title, children }: LayoutProps) {
+  return (
+    <html lang="ja">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{title}</title>
+      </head>
+      <body>
+        <Header siteName="My Site" />
+        <main className="site-main">{children}</main>
+        <footer>My Site</footer>
+      </body>
+    </html>
+  )
 }
 ```
 
-```css title="./src/assets/styles.css"
+```css title="src/assets/styles.css"
 :root {
   font-family: sans-serif;
   color: #222;
@@ -41,11 +61,36 @@ body {
 
 通常のCSSのセレクターはグローバルに作用します。コンポーネント内からimportしても、自動的にそのコンポーネント専用になるわけではありません。
 
-## CSS Modules
+## 構成と出力を確認する ||bundled-css-output||
+
+```text title="プロジェクト構成"
+src/
+├── assets/
+│   └── styles.css
+├── layouts/
+│   └── index.tsx
+└── pages/
+    ├── index.tsx
+    └── about.md
+```
+
+```text title="ビルド結果の例"
+dist/
+├── index.html
+├── about.html
+└── assets/
+    └── bundle-[hash].css
+```
+
+ページやレイアウトがimportしたCSSは、既定では`bundle`を基にしたCSSへまとめられます。出力名には設定に応じてハッシュが付き、生成HTMLにstylesheetの参照が追加されます。
+
+この方法では、コンポーネントからimportしたCSSもグローバルな出力に含まれます。ページ固有の読み込みを明示したい場合は、[CSS・JS・TSのエントリー](/ja/docs/guide/entry)を使います。
+
+## CSS Modulesによるクラス管理 ||css-modules||
 
 クラス名の衝突を避けたい場合は、`.module.css`を使います。
 
-```css title="./src/components/card.module.css"
+```css title="src/components/card.module.css"
 .card {
   padding: 1.5rem;
   border: 1px solid #ddd;
@@ -53,7 +98,7 @@ body {
 }
 ```
 
-```tsx title="./src/components/card.tsx"
+```tsx title="src/components/card.tsx"
 import type { ReactNode } from "react"
 import styles from "./card.module.css"
 
@@ -64,9 +109,24 @@ export default function Card({ children }: Props) {
 }
 ```
 
+ページからCardを使うと、CSSも読み込まれます。
+
+```tsx title="src/pages/index.tsx"
+import Card from "../components/card"
+
+export default function Page() {
+  return (
+    <>
+      <h1>My Site</h1>
+      <Card>制作スタジオのお知らせです。</Card>
+    </>
+  )
+}
+```
+
 生成したクラス名はHTMLとCSSへ反映されます。CSS Modulesを使うだけでブラウザへReactの実行コードが追加されることはありません。
 
-## link要素でCSSを参照する
+## link要素でCSSを参照する ||stylesheet-links||
 
 HTMLの構造としてstylesheetを指定することもできます。
 
@@ -88,7 +148,7 @@ export default function Page() {
 
 `src/assets/styles.css`はViteで処理され、ビルド後のURLに書き換わります。`public/css/legacy.css`はそのままコピーされます。importとlinkで同じCSSを二重に登録せず、用途に合わせて読み込み方を選びます。
 
-## Sassを使う
+## Sassを使う ||sass||
 
 Sassを使う場合はプリプロセッサーを追加します。
 
@@ -102,7 +162,7 @@ npm install --save-dev sass-embedded
 import "../assets/styles.scss"
 ```
 
-## インラインスタイル
+## インラインスタイル ||inline-styles||
 
 Reactの`style`属性も利用できます。
 
@@ -112,4 +172,4 @@ Reactの`style`属性も利用できます。
 
 これは静的な`style`属性として出力されます。状態に応じてブラウザで値を変えたい場合は、通常のscriptや[Island](/ja/docs/guide/islands)を使います。
 
-CSSの圧縮や出力先は[設定](/ja/docs/guide/configuration)と[ビルドとデプロイ](/ja/docs/guide/build-deploy)を参照してください。
+CSSの圧縮や出力先は[設定リファレンス](/ja/docs/reference/config)を参照してください。次は[CSS・JS・TSのエントリー](/ja/docs/guide/entry)で、HTMLから読み込むコードを指定します。

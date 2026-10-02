@@ -489,52 +489,140 @@
               "url": "/docs/guide/project-structure"
             },
             {
+              "id": "configuration",
+              "name": {
+                "en": "Configuration",
+                "ja": "設定"
+              },
+              "url": "/docs/guide/configuration"
+            },
+            {
               "id": "pages-routing",
               "name": {
                 "en": "Pages & Routing",
-                "ja": "ページとルーティング"
+                "ja": "ファイルベースルーティング"
               },
               "url": "/docs/guide/pages-routing"
-            },
-            {
-              "id": "components-layouts",
-              "name": {
-                "en": "Components & Layouts",
-                "ja": "コンポーネントとレイアウト"
-              },
-              "url": "/docs/guide/components-layouts"
-            },
-            {
-              "id": "styling",
-              "name": {
-                "en": "Styling",
-                "ja": "スタイル"
-              },
-              "url": "/docs/guide/styling"
             },
             {
               "id": "mdx",
               "name": {
                 "en": "Markdown & MDX",
-                "ja": "MarkdownとMDX"
+                "ja": "Markdown・MDX"
               },
               "url": "/docs/guide/mdx"
+            },
+            {
+              "id": "components-layouts",
+              "name": {
+                "en": "Components & Layouts",
+                "ja": "レイアウト"
+              },
+              "url": "/docs/guide/components-layouts"
+            },
+            {
+              "id": "public",
+              "name": {
+                "en": "Public Files",
+                "ja": "publicのファイル"
+              },
+              "url": "/docs/guide/public"
             },
             {
               "id": "images-assets",
               "name": {
                 "en": "Images & Assets",
-                "ja": "画像とアセット"
+                "ja": "画像のバンドル"
               },
               "url": "/docs/guide/images-assets"
+            },
+            {
+              "id": "styling",
+              "name": {
+                "en": "Styling",
+                "ja": "CSSのバンドル"
+              },
+              "url": "/docs/guide/styling"
+            },
+            {
+              "id": "entry",
+              "name": {
+                "en": "CSS, JS & TS Entries",
+                "ja": "CSS・JS・TSのエントリー"
+              },
+              "url": "/docs/guide/entry"
+            },
+            {
+              "id": "image",
+              "name": {
+                "en": "Image Optimization",
+                "ja": "画像最適化"
+              },
+              "url": "/docs/guide/image"
+            },
+            {
+              "id": "svg",
+              "name": {
+                "en": "SVG Optimization",
+                "ja": "SVG最適化"
+              },
+              "url": "/docs/guide/svg"
+            },
+            {
+              "id": "sprite",
+              "name": {
+                "en": "SVG Sprites",
+                "ja": "SVGスプライト"
+              },
+              "url": "/docs/guide/sprite"
             },
             {
               "id": "islands",
               "name": {
                 "en": "Islands",
-                "ja": "Islands"
+                "ja": "Island"
               },
               "url": "/docs/guide/islands"
+            },
+            {
+              "id": "search",
+              "name": {
+                "en": "Static Site Search",
+                "ja": "静的サイト内検索"
+              },
+              "url": "/docs/guide/search"
+            },
+            {
+              "id": "comment",
+              "name": {
+                "en": "HTML Comments",
+                "ja": "HTMLコメント"
+              },
+              "url": "/docs/guide/comment"
+            },
+            {
+              "id": "beautify",
+              "name": {
+                "en": "HTML Formatting",
+                "ja": "HTMLの整形"
+              },
+              "url": "/docs/guide/beautify"
+            },
+            {
+              "id": "archive",
+              "name": {
+                "en": "Delivery Archives",
+                "ja": "納品用アーカイブの生成"
+              },
+              "url": "/docs/guide/archive"
+            },
+            {
+              "id": "fetch",
+              "name": {
+                "en": "Data-driven Pages",
+                "ja": "APIを活用したルーティングと流し込み"
+              },
+              "url": "/docs/guide/fetch"
             },
             {
               "id": "build-deploy",
@@ -543,14 +631,6 @@
                 "ja": "ビルドとデプロイ"
               },
               "url": "/docs/guide/build-deploy"
-            },
-            {
-              "id": "configuration",
-              "name": {
-                "en": "Configuration",
-                "ja": "設定"
-              },
-              "url": "/docs/guide/configuration"
             }
           ]
         },
@@ -574,7 +654,7 @@
               "id": "config",
               "name": {
                 "en": "Config",
-                "ja": "Config"
+                "ja": "設定リファレンス"
               },
               "url": "/docs/reference/config"
             },

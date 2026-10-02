@@ -1,119 +1,98 @@
 ---
 layout: docs
 locale: ja
-title: 画像とアセット
+title: 画像のバンドル
 ---
 
-# 画像とアセット
+# 画像のバンドル
 
-画像やJavaScriptなどのアセットは、Viteで処理するファイルと、`public/`からそのままコピーするファイルに分けて管理できます。画像のサイズや形式も変換したい場合は`pluginImage()`を追加します。
+画像をページやコンポーネントからimportすると、`pluginSsg()`がViteで処理して出力し、参照URLをビルド後のものへ書き換えます。追加のプラグインは不要です。
 
-## 画像をimportする
+ここではトップページへ写真を一枚追加します。通常のバンドルでは画像のサイズや形式は変えません。リサイズやWebPへの変換は[画像最適化](/ja/docs/guide/image)で扱います。
 
-```tsx title="./src/pages/index.tsx"
+## Table of Contents
+
+contents list
+
+## 画像を配置する ||add-an-image||
+
+`src/assets/`へ、1200×800ピクセルの`photo.jpg`を用意します。別の大きさの画像を使う場合は、コードの`width`と`height`も合わせてください。
+
+```text title="プロジェクト構成"
+src/
+├── assets/
+│   └── photo.jpg
+└── pages/
+    └── index.tsx
+```
+
+`src/assets/`という名前に特別な制約はありません。ページの探索対象外に置き、参照して利用します。
+
+## importでURLを取得する ||import-image-url||
+
+画像の既定 importは、公開用のURLになります。その値を`img`の`src`へ渡します。
+
+```tsx title="src/pages/index.tsx"
 import photoUrl from "../assets/photo.jpg"
 
 export default function Page() {
   return (
-    <img src={photoUrl} alt="制作スタジオの風景" width={1200} height={800} />
-  )
-}
-```
-
-`src/assets/photo.jpg`を用意して利用します。`pluginSsg()`が画像の出力とURLの反映を行います。通常のimportでは、画像のリサイズやWebPへの変換は行いません。
-
-Viteの設定に応じてファイル名にハッシュが付き、小さい画像はインライン化される場合があります。独立した画像ファイルとして出力したい場合は`build.assetsInlineLimit: 0`を設定します。
-
-## publicのファイルを参照する
-
-`public/`の内容は出力先のルートへコピーされます。
-
-```text
-public/
-├── favicon.svg
-└── downloads/
-    └── brochure.pdf
-```
-
-```tsx
-<a href="/downloads/brochure.pdf">パンフレットをダウンロード</a>
-```
-
-ファイル名を保持したい画像や、ダウンロード用PDFなどに使います。`pluginSsg()`はbuild時にpublic実ファイルへの参照へViteの`base`を自動適用します。例えば`base: "/test/"`なら上のリンクは`/test/downloads/brochure.pdf`になり、`base: "./"`なら出力ページからの相対URLになります。[対象の属性と制限](/ja/docs/plugins/ssg#public-assets)を確認してください。
-
-## HTML属性でソースを参照する
-
-`pluginSsg()`は、HTML属性から参照されたプロジェクト内のファイルもビルドできます。
-
-```tsx title="./src/pages/index.tsx"
-import { Head } from "minista/head"
-
-export default function Page() {
-  return (
     <>
-      <Head>
-        <script type="module" src="/src/assets/scripts.ts" />
-      </Head>
-      <button type="button" data-greeting>
-        挨拶する
-      </button>
-      <img
-        src="/src/assets/photo.jpg"
-        alt="制作スタジオの風景"
-        width={1200}
-        height={800}
-      />
+      <h1>My Site</h1>
+      <img src={photoUrl} alt="制作スタジオの風景" width={1200} height={800} />
     </>
   )
 }
 ```
 
-```ts title="./src/assets/scripts.ts"
-document.querySelector("[data-greeting]")?.addEventListener("click", () => {
-  window.alert("こんにちは！")
-})
-```
+このimportは、ページをブラウザでReactアプリとして動かす指定ではありません。HTMLに画像のURLが入り、画像ファイルが出力されます。
 
-scriptはブラウザで実行され、ページのTSX自体は静的HTMLの生成に使われます。ページmoduleのトップレベルへ`document`操作を書かず、このようにブラウザ用のentryへ分けます。
+## ビルド結果を確認する ||bundled-image-output||
 
-対象には`script[src]`、`link[href]`、`img[src]`などがあります。すべてのURL属性を変換するわけではありません。例えば`a[href]`や`meta[content]`には、publicのURLかimportで得たURLを指定します。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。
+独立したファイルとして出力する例では、`build.assetsInlineLimit`を`0`にします。
 
-## 画像を最適化する
-
-設定へ`pluginImage()`を追加します。
-
-```ts title="./vite.config.ts"
-import { defineConfig, pluginSsg, pluginImage } from "minista"
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
 
 export default defineConfig({
-  plugins: [pluginSsg(), pluginImage()],
+  plugins: [pluginSsg()],
+  build: { assetsInlineLimit: 0 },
 })
 ```
 
-`Image`を使うと、サイズ違いの画像や`srcset`などを生成できます。
-
-```tsx title="./src/pages/index.tsx"
-import { Image, Picture } from "minista/assets"
-
-export default function Page() {
-  return (
-    <>
-      <Image
-        src="/src/assets/photo.jpg"
-        alt="制作スタジオの風景"
-        format="webp"
-      />
-      <Picture
-        src="/src/assets/photo.jpg"
-        alt="制作スタジオの風景"
-        formats={["webp", "inherit"]}
-        loading="lazy"
-      />
-    </>
-  )
-}
+```text title="ビルド結果の例"
+dist/
+├── index.html
+└── assets/
+    └── photo-[hash].jpg
 ```
 
-`Picture`は複数形式や、画面幅によって元画像を変える用途に使います。ファーストビューの主要画像など、すぐに表示したい画像の読み込みは遅延させず、画面外の画像に`loading="lazy"`を指定します。
+`[hash]`は内容に応じて決まる文字列を表しています。実際の名前はViteの出力設定に従います。生成HTMLの`src`にも、確定したファイル名が反映されます。
 
-リモート画像の取得、キャッシュ、サイズや品質の調整は[pluginImage](/ja/docs/plugins/image)を参照してください。SVGの最適化やスプライト化には、[pluginSvg](/ja/docs/plugins/svg)と[pluginSprite](/ja/docs/plugins/sprite)を利用できます。
+```html title="dist/index.htmlの抜粋"
+<img src="/assets/photo-[hash].jpg" alt="制作スタジオの風景" width="1200" height="800" />
+```
+
+## HTML属性から参照する ||image-attributes||
+
+プロジェクトルートを基準とするパスを`src`へ直接書くこともできます。
+
+```tsx
+<img src="/src/assets/photo.jpg" alt="制作スタジオの風景" width={1200} height={800} />
+```
+
+`img[src]`や`img[srcset]`などはバンドルの対象です。ただし、`meta[content]`や`a[href]`など、すべてのURL属性を処理するわけではありません。OGP画像などに使う場合はimportで得たURLを渡します。
+
+`./photo.jpg`のようなHTML内の相対URLはバンドル対象になりません。importの相対パスと、HTML属性へ書くURLは区別してください。
+
+## インライン化を指定する ||inline-images||
+
+画像ファイルを別途出力せず、データURLとして埋め込む場合はimportへ`?inline`を付けます。
+
+```tsx
+import iconUrl from "../assets/icon.svg?inline"
+```
+
+描画側のimportでも明示的にインライン化されます。小さなアイコンなどに使えますが、HTML自体のサイズは増えます。
+
+名前を変えずにコピーしたいファイルは[public](/ja/docs/guide/public)へ置きます。次は[CSSのバンドル](/ja/docs/guide/styling)でスタイルを追加します。

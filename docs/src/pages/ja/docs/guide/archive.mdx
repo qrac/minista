@@ -1,0 +1,100 @@
+---
+layout: docs
+locale: ja
+title: 納品用アーカイブの生成
+---
+
+# 納品用アーカイブの生成
+
+`pluginArchive()`はビルド完了時に成果物をZIPやTARへまとめます。ここでは[HTMLの整形](/ja/docs/guide/beautify)と組み合わせて、引き渡し用のファイルを生成します。
+
+## Table of Contents
+
+contents list
+
+## プラグインを追加する ||add-archive-plugin||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginBeautify, pluginArchive } from "minista"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg(),
+    pluginBeautify({ src: ["**/*.html"] }),
+    pluginArchive(),
+  ],
+})
+```
+
+`npm run build`を実行すると、標準の出力先`dist/`をまとめた`dist/dist.zip`が生成されます。アーカイブだけを作る別コマンドは不要です。
+
+## 入力とアーカイブの内容 ||archive-output||
+
+```text title="ビルド結果の例"
+dist/
+├── index.html
+├── about.html
+├── assets/
+│   └── ...
+└── dist.zip
+```
+
+```text title="dist.zipを展開した構成"
+dist/
+├── index.html
+├── about.html
+└── assets/
+    └── ...
+```
+
+アーカイブ内のパスには入力ディレクトリ名が含まれます。この例なら`dist/index.html`です。設定されたアーカイブの出力先は圧縮対象から除外され、ZIP自体がZIPへ入ることを防ぎます。
+
+納品前に一度展開し、HTML、アセット、publicからコピーしたファイルが揃っていることを確認してください。
+
+## 出力名を指定する ||archive-name||
+
+名前は拡張子なしで指定します。次の設定なら`dist/downloads/site.zip`へ生成されます。
+
+```ts
+pluginArchive({
+  archives: [{ outName: "downloads/site" }],
+})
+```
+
+`archives`は配列です。複数の設定を書けば、一回のビルドで複数のアーカイブを作れます。指定した配列は既定の設定を置き換えます。
+
+## 不要なファイルを除外する ||archive-ignore||
+
+除外条件は、プロジェクトルートからのパスを基準とするglobで指定します。
+
+```ts
+pluginArchive({
+  archives: [
+    {
+      outName: "site",
+      ignore: ["dist/**/*.map", "dist/internal/**"],
+    },
+  ],
+})
+```
+
+設定から削除した古いアーカイブや、別途置いたZIPは自動除外されません。出力先にそれらを残す場合は、必要な除外条件を指定してください。
+
+## 入力ディレクトリと形式を変える ||archive-source-and-format||
+
+入力を省略すると、`build.outDir`で解決された出力先を使います。例えば`build.outDir: "output"`なら、既定のアーカイブは`output/dist.zip`です。
+
+別のディレクトリを圧縮する場合は`srcDir`を指定します。TAR形式も選べます。
+
+```ts
+pluginArchive({
+  archives: [
+    { srcDir: "dist", outName: "site" },
+    { srcDir: "dist", outName: "site-tar", format: "tar", options: {} },
+  ],
+})
+```
+
+入力ディレクトリが存在しない場合や、ディレクトリ以外を指定した場合はビルドが停止します。設定値と診断は[pluginArchive](/ja/docs/plugins/archive)を参照してください。
+
+次は[APIを活用したルーティングと流し込み](/ja/docs/guide/fetch)で、データからページを生成します。

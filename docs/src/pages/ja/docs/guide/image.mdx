@@ -1,0 +1,132 @@
+---
+layout: docs
+locale: ja
+title: 画像最適化
+---
+
+# 画像最適化
+
+`pluginImage()`は画像をリサイズ・形式変換し、表示幅に合わせて選べる画像と`srcset`を生成します。[画像のバンドル](/ja/docs/guide/images-assets)で配置した写真を、最適化する構成へ変更します。
+
+## Table of Contents
+
+contents list
+
+## プラグインを追加する ||add-image-plugin||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginImage } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginImage()],
+})
+```
+
+既に別のプラグインを使っている場合は、その設定を残して`pluginImage()`を追加してください。以降の設定例も、そのページで必要な最小構成を示します。
+
+## Imageで画像を出力する ||use-image||
+
+`Image`へ元画像のパスを渡します。ここでは1200×800ピクセルの写真を使い、WebPへ変換します。
+
+```tsx title="src/pages/index.tsx"
+import { Image } from "minista/assets"
+
+export default function Page() {
+  return (
+    <>
+      <h1>My Site</h1>
+      <Image
+        src="/src/assets/photo.jpg"
+        alt="制作スタジオの風景"
+        format="webp"
+        breakpoints={[400, 800, 1200]}
+      />
+    </>
+  )
+}
+```
+
+`src`はプロジェクトルートを基準とするパスです。`width`・`height`や`srcset`などが自動生成され、ブラウザが表示に適した画像を選びます。
+
+## 入力と出力を確認する ||optimized-image-output||
+
+```text title="プロジェクト構成"
+src/
+├── assets/
+│   └── photo.jpg
+└── pages/
+    └── index.tsx
+```
+
+```text title="ビルド結果の例"
+dist/
+├── index.html
+└── assets/
+    ├── photo-400x267-[hash].webp
+    ├── photo-800x533-[hash].webp
+    └── photo-1200x800-[hash].webp
+```
+
+画像の出力先とハッシュはViteの命名設定に従います。生成される大きさは元画像、表示サイズ、指定した比率などによって変わります。元画像より大きい候補は、そのまま拡大して生成するものではありません。
+
+## サイズと比率を調整する ||image-size-and-aspect||
+
+幅が固定の画像には`layout="fixed"`を使います。例えば幅200ピクセルのサムネイルを、通常用と高解像度用に生成できます。
+
+```tsx
+<Image
+  src="/src/assets/photo.jpg"
+  alt="制作スタジオ"
+  layout="fixed"
+  width={200}
+  resolutions={[1, 2]}
+  aspect="1:1"
+  fit="cover"
+/>
+```
+
+`aspect`で比率、`fit`で収め方、`position`で切り抜きの基準を指定できます。全画像に共通する設定は`pluginImage({ optimize: { ... } })`へ置き、個別のpropsで上書きします。
+
+## Pictureで複数形式を用意する ||use-picture||
+
+WebPと元の形式を併せて出力する場合は`Picture`を使います。
+
+```tsx
+import { Picture } from "minista/assets"
+
+<Picture
+  src="/src/assets/photo.jpg"
+  alt="制作スタジオの風景"
+  formats={["webp", "inherit"]}
+  loading="lazy"
+/>
+```
+
+`source`と`img`を含む`picture`が生成されます。画面幅によって元画像も変える場合は、`artDirectives`を指定します。
+
+```tsx
+<Picture
+  src="/src/assets/photo.jpg"
+  alt="制作スタジオの風景"
+  formats={["webp", "inherit"]}
+  artDirectives={[
+    { media: "(max-width: 640px)", src: "/src/assets/photo-mobile.jpg" },
+  ]}
+/>
+```
+
+この例では`photo-mobile.jpg`も用意します。最初に見える主要画像はすぐに読み込み、画面外の画像には`loading="lazy"`を使います。
+
+## リモート画像とキャッシュ ||remote-images||
+
+`src`にはHTTPSの画像URLも指定できます。開発・ビルド時にダウンロードして最適化するため、公開サイトから元URLへ画像を取りに行く構成にはなりません。
+
+既定では同じURLの画像をキャッシュ削除まで再取得しません。URLを変えずに更新する画像には、有効期間をミリ秒で指定できます。
+
+```ts
+pluginImage({ remoteCache: { maxAge: 60 * 60 * 1000 } })
+```
+
+出力画像にはEXIF・XMP・IPTCなどのメタデータやICCプロファイルを保持しません。EXIF Orientationによる向き補正は行います。
+
+すべての設定値とコンポーネントのpropsは[pluginImage](/ja/docs/plugins/image)に記録しています。次は[SVG最適化](/ja/docs/guide/svg)で、SVGをHTMLへ展開します。

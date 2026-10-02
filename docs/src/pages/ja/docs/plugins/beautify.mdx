@@ -8,32 +8,15 @@ title: pluginBeautify
 
 ビルド時にHTML・CSS・JSを整形するプラグイン。
 
+導入手順と使用例は[ガイド](/ja/docs/guide/beautify)を参照してください。このページは設定値と制約をまとめています。
+
 ## Table of Contents
 
 contents list
 
-## How To Use
+## オプション ||options||
 
-```js title="./minista.config.js"
-import { pluginSsg, pluginBeautify } from "minista"
-
-export default {
-  build: {
-    sourcemap: false,
-    rolldownOptions: {
-      output: {
-        minify: false,
-        assetFileNames: "assets/[name][extname]",
-      },
-    },
-  },
-  plugins: [pluginSsg(), pluginBeautify()],
-}
-```
-
-## Options
-
-```js title="Default"
+```js title="既定値"
 pluginBeautify({
   src: ["**/*.{html,css,js}"],
   htmlOptions: {
@@ -53,43 +36,43 @@ pluginBeautify({
 })
 ```
 
-### src
+### src ||src||
 
 - 型: `string[]`
 - デフォルト: `["**/*.{html,css,js}"]`
 
 対象ファイルをdistからのglob形式で指定します。対象ファイルはビルドパイプラインに含まれているものから[picomatch](https://www.npmjs.com/package/picomatch)で選ばれます。
 
-### htmlOptions
+### htmlOptions ||htmloptions||
 
 - 型: `HTMLBeautifyOptions`
 
 [js-beautify](https://www.npmjs.com/package/js-beautify)のHTMLフォーマットに関する設定。
 
-### cssOptions
+### cssOptions ||cssoptions||
 
 - 型: `CSSBeautifyOptions`
 
 [js-beautify](https://www.npmjs.com/package/js-beautify)のCSSフォーマットに関する設定。
 
-### jsOptions
+### jsOptions ||jsoptions||
 
 - 型: `JSBeautifyOptions`
 
 [js-beautify](https://www.npmjs.com/package/js-beautify)のJavaScriptフォーマットに関する設定。
 
-## 出力整合性と制限
+## 出力整合性と制限 ||output-constraints||
 
 JavaScriptを整形する場合は`build.rolldownOptions.output.minify: false`を指定してください。`build.minify: false`だけではRolldownの後段の`dce-only`処理が整形を上書きします。JSの`entryFileNames`／`chunkFileNames`には`[hash]`を使えます。
 
-CSSを整形する場合は`assetFileNames`を`"assets/[name][extname]"`などの`[hash]`を含まない文字列にします。CSSは名前の確定後に整形するため、hash付き名や関数形式の命名設定は`MINISTA_BEAUTIFY_CSS_HASH_UNSUPPORTED`で停止します。
+CSSを整形する場合は`assetFileNames`を`"assets/[name][extname]"`などの`[hash]`を含まない文字列にします。CSSは名前の確定後に整形するため、ハッシュ付き名や関数形式の命名設定は`MINISTA_BEAUTIFY_CSS_HASH_UNSUPPORTED`で停止します。
 
-js-beautifyはsourcemapを生成しないため、整形対象のJS／CSSとsourcemapの併用は`MINISTA_BEAUTIFY_SOURCEMAP_UNSUPPORTED`で停止します。CSSの外部mapとinline map参照も対象です。sourcemapを必要とする場合は`src: ["**/*.html"]`などで対象から除外してください。除外したJS／CSSとmapは変更しません。
+js-beautifyはソースマップを生成しないため、整形対象のJS／CSSとソースマップの併用は`MINISTA_BEAUTIFY_SOURCEMAP_UNSUPPORTED`で停止します。CSSの外部mapとinline map参照も対象です。ソースマップを必要とする場合は`src: ["**/*.html"]`などで対象から除外してください。除外したJS／CSSとmapは変更しません。
 
-後段のJS minifyとの併用は`MINISTA_BEAUTIFY_MINIFY_UNSUPPORTED`になります。これらの制限は、整形対象の出力がある場合に検証します。後続の独自pluginによる再変換までは保証しません。
+後段のJS 圧縮との併用は`MINISTA_BEAUTIFY_MINIFY_UNSUPPORTED`になります。これらの制限は、整形対象の出力がある場合に検証します。後続の独自プラグインによる再変換までは保証しません。
 
-整形は納品物を読みやすくするための機能です。空白や改行で未圧縮サイズが増えるため、配信容量を優先する場合は対象をHTMLだけに絞るか、このpluginを外してViteのminifyを利用してください。
+整形は納品物を読みやすくするための機能です。空白や改行で未圧縮サイズが増えるため、配信容量を優先する場合は対象をHTMLだけに絞るか、このプラグインを外してViteの圧縮を利用してください。
 
-## preload設定の移行
+## preload設定の移行 ||preload-migration||
 
-`removeImagePreload`は`pluginSsg`へ移動し、既定値は`true`です。旧Beautify optionは移行期間中のみdeprecatedな型として残し、明示指定には`MINISTA_BEAUTIFY_OPTION_MOVED`を返します。同じ値を`pluginSsg`へ移し、Beautify側の指定を削除してください。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。
+`removeImagePreload`は`pluginSsg`へ移動し、既定値は`true`です。旧Beautify オプションは移行期間中のみ非推奨な型として残し、明示指定には`MINISTA_BEAUTIFY_OPTION_MOVED`を返します。同じ値を`pluginSsg`へ移し、Beautify側の指定を削除してください。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。

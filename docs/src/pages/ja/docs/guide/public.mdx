@@ -1,0 +1,77 @@
+---
+layout: docs
+locale: ja
+title: publicのファイル
+---
+
+# publicのファイル
+
+`public/`は、ファイル名と内容を保ったまま公開したいファイルの置き場所です。ここではサイトのfaviconと、ダウンロード用PDFを追加します。
+
+## Table of Contents
+
+contents list
+
+## ファイルを配置する ||add-public-files||
+
+プロジェクトルートへ`public/`を作り、手元のSVGとPDFを置きます。ファイルは次のように配置してください。
+
+```text title="プロジェクト構成"
+public/
+├── favicon.svg
+└── downloads/
+    └── brochure.pdf
+src/
+├── layouts/
+│   └── index.tsx
+└── pages/
+    └── index.tsx
+```
+
+`public/`のファイルは、ページから参照していなくてもビルド時にコピーされます。公開しないファイルはこのディレクトリへ置かないようにします。
+
+## ページから参照する ||reference-public-files||
+
+URLは`/`から始め、`public`を含めずに指定します。`public/downloads/brochure.pdf`なら`/downloads/brochure.pdf`です。
+
+```tsx title="src/pages/index.tsx"
+import { Head } from "minista/head"
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <link rel="icon" href="/favicon.svg" />
+      </Head>
+      <h1>My Site</h1>
+      <a href="/downloads/brochure.pdf" download>
+        パンフレットをダウンロード
+      </a>
+    </>
+  )
+}
+```
+
+faviconを全ページで使う場合は、リンクを共通レイアウトのheadへ移します。`public/`のCSSやJavaScriptも、`link`や`script`で読み込めます。
+
+## ビルド結果を確認する ||public-output||
+
+`npm run build`を実行すると、`public/`の中身が出力先のルートへコピーされます。
+
+```text title="ビルド結果"
+dist/
+├── index.html
+├── favicon.svg
+└── downloads/
+    └── brochure.pdf
+```
+
+リサイズ、圧縮、ファイル名へのハッシュ追加は行いません。画像をViteで処理したい場合は[画像のバンドル](/ja/docs/guide/images-assets)、サイズや形式を変換したい場合は[画像最適化](/ja/docs/guide/image)を使います。
+
+## 公開パスを変更する ||public-base-path||
+
+`base: "/site/"`を指定すると、HTML内の実在するpublicファイルへの参照は`/site/favicon.svg`などへ補正されます。`base: "./"`なら、出力ページからの相対URLになります。
+
+ファイル本体は無加工です。public内のCSS・JavaScript・JSONに書かれたURLや、ブラウザで組み立てるURLは補正されません。Island内部も自動補正の対象外なので、公開パスを含むURLをpropsとして渡すなどして合わせます。
+
+対象属性と制限は[pluginSsgのpublic参照](/ja/docs/plugins/ssg#public-assets)を参照してください。次は[画像のバンドル](/ja/docs/guide/images-assets)で、ソース内の画像を出力します。

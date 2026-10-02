@@ -1,0 +1,143 @@
+---
+layout: docs
+locale: ja
+title: 静的サイト内検索
+---
+
+# 静的サイト内検索
+
+`pluginSearch()`はページの本文から検索用JSONを生成します。検索UIはブラウザでこのデータを読み込むため、検索用サーバーや外部サービスを用意せずに使えます。
+
+[Island](/ja/docs/guide/islands)の設定を利用して、サイト内のお知らせを検索できるようにします。
+
+## Table of Contents
+
+contents list
+
+## プラグインを追加する ||add-search-plugin||
+
+`pluginIsland()`とReactのViteプラグインが必要です。まだ追加していない場合は、先にインストールします。
+
+```sh
+npm install --save-dev @vitejs/plugin-react
+```
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginIsland, pluginSearch } from "minista"
+import react from "@vitejs/plugin-react"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginIsland(), pluginSearch(), react()],
+})
+```
+
+## 検索対象の本文を指定する ||mark-search-content||
+
+検索に含める領域へ`data-search`を付けます。ナビゲーションやフッターは、その外側へ置きます。検索結果のタイトルにはHTMLの`title`が使われます。
+
+```tsx title="src/pages/news/hello.tsx"
+import { Head } from "minista/head"
+
+export default function Article() {
+  return (
+    <>
+      <Head>
+        <title>スタジオを開設しました</title>
+      </Head>
+      <article data-search>
+        <h1>スタジオを開設しました</h1>
+        <h2 id="equipment">スタジオの設備</h2>
+        <p>撮影スタジオに新しい照明を導入しました。</p>
+      </article>
+    </>
+  )
+}
+```
+
+見出しにIDを付けると、検索結果から本文中の位置へ移動できます。Markdown・MDXのページなら、共通レイアウトで本文を`data-search`付きの領域に包む構成も使えます。
+
+## 検索UIを配置する ||add-search-ui||
+
+```tsx title="src/pages/search.tsx"
+import { Search } from "minista/assets"
+
+export default function SearchPage() {
+  return (
+    <>
+      <h1>サイト内検索</h1>
+      <Search
+        client:load
+        field={{ placeholder: "キーワードを入力" }}
+        maxHitPages={10}
+      />
+    </>
+  )
+}
+```
+
+`Search`は検索フィールドと結果一覧を出力します。`client:load`を付けて操作できるようにし、見た目はCSSで調整してください。
+
+## ビルドして検索する ||search-output||
+
+```text title="プロジェクト構成"
+src/pages/
+├── index.tsx
+├── search.tsx
+└── news/
+    └── hello.tsx
+```
+
+```text title="ビルド結果の例"
+dist/
+├── index.html
+├── search.html
+├── news/
+│   └── hello.html
+└── assets/
+    ├── search-[hash].json
+    └── ...（検索UIのJavaScriptなど）
+```
+
+`npm run build`と`npm run preview`を実行し、`/search`で「スタジオ」を入力します。検索データは初回の入力時に取得されます。本文を更新したときは、HTMLと検索JSONを再ビルドして一緒に公開します。
+
+## 検索範囲を絞る ||search-scope||
+
+`src`と`ignore`は出力先を基準にしたHTMLファイルのglobです。例えばお知らせだけを対象にする場合は、次の設定を使います。
+
+```ts
+pluginSearch({
+  src: ["news/**/*.html"],
+  ignore: ["news/draft.html"],
+  ignoreSelectors: ["h1", ".navigation"],
+  trimTitle: " - My Site",
+})
+```
+
+`ignoreSelectors`は本文中の不要な要素、`trimTitle`は検索結果のタイトルから取り除く文字列を指定します。
+
+生成データに採用する単語は`hit`で調整します。短い日本語の語句も対象にしたい場合は、`hit.minLength`を下げられます。これはUIが検索を始める`minHitLength`とは別の設定です。
+
+```ts
+pluginSearch({ hit: { minLength: 2, hiragana: true } })
+```
+
+## 複数の検索インデックス ||multiple-indexes||
+
+多言語サイトや、ブログとドキュメントで対象を分ける場合は`indexes`を指定します。
+
+```ts
+pluginSearch({
+  indexes: {
+    docs: { src: ["docs/**/*.html"] },
+    news: { src: ["news/**/*.html"] },
+  },
+})
+```
+
+```tsx
+<Search index="docs" client:load />
+```
+
+この例では`search-docs`と`search-news`を基にした二つのJSONが出力されます。UIの`index`を明示して対象を選びます。URLによる自動判定はありません。
+
+インデックスごとの設定継承、検索UIのprops、JSONの形式は[pluginSearch](/ja/docs/plugins/search)を参照してください。次は[HTMLの整形](/ja/docs/guide/beautify)で成果物を読みやすくします。

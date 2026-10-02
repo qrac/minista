@@ -10,60 +10,30 @@ title: pluginSvg
 
 - 展開時にSVGOでコードを最適化
 
+導入手順と使用例は[ガイド](/ja/docs/guide/svg)を参照してください。このページは設定値、コンポーネントのprops、制約をまとめています。
+
 ## Table of Contents
 
 contents list
 
-## How To Use
+## オプション ||options||
 
-```js title="./minista.config.js"
-import { pluginSsg, pluginSvg } from "minista"
-
-export default {
-  plugins: [pluginSsg(), pluginSvg()],
-}
-```
-
-```jsx title="./src/pages/index.jsx"
-import { Svg } from "minista/assets"
-
-export default function () {
-  return <Svg src="/src/assets/square.svg" />
-}
-```
-
-## Options
-
-```js title="Default"
+```js title="既定値"
 pluginSvg({})
 ```
 
-### config
+### config ||config||
 
 - 型: `Config`
 - デフォルト: `undefined`
 
 [svgo](https://www.npmjs.com/package/svgo)のConfigを渡して最適化処理の内容を変更できます。
 
-## Svg
+## Svg ||svg||
 
 ルートパスのSVGファイルを読み込んで `<svg>` タグに展開するコンポーネント。
 
 - 展開時にSVGOでコードを最適化
-
-```jsx title="./src/pages/index.jsx"
-import { Svg } from "minista/assets"
-
-export default function () {
-  return <Svg src="/src/assets/square.svg" />
-}
-```
-
-```xml title="Dist"
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <path d="M76 76h360v360H76z" style="fill:#000;stroke-width:0"></path>
-</svg>
-```
 
 ```ts
 type SvgProps = {
@@ -74,22 +44,22 @@ type SvgProps = {
 } & React.SVGProps<SVGSVGElement>
 ```
 
-## Diagnostics
+## 診断 ||diagnostics||
 
-SVGの展開に失敗した場合、buildは次のstable diagnostic codeを出力します。
+SVGの展開に失敗した場合、ビルドは次の診断コードを出力します。
 
-- `MINISTA_SVG_READ_FAILED`: SVG fileの読込失敗
+- `MINISTA_SVG_READ_FAILED`: SVG ファイルの読込失敗
 - `MINISTA_SVG_OPTIMIZE_FAILED`: SVGOによる最適化失敗
-- `MINISTA_SVG_PARSE_FAILED`: SVG markupの解析失敗
+- `MINISTA_SVG_PARSE_FAILED`: SVG マークアップの解析失敗
 
-存在しないsourceは`MINISTA_SVG_SOURCE_NOT_FOUND` errorとなり、buildを失敗させます。project内のSVGにproject相対locationが含まれます。HTML document adapterの解析、selector、変更、serializeに失敗した場合は、対応する `MINISTA_HTML_*_FAILED` codeが出力されます。
+存在しない元ファイルは`MINISTA_SVG_SOURCE_NOT_FOUND` エラーとなり、ビルドを失敗させます。診断にはSVGのプロジェクト内の相対パスが含まれます。HTML処理の解析、セレクター、変更、シリアライズに失敗した場合は、対応する `MINISTA_HTML_*_FAILED` コードが出力されます。
 
-## 属性の合成とdev更新
+## 属性の合成と開発中の更新 ||attributes-and-dev-updates||
 
-SVGO最適化後のルートから、`viewBox`、`preserveAspectRatio`、サイズ、`fill`／`stroke`などの描画属性、`style`／`class`を保持します。`Svg`に明示した同名propsを優先し、`style`／`className`も属性単位で置き換えます。元SVGのルート`id`、イベント属性、`data-*`などの任意属性はコピーしません。明示propsとsourceの両方にviewBoxがない場合は`0 0 0 0`を使います。
+SVGO最適化後のルートから、`viewBox`、`preserveAspectRatio`、サイズ、`fill`／`stroke`などの描画属性、`style`／`class`を保持します。`Svg`に明示した同名propsを優先し、`style`／`className`も属性単位で置き換えます。元SVGのルート`id`、イベント属性、`data-*`などの任意属性はコピーしません。明示propsと元ファイルの両方にviewBoxがない場合は`0 0 0 0`を使います。
 
-devでは参照sourceの追加・変更・削除に応じてcacheを無効化し、参照ページを再読み込みします。server間でcacheを共有せず、再buildでもsourceを読み直します。内部IDの名前空間化はこの変更に含みません。
+開発中は参照ファイルの追加・変更・削除を反映し、参照ページを再読み込みします。再ビルド時も元ファイルを読み直します。
 
-## SVGの内部ID
+## SVGの内部ID ||svg-internal-ids||
 
-gradient・clipPathなどの内部IDと参照には、衝突を避ける決定的なprefixを付けます。同じSVGの複数配置にも対応します。元の内部IDを外部CSSやJavaScriptから参照しないでください。class名は維持します。
+グラデーション・clipPathなどの内部IDと参照には、衝突を避ける決定的な接頭辞を付けます。同じSVGの複数配置にも対応します。元の内部IDを外部CSSやJavaScriptから参照しないでください。class名は維持します。

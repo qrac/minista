@@ -13,7 +13,7 @@ import { formatPager } from "../components/utils/pager"
 
 import pkg from "minista/package.json"
 import pjt from "../../project.json"
-import themeSetup from "../assets/js/theme/setup.js?raw"
+import themeSetup from "../assets/mosules/theme/setup.js?raw"
 import "./globals.css"
 import "./style.css"
 

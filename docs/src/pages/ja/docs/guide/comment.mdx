@@ -1,0 +1,53 @@
+---
+layout: docs
+locale: ja
+title: HTMLコメント
+---
+
+# HTMLコメント
+
+JSXの`{/* コメント */}`は、生成HTMLへ出力されません。納品物に区切りや補足を残したい場合は、`pluginComment()`と`Comment`を使います。
+
+## Table of Contents
+
+contents list
+
+## プラグインを追加する ||add-comment-plugin||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginComment } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginComment()],
+})
+```
+
+## コメントを配置する ||use-comment||
+
+```tsx title="src/pages/index.tsx"
+import { Comment } from "minista/assets"
+
+export default function Page() {
+  return (
+    <>
+      <Comment text="メインコンテンツ開始" />
+      <h1>My Site</h1>
+      <Comment text="メインコンテンツ終了" />
+    </>
+  )
+}
+```
+
+`text`の代わりに文字列のchildrenも使えます。出力先では通常のHTMLコメントになります。
+
+```html title="dist/index.htmlの抜粋"
+<!-- メインコンテンツ開始 -->
+<h1>My Site</h1>
+<!-- メインコンテンツ終了 -->
+```
+
+## 出力を確認する ||check-comments||
+
+`npm run build`で生成したHTMLを開き、コメントの位置を確認します。ブラウザの画面には表示されませんが、HTMLソースから読めるため、公開しない情報は書かないようにします。
+
+プラグインにオプションはありません。propsの型は[pluginComment](/ja/docs/plugins/comment)を参照してください。

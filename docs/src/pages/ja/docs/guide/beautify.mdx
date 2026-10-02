@@ -1,0 +1,105 @@
+---
+layout: docs
+locale: ja
+title: HTMLの整形
+---
+
+# HTMLの整形
+
+`pluginBeautify()`はビルド結果のHTML・CSS・JavaScriptを整形します。まずHTMLだけを読みやすくし、必要に応じてCSS・JavaScriptも整える手順を紹介します。
+
+整形は納品物を確認・編集しやすくするための機能です。改行や空白によってファイルサイズが増えるため、配信容量を優先するサイトでは対象を選んで使います。
+
+## Table of Contents
+
+contents list
+
+## HTMLだけを整形する ||beautify-html||
+
+`src`で対象をHTMLに絞ります。この構成では、CSS・JavaScriptの出力設定を変える必要はありません。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginBeautify } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginBeautify({ src: ["**/*.html"] })],
+})
+```
+
+`npm run build`を実行し、`dist/index.html`を開きます。ビルド後のHTMLにインデントと改行が付きます。ソースのJSX・TSXを変更する機能ではありません。
+
+```html title="整形後のHTMLの例"
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>My Site</title>
+  </head>
+  <body>
+    <h1>My Site</h1>
+  </body>
+</html>
+```
+
+## インデントを変更する ||beautify-options||
+
+HTMLの設定は`htmlOptions`へ渡します。例えばインデント幅を4にできます。
+
+```ts
+pluginBeautify({
+  src: ["**/*.html"],
+  htmlOptions: { indent_size: 4 },
+})
+```
+
+HTML・CSS・JavaScriptの各設定には、js-beautifyのオプションを利用できます。型と既定値は[pluginBeautify](/ja/docs/plugins/beautify)を参照してください。
+
+## CSS・JavaScriptも整形する ||beautify-css-and-js||
+
+対象を省略するとHTML・CSS・JavaScriptを整形します。CSSはハッシュのないファイル名にし、JavaScriptはRolldownの出力段階で圧縮を無効にします。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginBeautify } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginBeautify()],
+  build: {
+    sourcemap: false,
+    cssMinify: false,
+    rolldownOptions: {
+      output: {
+        minify: false,
+        assetFileNames: "assets/[name][extname]",
+      },
+    },
+  },
+})
+```
+
+`build.minify: false`だけでは、後段のJavaScript処理が整形を上書きする場合があります。この例では`build.rolldownOptions.output.minify: false`を使います。
+
+CSSの整形は出力名が確定した後に行うため、CSSを対象にする場合は`assetFileNames`に`[hash]`や関数形式を使えません。JavaScriptのエントリー・チャンクにはハッシュを使えます。
+
+## 出力と制約を確認する ||beautified-output||
+
+```text title="プロジェクト構成の例"
+src/
+├── assets/
+│   ├── styles.css
+│   └── scripts.ts
+└── pages/
+    └── index.tsx
+```
+
+```text title="ビルド結果の例"
+dist/
+├── index.html                ← HTMLを整形
+└── assets/
+    ├── styles.css            ← CSSを整形
+    └── scripts-[hash].js     ← JavaScriptを整形
+```
+
+実際のファイル名は読み込み方と出力設定によります。整形対象のCSS・JavaScriptとソースマップは併用できません。ソースマップが必要な場合は、そのファイルを対象から外してHTMLだけを整形します。
+
+ファイル名のハッシュを外した場合は、同名ファイルの衝突や公開先のキャッシュ更新方法も確認します。次は[納品用アーカイブ](/ja/docs/guide/archive)で、成果物をZIPにまとめます。

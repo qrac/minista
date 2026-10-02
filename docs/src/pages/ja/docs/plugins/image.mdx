@@ -10,31 +10,15 @@ title: pluginImage
 
 最適化した出力画像にはEXIF・XMP・IPTCなどのメタデータやICCプロファイルを保持・付与しません。EXIF Orientationによる向き補正は行います。メタデータを保持するオプションはありません。
 
+導入手順と使用例は[ガイド](/ja/docs/guide/image)を参照してください。このページは設定値、コンポーネントのprops、制約をまとめています。
+
 ## Table of Contents
 
 contents list
 
-## How To Use
+## オプション ||options||
 
-```js title="./minista.config.js"
-import { pluginSsg, pluginImage } from "minista"
-
-export default {
-  plugins: [pluginSsg(), pluginImage()],
-}
-```
-
-```jsx title="./src/pages/index.jsx"
-import { Image } from "minista/assets"
-
-export default function () {
-  return <Image src="/src/assets/image.png" />
-}
-```
-
-## Options
-
-```js title="Default"
+```js title="既定値"
 pluginImage({
   useCache: true,
   remoteCache: "immutable",
@@ -57,21 +41,21 @@ pluginImage({
 })
 ```
 
-### useCache
+### useCache ||usecache||
 
 - 型: `boolean`
 - デフォルト: `true`
 
 開発・ビルド中にキャッシュを利用します。
 
-### remoteCache
+### remoteCache ||remotecache||
 
 - 型: `"immutable" | { maxAge: number }`
 - デフォルト: `"immutable"`
 
-リモート画像のsource cache方針です。`"immutable"`はキャッシュを削除するまで同じURLのsourceを再取得しません。`{ maxAge }`はミリ秒単位の有効期間を指定し、期限後はETagまたはLast-Modifiedがあれば条件付きrequestで再検証します。`useCache: false`の場合は使用されません。
+リモート画像の元画像のキャッシュ方針です。`"immutable"`はキャッシュを削除するまで同じURLの元ファイルを再取得しません。`{ maxAge }`はミリ秒単位の有効期間を指定し、期限後はETagまたはLast-Modifiedがあれば条件付きリクエストで再検証します。`useCache: false`の場合は使用されません。
 
-### optimize.outName
+### optimize.outName ||optimizeoutname||
 
 - 型: `string`
 - デフォルト: `"[name]-[width]x[height]"`
@@ -82,7 +66,7 @@ pluginImage({
 - `[width]`:出力ファイルの幅
 - `[height]`:出力ファイルの高さ
 
-### optimize.remoteName
+### optimize.remoteName ||optimizeremotename||
 
 - 型: `string`
 - デフォルト: `"remote-[index]"`
@@ -91,59 +75,59 @@ pluginImage({
 
 - `[index]`:ダウンロードされた順番（開始: 1）
 
-### optimize.layout
+### optimize.layout ||optimizelayout||
 
 - 型: `"constrained" | "fixed"`
 - デフォルト: `"constrained"`
 
 出力画像のレイアウト方法。選択肢によって採用される出力パターンが決まります。
 
-- `"constrained"`:コンテナサイズ（`breakpoint` を採用）
+- `"constrained"`:コンテナサイズ（`breakpoints`を採用）
 - `"fixed"`:固定サイズ（`resolutions` を採用）
 
-### optimize.breakpoints
+### optimize.breakpoints ||optimizebreakpoints||
 
 - 型: `number[] | { count: number; minWidth: number; maxWidth: number }`
 - デフォルト: `[320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840]`
 
 出力画像のレスポンシブ幅。数値配列で明示するか、範囲 `minWidth`〜`maxWidth` と生成数 `count` で指定できます。
 
-### optimize.resolutions
+### optimize.resolutions ||optimizeresolutions||
 
 - 型: `number[]`
 - デフォルト: `[1, 2]`
 
-出力画像の解像度。デフォルトでは通常用+ 2倍サイズ用。
+出力画像の解像度。デフォルトでは通常用と2倍サイズ用。
 
-### optimize.format
+### optimize.format ||optimizeformat||
 
 - 型: `"inherit" | "jpg" | "png" | "webp" | "avif"`
 - デフォルト: `"inherit"`
 
 出力画像のフォーマット。`"inherit"` を指定すると元画像と同じフォーマットになります。
 
-### optimize.formatOptions
+### optimize.formatOptions ||optimizeformatoptions||
 
 - 型: `{ jpg?: JpegOptions, png?: PngOptions, webp?: WebpOptions, avif?: AvifOptions }`
 - デフォルト: `{}`
 
 フォーマットごとの圧縮オプション。[sharp](https://www.npmjs.com/package/sharp)の各種オプションが利用できます。
 
-### optimize.quality
+### optimize.quality ||optimizequality||
 
 - 型: `number`
 - デフォルト: `undefined`
 
 出力画像の品質。フォーマットごとに個別設定する場合は `optimize.formatOptions` をお使いください。
 
-### optimize.aspect
+### optimize.aspect ||optimizeaspect||
 
 - 型: `string`
 - デフォルト: `undefined`
 
 出力画像のアスペクト比。`"16:9"` などを指定すると、その比率でリサイズされます。
 
-### optimize.fit
+### optimize.fit ||optimizefit||
 
 - 型: `ResizeOptions["fit"]`
 - デフォルト: `"cover"`
@@ -152,7 +136,7 @@ pluginImage({
 
 - 例: `"cover"`, `"contain"`, `"fill"`, `"inside"`, `"outside"`
 
-### optimize.position
+### optimize.position ||optimizeposition||
 
 - 型: `ResizeOptions["position"]`
 - デフォルト: `"centre"`
@@ -161,7 +145,7 @@ pluginImage({
 
 - 例: `"centre"`, `"top"`, `"left"`, `"right"`, `"bottom"`
 
-### optimize.background
+### optimize.background ||optimizebackground||
 
 - 型: `ResizeOptions["background"]`
 - デフォルト: `undefined`
@@ -170,7 +154,7 @@ pluginImage({
 
 - 例: `"#ffffff"`, `{r: 255, g: 255, b: 255, alpha: 0.5}`
 
-### decoding
+### decoding ||decoding||
 
 - 型: `HTMLImageElement["decoding"]`
 - デフォルト: `"async"`
@@ -181,7 +165,7 @@ pluginImage({
 - `"sync"`:同期デコード
 - `"auto"`:ブラウザに任せる
 
-### loading
+### loading ||loading||
 
 - 型: `HTMLImageElement["loading"]`
 - デフォルト: `"eager"`
@@ -191,44 +175,13 @@ pluginImage({
 - `"eager"`:ページロード時に即座に読み込み
 - `"lazy"`:ビューポートに入るまで遅延読み込み
 
-## Image
+## Image ||image||
 
 シンプルな `<img>` タグで画像の最適化を行うコンポーネント。
 
 - 元画像1枚・出力フォーマット1種類にのみ対応
 - 自動で画像の幅と高さを取得して `width` `height` を付与
 - リモート画像をダウンロード
-
-```tsx title="./src/pages/index.jsx"
-import { Image } from "minista/assets"
-
-export default function () {
-  return <Image src="/src/assets/image.png" />
-}
-```
-
-```html title="Dist"
-<img
-  srcset="
-    /assets/images/image-320x157.png    320w,
-    /assets/images/image-400x196.png    400w,
-    /assets/images/image-640x314.png    640w,
-    /assets/images/image-800x392.png    800w,
-    /assets/images/image-1024x502.png  1024w,
-    /assets/images/image-1280x627.png  1280w,
-    /assets/images/image-1440x706.png  1440w,
-    /assets/images/image-1920x941.png  1920w,
-    /assets/images/image-2208x1080.png 2208w
-  "
-  src="/assets/images/image-2208x1080.png"
-  sizes="(min-width: 2208px) 2208px, 100vw"
-  width="2208"
-  height="1080"
-  alt=""
-  decoding="async"
-  loading="eager"
-/>
-```
 
 `<Image>` コンポーネントには、プラグインオプション `optimize` を含めたpropsを個別に渡してオーバーライドできます。
 
@@ -245,7 +198,7 @@ type ImageProps = {
   React.HTMLAttributes<HTMLImageElement>
 ```
 
-## Picture
+## Picture ||picture||
 
 `<picture>` に `<source>` `<img>` タグを内包する詳細な画像最適化が行えるコンポーネント。
 
@@ -253,56 +206,6 @@ type ImageProps = {
 - 出力フォーマットを複数設定してフォールバック可能
 - 自動で画像の幅と高さを取得して `width` `height` を付与
 - リモート画像をダウンロード
-
-```tsx title="./src/pages/index.jsx"
-import { Picture } from "minista/assets"
-
-export default function () {
-  return <Picture src="/src/assets/image.png" formats={["webp", "inherit"]} />
-}
-```
-
-```html title="Dist"
-<picture>
-  <source
-    srcset="
-      /assets/images/image-320x157.webp    320w,
-      /assets/images/image-400x196.webp    400w,
-      /assets/images/image-640x314.webp    640w,
-      /assets/images/image-800x392.webp    800w,
-      /assets/images/image-1024x502.webp  1024w,
-      /assets/images/image-1280x627.webp  1280w,
-      /assets/images/image-1440x706.webp  1440w,
-      /assets/images/image-1920x941.webp  1920w,
-      /assets/images/image-2208x1080.webp 2208w
-    "
-    sizes="(min-width: 2208px) 2208px, 100vw"
-    width="2208"
-    height="1080"
-    type="image/webp"
-  />
-  <img
-    srcset="
-      /assets/images/image-320x157.png    320w,
-      /assets/images/image-400x196.png    400w,
-      /assets/images/image-640x314.png    640w,
-      /assets/images/image-800x392.png    800w,
-      /assets/images/image-1024x502.png  1024w,
-      /assets/images/image-1280x627.png  1280w,
-      /assets/images/image-1440x706.png  1440w,
-      /assets/images/image-1920x941.png  1920w,
-      /assets/images/image-2208x1080.png 2208w
-    "
-    src="/assets/images/image-2208x1080.png"
-    sizes="(min-width: 2208px) 2208px, 100vw"
-    width="2208"
-    height="1080"
-    alt=""
-    decoding="async"
-    loading="lazy"
-  />
-</picture>
-```
 
 `<Picture>` コンポーネントには、プラグインオプション `optimize` を含めたpropsを個別に渡してオーバーライドできます。また、画面幅によって元画像を変更するアートディレクティブを `artDirectives` に設定できます。
 
@@ -332,14 +235,14 @@ type ArtDirective = {
 } & Partial<ImagesOptimize>
 ```
 
-## Diagnostics
+## 診断 ||diagnostics||
 
-画像処理に失敗した場合、buildは次のstable diagnostic codeを出力します。
+画像処理に失敗した場合、ビルドは次の診断コードを出力します。
 
 - `MINISTA_IMAGE_DOWNLOAD_FAILED`: リモート画像の取得失敗
-- `MINISTA_IMAGE_READ_FAILED`: local画像の欠落または読込失敗
+- `MINISTA_IMAGE_READ_FAILED`: ローカル画像の欠落または読込失敗
 - `MINISTA_IMAGE_METADATA_FAILED`: 画像サイズ／形式の解析失敗
 - `MINISTA_IMAGE_TRANSFORM_FAILED`: Sharpによる変換失敗
-- `MINISTA_IMAGE_CACHE_FAILED`: cacheの読込／書込失敗
+- `MINISTA_IMAGE_CACHE_FAILED`: キャッシュの読込／書込失敗
 
-local画像のdiagnosticにはproject相対locationが含まれます。リモートURLのquery parameterはdiagnostic messageへ出力しません。
+ローカル画像の診断にはプロジェクト内の相対位置が含まれます。リモートURLのクエリパラメーターは診断メッセージへ出力しません。

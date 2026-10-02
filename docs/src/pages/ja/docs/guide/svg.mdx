@@ -1,0 +1,83 @@
+---
+layout: docs
+locale: ja
+title: SVG最適化
+---
+
+# SVG最適化
+
+`pluginSvg()`はSVGファイルをSVGOで最適化し、HTMLへインライン展開します。SVGの色をCSSで変えたい場合や、SVG要素をページ内に置きたい場合に使います。
+
+ここでは小さなマークを追加します。SVGを外部画像として使うだけなら、[通常の画像import](/ja/docs/guide/images-assets)でも対応できます。
+
+## Table of Contents
+
+contents list
+
+## プラグインを追加する ||add-svg-plugin||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginSvg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginSvg()],
+})
+```
+
+## 元のSVGを用意する ||create-svg-source||
+
+```xml title="src/assets/mark.svg"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path fill="currentColor" d="M4 4h16v16H4z" />
+</svg>
+```
+
+`viewBox`を指定すると、表示サイズを変えても図形の比率を保てます。`currentColor`を使った部分には、配置先の文字色が反映されます。
+
+## SvgでHTMLへ展開する ||use-svg||
+
+```tsx title="src/pages/index.tsx"
+import { Svg } from "minista/assets"
+
+export default function Page() {
+  return (
+    <>
+      <h1>My Site</h1>
+      <Svg src="/src/assets/mark.svg" title="四角のマーク" width={24} height={24} />
+    </>
+  )
+}
+```
+
+`src`はプロジェクトルートを基準にします。装飾用のSVGではタイトルを省き、`aria-hidden`を付けることもできます。
+
+```tsx
+<Svg src="/src/assets/mark.svg" aria-hidden="true" width={24} height={24} />
+```
+
+## 入力と出力を確認する ||inline-svg-output||
+
+```text title="プロジェクト構成"
+src/
+├── assets/
+│   └── mark.svg
+└── pages/
+    └── index.tsx
+```
+
+```text title="ビルド結果"
+dist/
+└── index.html
+```
+
+この使い方だけなら、`mark.svg`を配信用の別ファイルとして出力する必要はありません。生成HTMLに最適化した`svg`要素が入ります。`npm run preview`で表示を確認してください。
+
+## 属性と最適化を調整する ||svg-attributes||
+
+元SVGの`viewBox`や描画属性は引き継がれ、`Svg`へ明示した同名propsが優先されます。`className`を渡してCSSを適用することもできます。
+
+SVGOの設定を変える場合は、`pluginSvg({ config: { ... } })`を使います。属性の保持範囲と設定型は[pluginSvg](/ja/docs/plugins/svg)を参照してください。
+
+グラデーションやクリップに使う内部IDには、複数配置での衝突を避ける接頭辞が付きます。元の内部IDを外部CSSやJavaScriptから直接参照せず、classやpropsを利用してください。
+
+次は[SVGスプライト](/ja/docs/guide/sprite)で、複数のアイコンを一つのファイルにまとめます。

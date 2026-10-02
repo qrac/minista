@@ -6,13 +6,9 @@ title: ministaとは？
 
 # ministaとは？
 
-minista（ミニスタ）は、ReactのJSX・TSXとViteを使って、100%静的なHTMLを生成するスタティックサイトジェネレーター（SSG）です。
+minista（ミニスタ）は、ReactのJSX・TSXで静的HTMLを生成する、Viteベースのスタティックサイトジェネレーター（SSG）です。名前はmini static site generatorの略です。
 
-※名前の「minista」は、mini static site generatorの略。
-
-Reactのコンポーネントベースな開発体験を活かしながら、静的なWebサイト（通常のHTML・CSS・JavaScript）を出力することを目的としています。
-
-端的に言うと「Next.jsのように書いて、Astroのように出力」するSSGです。
+ページや共通パーツをReactコンポーネントとして記述し、通常のHTML・CSS・JavaScriptとして出力します。静的なページ制作と、必要な部分だけを動かすUIを同じプロジェクトで扱えます。
 
 ## Table of Contents
 
@@ -20,20 +16,20 @@ contents list
 
 ## Reactで静的サイトを作る ||building-static-sites-with-react||
 
-ministaでは、ページや共通パーツをReactコンポーネントとして記述します。
+`src/pages/`へページを置き、Reactコンポーネントをdefault exportします。JSX・TSXの式やpropsを使って、見出し、リンク、繰り返し要素などを組み立てられます。
 
-```jsx title="src/pages/index.jsx"
-export default function () {
+```tsx title="src/pages/index.tsx"
+export default function Page() {
   return (
     <main>
       <h1>Hello, minista!</h1>
-      <p>Built with React and Vite.</p>
+      <p>最初の静的ページです。</p>
     </main>
   )
 }
 ```
 
-これらのJSX・TSXはビルド時に静的なHTMLへ変換されます。
+ビルドすると、次のようなHTMLが`dist/index.html`へ生成されます。
 
 ```html title="dist/index.html"
 <!DOCTYPE html>
@@ -46,68 +42,56 @@ export default function () {
   <body>
     <main>
       <h1>Hello, minista!</h1>
-      <p>Built with React and Vite.</p>
+      <p>最初の静的ページです。</p>
     </main>
   </body>
 </html>
 ```
 
+言語やタイトル、共通のヘッダーなどは[レイアウト](/ja/docs/guide/components-layouts)で設定します。ページはMarkdown・MDXでも記述できます。
+
 ## ViteをベースにしたSSG ||ssg-based-on-vite||
 
-ministaはViteを開発環境とビルド基盤として利用しています。
+開発サーバーとビルドにはViteを利用します。最小構成は`pluginSsg()`を追加した設定と、一つのページです。
 
-Viteの高速な開発体験をそのまま利用し、必要な機能をViteプラグインとして追加して使います。
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
 
-```js title="vite.config.js"
-import { pluginSsg } from "minista"
-
-export default {
+export default defineConfig({
   plugins: [pluginSsg()],
-}
+})
 ```
+
+`pluginSsg()`にはページ生成、Markdown・MDXの変換、参照されたCSS・JavaScript・画像の出力が含まれます。画像最適化や検索などは、必要になった段階でプラグインを追加します。
 
 ## デフォルトで静的 ||static-by-default||
 
-ministaの出力するHTMLは、基本的に100%静的です。
+ページの内容はビルド時にHTMLへ変換されます。静的なコンポーネントを表示するために、ブラウザへReactのランタイムを配信する必要はありません。
 
-クライアントサイドJavaScriptやReactのランタイムを読み込む必要はないので、次のような制作と相性が良いです。
-
-- LP
-- コーポレートサイト
-- プロダクト・サービスサイト
-- ブログ・メディア
-- ドキュメントサイト
-
-特定のサーバーランタイムに依存せず、さまざまな静的ホスティング環境やCDNへデプロイできます。
+公開するのは`dist/`のファイルです。公開先でministaを起動し続ける必要はなく、静的ファイルを配信できる環境へ配置できます。
 
 ## 必要なときだけインタラクティブ ||interactive-when-needed||
 
-動的なUIが必要な場合は、そのコンポーネントだけをIslandとしてクライアントサイドで動かせます。
+通常のJavaScriptは`script`から読み込めます。Reactの状態やイベントを使うUIには、`pluginIsland()`を追加して`client:*`を指定します。
 
-```jsx title="src/pages/index.jsx"
-import { Counter } from "../components/counter"
+```tsx title="src/pages/index.tsx"
+import Counter from "../components/counter"
 
-export default function () {
+export default function Page() {
   return <Counter client:load />
 }
 ```
 
+この場合はCounterを動かすJavaScriptが追加されます。読み込み時、待機時、画面内へ入ったときなど、動作を始める条件を選べます。設定とコンポーネントの作り方は[Island](/ja/docs/guide/islands)で紹介します。
+
 ## 主な機能 ||main-features||
 
-ministaには、静的サイト制作に必要な機能が用意されています。
-
-- TypeScript
 - JSX・TSXによるページとコンポーネント
-- ファイルベースルーティング
-- Layout
-- Markdown・MDX
-- 画像最適化
-- SVG最適化
-- SVGスプライト
-- Island
-- 静的サイト内検索
-- HTMLの整形
-- 納品用アーカイブの生成
-- Viteプラグインによる拡張
+- ファイルベースルーティングとAPIによる静的ページ生成
+- Markdown・MDXと共通レイアウト
+- CSS・JavaScript・TypeScript・画像のバンドル
+- 画像最適化、SVG最適化、SVGスプライト
+- Islandと静的サイト内検索
+- HTML・CSS・JavaScriptの整形と納品用アーカイブの生成
 
-各機能の使い方は[ガイド](/ja/docs/guide/)で順番に紹介します。設定値やAPIの詳細については、リファレンスと各プラグインのドキュメントを参照してください。
+導入から機能の追加までを[ガイド](/ja/docs/guide/)で説明します。用途の判断は[ministaを選ぶ理由](/ja/docs/why)、設定値やAPIは[設定リファレンス](/ja/docs/reference/config)と各プラグインのページを参照してください。

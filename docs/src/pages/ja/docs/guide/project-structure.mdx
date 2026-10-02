@@ -6,9 +6,13 @@ title: プロジェクト構成
 
 # プロジェクト構成
 
-ministaはデフォルトで`src/pages/`のページと`src/layouts/index.tsx`または`index.jsx`のレイアウトを読み込みます。共通コンポーネントやアセットは、プロジェクトに合わせて整理できます。
+[はじめる](/ja/docs/guide/)の最小構成を基に、ファイルの役割と、機能を追加した後の配置例を確認します。ministaはデフォルトで`src/pages/`のページと`src/layouts/index.tsx`または`index.jsx`のレイアウトを読み込みます。共通コンポーネントやアセットは、プロジェクトに合わせて整理できます。
 
-## 基本的なディレクトリ
+## Table of Contents
+
+contents list
+
+## 基本的なディレクトリ ||directory-structure||
 
 ```text
 my-minista-project/
@@ -32,48 +36,48 @@ my-minista-project/
 
 これは構成例です。最小テンプレートにはレイアウトや共通コンポーネントは含まれないため、必要に応じて追加します。
 
-## ページ：src/pages
+## ページ：src/pages ||pages||
 
 `.tsx`・`.jsx`・`.mdx`・`.md`ファイルがページになります。ファイル名とディレクトリ構造からURLが決まります。
 
-共通パーツやページとして公開しないMDXは、`src/components/`などページの探索対象外へ置きます。ページの作り方は[ページとルーティング](/ja/docs/guide/pages-routing)を参照してください。
+共通パーツやページとして公開しないMDXは、`src/components/`などページの探索対象外へ置きます。ページの作り方は[ファイルベースルーティング](/ja/docs/guide/pages-routing)を参照してください。
 
-## レイアウト：src/layouts
+## レイアウト：src/layouts ||layouts||
 
 `src/layouts/index.tsx`または`index.jsx`は、すべてのページを包む共通レイアウトです。ヘッダー、フッター、HTMLの言語、共通のhead要素などをまとめます。
 
 両方の拡張子で同じレイアウトを作らず、利用する言語に合わせて一つ用意してください。レイアウトなしでもページを生成できます。
 
-## コンポーネント：src/components
+## コンポーネント：src/components ||components||
 
 ヘッダーやカードなど、再利用するReactコンポーネントを置きます。この名前のディレクトリに特別な処理はなく、ページやレイアウトからimportして使います。
 
-## アセット：src/assetsとpublic
+## アセット：src/assetsとpublic ||assets||
 
 | 置き場所      | 用途                                                                |
 | ------------- | ------------------------------------------------------------------- |
 | `src/assets/` | importやHTML属性から参照し、Viteで処理するCSS・JavaScript・画像など |
 | `public/`     | ファイル名と内容を保って出力するfavicon、PDFなど                    |
 
-例えば`public/favicon.svg`は`/favicon.svg`として参照します。URLに`public`は含めません。使い分けは[画像とアセット](/ja/docs/guide/images-assets)で紹介します。
+例えば`public/favicon.svg`は`/favicon.svg`として参照します。URLに`public`は含めません。使い分けは[publicのファイル](/ja/docs/guide/public)と[画像のバンドル](/ja/docs/guide/images-assets)で紹介します。
 
-## 設定ファイル
+## 設定ファイル ||config-file||
 
 `vite.config.ts`または`vite.config.js`でプラグイン、開発サーバー、ビルドの設定を行います。TypeScriptの構成には`tsconfig.json`を追加します。
 
 Basicテンプレートの`project.json`は、サイト情報などをまとめるためのデータファイルです。ministaが自動的に設定として読み込むファイルではなく、必要なコンポーネントからimportして利用します。
 
-## 生成されるディレクトリ
+## 生成されるディレクトリ ||generated-directories||
 
 `dist/`は本番ビルドの出力先です。生成後のファイルを直接編集せず、ソースを修正して再ビルドします。
 
 キャッシュや検査結果などは、ルートに`package.json`がある場合は`node_modules/.minista/`、ない場合はルート直下の`.minista/`へ保存されます。これらは公開するサイトのファイルではありません。
 
-## ページの場所を変える
+## ページの場所を変える ||custom-page-directory||
 
 ページの探索範囲と、URLから取り除く基準ディレクトリを一緒に設定します。
 
-```ts title="./vite.config.ts"
+```ts title="vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"
 
 export default defineConfig({
