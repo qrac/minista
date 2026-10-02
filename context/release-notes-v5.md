@@ -38,6 +38,8 @@ MDXは`pluginSsg().mdx`へ統合し、`@mdx-js/mdx`を直接使う遅延compiler
 
 ## Dataとdiagnostics
 
+ImageのSharp変換から`withMetadata()`を削除しました。出力画像にはEXIF・XMP・IPTCなどのメタデータやICCプロファイルを保持・付与せず、EXIF Orientationによる向き補正は維持します。保持オプションは追加しません。生成画像のcache keyに変換方針を含め、旧メタデータ付きcacheを再生成します。
+
 Searchは`indexes`による複数indexに対応しました。`<Search index="ja" />`で選択し、indexごとに検索範囲とJSON出力を分けます。既存の`pluginSearch({ src })`と`<Search />`は変更不要です。解析条件が同じindexはpage解析Artifactを共有し、dev／Vite app build／legacy buildで同じ選択・検証・出力契約を使います（[ADR-0020](decisions/0020-search-multiple-indexes.md)）。
 
 - executable temp module handoffを削除し、`RenderedPage` Artifactまたはschema付きJSONへ移行

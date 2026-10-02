@@ -45,6 +45,12 @@
 
 次のmajorでVite plugin以外のpublic configurationが十分普及した場合でも、deprecated periodとcodemodなしに既存facadeを削除しません。
 
+## Image出力契約の修正（2026-10-02）
+
+v5ではSharp変換の`withMetadata()`を削除し、最適化画像にEXIF・XMP・IPTCなどのメタデータやICCプロファイルを保持・付与しない。Web向け出力の既定方針として扱い、メタデータ保持オプションは追加しない。EXIF Orientationによるピクセルの向き補正は維持する。寸法取得やsource cache内の寸法情報は引き続き必要な内部処理で、削除対象ではない。
+
+公開docsとmigration noteに挙動変更を記録する。生成画像のcache keyに変換方針を含め、旧メタデータ付き画像を自動的に再生成する。remote source cacheとmanifest schemaは維持する。
+
 ## Svg出力契約の修正（2026-09-08）
 
 P02では最適化後の描画属性をallowlistでsource contractへ渡し、明示propsを優先します。任意属性の無条件コピーはmarkerやイベント属性まで取り込むため採用しません。`style`／`class`は属性全体の上書きとし、CSS宣言のmergeは行いません。欠落sourceの未解決markerを成功出力に残す動作は廃止し、`MINISTA_SVG_SOURCE_NOT_FOUND` errorにします。公開optionの追加は行わず、公開docsとmigration noteに記録します。devの参照管理・watch・cache invalidationはadapterに閉じ、内部IDは下記P09の契約で名前空間化します。

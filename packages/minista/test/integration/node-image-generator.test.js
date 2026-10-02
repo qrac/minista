@@ -10,6 +10,8 @@ import {
   NodeImageGenerator,
 } from "../../src/adapters/image/index.js"
 import { createNodeId } from "../../src/core/index.js"
+import { generateHash } from "../../src/plugins/image/utils/hash.js"
+import { runSharp } from "../../src/plugins/image/utils/sharp.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const fixtureDir = path.resolve(here, "../fixtures/compat-basic")
@@ -67,6 +69,73 @@ afterAll(async () => {
 })
 
 describe("Node image generator", () => {
+  test("strips image metadata while correcting EXIF orientation", async () => {
+    const { default: sharp } = await import("sharp")
+    const sourceFile = path.resolve(cacheDir, "oriented.jpg")
+    await sharp(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="6" height="4"><path fill="red" d="M0 0h3v4H0z"/><path fill="blue" d="M3 0h3v4H3z"/></svg>'))
+      .jpeg()
+      .withMetadata({ orientation: 6 })
+      .withExifMerge({ IFD0: { Artist: "minista-test" } })
+      .toFile(sourceFile)
+    const sourceMetadata = await sharp(sourceFile).metadata()
+    expect(sourceMetadata.exif).toBeInstanceOf(Buffer)
+    expect(sourceMetadata.icc).toBeInstanceOf(Buffer)
+    expect(sourceMetadata.orientation).toBe(6)
+
+    for (const format of ["jpg", "png", "webp", "avif"]) {
+      const content = await runSharp(sourceFile, {
+        fileName: `oriented.${format}`,
+        width: 4,
+        height: 6,
+        format,
+        formatOptions: {},
+        resizeOptions: { fit: "cover", position: "centre" },
+      })
+      const metadata = await sharp(content).metadata()
+      expect(metadata).toMatchObject({ width: 4, height: 6 })
+      for (const field of ["exif", "icc", "iptc", "xmp", "orientation"]) {
+        expect(metadata[field]).toBeUndefined()
+      }
+      if (format === "png") {
+        const expectedPixels = await sharp(sourceFile).rotate().resize(4, 6).raw().toBuffer()
+        expect(await sharp(content).raw().toBuffer()).toEqual(expectedPixels)
+      }
+    }
+  })
+
+  test("regenerates cached images from the metadata-preserving pipeline", async () => {
+    const { default: sharp } = await import("sharp")
+    const rootDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "minista-image-metadata-"))
+    try {
+      const imageCacheDir = path.resolve(rootDir, "cache")
+      await fs.promises.mkdir(imageCacheDir)
+      const source = await sharp({ create: { width: 2, height: 2, channels: 3, background: "red" } })
+        .png().withMetadata().toBuffer()
+      await fs.promises.writeFile(path.resolve(rootDir, "pixel.png"), source)
+      const fileName = "pixel-2x2.png"
+      const pattern = {
+        fileName, width: 2, height: 2, format: "png", formatOptions: {},
+        resizeOptions: { fit: "cover", position: "centre" },
+      }
+      const oldKey = generateHash(`${generateHash(source)}:${JSON.stringify(pattern)}`)
+      await fs.promises.writeFile(path.resolve(imageCacheDir, fileName), source)
+      await fs.promises.writeFile(path.resolve(imageCacheDir, "cache.json"), JSON.stringify({
+        version: 2, artifacts: { [fileName]: oldKey }, metadata: {}, remoteSources: {}, nextRemoteIndex: 0,
+      }))
+      const generator = new NodeImageGenerator(rootDir, imageCacheDir)
+      const options = { ...createOptions(), useCache: true }
+      const first = await generator.generate([createReference("/pixel.png")], options)
+      expect((await sharp(first.artifacts[0].content).metadata()).exif).toBeUndefined()
+      expect((await sharp(first.artifacts[0].content).metadata()).icc).toBeUndefined()
+      const manifest = JSON.parse(await fs.promises.readFile(path.resolve(imageCacheDir, "cache.json"), "utf8"))
+      expect(manifest.artifacts[fileName]).not.toBe(oldKey)
+      const second = await generator.generate([createReference("/pixel.png")], options)
+      expect(second.artifacts[0].content).toEqual(first.artifacts[0].content)
+    } finally {
+      await fs.promises.rm(rootDir, { recursive: true, force: true })
+    }
+  })
+
   test("generates real image artifacts from domain references", async () => {
     const generator = new NodeImageGenerator(fixtureDir, cacheDir)
     const result = await generator.generate(

@@ -530,7 +530,7 @@ export class NodeImageGenerator {
         }
         const cacheFile = path.resolve(this.#cacheDir, pattern.fileName)
         const cacheKey = generateHash(
-          `${sourceHashes.get(reference.source)}:${JSON.stringify(pattern)}`,
+          `strip-metadata-v1:${sourceHashes.get(reference.source)}:${JSON.stringify(pattern)}`,
         )
         artifactTasks.set(id, {
           id,

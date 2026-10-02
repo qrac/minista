@@ -27,5 +27,5 @@ export async function runSharp(input, pattern) {
       // @ts-ignore
       pipeline = pipeline.toFormat(format, formatOptions?.[format])
   }
-  return pipeline.withMetadata().toBuffer()
+  return pipeline.toBuffer()
 }
