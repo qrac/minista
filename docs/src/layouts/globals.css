@@ -1,3 +1,5 @@
+@import "musubii/src/musubii.css";
+
 :root {
   --theme-tx-1: oklch(0.34 0.02 277.99 / 1);
   --theme-primary: oklch(0.74 0.15 209.92 / 1);
@@ -99,4 +101,20 @@ code[data-theme*=" "] span {
 [data-theme="dark"] code[data-theme*=" "] span {
   color: var(--shiki-dark);
   background-color: var(--shiki-dark-bg);
+}
+
+html:not([data-theme="light"]) [data-theme-content="light"] {
+  display: none;
+}
+
+html:not([data-theme="dark"]) [data-theme-content="dark"] {
+  display: none;
+}
+
+/*html[data-theme="dark"] .illustration {
+  filter: brightness(0.8);
+}*/
+
+[data-theme-button].is-active {
+  color: var(--theme-primary);
 }
