@@ -24,6 +24,10 @@ html {
   scroll-padding-top: var(--header-height);
 }
 
+html[lang="en"] {
+  font-family: var(--font-sans-en);
+}
+
 .box.is-bg-2-only-dark {
   background-color: var(--theme-bg-2-only-dark);
 }

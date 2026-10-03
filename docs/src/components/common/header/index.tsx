@@ -60,7 +60,7 @@ function NavVersion(props: Partial<Props>) {
           type="button"
           className="button is-plain is-round is-angle-right is-angle-down is-pr-xl is-xs"
         >
-          <span className="text is-font-sans-en">v{currentVersion}</span>
+          <span className="text">v{currentVersion}</span>
         </button>
       }
       radius="xl"
@@ -69,7 +69,7 @@ function NavVersion(props: Partial<Props>) {
         <ul>
           <li className="box is-flex">
             <div className="box is-flex is-middle is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full">
-              <span className="text is-font-sans-en is-primary">{`Latest(v${currentVersion})`}</span>
+              <span className="text is-primary">{`Latest(v${currentVersion})`}</span>
             </div>
           </li>
           {archiveItems.map((item, itemIndex) => (
@@ -79,7 +79,7 @@ function NavVersion(props: Partial<Props>) {
                 className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full"
                 target={item.external ? "_blank" : undefined}
               >
-                <span className="text is-font-sans-en">{item.name}</span>
+                <span className="text">{item.name}</span>
                 {item.external && <LuExternalLink className="icon is-dark-4" />}
               </a>
             </li>
@@ -178,7 +178,7 @@ function NavTheme() {
       }
       radius="xl"
     >
-      <div className="box is-bg-light is-outline is-p-sm is-radius-xl is-font-sans-en">
+      <div className="box is-bg-light is-outline is-p-sm is-radius-xl">
         <ul>
           <li className="box is-flex">
             <button
@@ -187,7 +187,7 @@ function NavTheme() {
               data-theme-button="light"
             >
               <LuSun className="icon is-lg" />
-              <span className="text is-font-sans-en">Light</span>
+              <span className="text">Light</span>
             </button>
           </li>
           <li className="box is-flex">
@@ -197,7 +197,7 @@ function NavTheme() {
               data-theme-button="dark"
             >
               <LuMoon className="icon is-lg" />
-              <span className="text is-font-sans-en">Dark</span>
+              <span className="text">Dark</span>
             </button>
           </li>
           <li className="box is-flex">
@@ -207,7 +207,7 @@ function NavTheme() {
               data-theme-button="system"
             >
               <LuMonitor className="icon is-lg" />
-              <span className="text is-font-sans-en">System</span>
+              <span className="text">System</span>
             </button>
           </li>
         </ul>

@@ -7,9 +7,7 @@ export default function CommonSidetoc(props: Partial<Props>) {
   return (
     <nav className="sidetoc">
       <div className="box is-space-xs">
-        <h2 className="text is-weight-700 is-font-sans-en is-xs">
-          On this page
-        </h2>
+        <h2 className="text is-weight-700 is-xs">On this page</h2>
         <div data-sidetoc=""></div>
       </div>
     </nav>
