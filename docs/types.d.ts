@@ -10,8 +10,6 @@ type CustomProps = {
   layout: string
   locale: Locale
   description: string
-  hasPrev: boolean
-  hasNext: boolean
   noindex: boolean
   pkg: Pkg
   pjt: Pjt

@@ -16,7 +16,9 @@ export function formatPager(
     })),
   )
 
-  const index = items.findIndex((item) => item.url === url)
+  const index = items.findIndex(
+    (item) => localizePath(item.url, locale, locales) === url,
+  )
 
   if (index === -1) {
     return {

@@ -31,15 +31,12 @@ export default function (props: LayoutProps) {
     locale,
     layout,
     description,
-    hasPrev,
-    hasNext,
     noindex,
     pkg,
     pjt,
   } = props
 
   const isDocs = layout === "docs"
-  const hasPager = hasPrev || hasNext
   const siteName = pjt.site.name
   const siteUrl = pjt.site.url
   const pageTitle = ["/", "/ja/"].includes(url)
@@ -54,6 +51,7 @@ export default function (props: LayoutProps) {
     pjt.i18n.locales,
     pjt.navigation.docs,
   )
+  const hasPager = (prevTitle && prevUrl) || (nextTitle && nextUrl)
   const ogUrl = siteUrl + url
   const ogImage = siteUrl + pjt.site.assets.ogp
   const ogType = url === "/" ? "website" : "article"

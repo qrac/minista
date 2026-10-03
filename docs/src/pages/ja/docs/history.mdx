@@ -4,42 +4,92 @@ locale: ja
 title: 歴史
 ---
 
+import ElementRecord from "../../../components/element/record"
+import ElementStageLogo from "../../../components/element/stage-logo"
+import ElementStageSpeed from "../../../components/element/stage-speed"
+
 # 歴史
 
-ministaは、ReactのJSXでHTMLコーディングを行い、静的なファイルを納品するためのツールとして始まりました。その目的を保ちながら、開発環境とビルドの仕組みを更新してきました。
+ministaは、ReactのJSXでページを作り、綺麗なHTMLを納品するためのツールとして2021年に開発が始まりました。
+
+Next.jsで使い慣れたJSXやエディターの補完を、静的HTMLの制作でも使いたい。一方で、納品するファイルの名前や構成、読みやすさは自分で調整したい。その両立を目指しています。
 
 ## Table of Contents
 
 contents list
 
-## 2021年：JSXでHTMLを制作するために ||2021-writing-html-with-jsx||
+## v0：JSXでHTMLを作る試作版 ||v0-writing-html-with-jsx||
 
-初期のministaは、JSXのコンポーネントでページを組み立て、Reactの静的レンダリングでHTMLを書き出す構成でした。アセットの処理にはwebpackを利用し、Reactで書く制作体験をHTML納品へ持ち込むことが出発点になりました。
+<ElementRecord text="First Commit: 2021/03/21" />
 
-当時の背景は、作者による[初期版の紹介記事](https://zenn.dev/qrac/articles/7537521afcd1bf)にまとめられています。
+<ElementStageLogo version={1} />
+
+Reactの`renderToStaticMarkup()`とwebpackを組み合わせ、JSXから静的HTMLを書き出す仕組みをパッケージ化しました。これが初期のministaです。
+
+ページや共通パーツをReactコンポーネントで管理し、成果物は通常のHTMLとして出力する処理を実現しています。
+
+- [React(JSX)で書けるコーディング用SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
+
+## v1：実務での利用と課題 ||v1-practical-use-and-challenges||
+
+<ElementRecord text="Release: 2022/01/15" />
+
+単純で拡張しやすい構成を活かし、実際のWeb制作で利用するようになりました。一方で、v0〜v1はプロジェクトが大きくなるとwebpackの起動に時間がかかり、終盤には10秒以上待つこともありました。
+
+ページをHTML化する関数を毎回書く必要があり、コンポーネントからCSSをimportすることもできませんでした。APIのデータからページを生成する機能やMarkdownへの対応も課題となり、設計を見直すことにしました。
+
+- [Reactで書けるSSG改善点と今後について- minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
 
 ## v2：Viteとesbuildを採用 ||v2-vite-and-esbuild||
 
-v2ではwebpackからViteとesbuildへ移行しました。開発環境にはVite、本番の静的HTML生成にはesbuildを使い、開発サーバーの起動やビルドの改善を進めました。データからページを生成する`getStaticData()`やMDXも導入されています。
+<ElementRecord text="Release: 2022/04/12" />
 
-設計の背景は、[v2の紹介記事](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)を参照してください。
+webpackをViteとesbuildへ置き換え、ゼロから作り直しました。開発サーバーにはVite、本番の静的HTML生成にはesbuildを使い、起動とビルドを高速化しました。
 
-## v3：開発と本番の処理を近づける ||v3-align-development-and-build||
+<ElementStageSpeed />
 
-v3では、開発中にも静的HTMLを配信する方式へ変更し、本番ビルドのSSGにもViteを採用しました。開発と本番で異なる処理を使うことによる差を減らし、通常のブラウザ用JavaScriptと組み合わせやすくしています。
+ページの書き方も整理し、`getStaticData()`によるデータ取得とルート生成、Markdown・MDXに対応しました。v2.4ではページの一部をReactで動かすPartial Hydration、v2.7ではブラウザだけで動作する全文検索を追加しました。
 
-画像最適化や納品向けの機能も整備しました。詳しくは[v3の紹介記事](https://zenn.dev/qrac/articles/980efced76634f)を参照してください。
+- [Viteとesbuildを組み込みReact製SSGを再構築- minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
+
+- [SSG + Partial Hydration (部分的なReact App) - minista v2.4](https://zenn.dev/qrac/articles/b9c65c1c0be901)
+
+- [SSGにclientサイド完結型の全文検索を実装した- minista v2.7](https://zenn.dev/qrac/articles/653f7512b707ff)
+
+## v3：開発中も静的HTMLを表示 ||v3-align-development-and-build||
+
+<ElementRecord text="Release: 2023/03/31" />
+
+<ElementStageLogo version={3} />
+
+基本的な使い方を保ちながら、ソースコードをすべて書き直しました。開発中もSPAではなく静的HTMLを表示し、本番に近い状態で確認できるようにしました。本番ビルドもesbuildからViteへ統一しています。
+
+画像最適化、アセットのエントリー指定、納品ページの一覧生成、ZIPアーカイブの生成など、HTML制作と納品を支える機能も追加しました。
+
+- [ReactのJSXで書けるSSGを1から作り直した- minista v3](https://zenn.dev/qrac/articles/980efced76634f)
 
 ## v4：機能をViteプラグインへ ||v4-vite-plugins||
 
-v4では、ministaの機能をViteプラグインとして設定する構成へ移行しました。必要な機能を`plugins`へ追加し、Viteの処理の中で他のプラグインと組み合わせられるようになりました。
+<ElementRecord text="Release: 2026/03/15" />
 
-ページの一部をReactで動かす機能も、`client:*`ディレクティブを使うIsland形式へ変更しています。詳しくは[v4の紹介記事](https://zenn.dev/qrac/articles/48d43fdc4a4822)を参照してください。
+<ElementStageLogo version={4} />
+
+RolldownベースのViteと統合し、すべての機能をViteプラグインとして提供する構成へ変更しました。`vite.config.ts`に必要なプラグインを追加します。
+
+従来のPartial HydrationをIslandへ置き換えました。JSXの任意の部分に`client:*`を付けてReactで動かし、propsや読み込みのタイミングに対応しました。
+
+- [SSGをViteプラグイン化し3年振りにリリース - minista v4](https://zenn.dev/qrac/articles/48d43fdc4a4822)
 
 ## v5：基本構成とビルドを整理 ||v5-simplify-setup-and-build||
 
-このドキュメントが扱うv5では、ページ生成、Markdown・MDX、ページやレイアウトから参照するアセットの処理を`pluginSsg()`へ統合しました。基本的なサイトを一つのプラグインから始められます。
+<ElementRecord text="Release: 開発中" />
 
-HTML生成とブラウザ向けアセットの出力を、一つのビルドとして管理する構成へ整理しました。また、`minista check`による検査や、`minista inspect`によるページ構成の確認ができるようになりました。
+使い勝手はそのままに大幅なリファクタリングと仕様の追加を行いました。
 
-過去の記事にあるAPIや設定は、そのバージョンのものです。新しいプロジェクトでは、[はじめる](/ja/docs/guide/)から現行の手順を確認してください。
+Project Graphによるroute, page, assetの一元管理やライブラリの非同期ロードなどによってbuildを最大約50%高速化。Search JSON生成に至っては最大400%高速化しています。
+
+Layoutにhtml, head, bodyの編集機能を追加、publicへのパスにbaseを反映、Islandにシリアライズ化される変数の受け渡しを実装、pluginSearchの複数検索出力に対応など、細かい仕様の改善も行いました。
+
+また、このタイミングでドキュメントサイトを多言語化しており、英語圏のユーザーにもコンテンツを提供しやすくなりました。
+
+※過去の記事にあるAPIや設定は、そのバージョンのものです。現行の手順は[はじめる](/ja/docs/guide/)を参照してください。
