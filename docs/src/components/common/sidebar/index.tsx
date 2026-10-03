@@ -22,15 +22,19 @@ export default function CommonSidebar(props: Partial<Props>) {
                 return (
                   <li key={itemIndex}>
                     {url === itemUrl ? (
-                      <div className="box is-flex is-flex-full is-py-xs is-px-md">
-                        <span className="text is-primary">{itemName}</span>
+                      <div className="box is-flex is-flex-full is-py-xs is-px-sm">
+                        <span className="text is-weight-500 is-line-height-xs is-primary is-sm">
+                          {itemName}
+                        </span>
                       </div>
                     ) : (
                       <a
-                        className="box is-flex is-flex-full is-link is-py-xs is-px-md is-radius-ml"
+                        className="box is-flex is-flex-full is-link is-py-xs is-px-sm is-radius-ml"
                         href={itemUrl}
                       >
-                        <span className="text">{itemName}</span>
+                        <span className="text is-weight-500 is-line-height-xs is-sm">
+                          {itemName}
+                        </span>
                       </a>
                     )}
                   </li>
