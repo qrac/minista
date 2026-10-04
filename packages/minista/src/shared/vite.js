@@ -87,6 +87,33 @@ export function filterOutputChunks(bundle) {
 }
 
 /**
+ * Collect dependency CSS before entry CSS to preserve the cascade order.
+ * @param {OutputChunk} entry
+ * @param {{[key:string]:OutputChunk}} chunks
+ * @returns {string[]}
+ */
+export function getImportedCss(entry, chunks) {
+  const visited = new Set()
+  const cssFiles = new Set()
+
+  /** @param {OutputChunk} chunk */
+  function visit(chunk) {
+    if (visited.has(chunk.fileName)) return
+    visited.add(chunk.fileName)
+
+    for (const file of chunk.imports) {
+      if (chunks[file]) visit(chunks[file])
+    }
+    for (const file of chunk.viteMetadata?.importedCss || []) {
+      cssFiles.add(file)
+    }
+  }
+
+  visit(entry)
+  return [...cssFiles]
+}
+
+/**
  * @param {OutputBundle} bundle
  * @returns {{[key:string]:OutputAsset}}
  */

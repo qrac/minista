@@ -16,7 +16,11 @@ import {
   getBasedAssetUrl,
 } from "../../shared/url.js"
 import { regScript } from "../../shared/reg.js"
-import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
+import {
+  filterOutputChunks,
+  filterOutputAssets,
+  getImportedCss,
+} from "../../shared/vite.js"
 import { createAssetEntryId } from "../../shared/asset.js"
 
 /** @type {PluginOptions} */
@@ -150,9 +154,7 @@ export function pluginEntry(uOpts = {}) {
           const newFileName = item.fileName
           entryChanges[before] = newFileName
 
-          let importedCssFiles = item.viteMetadata?.importedCss
-            ? [...item.viteMetadata?.importedCss]
-            : []
+          const importedCssFiles = getImportedCss(item, outputChunks)
           if (importedCssFiles.length > 0) {
             importedCssMap[before] = importedCssFiles
           }
@@ -192,8 +194,10 @@ export function pluginEntry(uOpts = {}) {
           if (!Object.hasOwn(importedCssMap, before)) continue
 
           for (const file of importedCssMap[before]) {
+            if (!bundle[file]) continue
             const cssBasedAssetUrl = getBasedAssetUrl(base, htmlName, file)
             const linkTag = `<link rel="stylesheet" href="${cssBasedAssetUrl}">`
+            if (newHtml.includes(linkTag)) continue
             newHtml = newHtml.replace("</head>", `${linkTag}</head>`)
           }
         }

@@ -18,6 +18,7 @@ import {
   mergeAlias,
   filterOutputChunks,
   filterOutputAssets,
+  getImportedCss,
 } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
@@ -121,9 +122,7 @@ export function pluginBundle(uOpts = {}) {
 
       for (const [key, item] of Object.entries(outputChunks)) {
         if (item.facadeModuleId !== normalizePath(globFile)) continue
-        cssFiles = item.viteMetadata?.importedCss
-          ? [...item.viteMetadata?.importedCss]
-          : []
+        cssFiles = getImportedCss(item, outputChunks)
         delete bundle[key]
         break
       }
@@ -160,6 +159,7 @@ export function pluginBundle(uOpts = {}) {
         for (const file of cssFiles) {
           const basedAssetUrl = getBasedAssetUrl(base, htmlName, file)
           const linkTag = `<link rel="stylesheet" href="${basedAssetUrl}">`
+          if (newHtml.includes(linkTag)) continue
           newHtml = newHtml.replace("</head>", `${linkTag}</head>`)
         }
 

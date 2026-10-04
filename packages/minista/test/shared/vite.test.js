@@ -4,7 +4,49 @@ import {
   mergeSsrExternal,
   mergeSsrNoExternal,
   mergeAlias,
+  getImportedCss,
 } from "../../src/shared/vite.js"
+
+describe("getImportedCss", () => {
+  function chunk(fileName, imports = [], css = []) {
+    return /** @type {import('rolldown').OutputChunk} */ ({
+      fileName,
+      imports,
+      viteMetadata: { importedCss: new Set(css) },
+    })
+  }
+
+  it("依存先から順にCSSを収集し共有依存とCSSの重複を除く", () => {
+    const chunks = {
+      "entry.js": chunk("entry.js", ["a.js", "b.js"], ["entry.css"]),
+      "a.js": chunk("a.js", ["shared.js"], ["a.css"]),
+      "b.js": chunk("b.js", ["shared.js"], ["a.css", "b.css"]),
+      "shared.js": chunk("shared.js", [], ["shared.css"]),
+    }
+    expect(getImportedCss(chunks["entry.js"], chunks))
+      .toEqual(["shared.css", "a.css", "b.css", "entry.css"])
+  })
+
+  it("循環参照や外部importとCSS metadataのないchunkを扱う", () => {
+    const chunks = {
+      "entry.js": chunk("entry.js", ["shared.js", "external"]),
+      "shared.js": chunk("shared.js", ["entry.js"], ["shared.css"]),
+    }
+    delete chunks["entry.js"].viteMetadata
+    expect(getImportedCss(chunks["entry.js"], chunks)).toEqual(["shared.css"])
+  })
+
+  it("無関係なentryやdynamic importのCSSは含めない", () => {
+    const entry = chunk("entry.js", [], ["entry.css"])
+    entry.dynamicImports = ["lazy.js"]
+    const chunks = {
+      "entry.js": entry,
+      "lazy.js": chunk("lazy.js", [], ["lazy.css"]),
+      "other.js": chunk("other.js", [], ["other.css"]),
+    }
+    expect(getImportedCss(entry, chunks)).toEqual(["entry.css"])
+  })
+})
 
 describe("mergeSsrExternal", () => {
   it("ssr.externalが未定義の場合は渡したモジュールを返す", () => {
