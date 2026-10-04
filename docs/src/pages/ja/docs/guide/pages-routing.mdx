@@ -52,11 +52,11 @@ dist/
     └── hello.html
 ```
 
-| ページファイル | 開発時のURL | ビルド結果 |
-| --- | --- | --- |
-| `src/pages/index.tsx` | `/` | `dist/index.html` |
-| `src/pages/about.tsx` | `/about` | `dist/about.html` |
-| `src/pages/news/index.tsx` | `/news/` | `dist/news/index.html` |
+| ページファイル             | 開発時のURL   | ビルド結果             |
+| -------------------------- | ------------- | ---------------------- |
+| `src/pages/index.tsx`      | `/`           | `dist/index.html`      |
+| `src/pages/about.tsx`      | `/about`      | `dist/about.html`      |
+| `src/pages/news/index.tsx` | `/news/`      | `dist/news/index.html` |
 | `src/pages/news/hello.tsx` | `/news/hello` | `dist/news/hello.html` |
 
 公開後に拡張子を省略したURLを使えるかは、ホスティング側の設定によります。ディレクトリのインデックスを配信する構成なら、`about/index.tsx`のように配置します。
@@ -98,7 +98,7 @@ export default function Article() {
 
 ## 配置のルール ||page-file-rules||
 
-`.jsx`・`.tsx`・`.md`・`.mdx`がページの対象です。共通パーツやデータファイルは`src/components/`や`src/data/`など、ページの探索範囲外へ置きます。
+`.jsx` `.tsx` `.md` `.mdx`がページの対象です。共通パーツやデータファイルは`src/components/`や`src/data/`など、ページの探索範囲外へ置きます。
 
 同じURLになるファイルは作らないでください。例えば`about.tsx`と`about.mdx`は競合します。`npx minista check`でページ構成を検査できます。
 
