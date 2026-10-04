@@ -36,7 +36,7 @@ export default function Header({ siteName }: Props) {
 `src/layouts/index.tsx`または`index.jsx`は、デフォルトですべてのページに適用されます。`children`がページ本文です。
 
 ```tsx title="src/layouts/index.tsx"
-import type { LayoutProps, Metadata } from "minista/types"
+import type { Metadata, LayoutProps } from "minista/types"
 import Header from "../components/header"
 
 export const metadata: Metadata = {

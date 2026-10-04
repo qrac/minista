@@ -19,14 +19,16 @@ contents list
 `src/pages/about.tsx`を作り、Reactコンポーネントをdefault exportします。開発サーバーを起動して、`/about`を開いてください。
 
 ```tsx title="src/pages/about.tsx"
-export const metadata = { title: "私たちについて" }
+import type { Metadata, PageProps } from "minista/types"
 
-export default function About() {
-  return <h1>私たちについて</h1>
+export const metadata: Metadata = { title: "私たちについて" }
+
+export default function About({ title }: PageProps) {
+  return <h1>{title}</h1>
 }
 ```
 
-`metadata`はページやレイアウトへ渡すデータです。`title`をHTMLのheadに反映する方法は[レイアウト](/ja/docs/guide/components-layouts)で扱います。
+`metadata`はページやレイアウトへ渡すデータです。`Metadata`でその項目を、`PageProps`でページが受け取るpropsを型チェックできます。この例では、`metadata`の`title`をpropsから受け取り、見出しに表示しています。`title`をHTMLのheadに反映する方法は[レイアウト](/ja/docs/guide/components-layouts)で扱います。
 
 ## ディレクトリで階層を作る ||nested-pages||
 
@@ -66,10 +68,14 @@ dist/
 ページ間の移動には通常の`a`要素を使います。専用のルーターやリンクコンポーネントは不要です。
 
 ```tsx title="src/pages/index.tsx"
-export default function Page() {
+import type { Metadata, PageProps } from "minista/types"
+
+export const metadata: Metadata = { title: "My Site" }
+
+export default function Page({ title }: PageProps) {
   return (
     <>
-      <h1>My Site</h1>
+      <h1>{title}</h1>
       <nav>
         <a href="/about">私たちについて</a>
         <a href="/news/">お知らせ</a>
@@ -86,13 +92,15 @@ export default function Page() {
 制作中のページには`draft: true`を指定できます。開発中は表示され、本番ビルドからは除外されます。
 
 ```tsx title="src/pages/news/hello.tsx"
-export const metadata = {
+import type { Metadata, PageProps } from "minista/types"
+
+export const metadata: Metadata = {
   title: "制作中のお知らせ",
   draft: true,
 }
 
-export default function Article() {
-  return <h1>制作中のお知らせ</h1>
+export default function Article({ title }: PageProps) {
+  return <h1>{title}</h1>
 }
 ```
 
