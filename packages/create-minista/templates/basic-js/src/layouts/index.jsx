@@ -2,6 +2,7 @@ import Header from "../components/header"
 import Footer from "../components/footer"
 
 import pjt from "../../project.json"
+import "./globals.css"
 import "./style.css"
 
 /** @param {import("minista/types").LayoutProps} props */
@@ -14,7 +15,7 @@ export default function (props) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width" />
         <title>{title}</title>
-        <script src="/src/assets/entries/scripts.js" type="module" />
+        <script src="/src/assets/scripts.js" type="module" />
         <link rel="icon" href="/favicon.png" />
       </head>
       <body>

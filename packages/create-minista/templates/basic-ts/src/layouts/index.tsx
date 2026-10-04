@@ -4,6 +4,7 @@ import Header from "../components/header"
 import Footer from "../components/footer"
 
 import pjt from "../../project.json"
+import "./globals.css"
 import "./style.css"
 
 export default function (props: LayoutProps) {
@@ -15,7 +16,7 @@ export default function (props: LayoutProps) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width" />
         <title>{title}</title>
-        <script src="/src/assets/entries/scripts.ts" type="module" />
+        <script src="/src/assets/scripts.ts" type="module" />
         <link rel="icon" href="/favicon.png" />
       </head>
       <body>
