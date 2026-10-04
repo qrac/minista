@@ -23,7 +23,7 @@ export default function CommonSidebar(props: Partial<Props>) {
                   <li key={itemIndex}>
                     {url === itemUrl ? (
                       <div className="box is-flex is-flex-full is-py-xs is-px-sm">
-                        <span className="text is-weight-500 is-line-height-xs is-primary is-sm">
+                        <span className="text is-weight-500 is-line-height-sm is-primary is-sm">
                           {itemName}
                         </span>
                       </div>
@@ -32,7 +32,7 @@ export default function CommonSidebar(props: Partial<Props>) {
                         className="box is-flex is-flex-full is-link is-py-xs is-px-sm is-radius-ml"
                         href={itemUrl}
                       >
-                        <span className="text is-weight-500 is-line-height-xs is-sm">
+                        <span className="text is-weight-500 is-line-height-sm is-sm">
                           {itemName}
                         </span>
                       </a>
