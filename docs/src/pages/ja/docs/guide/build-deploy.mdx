@@ -8,6 +8,8 @@ title: ビルドとデプロイ
 
 ministaは、ビルドで生成した静的ファイルを公開します。本番環境でministaやNode.jsのサーバーを起動し続ける必要はありません。
 
+[設定](/ja/docs/guide/configuration)までの最小構成で、トップページをビルドし、出力の確認から公開までの手順を紹介します。
+
 ## Table of Contents
 
 contents list
@@ -35,15 +37,11 @@ npx tsc --noEmit
 npm run build
 ```
 
-`build`スクリプトには`minista build`を設定します。標準の出力先は`dist/`です。
+`build`スクリプトには`minista build`を設定します。標準の出力先は`dist/`です。最小構成では、トップページのHTMLが一つ生成されます。
 
 ```text
 dist/
-├── index.html
-├── about.html
-├── assets/
-│   └── ...
-└── favicon.svg
+└── index.html
 ```
 
 出力内容はページやプラグインの設定によって変わります。`public/`のファイルも出力先へコピーされ、`draft: true`のページは除外されます。
@@ -56,7 +54,7 @@ dist/
 npm run preview
 ```
 
-`preview`スクリプトには`minista preview`を設定します。表示されたURLで、ページ、画像、リンク、Islandの操作を確認します。previewは生成済みファイルの確認用で、変更を自動ビルドするコマンドではありません。
+`preview`スクリプトには`minista preview`を設定します。表示されたURLでトップページを確認します。画像やリンク、Islandなどを追加した後も、ここで表示や動作を確認できます。previewは生成済みファイルの確認用で、変更を自動ビルドするコマンドではありません。
 
 ## 静的ホスティングへ公開する ||static-hosting||
 
@@ -106,3 +104,5 @@ export default defineConfig({
 ```
 
 納品用にHTMLを整えたり、ZIPへまとめたりする場合は、[HTMLの整形](/ja/docs/guide/beautify)と[納品用アーカイブ](/ja/docs/guide/archive)を参照してください。ファイル名のハッシュや圧縮設定は[設定リファレンス](/ja/docs/reference/config)で紹介します。
+
+次は[ファイルベースルーティング](/ja/docs/guide/pages-routing)で、会社情報やお知らせのページを追加します。

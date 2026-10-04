@@ -497,6 +497,14 @@
               "url": "/docs/guide/configuration"
             },
             {
+              "id": "build-deploy",
+              "name": {
+                "en": "Build & Deploy",
+                "ja": "ビルドとデプロイ"
+              },
+              "url": "/docs/guide/build-deploy"
+            },
+            {
               "id": "pages-routing",
               "name": {
                 "en": "Pages & Routing",
@@ -623,14 +631,6 @@
                 "ja": "APIを活用したルーティングと流し込み"
               },
               "url": "/docs/guide/fetch"
-            },
-            {
-              "id": "build-deploy",
-              "name": {
-                "en": "Build & Deploy",
-                "ja": "ビルドとデプロイ"
-              },
-              "url": "/docs/guide/build-deploy"
             }
           ]
         },
