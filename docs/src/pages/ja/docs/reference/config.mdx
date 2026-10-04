@@ -44,7 +44,7 @@ contents list
 
 ministaはv4以降、すべての機能をViteプラグイン化しています。プロジェクトに必要なプラグインを選び、コンフィグの `plugins` に追加してください。
 
-JSX・MDX・Markdownのページ生成と、CSS・JavaScript・画像の参照処理は`pluginSsg()`に含まれます。基本設定は以下だけで利用できます。画像最適化やIslandなどが必要な場合に、対応するプラグインを追加してください。各機能の導入はガイド、設定値の型と既定値はプラグインのページを参照してください。
+ページを静的HTMLとして出力するには、`pluginSsg()`が必須です。JSX・TSX・Markdown・MDXからのHTML生成と、参照されたCSS・JavaScript・画像の出力を担います。静的サイトの最小設定は次のとおりです。
 
 ```ts title="vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"
@@ -53,6 +53,8 @@ export default defineConfig({
   plugins: [pluginSsg()],
 })
 ```
+
+画像最適化やIslandなどが必要な場合は、`pluginSsg()`に加え、対応するプラグインを追加します。導入手順はガイド、設定値の型と既定値は各プラグインのページを参照してください。
 
 ## 用途別の設定 ||configuration-recipes||
 

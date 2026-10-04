@@ -54,7 +54,7 @@ export default function Page() {
 
 ## ViteをベースにしたSSG ||ssg-based-on-vite||
 
-開発サーバーとビルドにはViteを利用します。最小構成は`pluginSsg()`を追加した設定と1つのページです。
+開発サーバーとビルドにはViteを利用します。静的HTMLの出力には`pluginSsg()`が必須です。最小構成は、このプラグインを追加した設定と1つのページです。
 
 ```ts title="vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"

@@ -114,7 +114,7 @@ npm install --save-dev minista@^5 vite@^8.1 react@^19 react-dom@^19
 }
 ```
 
-プロジェクトルートに設定ファイルを作成します。
+プロジェクトルートに設定ファイルを作成し、静的HTMLの出力に必須の`pluginSsg()`を追加します。テンプレートには設定済みです。
 
 ```js title="vite.config.js"
 import { defineConfig, pluginSsg } from "minista"

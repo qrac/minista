@@ -22,11 +22,13 @@ export default defineConfig({
 })
 ```
 
-`defineConfig`はministaから利用できます。`pluginSsg()`には、JSX・TSXのページ生成、Markdown・MDX、参照されたCSS・JavaScript・画像の出力が含まれます。
+`defineConfig`はministaから利用できます。`pluginSsg()`は、ページを静的HTMLとして出力するための必須プラグインです。Markdown・MDXの変換や、ページから参照するCSS・JavaScript・画像の出力も担います。
 
 `minista.config.*`も後方互換のため利用できますが、新しいプロジェクトでは`vite.config.*`を使います。複数の設定ファイルがあると競合エラーになるため、一つにまとめてください。
 
 ## 必要なプラグインを追加する ||add-plugins||
+
+静的HTML出力に必要な`pluginSsg()`に加え、画像最適化やIslandなどのプラグインを追加します。
 
 ```ts title="vite.config.ts"
 import { defineConfig, pluginSsg, pluginImage, pluginIsland } from "minista"
