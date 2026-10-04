@@ -65,6 +65,8 @@ export default function Layout({ title, children }: LayoutProps) {
 
 ページの`metadata.title`はレイアウトの既定タイトルより優先されます。`url`で現在のページURLも取得できます。
 
+[ページへデータを渡す](/ja/docs/guide/static-data)で用意した`getStaticData()`のpropsも、レイアウトで受け取れます。独自のデータを使う場合は`LayoutProps`へ型を追加し、そのデータを持たないページも表示できるよう省略可能にして扱います。
+
 ## 構成と出力を確認する ||layout-output||
 
 ページに加え、ヘッダーと共通レイアウトを次の場所へ置きます。

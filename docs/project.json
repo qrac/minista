@@ -529,6 +529,14 @@
               "url": "/docs/guide/404"
             },
             {
+              "id": "static-data",
+              "name": {
+                "en": "Passing Data to Pages",
+                "ja": "ページへデータを渡す"
+              },
+              "url": "/docs/guide/static-data"
+            },
+            {
               "id": "components-layouts",
               "name": {
                 "en": "Components & Layouts",

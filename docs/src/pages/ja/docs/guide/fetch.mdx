@@ -6,7 +6,7 @@ title: APIを活用したルーティングと流し込み
 
 # APIを活用したルーティングと流し込み
 
-`getStaticData()`でAPIやCMSのデータを取得し、ページへ渡せます。一覧を一つのページに流し込む方法と、データごとに詳細ページを生成する方法を紹介します。
+ここでは[ページへデータを渡す](/ja/docs/guide/static-data)で使った`getStaticData()`を応用し、APIやCMSから取得した記事を一覧へ流し込み、記事ごとの詳細ページを生成します。
 
 ここでのデータ取得は開発・ビルド時に行います。公開サイトへのアクセスごとにAPIを呼ぶ機能ではありません。
 
@@ -54,16 +54,18 @@ HTTPエラーとデータの形を確認し、取得できなければビルド�
 
 ## 一覧ページへデータを渡す ||static-page-data||
 
-`getStaticData()`から`props`を返すと、ページとレイアウトで利用できます。
+一覧ページの`getStaticData()`で`getArticles()`を呼び、取得した記事を`props`として渡します。
 
 ```tsx title="src/pages/news/index.tsx"
-import type { GetStaticData, PageProps } from "minista/types"
+import type { Metadata, PageProps, GetStaticData } from "minista/types"
 import { getArticles, type Article } from "../../data/news"
 
 type Props = PageProps & { articles: Article[] }
 
+export const metadata: Metadata = { title: "お知らせ" }
+
 export const getStaticData: GetStaticData = async () => ({
-  props: { title: "お知らせ", articles: await getArticles() },
+  props: { articles: await getArticles() },
 })
 
 export default function News({ title, articles }: Props) {
@@ -82,7 +84,7 @@ export default function News({ title, articles }: Props) {
 }
 ```
 
-ここでは取得した本文をHTMLへ出力します。サイト閲覧時にこのAPIへ接続する必要はありません。
+取得した記事のタイトルとリンクは、ビルド時にHTMLへ出力されます。サイト閲覧時にこのAPIへ接続する必要はありません。
 
 ## データごとのページを作る ||dynamic-routes||
 

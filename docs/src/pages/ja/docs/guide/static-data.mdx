@@ -1,0 +1,116 @@
+---
+layout: docs
+locale: ja
+title: ページへデータを渡す
+---
+
+# ページへデータを渡す
+
+ページに使うデータは、`metadata`や`getStaticData()`からpropsとして渡せます。ここではAPIを使わず、お知らせの配列をページへ渡して一覧を作ります。
+
+## Table of Contents
+
+contents list
+
+## metadataとgetStaticDataを使い分ける ||metadata-and-static-data||
+
+`metadata`には、タイトルや下書きの指定など、固定のページ情報を書きます。
+
+```tsx
+import type { Metadata } from "minista/types"
+
+export const metadata: Metadata = { title: "お知らせ" }
+```
+
+`getStaticData()`は、ページの描画に使うデータを用意する非同期関数です。ページファイルからexportし、`{ props: { ... } }`を返すと、その値がページのpropsに加わります。APIやファイルからデータを読み込む処理も、この関数で実行できます。
+
+```tsx
+import type { GetStaticData } from "minista/types"
+
+export const getStaticData: GetStaticData = async () => ({
+  props: {
+    notices: [
+      { id: "hello", title: "サイトを公開しました" },
+      { id: "update", title: "サービス紹介を追加しました" },
+    ],
+  },
+})
+```
+
+どちらもページの表示に使うデータですが、`metadata`は固定情報、`getStaticData()`は処理を経て用意するデータに使うと整理しやすくなります。
+
+## お知らせの配列を渡す ||pass-page-data||
+
+これまで作った`src/pages/news/index.tsx`を、次の内容に変更します。`pluginSsg()`を設定した構成で利用でき、追加のプラグインは不要です。
+
+```tsx title="src/pages/news/index.tsx"
+import type { Metadata, GetStaticData, PageProps } from "minista/types"
+
+type Notice = { id: string; title: string }
+type Props = PageProps & { notices: Notice[] }
+
+export const metadata: Metadata = { title: "お知らせ" }
+
+export const getStaticData: GetStaticData = async () => ({
+  props: {
+    notices: [
+      { id: "hello", title: "サイトを公開しました" },
+      { id: "update", title: "サービス紹介を追加しました" },
+    ],
+  },
+})
+
+export default function News({ title, notices }: Props) {
+  return (
+    <>
+      <h1>{title}</h1>
+      <ul>
+        {notices.map((notice) => (
+          <li key={notice.id}>{notice.title}</li>
+        ))}
+      </ul>
+    </>
+  )
+}
+```
+
+`title`は`metadata`から、`notices`は`getStaticData()`から受け取ります。独自のpropsには、`PageProps`へ型を追加して使います。
+
+次の[レイアウト](/ja/docs/guide/components-layouts)にも、同じデータを渡せます。
+
+`getStaticData()`の`props`にも`title`などを指定できます。同じ項目を`metadata`と`props`の両方に指定した場合は、`props`の値が優先されます。
+
+## 構成と出力を確認する ||static-data-output||
+
+この段階ではページの内容だけを変更します。以下は説明に関係するファイルを示しています。
+
+```text title="プロジェクト構成"
+src/pages/
+└── news/
+    └── index.tsx
+```
+
+```text title="ビルド結果"
+dist/news/
+└── index.html
+```
+
+`npm run build`で、お知らせ一覧が`dist/news/index.html`に出力されます。配列の各項目から別のページが生成されるわけではありません。
+
+```html title="dist/news/index.html（本文の抜粋）"
+<h1>お知らせ</h1>
+<ul>
+  <li>サイトを公開しました</li>
+  <li>サービス紹介を追加しました</li>
+</ul>
+```
+
+## 実行タイミングと公開するデータ ||execution-and-public-data||
+
+`getStaticData()`は開発中のページ表示、本番ビルド、`check` `inspect`で実行されます。公開サイトへのアクセスごとに実行される関数ではありません。ビルド後に元のデータを変更した場合は、再ビルドしてHTMLを更新します。
+
+データの取得処理はブラウザで実行されませんが、propsの値はHTMLやIslandなどへ出力するために使われます。APIの認証情報は取得処理の中だけで使い、propsには公開してよいデータを返してください。
+
+APIからの取得やデータごとのページ生成は、後半の[APIを活用したルーティングと流し込み](/ja/docs/guide/fetch)で紹介します。型と返り値の契約は[pluginSsg](/ja/docs/plugins/ssg#fetch)を参照してください。
+
+次は[レイアウト](/ja/docs/guide/components-layouts)で、各ページへ共通のヘッダーとフッターを追加します。
