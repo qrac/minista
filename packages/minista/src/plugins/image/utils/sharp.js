@@ -27,7 +27,7 @@ export async function runSharp(input, pattern) {
         // @ts-ignore
         pipeline = pipeline.toFormat(format, formatOptions?.[format])
     }
-    return await pipeline.withMetadata().toBuffer()
+    return await pipeline.toBuffer()
   } catch (err) {
     console.error("runSharp error:", err)
     throw err
