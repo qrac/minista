@@ -521,6 +521,14 @@
               "url": "/docs/guide/mdx"
             },
             {
+              "id": "404",
+              "name": {
+                "en": "404 Page",
+                "ja": "404ページ"
+              },
+              "url": "/docs/guide/404"
+            },
+            {
               "id": "components-layouts",
               "name": {
                 "en": "Components & Layouts",
