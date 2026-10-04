@@ -94,7 +94,7 @@ npx minista explain "page:route%3Asrc/pages/index.jsx#/" --json
 
 指定したGraphの要素の関係を表示します。例のIDは`src/pages/index.jsx`から生成したルートページのものです。対象プロジェクトの`inspect --json`で得たIDを引用符で囲んで渡してください。
 
-通常の`check`・`inspect`と同じく利用者のモジュールを評価するため、データ取得に必要な環境変数などを用意します。
+通常の`check` `inspect`と同じく利用者のモジュールを評価するため、データ取得に必要な環境変数などを用意します。
 
 ## agents：利用ガイドを取得する ||agents||
 
@@ -114,7 +114,7 @@ npx minista agents --write
 
 | オプション   | 対象                                    | 内容                           |
 | ------------ | --------------------------------------- | ------------------------------ |
-| `--json`     | `check`・`inspect`・`explain`・`agents` | 結果をJSON形式で出力           |
+| `--json`     | `check` `inspect` `explain` `agents` | 結果をJSON形式で出力           |
 | `--manifest` | `inspect`                               | 保存済みmanifestだけを読み取る |
 | `--write`    | `agents`                                | `AGENTS.md`へ案内を追加・更新  |
 

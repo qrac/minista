@@ -6,7 +6,7 @@ title: pluginSsg
 
 # pluginSsg
 
-ページを静的HTMLとして出力するための必須プラグインです。JSX・TSX・Markdown・MDXからHTMLを生成し、ページから参照するCSS・JavaScript・画像も出力します。`pluginBundle()`・`pluginMdx()`・`pluginEntry()`の機能も含みます。
+ページを静的HTMLとして出力するための必須プラグインです。JSX・TSX・Markdown・MDXからHTMLを生成し、ページから参照するCSS・JavaScript・画像も出力します。`pluginBundle()` `pluginMdx()` `pluginEntry()`の機能も含みます。
 
 導入は[はじめる](/ja/docs/guide/)、ページの作り方は[ファイルベースルーティング](/ja/docs/guide/pages-routing)を参照してください。このページは設定値と公開APIの契約をまとめています。
 
@@ -130,7 +130,7 @@ publicファイル本体は無加工でコピーします。public内のCSS・JS
 
 | 項目 | 用途 |
 | --- | --- |
-| `children` | `title`・`meta`・`link`・`script`・`style`など |
+| `children` | `title` `meta` `link` `script` `style`など |
 | `htmlAttributes` | `html`要素の属性 |
 | `bodyAttributes` | `body`要素の属性 |
 | 子要素の`key` | 同じキーの要素を後のものへ差し替える |
@@ -141,7 +141,7 @@ publicファイル本体は無加工でコピーします。public内のCSS・JS
 
 既定のファイルは`src/layouts/index.{tsx,jsx}`です。default exportのコンポーネントへ、ページデータと`children`を渡します。`metadata`と`getStaticData()`で共通データを指定できます。
 
-ルートに`html`を返す場合は、レイアウトの`html`・`head`・`body`を使います。それ以外は既定の構造で包みます。既定の言語は`en`です。レイアウトの`html`または`Head.htmlAttributes`で変更してください。
+ルートに`html`を返す場合は、レイアウトの`html` `head` `body`を使います。それ以外は既定の構造で包みます。既定の言語は`en`です。レイアウトの`html`または`Head.htmlAttributes`で変更してください。
 
 ディレクトリごとのレイアウトが自動的に入れ子になる仕組みはありません。構成例は[レイアウト](/ja/docs/guide/components-layouts)を参照してください。
 
@@ -159,6 +159,6 @@ publicファイル本体は無加工でコピーします。public内のCSS・JS
 
 ## 公開型 ||merge-types||
 
-`Metadata`、`PageProps`、`LayoutProps`、`StaticData`、`GetStaticData`は`minista/types`から利用します。ページやレイアウトには`url`・`title`・`draft`などが渡されます。レイアウトには`children`も含みます。
+`Metadata`、`PageProps`、`LayoutProps`、`StaticData`、`GetStaticData`は`minista/types`から利用します。ページやレイアウトには`url` `title` `draft`などが渡されます。レイアウトには`children`も含みます。
 
 独自項目の型定義とモジュール拡張は[TypeScript](/ja/docs/reference/typescript)を参照してください。型を追加しただけでHTML要素が生成されるわけではありません。

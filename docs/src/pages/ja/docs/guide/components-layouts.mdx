@@ -48,7 +48,7 @@ export default function Layout({ title, children }: LayoutProps) {
     <html lang="ja">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width" />
         <title>{title}</title>
       </head>
       <body>
@@ -117,7 +117,7 @@ export default function Article() {
 
 ## HTML全体を書かないレイアウト ||fragment-layout||
 
-レイアウトがルートの`html`要素を返さない場合は、ministaが`html`・`head`・`body`を補います。この形式では`Head`で言語などを設定できます。
+レイアウトがルートの`html`要素を返さない場合は、ministaが`html` `head` `body`を補います。この形式では`Head`で言語などを設定できます。
 
 ```tsx title="src/layouts/index.tsx"
 import type { LayoutProps } from "minista/types"
