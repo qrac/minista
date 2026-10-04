@@ -25,6 +25,7 @@ import { getHtmlPageUrl } from "../../shared/filename.js"
 import { getBuildBase, getBasedAssetUrl } from "../../shared/url.js"
 import { regScript } from "../../shared/reg.js"
 import { filterOutputChunks, filterOutputAssets } from "../../shared/vite.js"
+import { getViteChunkCss } from "./chunk-css.js"
 import { createAssetEntryId } from "../../shared/asset.js"
 
 /**
@@ -179,9 +180,7 @@ export function createSsgEntryAdapter(readPages) {
           if (!item.facadeModuleId) continue
 
           const before = normalizePath(path.relative(rootDir, item.facadeModuleId))
-          const importedCssFiles = item.viteMetadata?.importedCss
-            ? [...item.viteMetadata?.importedCss]
-            : []
+          const importedCssFiles = getViteChunkCss(item, outputChunks)
           bundleOutputs.set(before, {
             source: before,
             fileName: item.fileName,

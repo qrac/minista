@@ -37,6 +37,7 @@ import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
 import { createViteMdxTransformer } from "../../adapters/vite/mdx-transform.js"
 import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
 import { createSsgEntryAdapter } from "../../adapters/vite/ssg-entry.js"
+import { getViteChunkCss } from "../../adapters/vite/chunk-css.js"
 import { composeViteSsgPublicAssets } from "../../adapters/vite/ssg-public-assets.js"
 import { renderViteSsgPages } from "../../adapters/vite/ssg-render-lifecycle.js"
 import { createNodeId } from "../../core/graph/index.js"
@@ -325,9 +326,10 @@ export function pluginSsg(uOpts = {}) {
         item.type === "chunk" &&
         item.facadeModuleId === normalizedGlobFile,
     )
-    const cssFiles = entry?.type === "chunk" && entry.viteMetadata?.importedCss
-      ? [...entry.viteMetadata.importedCss]
-      : []
+    const chunks = Object.fromEntries(output
+      .filter((item) => item.type === "chunk")
+      .map((item) => [item.fileName, item]))
+    const cssFiles = getViteChunkCss(entry?.type === "chunk" ? entry : undefined, chunks)
     const imageFiles = entry?.type === "chunk" && entry.viteMetadata?.importedAssets
       ? [...entry.viteMetadata.importedAssets]
       : []
