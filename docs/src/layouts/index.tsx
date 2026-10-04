@@ -78,6 +78,7 @@ export default function (props: LayoutProps) {
         <link rel="apple-touch-icon" href={appleTouchIcon} />
         <link rel="icon" href={favicon} />
         <script type="module" src="/src/assets/scripts.ts" />
+        <script dangerouslySetInnerHTML={{ __html: themeSetup }} />
       </head>
       <body className="layout">
         <CommonHeader
@@ -103,7 +104,9 @@ export default function (props: LayoutProps) {
                         navDocsGroups={pjt.navigation.docs.groups}
                       />
                     </aside>
-                    <script dangerouslySetInnerHTML={{ __html: sidebarSetup }} />
+                    <script
+                      dangerouslySetInnerHTML={{ __html: sidebarSetup }}
+                    />
                   </div>
                   <div className="layout-column is-main">
                     <main className="layout-content">
@@ -157,7 +160,6 @@ export default function (props: LayoutProps) {
           navMain={pjt.navigation.main}
           navDocsGroups={pjt.navigation.docs.groups}
         />
-        <script dangerouslySetInnerHTML={{ __html: themeSetup }} />
       </body>
     </html>
   )
