@@ -22,13 +22,13 @@ export default defineConfig({
 })
 ```
 
-`defineConfig`はministaから利用できます。`pluginSsg()`は、ページを静的HTMLとして出力するための必須プラグインです。Markdown・MDXの変換や、ページから参照するCSS・JavaScript・画像の出力も担います。
+`defineConfig`はministaから利用できます。`pluginSsg()`はページを静的HTMLとして出力するための必須プラグインです。Markdown・MDXの変換や、ページから参照するCSS・JavaScript・画像の出力も担います。
 
 `minista.config.*`も後方互換のため利用できますが、新しいプロジェクトでは`vite.config.*`を使います。複数の設定ファイルがあると競合エラーになるため、一つにまとめてください。
 
 ## 必要なプラグインを追加する ||add-plugins||
 
-静的HTML出力に必要な`pluginSsg()`に加え、画像最適化やIslandなどのプラグインを追加します。
+静的HTML出力に必要な`pluginSsg()`に加え、画像最適化やIslandなどのプラグインを`vite.config.*`に追加します。
 
 ```ts title="vite.config.ts"
 import { defineConfig, pluginSsg, pluginImage, pluginIsland } from "minista"
@@ -48,12 +48,16 @@ export default defineConfig({
 | SVG最適化・SVGスプライト                | [pluginSvg](/ja/docs/plugins/svg)・[pluginSprite](/ja/docs/plugins/sprite)             |
 | HTMLコメント                            | [pluginComment](/ja/docs/plugins/comment)                                              |
 | Reactによる部分的な操作UI               | [pluginIsland](/ja/docs/plugins/island)                                                |
-| 静的サイト内検索                        | [静的サイト内検索](/ja/docs/guide/search)                                                |
+| 静的サイト内検索                        | [静的サイト内検索](/ja/docs/guide/search)                                              |
 | コードの整形・アーカイブ生成            | [pluginBeautify](/ja/docs/plugins/beautify)・[pluginArchive](/ja/docs/plugins/archive) |
 
-各機能の導入手順はガイド、引数の型と既定値はプラグインのページで確認できます。各プラグインの引数に、その機能のオプションを渡します。MDXなどSSGに含まれる機能は、`pluginSsg({ mdx: { ... } })`のように指定します。
+各機能の導入手順はガイド、引数の型と既定値はプラグインのページで確認できます。
+
+各プラグインの引数に、その機能のオプションを渡します。MDXなどSSGに含まれる機能は、`pluginSsg({ mdx: { ... } })`のように指定します。
 
 ## 開発サーバーと出力先 ||server-and-output||
+
+開発サーバーと出力を変更する場合の設定例です。
 
 ```ts title="vite.config.ts"
 import { defineConfig, pluginSsg } from "minista"
@@ -75,7 +79,7 @@ export default defineConfig({
 
 ## TypeScriptを設定する ||typescript-setup||
 
-TypeScriptのテンプレートを使わない場合は、必要なパッケージを追加します。
+TypeScriptのテンプレートを使わなかった場合は、必要なパッケージを追加します。
 
 ```sh
 npm install --save-dev typescript @types/react @types/react-dom
@@ -97,7 +101,9 @@ npm install --save-dev typescript @types/react @types/react-dom
 }
 ```
 
-`minista/client`にはMDX・Markdown・IslandやViteの型定義が含まれます。型チェックは`npx tsc --noEmit`で別途実行します。ministaのビルドだけでは型エラーの検査を代替しません。
+`minista/client`にはMDX・Markdown・IslandやViteの型定義が含まれます。
+
+型チェックは`npx tsc --noEmit`で別途実行します。ministaのビルドは型エラーの検査を含みません。
 
 ## 出力の設定を選ぶ ||choose-output-settings||
 
