@@ -14,12 +14,12 @@ contents list
 
 ## サイト共通のCSS ||shared-css||
 
-レイアウトからCSSをimportすると、共通のスタイルとして管理できます。
+サイト全体に適用するCSSを`src/layouts/globals.css`に置き、隣のレイアウトからimportします。レイアウトと共通CSSを同じディレクトリで管理できます。
 
 ```tsx title="src/layouts/index.tsx"
 import type { LayoutProps } from "minista/types"
 import Header from "../components/header"
-import "../assets/styles.css"
+import "./globals.css"
 
 export const metadata = { title: "My Site" }
 
@@ -41,7 +41,7 @@ export default function Layout({ title, children }: LayoutProps) {
 }
 ```
 
-```css title="src/assets/styles.css"
+```css title="src/layouts/globals.css"
 :root {
   font-family: sans-serif;
   color: #222;
@@ -61,13 +61,14 @@ body {
 
 通常のCSSのセレクターはグローバルに作用します。コンポーネント内からimportしても、自動的にそのコンポーネント専用になるわけではありません。
 
+CSSが増えたら、同じディレクトリの`style.css`などへ分割してimportできます。配置場所やファイル名は自由に決められます。
+
 ## 構成と出力を確認する ||bundled-css-output||
 
 ```text title="プロジェクト構成"
 src/
-├── assets/
-│   └── styles.css
 ├── layouts/
+│   ├── globals.css
 │   └── index.tsx
 └── pages/
     ├── index.tsx
@@ -137,7 +138,7 @@ export default function Page() {
   return (
     <>
       <Head>
-        <link rel="stylesheet" href="/src/assets/styles.css" />
+        <link rel="stylesheet" href="/src/layouts/globals.css" />
         <link rel="stylesheet" href="/css/legacy.css" />
       </Head>
       <h1>スタイルの例</h1>
@@ -146,7 +147,7 @@ export default function Page() {
 }
 ```
 
-`src/assets/styles.css`はViteで処理され、ビルド後のURLに書き換わります。`public/css/legacy.css`はそのままコピーされます。importとlinkで同じCSSを二重に登録せず、用途に合わせて読み込み方を選びます。
+`src/layouts/globals.css`はViteで処理され、ビルド後のURLに書き換わります。`public/css/legacy.css`はそのままコピーされます。importとlinkで同じCSSを二重に登録せず、用途に合わせて読み込み方を選びます。
 
 ## Sassを使う ||sass||
 
@@ -159,7 +160,7 @@ npm install --save-dev sass-embedded
 その後は`.scss`や`.module.scss`をCSSと同様にimportできます。
 
 ```tsx
-import "../assets/styles.scss"
+import "./globals.scss"
 ```
 
 ## インラインスタイル ||inline-styles||
