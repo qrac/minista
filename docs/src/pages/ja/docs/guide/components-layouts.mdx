@@ -92,32 +92,9 @@ dist/
 
 [はじめる](/ja/docs/guide/)のページは本文だけを返す構成です。既存ページが`main`を返している場合は、レイアウトと重ならないように変更してください。
 
-## ページごとのhead要素 ||page-head||
-
-`Head`を使うと、ページや子コンポーネントからHTMLのheadへ要素を追加できます。
-
-```tsx title="src/pages/news/hello.tsx"
-import { Head } from "minista/head"
-
-export const metadata = { title: "サイトを公開しました" }
-
-export default function Article() {
-  return (
-    <>
-      <Head>
-        <meta name="description" content="サイト公開のお知らせです。" />
-      </Head>
-      <h1>サイトを公開しました</h1>
-    </>
-  )
-}
-```
-
-`Head`の要素や属性はレイアウトへ後から適用されます。`title`、charset、viewportが重複する場合は`Head`側が優先されます。
-
 ## HTML全体を書かないレイアウト ||fragment-layout||
 
-レイアウトがルートの`html`要素を返さない場合は、ministaが`html` `head` `body`を補います。この形式では`Head`で言語などを設定できます。
+レイアウトがルートの`html`要素を返さない場合は、ministaが`html` `head` `body`を補います。この形式では`Head`で言語やタイトルを設定できます。
 
 ```tsx title="src/layouts/index.tsx"
 import type { LayoutProps } from "minista/types"
@@ -135,8 +112,12 @@ export default function Layout({ title, children }: LayoutProps) {
 }
 ```
 
+要素の追加や属性指定、同じ`key`による上書きは[Head](/ja/docs/guide/head)を参照してください。
+
 ## ページごとに構成を変える ||page-specific-layout||
 
 共通レイアウトの中で`url`や独自のmetadataを使って分岐するか、ページ側で別のラッパーコンポーネントを使います。ディレクトリにレイアウトを置くだけで、自動的に入れ子のレイアウトが適用される仕組みではありません。
 
-スタイルは[CSSのバンドル](/ja/docs/guide/styling)で追加します。次は[publicのファイル](/ja/docs/guide/public)で、faviconやPDFをそのまま公開します。
+スタイルは[CSSのバンドル](/ja/docs/guide/styling)で追加します。
+
+次は[Head](/ja/docs/guide/head)で、ページごとのhead要素やHTMLの属性を設定します。

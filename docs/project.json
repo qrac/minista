@@ -537,6 +537,14 @@
               "url": "/docs/guide/components-layouts"
             },
             {
+              "id": "head",
+              "name": {
+                "en": "Head",
+                "ja": "Head"
+              },
+              "url": "/docs/guide/head"
+            },
+            {
               "id": "public",
               "name": {
                 "en": "Public Files",

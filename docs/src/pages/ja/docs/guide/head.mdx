@@ -1,0 +1,81 @@
+---
+layout: docs
+locale: ja
+title: Head
+---
+
+# Head
+
+`Head`を使うと、ページや子コンポーネントからHTMLのheadへ要素を追加できます。ここではページ（[レイアウト](/ja/docs/guide/components-layouts)でも可能）に説明文やHTMLの属性を追加します。
+
+## Table of Contents
+
+contents list
+
+## ページごとのhead要素を追加する ||page-head||
+
+`Head`を`minista/head`からimportし、追加したい要素を子要素として記述します。`pluginSsg()`を設定した構成で利用でき、追加のプラグインは不要です。
+
+```tsx title="src/pages/news/hello.tsx"
+import type { Metadata, PageProps } from "minista/types"
+import { Head } from "minista/head"
+
+export const metadata: Metadata = { title: "サイトを公開しました" }
+
+export default function Article({ title }: PageProps) {
+  return (
+    <>
+      <Head>
+        <meta name="description" content="サイト公開のお知らせです。" />
+      </Head>
+      <h1>{title}</h1>
+    </>
+  )
+}
+```
+
+`Head`は、その場所にHTMLを出力するコンポーネントではありません。ページの描画時に要素を集め、レイアウトのheadへ追加します。この例では、既存の`title`や`meta`に説明文が加わります。
+
+```html title="dist/news/hello.html（headの抜粋）"
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>サイトを公開しました</title>
+  <meta name="description" content="サイト公開のお知らせです。" />
+</head>
+```
+
+`title`、charset、viewportがレイアウトと重複する場合は、`Head`側が優先されます。
+
+## 同じkeyの要素を上書きする ||overwrite-by-key||
+
+同じ`key`を持つ要素を`Head`へ指定すると、後から登場した要素が採用されます。例えば、次の二つの`meta`はどちらも`key="desc"`を持つため、後の説明文だけが出力されます。
+
+```tsx title="src/pages/news/hello.tsx（抜粋）"
+<Head>
+  <meta name="description" content="共通の説明文です。" key="desc" />
+  <meta name="description" content="このページの説明文です。" key="desc" />
+</Head>
+```
+
+```html title="出力されるHTML"
+<meta name="description" content="このページの説明文です。" />
+```
+
+複数の`Head`に分かれていても、描画時に同じ`key`の要素が後から登場すると上書きされます。
+
+`key`は要素を識別するための指定で、HTMLの属性には出力されません。`description`は`name`が同じというだけでは上書きされないため、差し替えたい要素には同じ`key`を指定してください。
+
+`title` `charset` `viewport`は、`key`なしでも種類ごとに後の要素が優先されます。
+
+## htmlとbodyの属性を指定する ||document-attributes||
+
+`htmlAttributes`と`bodyAttributes`で、レイアウトの`html` `body`へ属性を追加できます。同じ属性を指定した場合は、後の値が優先されます。
+
+```tsx title="src/pages/news/hello.tsx（抜粋）"
+<Head htmlAttributes={{ lang: "ja" }} bodyAttributes={{ class: "news-page" }} />
+```
+
+この例では`<html lang="ja">`と`<body class="news-page">`になります。`bodyAttributes`では、HTMLの属性名である`class`を使います。
+
+公開APIは[pluginSsgのHead](/ja/docs/plugins/ssg#head)を参照してください。次は[publicのファイル](/ja/docs/guide/public)で、faviconやPDFをそのまま公開します。
