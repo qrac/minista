@@ -147,7 +147,9 @@ export default function Page() {
 }
 ```
 
-`src/layouts/globals.css`はViteで処理され、ビルド後のURLに書き換わります。`public/css/legacy.css`はそのままコピーされます。importとlinkで同じCSSを二重に登録せず、用途に合わせて読み込み方を選びます。
+`src/layouts/globals.css`はViteで処理され、ビルド後のURLに書き換わります。このように`link`要素で参照するCSSは、ビルドの入口となるCSSエントリーとして扱われます。詳しくは[CSS・JS・TSのエントリー](/ja/docs/guide/entry)を参照してください。
+
+`public/css/legacy.css`はそのままコピーされます。importとlinkで同じCSSを二重に登録せず、用途に合わせて読み込み方を選びます。
 
 ## Sassを使う ||sass||
 
