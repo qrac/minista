@@ -88,7 +88,43 @@ Viteで処理されるアセットと、SSGのHTML内にあるpublic実ファイ
 <a href={`${import.meta.env.BASE_URL}about`}>私たちについて</a>
 ```
 
-`base`はページの配置を変更する設定ではありません。`dist/`の内容を公開先の`/site/`に対応する場所へ設置します。
+`import.meta.env.BASE_URL`は、Viteの`base`の値を参照するための変数です。この例では`"/site/"`となり、リンク先は`/site/about`になります。公開先に合わせて`base`を変えると、リンクの先頭部分も変わります。`about`の先頭に`/`を付けずに連結してください。
+
+このリンクは、公開先が`about.html`を`/about`で配信する場合の例です。HTMLファイルへ直接リンクする場合は、`about`を`about.html`に変更します。
+
+`base`はページの配置を変更する設定ではありません。`dist/`の内容は公開先`/site/`の場所へ設置してください。
+
+## 相対パスで公開する ||relative-base-path||
+
+公開先のディレクトリが決まっていない場合は、`base: "./"`を指定できます。
+
+出力されたアセットへの参照が相対パスになるため、`dist/`内の構成を保ったまま別のディレクトリへ配置できます。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  base: "./",
+  plugins: [pluginSsg()],
+})
+```
+
+Viteで処理されるアセットと、HTML内のpublicファイルへの参照は、出力先の階層に合わせて調整されます。例えば`public/logo.svg`を`/logo.svg`で参照すると、ビルド後は次のようになります。
+
+| 出力されるHTML         | `logo.svg`への参照 |
+| ---------------------- | ------------------ |
+| `dist/index.html`      | `logo.svg`         |
+| `dist/news/index.html` | `../logo.svg`      |
+
+通常のページリンクは自動調整されません。また、`import.meta.env.BASE_URL`は`"./"`となり、ページの階層に応じて`"../"`に変わることはありません。ページ間のリンクは、表示するページのURLからの相対パスで記述します。
+
+```tsx title="トップページからのリンク"
+<a href="./about.html">私たちについて</a>
+```
+
+```tsx title="news/index.htmlからのリンク（/news/で配信する場合）"
+<a href="../about.html">私たちについて</a>
+```
 
 ## 出力先や納品形式を調整する ||output-and-delivery||
 
