@@ -41,7 +41,9 @@ export default function Page() {
         <script type="module" src="/src/assets/scripts.ts" />
       </Head>
       <h1>My Site</h1>
-      <button type="button" data-greeting>挨拶する</button>
+      <button type="button" data-greeting>
+        挨拶する
+      </button>
     </>
   )
 }
@@ -99,6 +101,8 @@ document.querySelector("[data-greeting]")?.addEventListener("click", () => {
 
 この例は`public/css/legacy.css`と`public/js/legacy.js`を参照します。ソースのエントリーとpublicのファイルは同じページで併用できます。
 
-処理対象は`/`から始まり、プロジェクト内に実ファイルがある参照です。外部URLやHTML内の`./`から始まる相対URLは変更しません。対象属性などの詳細は[pluginSsg](/ja/docs/plugins/ssg#html-assets)を参照してください。
+処理対象は`/`から始まり、プロジェクト内に実ファイルがある参照です。外部URLやHTML内の`./`から始まる相対URLは変更しません。
+
+対象属性などの詳細は[pluginSsg](/ja/docs/plugins/ssg#html-assets)を参照してください。
 
 次は[画像最適化](/ja/docs/guide/image)で、プラグインを追加して画像のサイズと形式を調整します。
