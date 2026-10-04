@@ -17,11 +17,11 @@ contents list
 サイト全体に適用するCSSを`src/layouts/globals.css`に置き、隣のレイアウトからimportします。レイアウトと共通CSSを同じディレクトリで管理できます。
 
 ```tsx title="src/layouts/index.tsx"
-import type { LayoutProps } from "minista/types"
+import type { Metadata, LayoutProps } from "minista/types"
 import Header from "../components/header"
 import "./globals.css"
 
-export const metadata = { title: "My Site" }
+export const metadata: Metadata = { title: "My Site" }
 
 export default function Layout({ title, children }: LayoutProps) {
   return (

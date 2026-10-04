@@ -17,7 +17,9 @@ contents list
 `src/pages/404.tsx`を作成します。`pluginSsg()`を設定した構成であれば、追加のプラグインは不要です。
 
 ```tsx title="src/pages/404.tsx"
-export const metadata = { title: "ページが見つかりません" }
+import type { Metadata } from "minista/types"
+
+export const metadata: Metadata = { title: "ページが見つかりません" }
 
 export default function NotFound() {
   return (
