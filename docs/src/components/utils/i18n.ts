@@ -10,6 +10,8 @@ export function localizeName(
 }
 
 export function localizePath(url: string, locale: Locale, locales: Locales) {
+  if (url.startsWith("http")) return url
+
   let path = url.startsWith("/") ? url : `/${url}`
 
   for (const item of Object.values(locales)) {
