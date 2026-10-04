@@ -1,7 +1,7 @@
-import { jsTheme } from "./mosules/theme"
-import { jsSidetoc } from "./mosules/sidetoc"
-import { jsCodeCopy } from "./mosules/code-copy"
-import { jsModal } from "./mosules/modal"
+import { jsTheme } from "./modules/theme"
+import { jsSidetoc } from "./modules/sidetoc"
+import { jsCodeCopy } from "./modules/code-copy"
+import { jsModal } from "./modules/modal"
 
 jsTheme.init()
 jsSidetoc.init()

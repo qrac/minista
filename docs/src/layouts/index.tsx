@@ -13,7 +13,8 @@ import { formatPager } from "../components/utils/pager"
 
 import pkg from "minista/package.json"
 import pjt from "../../project.json"
-import themeSetup from "../assets/mosules/theme/setup.js?raw"
+import themeSetup from "../assets/modules/theme/setup.js?raw"
+import sidebarSetup from "../assets/modules/sidebar/setup.js?raw"
 import "./globals.css"
 import "./style.css"
 
@@ -94,7 +95,7 @@ export default function (props: LayoutProps) {
               <div className="inner is-px-lg">
                 <div className="layout-grid is-docs">
                   <div className="layout-column is-sidebar">
-                    <aside className="layout-content">
+                    <aside className="layout-content" data-sidebar-scroll>
                       <CommonSidebar
                         url={url}
                         locale={locale}
@@ -102,6 +103,7 @@ export default function (props: LayoutProps) {
                         navDocsGroups={pjt.navigation.docs.groups}
                       />
                     </aside>
+                    <script dangerouslySetInnerHTML={{ __html: sidebarSetup }} />
                   </div>
                   <div className="layout-column is-main">
                     <main className="layout-content">
