@@ -70,7 +70,12 @@ dist/
 `[hash]`は内容に応じて決まる文字列を表しています。実際の名前はViteの出力設定に従います。生成HTMLの`src`にも、確定したファイル名が反映されます。
 
 ```html title="dist/index.htmlの抜粋"
-<img src="/assets/photo-[hash].jpg" alt="制作スタジオの風景" width="1200" height="800" />
+<img
+  src="/assets/photo-[hash].jpg"
+  alt="制作スタジオの風景"
+  width="1200"
+  height="800"
+/>
 ```
 
 ## HTML属性から参照する ||image-attributes||
@@ -78,7 +83,12 @@ dist/
 プロジェクトルートを基準とするパスを`src`へ直接書くこともできます。
 
 ```tsx
-<img src="/src/assets/photo.jpg" alt="制作スタジオの風景" width={1200} height={800} />
+<img
+  src="/src/assets/photo.jpg"
+  alt="制作スタジオの風景"
+  width={1200}
+  height={800}
+/>
 ```
 
 `img[src]`や`img[srcset]`などはバンドルの対象です。ただし、`meta[content]`や`a[href]`など、すべてのURL属性を処理するわけではありません。OGP画像などに使う場合はimportで得たURLを渡します。
@@ -95,4 +105,6 @@ import iconUrl from "../assets/icon.svg?inline"
 
 描画側のimportでも明示的にインライン化されます。小さなアイコンなどに使えますが、HTML自体のサイズは増えます。
 
-名前を変えずにコピーしたいファイルは[public](/ja/docs/guide/public)へ置きます。次は[CSSのバンドル](/ja/docs/guide/styling)でスタイルを追加します。
+名前を変えずにコピーしたいファイルは[public](/ja/docs/guide/public)へ置きます。
+
+次は[CSSのバンドル](/ja/docs/guide/styling)でスタイルを追加します。
