@@ -13,6 +13,7 @@
   border-radius: 4px;
   font-size: 75%;
   line-height: 1.25;
+  word-break: auto-phrase;
   transition: 0.12s ease-out;
 }
 
