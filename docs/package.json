@@ -4,7 +4,7 @@
   "type": "module",
   "dependencies": {
     "musubii": "^9.4.0",
-    "preact": "^10.29.8"
+    "preact": "^11.0.0"
   },
   "devDependencies": {
     "clsx": "^2.1.1",
@@ -17,6 +17,6 @@
     "remark-custom-header-id": "^1.0.0",
     "remark-gfm": "^4.0.1",
     "remark-toc": "^9.0.0",
-    "shiki": "^4.4.3"
+    "shiki": "^4.5.0"
   }
 }
