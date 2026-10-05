@@ -76,7 +76,7 @@ export default function News({ title, notices }: Props) {
 
 `title`は`metadata`から、`notices`は`getStaticData()`から受け取ります。独自のpropsには、`PageProps`へ型を追加して使います。
 
-[レイアウト](/ja/docs/guide/components-layouts)にも、同じデータを渡せます。
+[レイアウト](/ja/docs/guide/layouts)にも、同じデータを渡せます。
 
 `getStaticData()`の`props`にも`title`などを指定できます。同じ項目を`metadata`と`props`の両方に指定した場合は、`props`の値が優先されます。
 
@@ -111,6 +111,6 @@ dist/news/
 
 データの取得処理はブラウザで実行されませんが、propsの値はHTMLやIslandなどへ出力するために使われます。APIの認証情報は取得処理の中だけで使い、propsには公開してよいデータを返してください。
 
-型と返り値の契約は[pluginSsg](/ja/docs/plugins/ssg#fetch)を参照してください。APIを使わない場合は、[レイアウト](/ja/docs/guide/components-layouts)へ進めます。
+型と返り値の契約は[pluginSsg](/ja/docs/plugins/ssg#fetch)を参照してください。APIを使わない場合は、[レイアウト](/ja/docs/guide/layouts)へ進めます。
 
 次は[APIによるページ生成](/ja/docs/guide/fetch)で、APIからの取得とデータごとのページ生成を紹介します。

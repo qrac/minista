@@ -545,12 +545,12 @@
               "url": "/docs/guide/fetch"
             },
             {
-              "id": "components-layouts",
+              "id": "layouts",
               "name": {
                 "en": "Components & Layouts",
                 "ja": "レイアウト"
               },
-              "url": "/docs/guide/components-layouts"
+              "url": "/docs/guide/layouts"
             },
             {
               "id": "head",
