@@ -5,7 +5,6 @@ import {
   pluginIsland,
   pluginSearch,
 } from "minista"
-import react from "@vitejs/plugin-react"
 import remarkGfm from "remark-gfm"
 import remarkCustomHeaderId from "remark-custom-header-id"
 import remarkToc from "remark-toc"
@@ -79,7 +78,6 @@ export default defineConfig({
       ],
     }),
     pluginPreact(),
-    react(),
   ],
   build: {
     assetsInlineLimit: 0,

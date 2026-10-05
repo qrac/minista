@@ -14,18 +14,13 @@ contents list
 
 ## プラグインを追加する ||add-island-plugin||
 
-ReactのViteプラグインをインストールします。
-
-```sh
-npm install --save-dev @vitejs/plugin-react
-```
+静的HTML出力に必要な`pluginSsg()`に加え、`pluginIsland()`を追加します。
 
 ```ts title="vite.config.ts"
 import { defineConfig, pluginSsg, pluginIsland } from "minista"
-import react from "@vitejs/plugin-react"
 
 export default defineConfig({
-  plugins: [pluginSsg(), pluginIsland(), react()],
+  plugins: [pluginSsg(), pluginIsland()],
 })
 ```
 

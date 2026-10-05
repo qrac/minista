@@ -32,14 +32,13 @@ export default defineConfig({
 
 ```ts title="vite.config.ts"
 import { defineConfig, pluginSsg, pluginImage, pluginIsland } from "minista"
-import react from "@vitejs/plugin-react"
 
 export default defineConfig({
-  plugins: [pluginSsg(), pluginImage(), pluginIsland(), react()],
+  plugins: [pluginSsg(), pluginImage(), pluginIsland()],
 })
 ```
 
-この例のIslandには`@vitejs/plugin-react`のインストールも必要です。静的ページだけであれば、最小設定から始められます。
+静的ページだけであれば、最小設定から始められます。
 
 | 目的                                    | プラグイン                                                                             |
 | --------------------------------------- | -------------------------------------------------------------------------------------- |
