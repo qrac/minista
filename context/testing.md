@@ -69,7 +69,7 @@ npm run test:public-types
 ### PlaygroundとCI
 
 - `npm run play:<feature>`／`npm run play-build:<feature>`は、変更した機能の動作確認にだけ使う。既定playgroundは`npm run play`／`npm run play-build`。
-- `playground/preact`は`pluginIsland()`とクライアントbuild限定のPreactコンバートを確認する最小例。`npm run play-build:preact`で確認する。`playground/search`はPreactコンバートを含めず、Reactで検索UIを確認する。
+- `playground/preact`は`pluginIsland()`と`@preact/preset-vite`によるdev／client buildのPreactコンバートを確認する最小例。プリセットのglobal aliasを無効化し、ReactのJSX importをクライアント限定のresolverでPreactへ置換する。devの依存事前バンドルも調整し、SSGはReactを維持する。2026-10-05にpreset 2.10.6／Preact 11.0.0／Vite 8.3.2でbuild、devとpreviewのカウンター操作、devのソース変更反映を確認した。変更時はfull reloadでstateが初期化され、Prefreshによるstate保持は確認できていない。直接`preact()`を追加するとSSGで`MINISTA_RENDER_FAILED`になるため、wrapperが必要。`npm run play:preact`／`npm run play-build:preact`／`npm run play-preview:preact`で確認する。`playground/search`はPreactコンバートを含めず、Reactで検索UIを確認する。
 - `playground/redact`は公式の`@tanstack/redact/vite`プラグインによるdev／client buildのReactコンバートを確認する最小例。`npm run play:redact`／`npm run play-build:redact`／`npm run play-preview:redact`で確認する。SSGはReactを維持する。2026-10-05にRedact 0.1.4／Vite 8.3.2でbuild、devとpreviewのカウンター操作、devのソース変更反映を確認した。ソース変更はfull reloadでstateが初期化されるため、Fast Refreshのstate保持は検証済みと扱わない。
 - `all-play-build`は明示的に全playground確認が必要な場合の補助として残す。通常testや他の検証scriptから呼ばない。FetchはGitHub API、Imageは外部画像への通信があるため、通常の検証へ混ぜない。
 - `.github/workflows/ci.yml`と`test:ci`は削除。PR／push時の通常テストCIはない。

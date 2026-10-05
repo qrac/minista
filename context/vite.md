@@ -210,6 +210,8 @@ Vite 8.1の公式告知ではbrowser sideとbasic plugin / main featureが中心
 
 現在はStaticRenderer portを通じてReact 19のprerenderToNodeStream()を使用し、PreactではrenderToString() adapterへfallbackします。Headを含むpage treeを一回だけrenderします。
 
+`playground/preact`ではSSGをReactのまま維持し、`@preact/preset-vite`をクライアント側へ限定します。プリセットのglobal aliasを無効化し、JSXのimport sourceを`react`に保ったうえで、`applyToEnvironment`付きresolverがブラウザのReact／JSX importをPreactへ置換します。devの`optimizeDeps`はReact entrypointを除外し、Preact compatを事前バンドルします。単純な`preact()`追加ではSSGのJSXもPreact要素になり、React rendererで`MINISTA_RENDER_FAILED`になることを2026-10-05に確認しました。このwrapperはplayground内の例であり、renderer選択やfallback契約は変更していません。検証範囲は[testing.md](testing.md#playgroundとci)、設定の詳細は[playgroundのREADME](../playground/preact/README.md)を参照してください。
+
 React 19.2の公式資料ではstatic APIはSSG用で、`prerender()` はSuspense dataの完了を待ちます。一方Node.jsではWeb Stream版より `prerenderToNodeStream()` が推奨されています。この境界を次のportで実装しています。
 
 ```ts

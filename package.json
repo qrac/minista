@@ -95,6 +95,7 @@
     "fsevents@2.3.3": true
   },
   "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
     "@tanstack/redact": "^0.1.4",
     "@types/cross-spawn": "^6.0.6",
     "@types/mime-types": "^3.0.1",
