@@ -1,8 +1,7 @@
 import { defineConfig, pluginSsg, pluginIsland } from "minista"
-import react from "@vitejs/plugin-react"
 
 export default defineConfig({
-  plugins: [pluginSsg(), pluginIsland(), react()],
+  plugins: [pluginSsg(), pluginIsland()],
   build: {
     //minify: false,
     rolldownOptions: {

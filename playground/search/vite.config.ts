@@ -1,6 +1,5 @@
 import { defineConfig, pluginSsg, pluginIsland, pluginSearch } from "minista"
 import type { Plugin } from "vite"
-import react from "@vitejs/plugin-react"
 
 const preactAlias = {
   react: "preact/compat",
@@ -33,7 +32,6 @@ export default defineConfig({
     pluginIsland(),
     pluginSearch(),
     pluginClientPreactAlias(),
-    react(),
   ],
   environments: {
     client: {
