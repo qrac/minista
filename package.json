@@ -64,6 +64,9 @@
     "play:preact": "minista ./playground/preact",
     "play-build:preact": "minista build ./playground/preact",
     "play-preview:preact": "minista preview ./playground/preact",
+    "play:redact": "minista ./playground/redact",
+    "play-build:redact": "minista build ./playground/redact",
+    "play-preview:redact": "minista preview ./playground/redact",
     "create": "cd ./playground/_create && create-minista dist",
     "play:create": "cd ./packages/create-minista/templates/basic-ts && npm run dev",
     "play-build:create": "cd ./packages/create-minista/templates/basic-ts && npm run build",
@@ -92,6 +95,7 @@
     "fsevents@2.3.3": true
   },
   "devDependencies": {
+    "@tanstack/redact": "^0.1.4",
     "@types/cross-spawn": "^6.0.6",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^26.6.4",
