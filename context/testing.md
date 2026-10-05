@@ -69,6 +69,7 @@ npm run test:public-types
 ### PlaygroundとCI
 
 - `npm run play:<feature>`／`npm run play-build:<feature>`は、変更した機能の動作確認にだけ使う。既定playgroundは`npm run play`／`npm run play-build`。
+- `playground/preact`は`pluginIsland()`とクライアントbuild限定のPreactコンバートを確認する最小例。`npm run play-build:preact`で確認する。`playground/search`はPreactコンバートを含めず、Reactで検索UIを確認する。
 - `all-play-build`は明示的に全playground確認が必要な場合の補助として残す。通常testや他の検証scriptから呼ばない。FetchはGitHub API、Imageは外部画像への通信があるため、通常の検証へ混ぜない。
 - `.github/workflows/ci.yml`と`test:ci`は削除。PR／push時の通常テストCIはない。
 - `.github/workflows/compatibility.yml`は`workflow_dispatch`専用のまま維持。必要な`vite`または`node-20` suiteを選ぶ。`all`は両方が必要な場合だけ使う。
