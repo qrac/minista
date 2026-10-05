@@ -46,7 +46,23 @@ Reactの`renderToStaticMarkup()`とwebpackを組み合わせ、JSXから静的HT
 
 webpackをViteとesbuildへ置き換え、ゼロから作り直しました。開発サーバーにはVite、本番の静的HTML生成にはesbuildを使い、起動とビルドを高速化しました。
 
-<ElementStageSpeed />
+<ElementStageSpeed
+  comparisons={[
+    {
+      label: "develop:",
+      unit: "s",
+      before: { label: "v1-latest", value: 9.1715 },
+      after: { label: "v2.0.0", value: 0.6006 },
+    },
+    {
+      label: "build:",
+      unit: "s",
+      before: { label: "v1-latest", value: 10.7899 },
+      after: { label: "v2.0.0", value: 5.9628 },
+    },
+  ]}
+  caption="Example: { pages: 15, components: 38, css: 101KB, js: 319KB }"
+/>
 
 ページの書き方も整理し、`getStaticData()`によるデータ取得とルート生成、Markdown・MDXに対応しました。v2.4ではページの一部をReactで動かすPartial Hydration、v2.7ではブラウザだけで動作する全文検索を追加しました。
 
@@ -86,7 +102,33 @@ RolldownベースのViteと統合し、すべての機能をViteプラグイン�
 
 使い勝手はそのままに大幅なリファクタリングと仕様の追加を行いました。
 
-Project Graphによるroute, page, assetの一元管理やライブラリの非同期ロードなどによってbuildを最大約50%高速化。Search JSON生成に至っては最大400%高速化しています。
+Project Graphによるroute, page, assetの一元管理やライブラリの非同期ロードなどによってbuildを最大約68%高速化しました。v4.0.11とv5の比較では、ソースと設定が同じ6個のplaygroundでclean buildの所要時間を最大68.1%短縮しています。
+
+<ElementStageSpeed
+  comparisons={[
+    {
+      label: "build:",
+      unit: "ms",
+      before: { label: "v4.0.11", value: 728.75 },
+      after: { label: "v5", value: 237.13 },
+    },
+  ]}
+  caption="2026/10/05: _default playground / clean build / 3回の中央値 / Node.js v24.21.0 / macOS arm64"
+/>
+
+Searchの辞書参照をMap化し、検索JSONのindex生成を最大約162倍に高速化しました。1,000ページ・10,000語彙の合成データでは、所要時間を約99.4%短縮しています。この計測はv5内の最適化前後の比較で、DOM解析やJSONのシリアライズは含みません。
+
+<ElementStageSpeed
+  comparisons={[
+    {
+      label: "index:",
+      unit: "ms",
+      before: { label: "Map化前", value: 11782.46 },
+      after: { label: "Map化後", value: 72.62 },
+    },
+  ]}
+  caption="2026/10/05: 1,000ページ / 10,000語彙 / 1,001,000tokens / 3回の中央値 / Node.js v24.21.0 / macOS arm64"
+/>
 
 Layoutにhtml, head, bodyの編集機能を追加、publicへのパスにbaseを反映、Islandにシリアライズ化される変数の受け渡しを実装、pluginSearchの複数検索出力に対応など、細かい仕様の改善も行いました。
 

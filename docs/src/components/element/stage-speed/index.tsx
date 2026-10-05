@@ -4,45 +4,43 @@ import type { Props } from "./props"
 import { initialProps } from "./props"
 
 export default function ElementStageSpeed(props: Partial<Props>) {
-  const {} = { ...initialProps, ...props }
+  const { comparisons, caption } = { ...initialProps, ...props }
   return (
     <div
       className="box is-bg-2 is-radius-xl is-px-xl is-py-xxl is-space-md"
       data-stage="speed"
     >
-      <div className="box">
-        <Content
-          beforeTexts={["develop:", "v1-latest"]}
-          width={85}
-          color="secondary"
-          afterTexts={["9.1715s"]}
-        />
-        <Space beforeWidth={85} afterWidth={5} />
-        <Content
-          beforeTexts={["develop:", "v2.0.0"]}
-          width={5}
-          color="primary"
-          afterTexts={["0.6006s", "(-93.45%)"]}
-        />
-      </div>
-      <div className="box">
-        <Content
-          beforeTexts={["build:", "v1-latest"]}
-          width={100}
-          color="secondary"
-          afterTexts={["10.7899s"]}
-        />
-        <Space beforeWidth={100} afterWidth={55} />
-        <Content
-          beforeTexts={["build:", "v2.0.0"]}
-          width={55}
-          color="primary"
-          afterTexts={["5.9628s", "(-44.73%)"]}
-        />
-      </div>
-      <p className="text is-font-mono is-tx-3 is-center is-nb-xs is-xs">
-        {"Example: { pages: 15, components: 38, css: 101KB, js: 319KB }"}
-      </p>
+      {comparisons.map(({ label, unit, before, after }, index) => {
+        const max = Math.max(before.value, after.value)
+        const beforeWidth = max > 0 ? (before.value / max) * 100 : 0
+        const afterWidth = max > 0 ? (after.value / max) * 100 : 0
+        const change =
+          before.value > 0
+            ? `(${(((after.value - before.value) / before.value) * 100).toFixed(2)}%)`
+            : null
+        return (
+          <div key={index} className="box">
+            <Content
+              beforeTexts={[label, before.label]}
+              width={beforeWidth}
+              color="secondary"
+              afterTexts={[`${before.value}${unit}`]}
+            />
+            <Space beforeWidth={beforeWidth} afterWidth={afterWidth} />
+            <Content
+              beforeTexts={[label, after.label]}
+              width={afterWidth}
+              color="primary"
+              afterTexts={[`${after.value}${unit}`, ...(change ? [change] : [])]}
+            />
+          </div>
+        )
+      })}
+      {caption && (
+        <p className="text is-font-mono is-tx-3 is-center is-nb-xs is-xs">
+          {caption}
+        </p>
+      )}
     </div>
   )
 }
@@ -58,12 +56,11 @@ function Content({
   color: "primary" | "secondary"
   afterTexts: string[]
 }) {
-  const widthFr = width / 100
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: `68px ${widthFr}fr 68px`,
+        gridTemplateColumns: "80px minmax(0, 1fr) 88px",
         alignItems: "center",
         gap: "8px",
       }}
@@ -75,7 +72,15 @@ function Content({
           </span>
         ))}
       </p>
-      <div style={{ height: "32px", background: `var(--theme-${color})` }} />
+      <div>
+        <div
+          style={{
+            width: `${width}%`,
+            height: "32px",
+            background: `var(--theme-${color})`,
+          }}
+        />
+      </div>
       <p
         className={clsx(
           "text is-font-mono is-line-height-xs is-xs",
@@ -103,7 +108,7 @@ function Space({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: `68px 1fr 68px`,
+        gridTemplateColumns: "80px minmax(0, 1fr) 88px",
         alignItems: "center",
         gap: "8px",
       }}
