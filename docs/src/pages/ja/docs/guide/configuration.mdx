@@ -115,7 +115,7 @@ npm install --save-dev typescript @types/react @types/react-dom
 
 ## 環境変数を利用する ||environment-variables||
 
-ビルド時のデータ取得には、Node.js側で`process.env`を参照できます。例えばCIやターミナルで設定したAPIの認証情報を利用します。データを用意する基本の仕組みは[ページへデータを渡す](/ja/docs/guide/static-data)、APIを使った取得とページ生成は[APIを活用したルーティングと流し込み](/ja/docs/guide/fetch)を参照してください。
+ビルド時のデータ取得には、Node.js側で`process.env`を参照できます。例えばCIやターミナルで設定したAPIの認証情報を利用します。データを用意する基本の仕組みは[ページへデータを渡す](/ja/docs/guide/static-data)、APIを使った取得とページ生成は[APIによるページ生成](/ja/docs/guide/fetch)を参照してください。
 
 ブラウザへ公開するViteの環境変数は`import.meta.env.VITE_*`で参照します。認証情報を`VITE_`付きの変数へ入れたり、ページのpropsやHTMLへ出力したりしないでください。
 

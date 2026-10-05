@@ -537,6 +537,14 @@
               "url": "/docs/guide/static-data"
             },
             {
+              "id": "fetch",
+              "name": {
+                "en": "Data-driven Pages",
+                "ja": "APIによるページ生成"
+              },
+              "url": "/docs/guide/fetch"
+            },
+            {
               "id": "components-layouts",
               "name": {
                 "en": "Components & Layouts",
@@ -655,14 +663,6 @@
                 "ja": "納品用アーカイブの生成"
               },
               "url": "/docs/guide/archive"
-            },
-            {
-              "id": "fetch",
-              "name": {
-                "en": "Data-driven Pages",
-                "ja": "APIを活用したルーティングと流し込み"
-              },
-              "url": "/docs/guide/fetch"
             }
           ]
         },
