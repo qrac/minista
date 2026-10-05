@@ -102,32 +102,32 @@ RolldownベースのViteと統合し、すべての機能をViteプラグイン�
 
 使い勝手はそのままに大幅なリファクタリングと仕様の追加を行いました。
 
-Project Graphによるroute, page, assetの一元管理やライブラリの非同期ロードなどによってbuildを最大約68%高速化しました。v4.0.11とv5の比較では、ソースと設定が同じ6個のplaygroundでclean buildの所要時間を最大68.1%短縮しています。
+Project Graphによるroute, page, assetの一元管理やライブラリの非同期ロードなどによってbuildを最大約67%高速化しました。v4.0.11とv5の比較では、ソースと設定が同じ6個のplaygroundでclean buildの所要時間を最大67.0%短縮しています。
 
 <ElementStageSpeed
   comparisons={[
     {
       label: "build:",
       unit: "ms",
-      before: { label: "v4.0.11", value: 728.75 },
-      after: { label: "v5", value: 237.13 },
+      before: { label: "v4.0.11", value: 702.98 },
+      after: { label: "v5", value: 233.88 },
     },
   ]}
-  caption="2026/10/05: _default playground / clean build / 3回の中央値 / Node.js v24.21.0 / macOS arm64"
+  caption="2026/10/05: _default playground / clean build / 3回の中央値 / Node.js v26.10.0 / macOS arm64"
 />
 
-Searchの辞書参照をMap化し、検索JSONのindex生成を最大約162倍に高速化しました。1,000ページ・10,000語彙の合成データでは、所要時間を約99.4%短縮しています。この計測はv5内の最適化前後の比較で、DOM解析やJSONのシリアライズは含みません。
+Searchの辞書参照をMap化し、検索JSONのindex生成を最大約77倍に高速化しました。1,000ページ・10,000語彙の合成データでは、所要時間を約98.7%短縮しています。この計測はv5内の最適化前後の比較で、DOM解析やJSONのシリアライズは含みません。
 
 <ElementStageSpeed
   comparisons={[
     {
       label: "index:",
       unit: "ms",
-      before: { label: "Map化前", value: 11782.46 },
-      after: { label: "Map化後", value: 72.62 },
+      before: { label: "Map化前", value: 5012.39 },
+      after: { label: "Map化後", value: 65.39 },
     },
   ]}
-  caption="2026/10/05: 1,000ページ / 10,000語彙 / 1,001,000tokens / 3回の中央値 / Node.js v24.21.0 / macOS arm64"
+  caption="2026/10/05: 1,000ページ / 10,000語彙 / 1,001,000tokens / 3回の中央値 / Node.js v26.10.0 / macOS arm64"
 />
 
 Layoutにhtml, head, bodyの編集機能を追加、publicへのパスにbaseを反映、Islandにシリアライズ化される変数の受け渡しを実装、pluginSearchの複数検索出力に対応など、細かい仕様の改善も行いました。
