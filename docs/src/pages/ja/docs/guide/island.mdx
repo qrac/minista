@@ -83,7 +83,7 @@ JavaScriptの分割結果は設定や依存関係で変わります。`npm run b
 
 ## 変数をpropsとして渡す ||island-props||
 
-ページ内の変数や`getStaticData()`で取得した値を渡せます。ビルド時に評価したpropsをHTMLへ保存し、ブラウザで復元してからハイドレーションします。同じコンポーネントを複数配置しても、それぞれの値が保持されます。
+Islandのpropsには、HTMLへ埋め込み、ブラウザ側で復元できる（シリアライズできる）値を渡せます。ページ内の変数や`getStaticData()`で取得した値も、シリアライズできれば利用できます。ブラウザではpropsを復元してからハイドレーションします。同じコンポーネントを複数配置しても、それぞれの値が保持されます。
 
 ```tsx title="src/pages/index.tsx"
 import Counter from "../components/counter"
@@ -103,7 +103,7 @@ export default function Page({ counts }: { counts: number[] }) {
 }
 ```
 
-渡せる値は文字列、有限の数値、真偽値、`null`、`undefined`、配列、通常のオブジェクトと、それらの組み合わせです。propsはブラウザへ公開されるため、秘密の値を含めないでください。
+ministaでシリアライズできる値は、文字列、有限の数値、真偽値、`null`、`undefined`、配列、プレーンなオブジェクトと、それらの組み合わせです。propsはブラウザへ公開されるため、秘密の値を含めないでください。
 
 関数、`Date`、`Map`、`Set`、`RegExp`、`BigInt`、クラスのインスタンス、循環参照などは渡せません。未対応の値は`MINISTA_ISLAND_PROPS_UNSUPPORTED`で通知されます。イベントハンドラーはページからpropsとして渡さず、Islandコンポーネント内へ置きます。
 
