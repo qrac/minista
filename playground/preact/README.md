@@ -15,6 +15,9 @@ npm run play-preview:preact
 
 ## Why the preset needs a wrapper
 
+The wrapper lives in `.vite-plugins/preact.ts`. `vite.config.ts` adds it through
+`pluginPreact()`, alongside `pluginSsg()` and `pluginIsland()`.
+
 Adding `preact()` directly changes JSX and React imports for server modules too.
 In this playground, that fails during SSG with `MINISTA_RENDER_FAILED`: Preact
 elements reach Minista's React renderer and are rejected as invalid children.
