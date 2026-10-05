@@ -481,6 +481,14 @@
               "url": "/docs/guide/"
             },
             {
+              "id": "agents",
+              "name": {
+                "en": "Building with Agents",
+                "ja": "エージェントを使った制作"
+              },
+              "url": "/docs/guide/agents"
+            },
+            {
               "id": "project-structure",
               "name": {
                 "en": "Project Structure",
