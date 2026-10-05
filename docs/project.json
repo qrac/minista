@@ -609,12 +609,20 @@
               "url": "/docs/guide/sprite"
             },
             {
-              "id": "islands",
+              "id": "island",
               "name": {
-                "en": "Islands",
+                "en": "Island",
                 "ja": "Island"
               },
-              "url": "/docs/guide/islands"
+              "url": "/docs/guide/island"
+            },
+            {
+              "id": "island-size",
+              "name": {
+                "en": "Reducing Island Bundle Size",
+                "ja": "Islandの容量削減"
+              },
+              "url": "/docs/guide/island-size"
             },
             {
               "id": "search",
