@@ -21,7 +21,7 @@
       "ja": "minista（ミニスタ）は、React（JSX/TSX）とViteで100%静的なHTMLを生成するスタティックサイトジェネレーターです。TypeScript、MDX、画像最適化、Islandアーキテクチャに対応。"
     },
 
-    "url": "https://minista.qranoko.jp",
+    "url": "https://minista.dev",
 
     "assets": {
       "ogp": "/ogp.png",
@@ -282,14 +282,14 @@
         {
           "id": "v4",
           "name": "v4.0.13",
-          "url": "https://minista-archive-v4.netlify.app/",
-          "external": true
+          "url": "/v4/",
+          "external": false
         },
         {
           "id": "v3",
           "name": "v3.1.12",
-          "url": "https://minista-archive-v3.netlify.app/",
-          "external": true
+          "url": "/v3/",
+          "external": false
         }
       ]
     },

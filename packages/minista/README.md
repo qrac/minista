@@ -2,7 +2,7 @@
 
 ## Site & Documentation
 
-- https://minista.qranoko.jp
+- https://minista.dev
 
 ## About
 
@@ -120,7 +120,7 @@ export default defineConfig({
 })
 ```
 
-Configs that reference the existing `isSsrBuild` option fall back to the compatibility builder. See [Config](https://minista.qranoko.jp/docs/config) for details.
+Configs that reference the existing `isSsrBuild` option fall back to the compatibility builder. See [Config](https://minista.dev/docs/reference/config) for details.
 
 If the project root contains a `package.json`, the generated workspace is located at `node_modules/.minista/`. Otherwise, it is located at `.minista/`.
 
@@ -128,15 +128,15 @@ If the project root contains a `package.json`, the generated workspace is locate
 
 Each minista feature is enabled by adding its bundled plugin to the Vite configuration.
 
-- [pluginSsg](https://minista.qranoko.jp/docs/plugins/ssg): Converts JSX and MDX to static HTML and outputs referenced CSS, JavaScript, and images
-- [pluginImage](https://minista.qranoko.jp/docs/plugins/image): Optimizes images and downloads remote images
-- [pluginSvg](https://minista.qranoko.jp/docs/plugins/svg): Inlines SVG files into HTML
-- [pluginSprite](https://minista.qranoko.jp/docs/plugins/sprite): Generates SVG sprites
-- [pluginComment](https://minista.qranoko.jp/docs/plugins/comment): Outputs comments in HTML
-- [pluginIsland](https://minista.qranoko.jp/docs/plugins/island): Turns parts of a page into React apps
-- [pluginSearch](https://minista.qranoko.jp/docs/plugins/search): Adds full-text search
-- [pluginBeautify](https://minista.qranoko.jp/docs/plugins/beautify): Formats HTML, CSS, and JavaScript during the build
-- [pluginArchive](https://minista.qranoko.jp/docs/plugins/archive): Generates compressed archives during the build
+- [pluginSsg](https://minista.dev/docs/plugins/ssg): Converts JSX and MDX to static HTML and outputs referenced CSS, JavaScript, and images
+- [pluginImage](https://minista.dev/docs/plugins/image): Optimizes images and downloads remote images
+- [pluginSvg](https://minista.dev/docs/plugins/svg): Inlines SVG files into HTML
+- [pluginSprite](https://minista.dev/docs/plugins/sprite): Generates SVG sprites
+- [pluginComment](https://minista.dev/docs/plugins/comment): Outputs comments in HTML
+- [pluginIsland](https://minista.dev/docs/plugins/island): Turns parts of a page into React apps
+- [pluginSearch](https://minista.dev/docs/plugins/search): Adds full-text search
+- [pluginBeautify](https://minista.dev/docs/plugins/beautify): Formats HTML, CSS, and JavaScript during the build
+- [pluginArchive](https://minista.dev/docs/plugins/archive): Generates compressed archives during the build
 
 ## License
 

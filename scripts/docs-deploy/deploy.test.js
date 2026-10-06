@@ -5,7 +5,7 @@ import os from "node:os"
 import path from "node:path"
 import { execFileSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
-import { archiveUrl, mergeOutput, relevant } from "./deploy.js"
+import { archiveUrl, mergeOutput, relevant, siteUrl } from "./deploy.js"
 
 test("latest docs replacement keeps archives and removes obsolete latest files", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "minista-docs-deploy-"))
@@ -49,6 +49,15 @@ test("archive URLs preserve suffixes, external URLs and version switches", () =>
   assert.equal(archiveUrl("/v3/docs/delivery", "v3"), "/v3/docs/delivery-support")
   assert.equal(archiveUrl("https://minista-archive-v3.netlify.app/docs/", "v4"), "/v3/docs/")
   assert.equal(archiveUrl("https://minista-archive-v4.netlify.app/", "main"), "/v4/")
+})
+
+test("metadata uses minista.dev and applies the archive prefix once", () => {
+  assert.equal(siteUrl("https://minista.qranoko.jp/docs/setup", "v3"), "https://minista.dev/v3/docs/setup")
+  assert.equal(siteUrl("https://minista.qranoko.jp/v3/docs/setup", "v3"), "https://minista.dev/v3/docs/setup")
+  assert.equal(siteUrl("https://minista.dev/ogp.png", "v4"), "https://minista.dev/v4/ogp.png")
+  assert.equal(siteUrl("https://minista.dev/v4/ogp.png", "v4"), "https://minista.dev/v4/ogp.png")
+  assert.equal(siteUrl("https://minista.dev/ja/docs/", "main"), "https://minista.dev/ja/docs/")
+  assert.equal(siteUrl("https://example.com/ogp.png", "v3"), "https://example.com/ogp.png")
 })
 
 test("publication bootstraps all targets and reconciles changes since the last successful build", async () => {

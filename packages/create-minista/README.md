@@ -2,7 +2,7 @@
 
 ## About
 
-Start a [minista](https://minista.qranoko.jp/) project with a simple command.
+Start a [minista](https://minista.dev/) project with a simple command.
 
 ## How To Use
 

@@ -2,6 +2,8 @@
 
 ## 構成
 
+公開originは`https://minista.dev`。latestは`/`、archiveは`/v3/`・`/v4/`とし、docs/project.jsonのarchive URLはroot absolute path、externalはfalseとする。旧archiveソースが生成するOGPの旧originは、公開処理で新originと各archiveのprefixへ補正する。旧originと旧Netlify URLは変換入力としてのみ公開scriptと検証例に残す。
+
 v5をmainへマージする変更で、`.github/workflows/gh-pages.yml`を削除し、`cloudflare.yml`へ置き換える。互換性CIは残す。GitHub Pagesの既存公開・DNS・Cloudflare側の設定はworkflowの追加では変更しない。
 
 `cloudflare`ブランチは成果物だけの独立履歴とする。公開directoryは`public/`、最新docsは直下、v3は`v3/`、v4は`v4/`。`.deploy/state.json`は公開directory外に置き、schemaVersion 1、各対象のビルド元SHAと公開処理のhashを記録する。

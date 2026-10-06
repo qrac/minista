@@ -2,7 +2,7 @@
 
 ## Site & Documentation
 
-- https://minista.qranoko.jp
+- https://minista.dev
 
 ## About
 

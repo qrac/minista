@@ -114,6 +114,16 @@ export function archiveUrl(value, id) {
   return value
 }
 
+export function siteUrl(value, id) {
+  // Archived source branches still render metadata with the previous site origin.
+  for (const origin of ["https://minista.qranoko.jp", "https://minista.dev"]) {
+    if (value === origin || value.startsWith(origin + "/")) {
+      return "https://minista.dev" + archiveUrl(value.slice(origin.length) || "/", id)
+    }
+  }
+  return value
+}
+
 async function files(dir) {
   const result = []
   for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
@@ -148,8 +158,7 @@ async function finalize(source, id) {
         // Metadata is a site URL, not a documentation code example.
         if (el.tagName === "META" && /^og:(url|image)$/.test(el.getAttribute("property") || "")) {
           const value = el.getAttribute("content") || ""
-          const origin = "https://minista.qranoko.jp"
-          if (value.startsWith(origin + "/")) el.setAttribute("content", origin + archiveUrl(value.slice(origin.length), id))
+          el.setAttribute("content", siteUrl(value, id))
         }
       }
       await fs.writeFile(file, root.toString())
