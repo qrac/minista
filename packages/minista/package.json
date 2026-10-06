@@ -1,6 +1,6 @@
 {
   "name": "minista",
-  "version": "4.0.13",
+  "version": "5.0.0",
   "type": "module",
   "bin": {
     "minista": "./bin/minista.js"
@@ -30,6 +30,10 @@
       "import": "./src/assets.js",
       "types": "./src/assets.d.ts"
     },
+    "./internal/query": {
+      "import": "./src/internal/query.js",
+      "types": "./src/internal/query.d.ts"
+    },
     "./package.json": {
       "import": "./package.json"
     }
@@ -37,10 +41,15 @@
   "files": [
     "bin",
     "src",
-    "types"
+    "types",
+    "agents",
+    "AGENTS.md"
   ],
+  "scripts": {
+    "typecheck:core": "tsc -p tsconfig.core.json --noEmit"
+  },
   "license": "MIT",
-  "homepage": "https://minista.qranoko.jp",
+  "homepage": "https://minista.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/qrac/minista",
@@ -57,28 +66,35 @@
     "minista"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0",
-    "vite": ">=6.3.0"
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0",
+    "vite": "^8.1.0"
   },
   "dependencies": {
-    "@mdx-js/rollup": "^3.1.1",
-    "@swc/core": "^1.15.47",
+    "@mdx-js/mdx": "^3.1.1",
+    "@types/archiver": "^8.0.0",
+    "@types/js-beautify": "^1.14.3",
     "archiver": "^8.0.0",
     "cross-spawn": "^7.0.6",
+    "estree-util-value-to-estree": "^3.5.0",
     "js-beautify": "^2.0.3",
+    "magic-string": "^1.4.3",
+    "mdast-util-frontmatter": "^2.0.1",
+    "micromark-extension-frontmatter": "^2.0.0",
     "mime-types": "^3.0.2",
-    "mojigiri": "^0.3.0",
-    "node-html-parser": "^9.0.1",
+    "node-html-parser": "^9.0.4",
     "picocolors": "^1.1.1",
-    "picomatch": "^4.0.5",
-    "remark-frontmatter": "^5.0.0",
-    "remark-mdx-frontmatter": "^5.2.0",
-    "sharp": "^0.35.3",
-    "svgo": "^4.0.2",
-    "tinyglobby": "^0.2.17"
+    "picomatch": "^4.0.7",
+    "remark-rehype": "^11.1.2",
+    "sharp": "^0.35.5",
+    "smol-toml": "^1.9.0",
+    "source-map": "^0.8.0",
+    "svgo": "^4.1.0",
+    "tinyglobby": "^0.2.17",
+    "unified": "^11.0.5",
+    "yaml": "^2.9.1"
   }
 }

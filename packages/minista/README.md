@@ -2,37 +2,41 @@
 
 ## Site & Documentation
 
-- https://minista.qranoko.jp
+- https://minista.dev
 
 ## About
 
-minista（ミニスタ）は、ReactのJSXとViteで100%静的なサイトを作るスタティックサイトジェネレーターです。
+minista is a static site generator for building 100% static websites with React JSX and Vite.
 
 ## Concept
 
-- **すべてをJSXで書き、綺麗なHTMLを生成！**
-- 静的HTMLが必要なウェブ制作の現場にもJSXのコンポーネント管理を導入したい
-- 独自構文を使わず、エディタサポートの優れたTypeScriptを活用したい
+- **Write everything in JSX and generate clean HTML!**
+- Bring JSX-based component development to web production workflows that require static HTML
+- Use TypeScript with excellent editor support instead of proprietary syntax
 
 ## Features
 
-- すべての機能をViteプラグインとして提供
-- ビルド時に自動でViteの「SSRビルド+通常ビルド」を実行
+- All features are provided as Vite plugins
+- Uses the Vite Environment API to build the `render` and `client` environments sequentially
+- Outputs route, page, asset, and diagnostic data as JSON files in `.minista`
 
 ## Setup
+
+Requires Node.js 20.19 or later, or 22.12 or later, Vite 8.1 or later, and React / React DOM 19 or later. Using the latest Vite minor release is recommended.
 
 ### Automatic
 
 ```sh
-$ npm create minista@latest
+npm create minista@latest
 ```
 
 ### Manual
 
 ```sh
-$ npm install --save-dev minista vite react react-dom
-$ touch ./vite.config.js
-$ touch ./src/pages/index.jsx
+npm install --save-dev minista vite react react-dom
+touch ./vite.config.js
+mkdir -p ./src/pages
+touch ./src/pages/index.jsx
 ```
 
 ```js
@@ -51,7 +55,7 @@ export default function () {
 }
 ```
 
-`package.json` を開き、以下のスクリプトを追加します。
+Open `package.json` and add the following scripts:
 
 ```json
 {
@@ -65,21 +69,31 @@ export default function () {
 
 ## CLI
 
-| コマンド                 | 内容                                          |
-| ------------------------ | --------------------------------------------- |
-| `minista [root]`         | 開発モード（`Ctrl + C` で停止）               |
-| `minista build [root]`   | 静的書き出し（SSRビルド後に連続で通常ビルド） |
-| `minista preview [root]` | 静的書き出し後の動作確認                      |
+| Command                            | Description                                              |
+| ---------------------------------- | -------------------------------------------------------- |
+| `minista [root]`                   | Start development mode (`Ctrl + C` to stop)              |
+| `minista build [root]`             | Generate the static build using Vite                     |
+| `minista preview [root]`           | Preview the generated static build                       |
+| `minista check [root]`             | Validate routes, pages, and `getStaticData()`            |
+| `minista inspect [root]`           | Show an overview of the Project Graph                    |
+| `minista agents [root]`            | Show the agent guide, or add instructions with `--write` |
+| `minista explain <node-id> [root]` | Explain the relationships of a Graph node                |
 
-[ViteのCLIコマンドオプション](https://ja.vitejs.dev/guide/cli.html)がすべて使えるほか、以下の独自オプションがあります。
+`check`, `inspect`, and `explain` support `--json`.
 
-| 独自のオプション | 内容                                           |
-| ---------------- | ---------------------------------------------- |
-| `--oneBuild`     | ministaのビルドを1回に制限（連続ビルドしない） |
+To inspect only the generated `manifest.json` in the workspace after a build, use:
+
+```sh
+minista inspect --manifest --json
+```
+
+The v4 `--oneBuild` option was removed in v5. Using it exits with `MINISTA_CLI_OPTION_REMOVED`. The standard `minista build` command builds the `render` and `client` environments through Vite.
 
 ## Config
 
-[Viteのコンフィグ](https://ja.vitejs.dev/config/)がすべて使えます。コンフィグファイルは `vite.config.{ts,js}`・`minista.config.{ts,js}` のどちらでも動作し、`defineConfig` も使用できます。
+All [Vite configuration options](https://vite.dev/config/) are available.
+
+Both `vite.config.{ts,js}` and `minista.config.{ts,js}` are supported, and you can also use `defineConfig`.
 
 ```ts
 // ./vite.config.ts
@@ -90,36 +104,39 @@ export default defineConfig({
 })
 ```
 
-ministaはViteのSSRビルドと通常ビルドを連続で行うため、ビルドの一括設定がエラーに繋がる場合があります。これは設定をSSRビルド用・通常ビルド用に切り分けることで解消できます。
+minista uses the Vite Environment API to build the `render` and `client` environments sequentially. Use `environments` when you need environment-specific configuration.
 
 ```ts
 // ./vite.config.ts
 import { defineConfig, pluginSsg } from "minista"
 
-export default defineConfig(({ command, isSsrBuild }) => {
-  const isDev = command === "serve"
-  const isSsr = command === "build" && isSsrBuild
-  const isBuild = command === "build" && !isSsrBuild
-  return { plugins: [pluginSsg()], build: { minify: isBuild ? false : true } }
+export default defineConfig({
+  plugins: [pluginSsg()],
+  environments: {
+    client: {
+      build: { minify: false },
+    },
+  },
 })
 ```
 
+Configs that reference the existing `isSsrBuild` option fall back to the compatibility builder. See [Config](https://minista.dev/docs/reference/config) for details.
+
+If the project root contains a `package.json`, the generated workspace is located at `node_modules/.minista/`. Otherwise, it is located at `.minista/`.
+
 ## Plugins
 
-ministaの各機能は同封されているプラグインをコンフィグに登録することで動作します。
+Each minista feature is enabled by adding its bundled plugin to the Vite configuration.
 
-- [pluginSsg](https://minista.qranoko.jp/docs/plugins/ssg): ReactのJSXを静的なHTMLに変換
-- [pluginMdx](https://minista.qranoko.jp/docs/plugins/mdx): MDX・MarkdownをHTMLの変換に対応させる
-- [pluginBundle](https://minista.qranoko.jp/docs/plugins/bundle): JSX内でimportしたCSS・画像を出力
-- [pluginEntry](https://minista.qranoko.jp/docs/plugins/entry): CSS・JS・画像をビルドプロセスに乗せる
-- [pluginImage](https://minista.qranoko.jp/docs/plugins/image):画像を最適化・リモート画像をダウンロード
-- [pluginSvg](https://minista.qranoko.jp/docs/plugins/svg): SVGファイルをHTMLにインライン展開
-- [pluginSprite](https://minista.qranoko.jp/docs/plugins/sprite): SVGファイルを スプライト化して出力
-- [pluginComment](https://minista.qranoko.jp/docs/plugins/comment): HTMLにコメントを出力
-- [pluginIsland](https://minista.qranoko.jp/docs/plugins/island):ページの一部をReact App化
-- [pluginSearch](https://minista.qranoko.jp/docs/plugins/search):全文検索機能を追加
-- [pluginBeautify](https://minista.qranoko.jp/docs/plugins/beautify):ビルド時にHTML・CSS・JSを整形
-- [pluginArchive](https://minista.qranoko.jp/docs/plugins/archive):ビルド時に圧縮ファイルを生成
+- [pluginSsg](https://minista.dev/docs/plugins/ssg): Converts JSX and MDX to static HTML and outputs referenced CSS, JavaScript, and images
+- [pluginImage](https://minista.dev/docs/plugins/image): Optimizes images and downloads remote images
+- [pluginSvg](https://minista.dev/docs/plugins/svg): Inlines SVG files into HTML
+- [pluginSprite](https://minista.dev/docs/plugins/sprite): Generates SVG sprites
+- [pluginComment](https://minista.dev/docs/plugins/comment): Outputs comments in HTML
+- [pluginIsland](https://minista.dev/docs/plugins/island): Turns parts of a page into React apps
+- [pluginSearch](https://minista.dev/docs/plugins/search): Adds full-text search
+- [pluginBeautify](https://minista.dev/docs/plugins/beautify): Formats HTML, CSS, and JavaScript during the build
+- [pluginArchive](https://minista.dev/docs/plugins/archive): Generates compressed archives during the build
 
 ## License
 

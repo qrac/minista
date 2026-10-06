@@ -1,0 +1,21 @@
+{
+  "siteName": "minista project",
+  "navItems": [
+    {
+      "label": "Home",
+      "url": "/"
+    },
+    {
+      "label": "About",
+      "url": "/about"
+    },
+    {
+      "label": "Page 1",
+      "url": "/nest/page-1"
+    },
+    {
+      "label": "Page 2",
+      "url": "/nest/page-2"
+    }
+  ]
+}

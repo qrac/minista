@@ -1,28 +1,63 @@
-type Item = {
-  name: string
-  url: string
-  externalLink?: boolean
-}
-
-type ItemGroup = {
-  name: string
-  items: Item[]
-  isMain?: boolean
-}
+import type {
+  Locale,
+  Locales,
+  NavigationMain,
+  NavigationDocs,
+} from "../../../../types"
 
 export type Props = {
-  currentUrl: string
-  itemGroups: ItemGroup[]
+  url: string
+  locale: Locale
+  locales: Locales
+  navMain: NavigationMain
+  navDocsGroups: NavigationDocs["groups"]
 }
 
 export const initialProps: Props = {
-  currentUrl: "/",
-  itemGroups: [
+  url: "/",
+  locale: "en",
+  locales: {
+    en: {
+      name: "English",
+      path: "/",
+    },
+    ja: {
+      name: "日本語",
+      path: "/ja/",
+    },
+  },
+  navMain: {
+    name: {
+      en: "Menu",
+      ja: "メニュー",
+    },
+    items: [
+      {
+        id: "demo",
+        name: {
+          en: "Demo",
+          ja: "デモ",
+        },
+        url: "",
+        external: false,
+      },
+    ],
+  },
+  navDocsGroups: [
     {
-      name: "Menu",
+      id: "menu",
+      name: {
+        en: "Menu",
+        ja: "メニュー",
+      },
+      pager: true,
       items: [
         {
-          name: "demo",
+          id: "demo",
+          name: {
+            en: "Demo",
+            ja: "デモ",
+          },
           url: "",
         },
       ],

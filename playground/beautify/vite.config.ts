@@ -1,8 +1,6 @@
 import {
   defineConfig,
   pluginSsg,
-  pluginBundle,
-  pluginEntry,
   pluginBeautify,
 } from "minista"
 
@@ -12,9 +10,11 @@ export default defineConfig({
     assetsInlineLimit: 0,
     rolldownOptions: {
       output: {
+        minify: false,
+        assetFileNames: "assets/[name][extname]",
         //minifyInternalExports: false,
       },
     },
   },
-  plugins: [pluginSsg(), pluginBundle(), pluginEntry(), pluginBeautify()],
+  plugins: [pluginSsg(), pluginBeautify()],
 })

@@ -1,4 +1,4 @@
-import sharp from "sharp"
+import { loadDependency } from "../../../adapters/dependencies/sharp.js"
 
 /**
  * @param {string} input
@@ -6,30 +6,26 @@ import sharp from "sharp"
  * @returns {Promise<Buffer>}
  */
 export async function runSharp(input, pattern) {
+  const { default: sharp } = await loadDependency()
   const { width, height, format, formatOptions, resizeOptions } = pattern
 
-  try {
-    let pipeline = sharp(input).resize(width, height, resizeOptions).rotate()
-    switch (format) {
-      case "jpg":
-        pipeline = pipeline.jpeg(formatOptions?.jpg)
-        break
-      case "png":
-        pipeline = pipeline.png(formatOptions?.png)
-        break
-      case "webp":
-        pipeline = pipeline.webp(formatOptions?.webp)
-        break
-      case "avif":
-        pipeline = pipeline.avif(formatOptions?.avif)
-        break
-      default:
-        // @ts-ignore
-        pipeline = pipeline.toFormat(format, formatOptions?.[format])
-    }
-    return await pipeline.toBuffer()
-  } catch (err) {
-    console.error("runSharp error:", err)
-    throw err
+  let pipeline = sharp(input).resize(width, height, resizeOptions).rotate()
+  switch (format) {
+    case "jpg":
+      pipeline = pipeline.jpeg(formatOptions?.jpg)
+      break
+    case "png":
+      pipeline = pipeline.png(formatOptions?.png)
+      break
+    case "webp":
+      pipeline = pipeline.webp(formatOptions?.webp)
+      break
+    case "avif":
+      pipeline = pipeline.avif(formatOptions?.avif)
+      break
+    default:
+      // @ts-ignore
+      pipeline = pipeline.toFormat(format, formatOptions?.[format])
   }
+  return pipeline.toBuffer()
 }

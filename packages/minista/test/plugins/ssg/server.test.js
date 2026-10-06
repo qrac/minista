@@ -3,12 +3,24 @@ import { describe, expect, it, vi } from "vitest"
 
 import { pluginSsg } from "../../../src/plugins/ssg/index.js"
 
-function createMiddleware(base) {
+// HTTPサーバーを起動せず、module import用のportを注入する。
+vi.mock("../../../src/adapters/vite/dev-module-evaluator.js", async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    ViteDevModuleEvaluator: class extends actual.ViteDevModuleEvaluator {
+      constructor(server) {
+        super(server, "ssr", () => true)
+      }
+    },
+  }
+})
+
+async function createMiddleware(base) {
   let middleware
-  const server = {
-    config: { base },
-    middlewares: { use(fn) { middleware = fn } },
-    ssrLoadModule: vi.fn(async () => ({
+  const plugins = pluginSsg({ mdx: false })
+  const environment = {
+    runner: { import: vi.fn(async () => ({
       PAGES: {
         "/src/pages/index.jsx": {
           default: () => createElement("p", null, "Root page"),
@@ -20,12 +32,18 @@ function createMiddleware(base) {
           default: () => createElement("p", null, "About page"),
         },
       },
-    })),
+    })) },
     moduleGraph: { getModuleById: () => null },
+  }
+  const server = {
+    config: { base, plugins },
+    environments: { ssr: environment },
+    middlewares: { use(fn) { middleware = fn } },
     transformIndexHtml: vi.fn(async (_url, html) => html),
     ssrFixStacktrace: vi.fn(),
   }
-  pluginSsg().configureServer(server)()
+  const configure = await plugins[0].configureServer(server)
+  configure()
   return { middleware, server }
 }
 
@@ -45,7 +63,7 @@ describe.each(["/", "/site/"])("SSG dev middleware (base: %s)", (base) => {
   )
 
   it.each(cases)("クエリに関係なく %s のページを返す", async (route, content) => {
-    const { middleware, server } = createMiddleware(base)
+    const { middleware, server } = await createMiddleware(base)
     const originalUrl = base + route
     const req = { originalUrl, url: "/" + route }
     const res = createResponse()
@@ -65,7 +83,7 @@ describe.each(["/", "/site/"])("SSG dev middleware (base: %s)", (base) => {
   })
 
   it("クエリ付きの存在しないページは次のミドルウェアへ渡す", async () => {
-    const { middleware, server } = createMiddleware(base)
+    const { middleware, server } = await createMiddleware(base)
     const req = {
       originalUrl: base + "missing/?build=xwd2aQ",
       url: "/missing/?build=xwd2aQ",

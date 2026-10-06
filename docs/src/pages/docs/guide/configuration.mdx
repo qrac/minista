@@ -1,0 +1,122 @@
+---
+layout: docs
+locale: en
+title: Configuration
+---
+
+# Configuration
+
+Keep minista plugins and Vite settings in `vite.config.ts` or `vite.config.js` at the project root.
+
+## Table of Contents
+
+contents list
+
+## Minimal configuration ||minimal-config||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+Import `defineConfig` from minista. `pluginSsg()` is required to output pages as static HTML. It also converts Markdown and MDX and outputs CSS, JavaScript, and images referenced by pages.
+
+`minista.config.*` remains supported for backward compatibility, but use `vite.config.*` for new projects. Multiple configuration files cause a conflict error, so keep one.
+
+## Add plugins
+
+In addition to `pluginSsg()`, which is required for static HTML output, add plugins such as image optimization and Islands to `vite.config.*`.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginImage, pluginIsland } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginImage(), pluginIsland()],
+})
+```
+
+For static pages alone, start with the minimal configuration.
+
+| Purpose | Plugin |
+| --------------------------------------- | -------------------------------------------------------------------------------------- |
+| Page generation, Markdown, MDX, and asset output | [pluginSsg](/docs/plugins/ssg) |
+| Image optimization | [pluginImage](/docs/plugins/image) |
+| SVG optimization and SVG sprites | [pluginSvg](/docs/plugins/svg), [pluginSprite](/docs/plugins/sprite) |
+| HTML comments | [pluginComment](/docs/plugins/comment) |
+| Partial interactive UI with React | [pluginIsland](/docs/plugins/island) |
+| Static site search | [Static site search](/docs/guide/search) |
+| Code formatting and archive generation | [pluginBeautify](/docs/plugins/beautify), [pluginArchive](/docs/plugins/archive) |
+
+See the guide for setup instructions for each feature, and plugin pages for argument types and defaults.
+
+Pass options for each feature to its plugin function. Configure features included in SSG, such as MDX, with `pluginSsg({ mdx: { ... } })`.
+
+## Server and output
+
+The following example changes development server and output settings.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+  server: {
+    port: 3000,
+    open: true,
+  },
+  build: {
+    outDir: "dist",
+    assetsInlineLimit: 0,
+  },
+})
+```
+
+Set `assetsInlineLimit: 0` to output small images and other assets as files instead of inlining them.
+
+## TypeScript setup
+
+If you did not use a TypeScript template, add the necessary packages.
+
+```sh
+npm install --save-dev typescript @types/react @types/react-dom
+```
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "types": ["minista/client"]
+  },
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+`minista/client` includes type definitions for MDX, Markdown, Islands, and Vite.
+
+Run type checking separately with `npx tsc --noEmit`. minista builds do not check for type errors.
+
+## Choose output settings
+
+Configure minification for delivery, file names, and asset output locations using Vite's `build` settings. Start with the basic output and adjust it for your host and delivery requirements.
+
+- Make code readable: [HTML formatting](/docs/guide/beautify)
+- Package files in a ZIP: [Delivery archives](/docs/guide/archive)
+- Change the public path and output directory: [Build and deploy](/docs/guide/build-deploy)
+- Change hashes and output locations by file type: [Configuration reference](/docs/reference/config)
+
+## Environment variables
+
+For build-time data fetching, access `process.env` on the Node.js side. For example, use API credentials set in CI or the terminal. See [Passing data to pages](/docs/guide/static-data) for the basics of preparing data, and [Page generation from APIs](/docs/guide/fetch) for API fetching and page generation.
+
+Access Vite environment variables exposed to the browser through `import.meta.env.VITE_*`. Do not put credentials in variables prefixed with `VITE_`, page props, or HTML.
+
+Next, [Build and deploy](/docs/guide/build-deploy) checks the minimal setup's output and covers publishing and hosting settings.

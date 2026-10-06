@@ -1,0 +1,125 @@
+---
+layout: docs
+locale: ja
+title: レイアウト
+---
+
+# レイアウト
+
+ここでは404ページを含む各ページへ共通のヘッダーとフッターを追加します。共通の部品はReactコンポーネント、ページ全体の共通構造はレイアウトとして管理します。どちらもJSX・TSXで記述できます。
+
+## Table of Contents
+
+contents list
+
+## 共通コンポーネントを作る ||shared-components||
+
+```tsx title="src/components/header.tsx"
+type Props = { siteName: string }
+
+export default function Header({ siteName }: Props) {
+  return (
+    <header>
+      <a href="/">{siteName}</a>
+      <nav aria-label="メイン">
+        <a href="/about">私たちについて</a>
+      </nav>
+    </header>
+  )
+}
+```
+
+ページやレイアウトからimportし、propsを渡します。静的な部品にはIslandの指定は必要ありません。
+
+## 共通レイアウトを作る ||shared-layout||
+
+`src/layouts/index.tsx`または`index.jsx`は、デフォルトですべてのページに適用されます。`children`がページ本文です。
+
+```tsx title="src/layouts/index.tsx"
+import type { Metadata, LayoutProps } from "minista/types"
+import Header from "../components/header"
+
+export const metadata: Metadata = {
+  title: "My Site",
+}
+
+export default function Layout({ title, children }: LayoutProps) {
+  return (
+    <html lang="ja">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{title}</title>
+      </head>
+      <body>
+        <Header siteName="My Site" />
+        <main>{children}</main>
+        <footer>My Site</footer>
+      </body>
+    </html>
+  )
+}
+```
+
+このレイアウトでは本文を`main`で囲むため、ページ側は`h1`や`article`などを返します。`main`を重ねないように、どちらで本文の領域を定義するか決めておきます。
+
+ページの`metadata.title`はレイアウトの既定タイトルより優先されます。`url`で現在のページURLも取得できます。
+
+[ページへデータを渡す](/ja/docs/guide/static-data)で用意した`getStaticData()`のpropsも、レイアウトで受け取れます。独自のデータを使う場合は`LayoutProps`へ型を追加し、そのデータを持たないページも表示できるよう省略可能にして扱います。
+
+## 構成と出力を確認する ||layout-output||
+
+ページに加え、ヘッダーと共通レイアウトを次の場所へ置きます。
+
+```text title="プロジェクト構成"
+src/
+├── components/
+│   └── header.tsx
+├── layouts/
+│   └── index.tsx
+└── pages/
+    ├── index.tsx
+    ├── about.md
+    └── 404.tsx
+```
+
+```text title="ビルド結果"
+dist/
+├── index.html
+├── about.html
+└── 404.html
+```
+
+コンポーネントやレイアウトごとのHTMLファイルは生成されません。各ページのHTMLへ、共通のヘッダー、本文、フッターが組み込まれます。
+
+[はじめる](/ja/docs/guide/)のページは本文だけを返す構成です。既存ページが`main`を返している場合は、レイアウトと重ならないように変更してください。
+
+## HTML全体を書かないレイアウト ||fragment-layout||
+
+レイアウトがルートの`html`要素を返さない場合は、ministaが`html` `head` `body`を補います。この形式では`Head`で言語やタイトルを設定できます。
+
+```tsx title="src/layouts/index.tsx"
+import type { LayoutProps } from "minista/types"
+import { Head } from "minista/head"
+
+export default function Layout({ title, children }: LayoutProps) {
+  return (
+    <>
+      <Head htmlAttributes={{ lang: "ja" }}>
+        <title>{title}</title>
+      </Head>
+      <main>{children}</main>
+    </>
+  )
+}
+```
+
+要素の追加や属性指定、同じ`key`による上書きは[Head](/ja/docs/guide/head)を参照してください。
+
+## ページごとに構成を変える ||page-specific-layout||
+
+共通レイアウトの中で`url`や独自のmetadataを使って分岐するか、ページ側で別のラッパーコンポーネントを使います。ディレクトリにレイアウトを置くだけで、自動的に入れ子のレイアウトが適用される仕組みではありません。
+
+スタイルは[CSSのバンドル](/ja/docs/guide/styling)で追加します。
+
+次は[Head](/ja/docs/guide/head)で、ページごとのhead要素やHTMLの属性を設定します。

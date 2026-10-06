@@ -1,0 +1,137 @@
+---
+layout: docs
+locale: en
+title: History
+---
+
+import ElementRecord from "../../components/element/record"
+import ElementStageLogo from "../../components/element/stage-logo"
+import ElementStageSpeed from "../../components/element/stage-speed"
+
+# History
+
+Development of minista began in 2021 as a tool for creating pages with React JSX and delivering clean HTML.
+
+The aim was to bring the familiar JSX and editor completion used with Next.js to static HTML development, while retaining control over the names, structure, and readability of the delivered files.
+
+## Table of Contents
+
+contents list
+
+## v0: Writing HTML with JSX
+
+<ElementRecord text="First Commit: 2021/03/21" />
+
+<ElementStageLogo version={1} />
+
+The first minista packaged a system that combined React's `renderToStaticMarkup()` with webpack to export static HTML from JSX.
+
+It managed pages and shared elements as React components and output the resulting files as standard HTML.
+
+- [An SSG for writing HTML with React (JSX) — minista v0 (Japanese)](https://zenn.dev/qrac/articles/7537521afcd1bf)
+
+## v1: Practical use and challenges
+
+<ElementRecord text="Release: 2022/01/15" />
+
+The simple, extensible setup came into use in real website projects. However, in v0 and v1, webpack startup became slower as projects grew, sometimes taking more than ten seconds toward the end of development.
+
+Each project required a function to convert pages to HTML, and components could not import CSS. Generating pages from API data and supporting Markdown were also challenges, leading to a redesign.
+
+- [SSG improvements and future plans with React — minista v1 (Japanese)](https://zenn.dev/qrac/articles/a24de970148c7e)
+
+## v2: Vite and esbuild
+
+<ElementRecord text="Release: 2022/04/12" />
+
+minista was rebuilt from scratch, replacing webpack with Vite and esbuild. Vite powered the development server and esbuild generated production static HTML, improving startup and build speed.
+
+<ElementStageSpeed
+  comparisons={[
+    {
+      label: "develop:",
+      unit: "s",
+      before: { label: "v1-latest", value: 9.1715 },
+      after: { label: "v2.0.0", value: 0.6006 },
+    },
+    {
+      label: "build:",
+      unit: "s",
+      before: { label: "v1-latest", value: 10.7899 },
+      after: { label: "v2.0.0", value: 5.9628 },
+    },
+  ]}
+  caption="Example: { pages: 15, components: 38, css: 101KB, js: 319KB }"
+/>
+
+Page authoring was also refined, with data fetching and route generation through `getStaticData()`, plus Markdown and MDX support. v2.4 added Partial Hydration for running React in part of a page, and v2.7 added full-text search that runs entirely in the browser.
+
+- [Rebuilding a React SSG with Vite and esbuild — minista v2 (Japanese)](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
+
+- [SSG + Partial Hydration (partial React apps) — minista v2.4 (Japanese)](https://zenn.dev/qrac/articles/b9c65c1c0be901)
+
+- [Implementing browser-only full-text search in an SSG — minista v2.7 (Japanese)](https://zenn.dev/qrac/articles/653f7512b707ff)
+
+## v3: Align development and build
+
+<ElementRecord text="Release: 2023/03/31" />
+
+<ElementStageLogo version={3} />
+
+The source code was rewritten while retaining the basic usage. Development displayed static HTML instead of an SPA, making previews closer to production. Production builds also moved from esbuild to Vite.
+
+Features supporting HTML production and delivery were added, including image optimization, asset entry declarations, delivery page lists, and ZIP archive generation.
+
+- [Rewriting an SSG for React JSX from scratch — minista v3 (Japanese)](https://zenn.dev/qrac/articles/980efced76634f)
+
+## v4: Vite plugins
+
+<ElementRecord text="Release: 2026/03/15" />
+
+<ElementStageLogo version={4} />
+
+minista integrated with Rolldown-based Vite and changed to providing all features as Vite plugins. Add the plugins you need to `vite.config.ts`.
+
+Islands replaced the previous Partial Hydration feature. Add `client:*` to any JSX component to run it with React, with support for props and loading timing.
+
+- [Turning an SSG into Vite plugins and releasing after three years — minista v4 (Japanese)](https://zenn.dev/qrac/articles/48d43fdc4a4822)
+
+## v5: Simplify setup and build
+
+<ElementRecord text="Release: In development" />
+
+A major refactor and additional features preserve the familiar development experience.
+
+Central management of routes, pages, and assets through the Project Graph and asynchronous library loading made builds up to about 67% faster. Comparing v4.0.11 and v5 across six playgrounds with identical source and configuration reduced clean build times by up to 67.0%.
+
+<ElementStageSpeed
+  comparisons={[
+    {
+      label: "build:",
+      unit: "ms",
+      before: { label: "v4.0.11", value: 702.98 },
+      after: { label: "v5", value: 233.88 },
+    },
+  ]}
+  caption="2026/10/05: _default playground / clean build / median of 3 runs / Node.js v26.10.0 / macOS arm64"
+/>
+
+Using a Map for search dictionary lookups made search JSON index generation up to about 77 times faster. With synthetic data containing 1,000 pages and 10,000 vocabulary entries, the time decreased by about 98.7%. This measurement compares v5 before and after optimization and excludes DOM parsing and JSON serialization.
+
+<ElementStageSpeed
+  comparisons={[
+    {
+      label: "index:",
+      unit: "ms",
+      before: { label: "Before Map", value: 5012.39 },
+      after: { label: "After Map", value: 65.39 },
+    },
+  ]}
+  caption="2026/10/05: 1,000 pages / 10,000 vocabulary entries / 1,001,000 tokens / median of 3 runs / Node.js v26.10.0 / macOS arm64"
+/>
+
+Other refinements include editing html, head, and body through Layout, applying base to public paths, passing serializable values to Islands, and supporting multiple search outputs in pluginSearch.
+
+The documentation site also became multilingual, making its content more accessible to English-speaking users.
+
+APIs and settings in older articles apply to those versions. For current instructions, see [Getting started](/docs/guide/).

@@ -1,0 +1,72 @@
+# v5 architecture release notes
+
+生成workspaceの`.minista`表記は、rootにpackage.jsonがある場合は`<root>/node_modules/.minista`、ない場合は`<root>/.minista`を指します（[ADR-0016](decisions/0016-workspace-and-agent-guide.md)）。
+
+最終確認日: 2026-08-14
+
+この文書はv5のAIコーディングネイティブ基盤への再設計で完了した変更を要約します。現在の詳細なcontractは [`architecture.md`](architecture.md)、Vite固有の判断は [`vite.md`](vite.md)、判断理由は [`decisions/`](decisions/) を参照してください。
+
+## Sourceとpublic type
+
+- runtime implementationをJavaScript／JSX + JSDocへ統一
+- 必要なpublic typeを隣接`.d.ts`に分離
+- package entry、CLI、testから`src/`を直接実行し、事前buildを不要化
+- Coreのgraph、lifecycle、diagnostics、Artifact、manifest、queryをVite非依存に分離
+
+## Build lifecycle
+
+- 通常buildを単一processのVite app buildへ移行
+- render／client environment間をbuild session、Project Graph、Artifact Storeで接続
+- feature descriptorのcapability、`requires`、`after`からphase順を決定
+- partial outputを防ぐoutDir transactionとstable diagnosticを実装
+- `.minista/manifest.json`と`.minista/diagnostics.json`を安全かつatomicに出力
+
+## Dev lifecycle
+
+- programmatic custom serverとModuleRunner adapterへ移行
+- route／page単位のdiscovery、resolve、render cacheを実装
+- module graphから影響RouteNodeを解決し、URL単位reloadを実装
+- server lifetimeのDocument、Graph、Artifact、diagnostics、traceをfeature間で共有
+- page scope付きArtifactによりSprite、Image、Islandの集約出力をincrementalに再生成
+- Imageのremote source cache、HTTP validator再検証、source準備／Sharp変換のbounded concurrency
+
+## Feature migration
+
+SSG、Comment、Svg、Beautify、Archive、Search、Sprite、Image、Entry、IslandはCore featureとVite adapterへ分離しました。domain処理は`analyze`、`generate`、`render`、`bundle`、`compose`、`finalize`の明示phaseで実行します。従来のBundleはSSGのrender asset出力へ統合しました。公開`pluginEntry()`も削除し、SSG内部のEntry adapterへ統合しました。`plugins: [pluginSsg()]`でHTML属性のCSS・JS・画像をbundleし、public assetと併用できます。内部Entry Feature、出力ownership、依存順序は維持します。
+
+MDXは`pluginSsg().mdx`へ統合し、`@mdx-js/mdx`を直接使う遅延compiler adapterとしてVite境界に置きます。
+
+## Dataとdiagnostics
+
+ImageのSharp変換から`withMetadata()`を削除しました。出力画像にはEXIF・XMP・IPTCなどのメタデータやICCプロファイルを保持・付与せず、EXIF Orientationによる向き補正は維持します。保持オプションは追加しません。生成画像のcache keyに変換方針を含め、旧メタデータ付きcacheを再生成します。
+
+Searchは`indexes`による複数indexに対応しました。`<Search index="ja" />`で選択し、indexごとに検索範囲とJSON出力を分けます。既存の`pluginSearch({ src })`と`<Search />`は変更不要です。解析条件が同じindexはpage解析Artifactを共有し、dev／Vite app build／legacy buildで同じ選択・検証・出力契約を使います（[ADR-0020](decisions/0020-search-multiple-indexes.md)）。
+
+- executable temp module handoffを削除し、`RenderedPage` Artifactまたはschema付きJSONへ移行
+- output claimからPage、Artifact、Asset、出力fileの関係をProject Graphへ統合
+- `check`、`inspect`、`explain`とJSON出力を共通query serviceへ接続
+- Vite、filesystem、HTML parser、image、sprite、SVG、archiveの失敗をstable code付きdiagnosticへ正規化
+- tool向けread-only queryを`minista/internal/query`から公開
+
+## Compatibility policy
+
+ReactとReact DOMのpeerDependenciesを`>=19.0.0`へ変更しました。React 18のサポートと専用テストを終了し、React 19を検証の基準とします。React 18を利用しているprojectは、v5への移行時に両方を19以降へ更新してください。
+
+公開plugin API、option semantics、page／layout contract、出力URLを互換対象として維持します。`pluginSsg()`のpath optionはproject root相対のslashなしをdefaultとし、従来の先頭slash付き表記も同じpathとして扱います。旧`--oneBuild`は削除し、指定時は`MINISTA_CLI_OPTION_REMOVED`を返します。
+
+Layoutは従来の部分treeに加え、rootに`html`を持つ完全なdocumentを返せます。document Layoutでは直書きした`html`／`head`／`body`を採用し、既存の`Head` APIを後から合成します。title、charset、viewportは`Head`側を優先して1つに正規化します。
+
+互換fallbackはViteのexperimental API変更に備えた2経路だけを保持します。新規fallbackは追加せず、発動条件と削除条件は [`vite.md`](vite.md#retained-compatibility-fallbacks) で管理します。
+
+## Verification
+
+Core／featureのunit test、公開API type test、代表fixtureのbuild、programmatic／fallback build、dev HTTP／HMR、manifest／diagnostic snapshotを通常suiteで検証します。最低限のrepository検証は次です。
+
+```sh
+npm test
+npx tsc --noEmit
+```
+
+## BeautifyとSSGのpreload方針（P08）
+
+image preload除去は`pluginSsg({ removeImagePreload: true })`へ移し、dev／build共通の既定値とした。Head APIの明示preloadを保持し、renderer出力内の生JSX linkは除去対象とする。旧Beautify optionは移行診断を出す。formatterをadapterへ分離し、JSはhash確定前に整形する。整形対象のsourcemap、後段JS minify、CSS hash付き／関数形式命名は明示診断とし、対応設定と移行方法を公開docsへ記載した。

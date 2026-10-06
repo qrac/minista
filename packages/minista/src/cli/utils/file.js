@@ -1,6 +1,8 @@
 import fs from "node:fs"
 import path from "node:path"
 
+import { createConfigConflictDiagnostic } from "./diagnostic.js"
+
 const configFileNameList = [
   "vite.config.js",
   "vite.config.mjs",
@@ -15,6 +17,16 @@ const configFileNameList = [
   "minista.config.mts",
   "minista.config.cts",
 ]
+
+export class ConfigFileConflictError extends Error {
+  /** @param {readonly string[]} configFiles */
+  constructor(configFiles) {
+    const diagnostic = createConfigConflictDiagnostic(configFiles)
+    super(diagnostic.message)
+    this.name = "ConfigFileConflictError"
+    this.diagnostic = diagnostic
+  }
+}
 
 /**
  * @param {string} [rootArg]
@@ -55,10 +67,7 @@ function findConfigFiles(root) {
  */
 function resolveConfigFile(configFiles, rootArg) {
   if (configFiles.length > 1) {
-    const fileList = configFiles.map((fileName) => `  ${fileName}`).join("\n")
-    throw new Error(
-      `Multiple config files were found.\n\n${fileList}\n\nPlease remove one of them. \`vite.config.js\` is recommended.`
-    )
+    throw new ConfigFileConflictError(configFiles)
   }
 
   const configFile = configFiles[0]

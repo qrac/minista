@@ -68,7 +68,7 @@ export function extractUrls(html, tag, attr, start) {
 }
 
 /**
- * @param {string} base
+ * @param {string | null | undefined} base
  * @returns {string}
  */
 export function getServeBase(base) {
@@ -82,7 +82,7 @@ export function getServeBase(base) {
 }
 
 /**
- * @param {string} base
+ * @param {string | null | undefined} base
  * @returns {string}
  */
 export function getBuildBase(base) {
@@ -107,5 +107,5 @@ export function getBasedAssetUrl(base, htmlName, assetName) {
   if (base === "./" || base === "") {
     return normalizePath(path.relative(path.dirname(htmlName), assetName))
   }
-  return normalizePath(base.replace(/\/$/, "") + "/" + assetName)
+  return base.replace(/\/$/, "") + "/" + normalizePath(assetName)
 }

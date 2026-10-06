@@ -9,8 +9,9 @@
     "jsx": "react-jsx",
     "checkJs": true,
     "allowJs": true,
+    "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["./packages", "./vitest.config.ts"],
+  "include": ["./packages", "./vitest*.config.ts"],
   "exclude": ["node_modules", "./docs", "./playground"]
 }

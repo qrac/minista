@@ -1,0 +1,43 @@
+---
+layout: docs
+locale: en
+title: Philosophy
+---
+
+# Philosophy
+
+minista values the comfort of writing JSX and the freedom to work with static HTML. Its guiding idea is that the technology used to build a site should not constrain the people receiving the files or the environment hosting them.
+
+## Table of Contents
+
+contents list
+
+## React JSX as a template
+
+Build page structures using React components, props, and JavaScript expressions. Use your knowledge of JSX and TypeScript and your editor's assistance without introducing a custom template language.
+
+React code is not shipped to the browser by default. Reuse components to make development and maintenance easier while producing pages that do not need to load or run React.
+
+## Static HTML by default
+
+Generate HTML at build time instead of generating a page on the server for every visit. Hosting only requires placing static files on a server, without operating a server or database for page generation.
+
+Display pages with static HTML, CSS, and images, and add JavaScript or Islands only where interaction is needed.
+
+## HTML as a deliverable
+
+Format HTML, CSS, and JavaScript into readable files that are easy to inspect and edit after delivery. Adjustable file names and output locations support HTML delivery and integration with existing systems.
+
+The ease of handling the files for their recipients matters alongside their appearance in the browser.
+
+## Use Vite
+
+minista uses Vite for its development server, asset transformations, and bundling. Configure minista features as Vite plugins and combine them with other plugins as needed.
+
+Bring Vite's fast development server startup and updates on file save to static site development.
+
+## Choose features
+
+Start with `pluginSsg()`, which is required for static HTML output, and add image optimization, Islands, search, and other features when needed. Projects do not all need the same setup.
+
+Start with static HTML and combine features to suit your needs. The [history](/docs/history) explains how this approach has evolved.

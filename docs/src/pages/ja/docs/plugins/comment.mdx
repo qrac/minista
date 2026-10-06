@@ -1,0 +1,36 @@
+---
+layout: docs
+locale: ja
+title: pluginComment
+---
+
+# pluginComment
+
+HTMLにコメントを出力するプラグイン。
+
+導入手順と使用例は[ガイド](/ja/docs/guide/comment)を参照してください。このページは設定値、コンポーネントのprops、制約をまとめています。
+
+## Table of Contents
+
+contents list
+
+## オプション ||options||
+
+※オプションはありません
+
+## Comment ||comment||
+
+HTMLにコメントを出力するコンポーネント。
+
+```ts
+type CommentProps = CommentUseContent | CommentUseChildren
+
+type CommentUseContent = {
+  text: string
+  children?: string
+}
+type CommentUseChildren = {
+  text?: string
+  children: string
+}
+```

@@ -13,7 +13,7 @@ describe("getDefaultHeadTags", () => {
     expect(result).toHaveLength(3)
 
     const charsetMeta = result.find(
-      (tag) => tag.type === "meta" && tag.props.charSet === "UTF-8"
+      (tag) => tag.type === "meta" && tag.props.charSet === "utf-8"
     )
     const viewportMeta = result.find(
       (tag) => tag.type === "meta" && tag.props.name === "viewport"
@@ -22,7 +22,7 @@ describe("getDefaultHeadTags", () => {
       (tag) => tag.type === "title" && tag.props.children === "My Page"
     )
     expect(charsetMeta).toBeTruthy()
-    expect(viewportMeta).toBeTruthy()
+    expect(viewportMeta?.props.content).toBe("width=device-width")
     expect(title).toBeTruthy()
   })
 
@@ -93,6 +93,23 @@ describe("filterHeadTags", () => {
     expect(result[0].key).toBe("a")
     expect(result[1].key).toBe("b")
     expect(result[0].props.name).toBe("last")
+  })
+
+  it("title、charset、viewportはキーがなくても最後のタグを保持する", () => {
+    const tags = [
+      <title>Layout</title>,
+      <meta charSet="shift_jis" />,
+      <meta name="viewport" content="layout" />,
+      <title>Page</title>,
+      <meta charSet="UTF-8" />,
+      <meta name="viewport" content="page" />,
+    ]
+    const result = filterHeadTags(tags)
+
+    expect(result).toHaveLength(3)
+    expect(result[0].props.children).toBe("Page")
+    expect(result[1].props.charSet).toBe("UTF-8")
+    expect(result[2].props.content).toBe("page")
   })
 })
 

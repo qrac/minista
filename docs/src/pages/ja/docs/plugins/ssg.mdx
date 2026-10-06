@@ -1,0 +1,166 @@
+---
+layout: docs
+locale: ja
+title: pluginSsg
+---
+
+# pluginSsg
+
+ページを静的HTMLとして出力するための必須プラグインです。JSX・TSX・Markdown・MDXからHTMLを生成し、ページから参照するCSS・JavaScript・画像も出力します。
+
+以前の`pluginMdx()` `pluginBundle()` `pluginEntry()`の機能も含みます。
+
+導入は[はじめる](/ja/docs/guide/)、ページの作り方は[ファイルベースルーティング](/ja/docs/guide/pages-routing)を参照してください。このページは設定値と公開APIの契約をまとめています。
+
+## Table of Contents
+
+contents list
+
+## オプション ||options||
+
+```js title="既定値"
+pluginSsg({
+  src: ["src/pages/**/*.{tsx,jsx,mdx,md}"],
+  srcBases: ["src/pages"],
+  layout: "src/layouts/index.{tsx,jsx}",
+  mdx: {
+    frontmatter: {
+      name: "metadata",
+    },
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+  bundle: {
+    outName: "bundle",
+  },
+  removeImagePreload: true,
+})
+```
+
+### src ||src||
+
+- 型: `string[]`
+- デフォルト: `["src/pages/**/*.{tsx,jsx,mdx,md}"]`
+
+ページテンプレートをプロジェクトルート相対のglob形式で指定します。対象ファイルはViteの機能でglob importされます。従来の先頭スラッシュ付きパスも同じ場所として扱われます。
+
+### srcBases ||srcbases||
+
+- 型: `string[]`
+- デフォルト: `["src/pages"]`
+
+ページテンプレートをURLに変換する際に省くプロジェクトルート相対パス。前方一致で削除されます。従来の先頭スラッシュ付きパスも同じ場所として扱われます。
+
+### layout ||layout-option||
+
+- 型: `string`
+- デフォルト: `"src/layouts/index.{tsx,jsx}"`
+
+すべてのページテンプレートをラップするコンポーネントの場所をプロジェクトルート相対で指定します。対象ファイルはViteの機能でglob importされ最初に見つかったファイルが使用されます。従来の先頭スラッシュ付きパスも同じ場所として扱われます。
+
+### mdx ||mdx||
+
+- 型: `false | (MdxCompileOptions & { frontmatter?: false | { name?: string } })`
+- デフォルト: `{ frontmatter: { name: "metadata" }, remarkPlugins: [], rehypePlugins: [] }`
+
+MDX・Markdownの変換設定です。YAML／TOMLのフロントマターは`frontmatter.name`で指定した名前のMDX exportへ変換され、`frontmatter: false`でフロントマター変換だけを無効化できます。YAMLは`---`、TOMLは`+++`で囲みます。MDX全体はデフォルトで有効です。無効にする場合は`mdx: false`を指定します。`src`を省略している場合、無効化に合わせて既定の探索対象もJSX・TSXだけになります。
+
+### bundle ||bundle||
+
+- 型: `{ outName: string }`
+- デフォルト: `{ outName: "bundle" }`
+
+ページとレイアウトから参照されたCSS・画像を描画結果と同じ変換結果から出力します。`outName`はCSSをまとめるエントリー名（拡張子なし）に使用されます。CSS ModulesもHTMLと同じクラス名で出力します。
+
+### removeImagePreload ||removeimagepreload||
+
+- 型: `boolean`
+- デフォルト: `true`
+
+Reactのレンダラーの出力に含まれる`link[rel="preload"][as="image"]`を、Head APIの合成前に除去します。開発時とビルド、通常ページとIslandの静的レンダリングで共通です。`client:only`の内容は静的レンダリングされません。`false`にするとレンダラーの出力を保持します。
+
+自動生成か手書きかを判定する設定ではありません。Layoutの`<head>`を含む通常のJSXへ直接書いた画像の先読みも除去対象です。明示的なpreloadを残す場合は`Head` APIを使ってください。フォントなど画像以外のリソースヒントは変更しません。
+
+## ページ ||page||
+
+既定の探索対象は`src/pages/**/*.{tsx,jsx,mdx,md}`です。JSX・TSXではコンポーネントをdefault exportします。Markdown・MDXでは本文がページになります。
+
+`metadata`をページデータとして読み込み、`draft: true`のページを本番ビルドから除外します。Markdown・MDXのフロントマターは既定で`metadata`になります。export名を変更した場合、ページデータへ渡すには`metadata`としてもexportしてください。
+
+## 静的データとルート生成 ||fetch||
+
+`getStaticData()`から`{ props }`または`{ paths, props }`の配列を返します。`paths`は動的ファイル名のパラメーターと一致するキー、文字列の値を持ちます。
+
+開発、ビルド、`check`、通常の`inspect`でページモジュールと取得関数を実行します。公開後のリクエストごとには実行しません。コード例は[APIによるページ生成](/ja/docs/guide/fetch)を参照してください。
+
+## レイアウト ||layout||
+
+既定のファイルは`src/layouts/index.{tsx,jsx}`です。default exportのコンポーネントへ、ページデータと`children`を渡します。`metadata`と`getStaticData()`で共通データを指定できます。
+
+ルートに`html`を返す場合は、レイアウトの`html` `head` `body`を使います。それ以外は既定の構造で包みます。既定の言語は`en`です。レイアウトの`html`または`Head.htmlAttributes`で変更してください。
+
+ディレクトリごとのレイアウトが自動的に入れ子になる仕組みはありません。構成例は[レイアウト](/ja/docs/guide/layouts)を参照してください。
+
+## Head ||head||
+
+`minista/head`からimportし、ページやコンポーネントからhead要素を追加します。使い方は[Head](/ja/docs/guide/head)を参照してください。
+
+| 項目             | 用途                                       |
+| ---------------- | ------------------------------------------ |
+| `children`       | `title` `meta` `link` `script` `style`など |
+| `htmlAttributes` | `html`要素の属性                           |
+| `bodyAttributes` | `body`要素の属性                           |
+| 子要素の`key`    | 同じキーの要素を後のものへ差し替える       |
+
+レイアウトへ後から適用し、`title`・charset・viewportが重複する場合は`Head`側を優先します。charsetとviewportがない場合は既定値を補い、headの先頭へこの順で配置します。
+
+## publicのファイル参照 ||public-assets||
+
+`public/logo.svg`はJSXやMDXで`/logo.svg`と指定します。ビルド時に`pluginSsg()`が実在するpublicファイルを判定し、参照URLへViteの`base`を自動適用します。追加オプションは不要です。`publicDir`の変更と`publicDir: false`にも対応します。
+
+| `base`                     | `index.html`                       | `demos/index.html`                 |
+| -------------------------- | ---------------------------------- | ---------------------------------- |
+| `/`                        | `/logo.svg`                        | `/logo.svg`                        |
+| `/test/`                   | `/test/logo.svg`                   | `/test/logo.svg`                   |
+| `./`または空文字           | `logo.svg`                         | `../logo.svg`                      |
+| `https://cdn.example.com/` | `https://cdn.example.com/logo.svg` | `https://cdn.example.com/logo.svg` |
+
+画像の`src`／`srcset`、linkの`href`／`imagesrcset`、scriptの`src`、動画・音声・trackの`src`、動画の`poster`、SVGの`image`／`use`の`href`／`xlink:href`、`object[data]`、`embed[src]`、`input[src]`が対象です。`og:image`／`og:audio`／`og:video`とURL関連の派生property、`twitter:image`、Microsoftのtile画像・設定のmetaも補正します。
+
+`a[href]`はpublic実ファイルへのリンクだけ補正します。style属性と`<style>`内の通常の`url()`にも対応します。`/logo.svg?v=1#mark`のクエリ／フラグメント、srcsetの記述子は保持します。外部URL、data URL、フラグメントのみ、`./`などの相対参照、通常のページリンク、独自data属性は変更しません。
+
+publicファイル本体は無加工でコピーします。public内のCSS・JS・JSONなどに書かれたURL、inline CSSのescape付きURL・`@import`文字列・image-set文字列、ブラウザ実行時のURLは自動補正しません。Island内部（`client:only`のフォールバックを含む）もSSRとクライアントの一致を保つため対象外です。必要なURLはSSRとクライアントへ同じpropsとして渡してください。
+
+## HTMLからのアセット参照 ||html-assets||
+
+HTML属性から参照するCSS・JavaScript・画像をビルド対象にします。導入例は[CSS・JS・TSのエントリー](/ja/docs/guide/entry)を参照してください。
+
+ページやLayoutのモジュールのimportから参照するCSS・画像も引き続きSSGが出力します。
+
+### 対象の要素と属性 ||supported-elements-and-attributes||
+
+プロジェクトルート内の元ファイルをEntryとしてバンドルする場合、収集と書換えは次の対象に限定します。publicファイルは前述の「publicのファイル参照」を参照してください。
+
+| 要素            | 属性     | 値の扱い                              |
+| --------------- | -------- | ------------------------------------- |
+| `link`          | `href`   | 単一URL。`rel`では限定しない          |
+| `script`        | `src`    | 単一URL                               |
+| `img`           | `src`    | 単一URL                               |
+| `img`、`source` | `srcset` | 各候補のURL。`1x`や`640w`は保持       |
+| SVGの`use`      | `href`   | 単一URL。シンボルのフラグメントは保持 |
+
+`/`で始まるプロジェクトルート相対の参照だけを収集し、ルート内に実ファイルがあるものをバンドルします。`https://`、`//cdn.example.com/`、`data:`、`#icon`、`./image.png`などは変更しません。単一URL内のカンマと、srcsetのdata URL内のカンマも保持します。srcsetのURLと記述子の間には空白を入れてください。
+
+`meta[content]`、`video[poster]`、`a[href]`、`source[src]`、SVGの`image[href]`／`use[xlink:href]`、任意の要素の同名属性は対象外です。例えば`<meta property="og:image" content="/src/image.png" />`だけでは画像を出力しません。これらにはSSGでimportした画像URLかpublicアセットのURLを指定してください。
+
+`/public.svg`として参照する`public/public.svg`はViteがコピーし、SSGが参照URLへbaseを適用します。ルートにもpublicにも実ファイルがない参照はそのまま残し、欠落診断もしません。同じURLに対応するファイルをプロジェクトルートとpublicの両方へ置くと、Entryはルート側をバンドルするため、この配置は避けてください。
+
+`/src/app.ts?v=1#start`は`src/app.ts`をバンドルし、出力URLに`?v=1#start`を保持します。クエリはViteの`?raw`／`?url`などのモジュール変換指定としては渡しません。出力URLはViteの`base`に従い、`/site/`、CDNの絶対URL、`./`や空文字によるページ相対URLに対応します。入力の`/src/…`にはbaseを付けません。
+
+エントリーがimportするCSSは、そのエントリーを参照するページにだけ挿入します。同じURLのstylesheetが既にある場合や、複数エントリーが同じCSSを使う場合は重複挿入しません。クエリ／フラグメントが異なるstylesheet URLは別扱いです。
+
+## 公開型 ||merge-types||
+
+`Metadata`、`PageProps`、`LayoutProps`、`StaticData`、`GetStaticData`は`minista/types`から利用します。ページやレイアウトには`url` `title` `draft`などが渡されます。レイアウトには`children`も含みます。
+
+独自項目の型定義とモジュール拡張は[TypeScript](/ja/docs/reference/typescript)を参照してください。型を追加しただけでHTML要素が生成されるわけではありません。

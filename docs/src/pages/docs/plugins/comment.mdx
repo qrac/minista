@@ -1,61 +1,26 @@
 ---
-title: pluginComment
 layout: docs
+locale: en
+title: pluginComment
 ---
 
 # pluginComment
 
-HTMLにコメントを出力するプラグイン。
+A plugin that outputs comments in HTML.
+
+See the [guide](/docs/guide/comment) for setup and examples. This page covers settings, component props, and constraints.
 
 ## Table of Contents
 
 contents list
 
-## How To Use
-
-```js title="./vite.config.js"
-import { pluginSsg, pluginComment } from "minista"
-
-export default {
-  plugins: [pluginSsg(), pluginComment()],
-}
-```
-
-```jsx title="./src/pages/index.jsx"
-import { Comment } from "minista/assets"
-
-export default function () {
-  return <Comment text="Outputting comments in react jsx" />
-}
-```
-
 ## Options
 
-※オプションはありません
+There are no options.
 
 ## Comment
 
-HTMLにコメントを出力するコンポーネント。
-
-```jsx title="./src/pages/index.jsx"
-import { Comment } from "minista/assets"
-
-export default function () {
-  return (
-    <>
-      <Comment text="+ comment" />
-      <h1>index</h1>
-      <Comment text="- comment" />
-    </>
-  )
-}
-```
-
-```html title="Dist"
-<!-- + comment -->
-<h1>index</h1>
-<!-- - comment -->
-```
+A component that outputs comments in HTML.
 
 ```ts
 type CommentProps = CommentUseContent | CommentUseChildren

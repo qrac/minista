@@ -1,0 +1,108 @@
+---
+layout: docs
+locale: en
+title: CSS, JS, and TS entries
+---
+
+# CSS, JS, and TS entries
+
+Declare CSS, JavaScript, and TypeScript referenced from HTML as build entries. `pluginSsg()` processes the files and updates reference URLs, so the old `pluginEntry()` is unnecessary.
+
+Here, add regular JavaScript to the home page to display a greeting when a button is clicked. See [Island](/docs/guide/island) for UI that uses React state.
+
+## Table of Contents
+
+contents list
+
+## Create a browser script ||create-browser-script||
+
+Create `src/assets/scripts.ts`. This file runs in the browser, so it can use `document` and `window`.
+
+```ts title="src/assets/scripts.ts"
+document.querySelector("[data-greeting]")?.addEventListener("click", () => {
+  window.alert("Hello!")
+})
+```
+
+If you do not use TypeScript, write the same code in `scripts.js`. Keep browser logic in this file rather than at the top level of pages or layouts that generate static HTML.
+
+## Reference an entry from HTML ||reference-entry||
+
+Reference CSS with `link` and JavaScript or TypeScript with `script`. The `globals.css` used here is created in [CSS bundling](/docs/guide/styling).
+
+```tsx title="src/pages/index.tsx"
+import { Head } from "minista/head"
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <link rel="stylesheet" href="/src/layouts/globals.css" />
+        <script type="module" src="/src/assets/scripts.ts" />
+      </Head>
+      <h1>My Site</h1>
+      <button type="button" data-greeting>
+        Say hello
+      </button>
+    </>
+  )
+}
+```
+
+When referencing CSS this way, remove the import of the same file to avoid loading it twice. Move references to the layout for entries shared by all pages.
+
+## Check entry output ||entry-output||
+
+```text title="Project structure"
+src/
+├── assets/
+│   └── scripts.ts
+├── layouts/
+│   ├── globals.css
+│   └── index.tsx
+└── pages/
+    └── index.tsx
+```
+
+```text title="Example build output"
+dist/
+├── index.html
+└── assets/
+    ├── globals-[hash].css
+    └── scripts-[hash].js
+```
+
+TypeScript is converted to JavaScript. HTML references are rewritten to the output location, so you do not need to upload `src/` to your host. File names and splitting depend on configuration and dependencies.
+
+## Load CSS from JavaScript ||entry-css||
+
+You can also import CSS from an entry.
+
+```ts title="src/assets/scripts.ts"
+import "../layouts/globals.css"
+
+document.querySelector("[data-greeting]")?.addEventListener("click", () => {
+  window.alert("Hello!")
+})
+```
+
+With this method, remove the page's `link`. At build time, a stylesheet is added to pages that reference this script. Load it from other pages or a shared layout if they also use the styles.
+
+## Public scripts
+
+Place existing CSS and JavaScript in `public/` to use them without processing.
+
+```tsx
+<Head>
+  <link rel="stylesheet" href="/css/legacy.css" />
+  <script src="/js/legacy.js" defer />
+</Head>
+```
+
+This example references `public/css/legacy.css` and `public/js/legacy.js`. Source entries and public files can be used on the same page.
+
+Processing applies to references that start with `/` and point to actual files in the project. External URLs and relative URLs starting with `./` in HTML are not changed.
+
+See [pluginSsg](/docs/plugins/ssg#html-assets) for supported attributes and other details.
+
+Next, [Image optimization](/docs/guide/image) adds a plugin to adjust image sizes and formats.

@@ -1,0 +1,107 @@
+---
+layout: docs
+locale: en
+title: HTML formatting
+---
+
+# HTML formatting
+
+`pluginBeautify()` formats the HTML, CSS, and JavaScript in the build output. Start by making HTML readable, then format CSS and JavaScript as needed.
+
+Formatting makes delivered files easier to inspect and edit. Line breaks and spaces increase file sizes, so choose the targets carefully for sites that prioritize transfer size.
+
+## Table of Contents
+
+contents list
+
+## Beautify HTML
+
+Use `src` to limit the target to HTML. This setup requires no changes to CSS or JavaScript output settings.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginBeautify } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginBeautify({ src: ["**/*.html"] })],
+})
+```
+
+Run `npm run build` and open `dist/index.html`. The generated HTML includes indentation and line breaks. This feature does not change the source JSX or TSX.
+
+```html title="Example formatted HTML"
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>My Site</title>
+  </head>
+  <body>
+    <h1>My Site</h1>
+  </body>
+</html>
+```
+
+## Change indentation ||beautify-options||
+
+Pass HTML settings to `htmlOptions`. For example, set the indentation width to four.
+
+```ts
+pluginBeautify({
+  src: ["**/*.html"],
+  htmlOptions: { indent_size: 4 },
+})
+```
+
+HTML, CSS, and JavaScript settings accept js-beautify options. See [pluginBeautify](/docs/plugins/beautify) for types and defaults.
+
+## Beautify CSS and JS
+
+If targets are omitted, HTML, CSS, and JavaScript are formatted. Use CSS file names without hashes and disable JavaScript minification at the Rolldown output stage.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginBeautify } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginBeautify()],
+  build: {
+    sourcemap: false,
+    cssMinify: false,
+    rolldownOptions: {
+      output: {
+        minify: false,
+        assetFileNames: "assets/[name][extname]",
+      },
+    },
+  },
+})
+```
+
+Setting `build.minify: false` alone leaves Rolldown's later `dce-only` processing (dead code elimination) enabled. Combining this processing with JavaScript formatting stops the build with `MINISTA_BEAUTIFY_MINIFY_UNSUPPORTED`, so set `build.rolldownOptions.output.minify: false`. See [Disable minification in the configuration reference](/docs/reference/config#disable-minification) for details.
+
+CSS is formatted after output names are finalized, so `assetFileNames` cannot use `[hash]` or a function when CSS is a target. JavaScript entries and chunks can use hashes.
+
+## Check formatted output and limitations ||beautified-output||
+
+```text title="Example project structure"
+src/
+├── assets/
+│   ├── styles.css
+│   └── scripts.ts
+└── pages/
+    └── index.tsx
+```
+
+```text title="Example build output"
+dist/
+├── index.html                ← Formatted HTML
+└── assets/
+    ├── styles.css            ← Formatted CSS
+    └── scripts-[hash].js     ← Formatted JavaScript
+```
+
+Actual file names depend on how files are loaded and the output settings. CSS and JavaScript formatting cannot be combined with source maps. If source maps are needed, exclude those files and format only HTML.
+
+When removing hashes from file names, also check for name collisions and how your host updates cached files.
+
+Next, [Delivery archives](/docs/guide/archive) packages the output as a ZIP file.

@@ -1,9 +1,29 @@
+import type { PageId } from "../../core/graph/ids.js"
+import type { MdxCompileOptions } from "./mdx-options.js"
+
+export type PluginSsgBundleOptions = {
+  outName: string
+}
+
+export type PluginSsgMdxFrontmatterOptions = {
+  name?: string
+}
+
+export type PluginSsgMdxOptions = MdxCompileOptions & {
+  frontmatter?: false | PluginSsgMdxFrontmatterOptions
+}
+
 export type PluginOptions = {
-  layout: string
   src: string[]
   srcBases: string[]
+  layout: string
+  mdx: false | PluginSsgMdxOptions
+  bundle: PluginSsgBundleOptions
+  removeImagePreload: boolean
 }
-export type UserPluginOptions = Partial<PluginOptions>
+export type UserPluginOptions = Omit<Partial<PluginOptions>, "bundle"> & {
+  bundle?: Partial<PluginSsgBundleOptions>
+}
 
 export interface Metadata {
   title?: string
@@ -72,23 +92,21 @@ export type FormatedPage = {
 }
 
 export type ResolvedPage = {
+  pageId?: PageId
   url: string
   component: PageComponent
   staticData: StaticData
   metadata: Metadata
 }
 
-export type SsgPage = {
-  url: string
-  fileName: string
-  html: string
-}
 
 export type CustomHtmlAttributes = React.HTMLAttributes<HTMLHtmlElement> & {
   class?: string
+  [key: string]: unknown
 }
 export type CustomBodyAttributes = React.HTMLAttributes<HTMLBodyElement> & {
   class?: string
+  [key: string]: unknown
 }
 
 export type HeadData = {

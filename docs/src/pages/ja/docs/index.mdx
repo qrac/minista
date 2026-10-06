@@ -1,0 +1,100 @@
+---
+layout: docs
+locale: ja
+title: ministaとは？
+---
+
+# ministaとは？
+
+minista（ミニスタ）は、ReactのJSX・TSXで静的HTMLを生成する、Viteベースのスタティックサイトジェネレーター（SSG）です。
+
+※名前はmini static site generatorの略
+
+ページや共通パーツをReactコンポーネントとして記述し、通常のHTML・CSS・JavaScriptとして出力します。
+
+## Table of Contents
+
+contents list
+
+## Reactで静的サイトを作る ||building-static-sites-with-react||
+
+Reactコンポーネントを`src/pages/`置き、default exportします。JSX・TSXの式やpropsを使って、ページを組み立てられます。
+
+```tsx title="src/pages/index.tsx"
+export default function Page() {
+  return (
+    <main>
+      <h1>Hello, minista!</h1>
+      <p>This is the first static page.</p>
+    </main>
+  )
+}
+```
+
+ビルドすると、次のようなHTMLが`dist/index.html`へ生成されます。
+
+```html title="dist/index.html"
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+  </head>
+  <body>
+    <main>
+      <h1>Hello, minista!</h1>
+      <p>This is the first static page.</p>
+    </main>
+  </body>
+</html>
+```
+
+言語やタイトル、共通のヘッダーなどは[レイアウト](/ja/docs/guide/layouts)で設定します。ページはMarkdown・MDXでも記述できます。
+
+## ViteをベースにしたSSG ||ssg-based-on-vite||
+
+開発サーバーとビルドにはViteを利用します。静的HTMLの出力には`pluginSsg()`が必須です。最小構成は、このプラグインを追加した設定と1つのページです。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+`pluginSsg()`にはページ生成、Markdown・MDXの変換、参照されたCSS・JavaScript・画像の出力が含まれます。画像最適化や検索などの高度な機能は、必要になった段階でプラグインを追加します。
+
+## デフォルトで静的 ||static-by-default||
+
+ページの内容はビルド時にHTMLへ変換されます。静的なコンポーネントを表示するために、ブラウザへReactのランタイムを配信する必要はありません。
+
+公開するのは`dist/`のファイルです。公開先でministaを起動し続ける必要はなく、静的ファイルを配信できる環境へ配置できます。
+
+## 必要なときだけインタラクティブ ||interactive-when-needed||
+
+部分的にReactの状態やイベントを使うこともできます。`pluginIsland()`を追加して`client:*`を指定。
+
+```tsx title="src/pages/index.tsx"
+import Counter from "../components/counter"
+
+export default function Page() {
+  return <Counter client:load />
+}
+```
+
+読み込み時、待機時、画面内へ入ったときなど、動作を始める条件を選べます。設定とコンポーネントの作り方は[Island](/ja/docs/guide/island)で紹介します。
+
+## 主な機能 ||main-features||
+
+- JSX・TSXによるページとコンポーネント
+- ファイルベースルーティングとAPIによる静的ページ生成
+- Markdown・MDXと共通レイアウト
+- CSS・画像のバンドル
+- JavaScript・TypeScriptのビルド
+- 画像最適化、SVG最適化、SVGスプライト
+- Islandと静的サイト内検索
+- HTML・CSS・JavaScriptの整形と納品用アーカイブの生成
+
+導入から機能の追加までを[ガイド](/ja/docs/guide/)で説明します。用途の判断は[ministaを選ぶ理由](/ja/docs/why)、設定値やAPIは[設定リファレンス](/ja/docs/reference/config)と各プラグインのページを参照してください。

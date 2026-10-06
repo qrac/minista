@@ -11,13 +11,13 @@ export function getDefaultHeadTags(title, hasCharset, hasViewport) {
   const tags = []
 
   if (!hasCharset) {
-    tags.push(createElement("meta", { charSet: "UTF-8" }))
+    tags.push(createElement("meta", { charSet: "utf-8" }))
   }
   if (!hasViewport) {
     tags.push(
       createElement("meta", {
         name: "viewport",
-        content: "width=device-width, initial-scale=1.0",
+        content: "width=device-width",
       }),
     )
   }
@@ -36,10 +36,27 @@ export function filterHeadTags(tags) {
   let autoKey = 0
 
   for (const item of tags) {
-    const key = item?.key != null ? item.key : `__auto_${autoKey++}`
+    const semanticKey = getSemanticHeadTagKey(item)
+    const key = semanticKey
+      ? `semantic:${semanticKey}`
+      : item?.key != null
+        ? `react:${item.key}`
+        : `auto:${autoKey++}`
     map.set(key, item)
   }
   return Array.from(map.values())
+}
+
+/**
+ * @param {React.ReactElement} tag
+ * @returns {"title" | "charset" | "viewport" | undefined}
+ */
+export function getSemanticHeadTagKey(tag) {
+  if (tag?.type === "title") return "title"
+  if (tag?.type !== "meta") return undefined
+  if ("charSet" in (tag.props ?? {})) return "charset"
+  if (String(tag.props?.name).toLowerCase() === "viewport") return "viewport"
+  return undefined
 }
 
 /**

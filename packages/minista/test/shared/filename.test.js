@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest"
 
-import { getHtmlFileName } from "../../src/shared/filename.js"
+import {
+  getHtmlFileName,
+  getHtmlPageUrl,
+} from "../../src/shared/filename.js"
 
 describe("getHtmlFileName", () => {
   it("シンプルなパスを変換する", () => {
@@ -19,5 +22,13 @@ describe("getHtmlFileName", () => {
 
   it("先頭のスラッシュのみを削除する", () => {
     expect(getHtmlFileName("/foo/bar")).toBe("foo/bar.html")
+  })
+})
+
+describe("getHtmlPageUrl", () => {
+  it("converts emitted HTML file names back to page URLs", () => {
+    expect(getHtmlPageUrl("index.html")).toBe("/")
+    expect(getHtmlPageUrl("docs/index.html")).toBe("/docs/")
+    expect(getHtmlPageUrl("about.html")).toBe("/about")
   })
 })

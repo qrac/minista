@@ -1,0 +1,233 @@
+---
+layout: docs
+locale: ja
+title: v4からv5への移行
+---
+
+# v4からv5への移行
+
+ここではminista v4からv5への移行方法を説明します。
+
+v3以前を利用している場合は、先に[v3→v4の移行手順（保存版）](https://github.com/qrac/minista/blob/23d6676557f241ba33141b5f8abba7fabd8bc9ff/docs/src/pages/docs/migration.mdx#v3からv4)を参照してください。
+
+## Table of Contents
+
+contents list
+
+## エージェントを使って移行する ||migrate-with-agents||
+
+エージェントにこのページのURLを渡して、v4からv5への移行を依頼できます。URLと合わせて、対象のプロジェクトと確認してほしいことを伝えてください。プロジェクトを開いた状態なら、次のように依頼できます。
+
+```text
+このプロジェクトをminista v4からv5へ移行してください。
+以下の移行ガイドを読み、依存関係・設定・コードを更新してください。
+https://minista.dev/ja/docs/reference/migration
+
+表示や機能を維持し、移行後に型チェック・ビルド・プレビューを確認してください。
+変更点と、確認できなかった項目を報告してください。
+```
+
+v5への更新後は`npx minista agents`で、インストール済みのバージョンに対応するエージェント向けガイドを取得できます。エージェントの使い方は[エージェントを使った制作](/ja/docs/guide/agents)を参照してください。
+
+## 対応環境と基本設定 ||requirements-and-setup||
+
+Node.jsは`^20.19.0 || >=22.12.0`、Viteは`^8.1.0`が必要です。
+
+ReactとReact DOMのpeerDependenciesを`>=19.0.0`へ変更しました。React 18のサポートと専用テストを終了し、React 19を検証の基準とします。React 18を利用しているプロジェクトは、v5への移行時に両方を19以降へ更新してください。
+
+TypeScriptを使用する場合は、`@types/react`と`@types/react-dom`もReactのバージョンに合わせて更新してください。
+
+基本的なVite設定は継続して使用できます。MDX・Bundle・Entryの公開プラグインAPIは以下の手順でSSGへ移してください。内部ビルドは、Vite CLIをHTML生成用とブラウザ用に2回起動する方式から、HTML生成用の環境とブラウザ向けの環境を一つのViteアプリケーションビルドで順にビルドする方式へ変更されました。
+
+SSGへ統合されたプラグインの設定を移したうえで、コマンドに`--oneBuild`が残っている場合は削除してください。v5ではこのオプションを指定すると`MINISTA_CLI_OPTION_REMOVED`で終了します。
+
+```diff
+- minista build --oneBuild
++ minista build
+```
+
+v5では次の機械可読な出力とコマンドを利用できます。
+
+- `minista check [--json]`: ルートとページと`getStaticData()`を検査
+- `minista inspect [--json]`: 元ファイルからProject Graphを表示
+- `minista inspect --manifest [--json]`: ビルド済みmanifestだけを表示
+- `minista explain <node-id> [--json]`: Graphの要素の関係を説明
+
+作業用ディレクトリはルートに`package.json`があれば`node_modules/.minista`、なければ`.minista`です。旧バージョンでルート直下に保存したデータは自動移動・削除・読込しません。更新後に`check`やビルドで再生成してください。`minista agents --json`で保存先を取得でき、`minista agents --write`で既存プロジェクトへAIエージェント向けの案内を追加できます。
+
+- `node_modules/.minista/manifest.json`: ビルド時のプロジェクト構成と出力情報
+- `node_modules/.minista/diagnostics.json`: 直近の検査・ビルドの診断
+
+通常のCLI実行にminista自身の事前ビルドは必要ありません。
+
+## pluginMdx／pluginBundleのSSG統合 ||bundle-mdx-integration||
+
+`pluginMdx()`と`pluginBundle()`をimportとplugins配列から削除し、それぞれの設定を`pluginSsg()`の`mdx`と`bundle`へ移してください。
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg({
+      mdx: { frontmatter: { name: "metadata" } },
+      bundle: { outName: "bundle" },
+    }),
+  ],
+})
+```
+
+MDX・Markdownはデフォルトで有効です。不要な場合は`mdx: false`を指定してください。Bundle独自の`src`は廃止したため、ページの探索範囲は`pluginSsg({ src: [...] })`へまとめます。`useExportCss`も廃止し、ページとLayoutがimportするCSSは常に出力します。CSS ModulesはHTML生成用の環境と同じ変換結果を使用します。
+
+詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。
+
+## pluginEntryのSSG統合 ||entry-integration||
+
+v5では`pluginEntry()`を削除しました。HTMLのCSS・JavaScript・画像参照は`pluginSsg()`だけでビルドされます。importとplugins配列から`pluginEntry`を削除してください。既存の参照やViteの出力設定はそのまま利用でき、publicのCSS・JSとも併用できます。
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({ plugins: [pluginSsg()] })
+```
+
+JSがimportしたCSSへscriptのURLが誤って置換される場合と、互換ビルドでpublic CSSが重複挿入される場合も修正しました。
+
+`pluginSsg()`の戻り値は内部Viteプラグインの配列になりました。通常の`plugins: [pluginSsg()]`は変更不要です。独自コードで戻り値を直接調べている場合は、配列を展開してから各プラグインを参照してください。
+
+## HTMLの言語とレイアウト ||html-language-and-layout||
+
+`html`のデフォルトの言語を`ja`から`en`へ変更しました。日本語のサイトでは、`lang="ja"`を明示してください。
+
+v5ではLayoutに`html` `head` `body`を書いて、HTML全体の構造や属性を編集できます。次のレイアウトは、そのままページのHTMLとして出力されます。
+
+```tsx title="src/layouts/index.tsx"
+import type { LayoutProps } from "minista/types"
+
+export default function Layout({ title, children }: LayoutProps) {
+  return (
+    <html lang="ja">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{title}</title>
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+HTML全体を書かないレイアウトを継続する場合は、従来どおり`Head`の`htmlAttributes`で指定できます。
+
+```tsx title="src/layouts/index.tsx"
+import { Head } from "minista"
+import type { LayoutProps } from "minista/types"
+
+export default function Layout({ children }: LayoutProps) {
+  return (
+    <>
+      <Head htmlAttributes={{ lang: "ja" }} />
+      <main>{children}</main>
+    </>
+  )
+}
+```
+
+構造の編集は[レイアウト](/ja/docs/guide/layouts)、ページごとのタイトルやmeta要素の設定は[Head](/ja/docs/guide/head)を参照してください。
+
+## Beautifyの圧縮とファイル名の設定 ||beautify-output-settings||
+
+v4の`pluginBeautify()`は、ファイル名にハッシュを付けた後でもJSやCSSの内容を書き換えていました。そのため、ファイル名のハッシュと最終的な内容が一致しない場合がありました。v5では整形のタイミングを見直し、出力設定が整形と両立しない場合はエラーにします。
+
+HTMLに加えてJSとCSSも整形する場合は、次のように設定してください。
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg, pluginBeautify } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginBeautify()],
+  build: {
+    sourcemap: false,
+    cssMinify: false,
+    rolldownOptions: {
+      output: {
+        minify: false,
+        assetFileNames: "assets/[name][extname]",
+      },
+    },
+  },
+})
+```
+
+- JSはハッシュの計算前に整形します。整形後の圧縮を防ぐため、`build.rolldownOptions.output.minify: false`が必要です。`build.minify: false`だけでは、Rolldownの処理をすべて無効にできません。JSの`entryFileNames`と`chunkFileNames`には引き続き`[hash]`を使えます。
+- CSSはファイル名が決まった後に整形します。ハッシュと内容の不一致を避けるため、`assetFileNames`には`[hash]`を含まない文字列を指定してください。この設定は画像などのアセット名にも適用されます。`cssMinify: false`でCSSの圧縮も無効にします。
+- 整形後の位置に対応するソースマップを生成できないため、JSやCSSを整形する場合はソースマップを無効にしてください。
+
+HTMLだけを整形する場合は、対象を絞ればJSやCSSの出力設定を変更する必要はありません。
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg, pluginBeautify } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginBeautify({ src: ["**/*.html"] })],
+})
+```
+
+設定と診断の詳細は[pluginBeautify](/ja/docs/plugins/beautify)を参照してください。
+
+## 画像の先読み設定の移動 ||beautify-and-image-preload||
+
+`removeImagePreload`を`pluginBeautify`から`pluginSsg`へ移します。旧オプションの明示指定は`MINISTA_BEAUTIFY_OPTION_MOVED`になります。
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg({ removeImagePreload: false })],
+})
+```
+
+SSGの既定値は`true`です。以前Beautifyを使わなかったプロジェクトも、開発時／ビルドともにReactのレンダラーによる画像の先読みを除去します。保持する場合は上記の`false`を指定してください。従来のbody直下限定からレンダラーの出力全体へ対象が変わるため、Layoutのheadへ直接書いた画像の先読みは`Head` APIへ移すと保持できます。Beautifyの対象globでpreloadを制御する方法は終了します。
+
+## HTMLからのアセット参照 ||html-assets||
+
+SSGに統合したEntry機能の書換え対象を収集対象と同じ`link[href]`、`script[src]`、`img[src]`、`img[srcset]`、`source[srcset]`、`use[href]`へ揃えました。別の要素で収集されたURLと同じ値でも、`meta[content]`、`video[poster]`、`a[href]`などの対象外属性は変更しません。これらの属性で生成アセットを使う場合は、SSGのモジュールのimportから得たURLかpublicアセットのURLを指定してください。
+
+エントリーがimportするCSSは参照ページにだけ一度挿入します。別ページのエントリーを通じた暗黙のCSS適用に依存していた場合は、対象ページ／LayoutからCSSをimportするか、明示的なstylesheet linkを追加してください。`//`で始まる外部URLは収集せず、CDNの絶対URLを指定した`base`はプロトコルを保持します。クエリ／フラグメントは保持しますが、Viteのモジュール変換クエリとしては解釈しません。詳細は[pluginSsgのHTMLアセット参照](/ja/docs/plugins/ssg#html-assets)を参照してください。
+
+## SVGの属性保持とファイルの欠落 ||svg-attributes-and-missing-files||
+
+`pluginSvg()`はSVGO最適化後の描画用ルート属性を保持します。`fill`／`stroke`やサイズを元ファイルで指定している場合は出力へ反映されます。上書きする場合は`Svg`の同名propsを指定してください。`style`／`className`は属性全体を置き換えます。
+
+存在しない元ファイルを黙って残す動作は廃止し、`MINISTA_SVG_SOURCE_NOT_FOUND` エラーでビルドを失敗させます。`src`はプロジェクトルート相対として解決されます。開発中の元ファイル変更は再起動なしで反映されます。
+
+## SVGの内部IDとスプライトの重複ID ||svg-and-sprite-ids||
+
+内部IDは決定的な接頭辞付きに変わります。元IDへの外部CSS／JavaScript参照を避け、classや明示propsを使用してください。Spriteの公開シンボルIDは維持しますが、重複は上書きせず`MINISTA_SPRITE_DUPLICATE_SYMBOL` エラーになります。衝突するシンボルを改名してください。Spriteは元のルート描画属性と共有defsも保持するようになります。
+
+## アーカイブの入力とファイルの欠落 ||archive-source||
+
+`pluginArchive()`および`archives[].srcDir`の省略時は、固定の`dist`ではなく解決済み`build.outDir`を入力にします。例えば`build.outDir: "output"`なら`output`を圧縮し、既定の出力名は`output/dist.zip`です。従来どおり別の`dist`を入力にしたい場合は`srcDir: "dist"`を明示してください。
+
+欠落した入力は空のアーカイブの成功生成ではなく`MINISTA_ARCHIVE_SOURCE_NOT_FOUND` エラーになり、ディレクトリ以外の指定は`MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY` エラーになります。存在する空ディレクトリは引き続き許可します。同じ`archives`に設定された全出力パスは前回分も入力から除外し、再ビルド時のアーカイブの入れ子化を防ぎます。
+
+## IslandのJavaScript取得と実行 ||island-lazy-loading||
+
+`client:visible`／`client:media`／`client:idle`はハイドレーションだけでなく、コンポーネントのJavaScript取得とモジュール評価も条件成立まで遅延します。コンポーネントのモジュールのトップレベルにある副作用をページ初期化として利用していた場合は、即時実行するscriptへ移してください。`client:load`／`client:only`はIslandのエントリー実行時に取得を開始します。初期表示用のSSG CSSは維持されます。
+
+## 移行後の確認 ||verify-migration||
+
+設定と依存関係を更新したら、次の順に確認します。
+
+```sh
+npx minista check --json
+npx minista inspect --json
+npx tsc --noEmit
+npm run build
+npm run preview
+```
+
+TypeScriptを使用しないプロジェクトでは`tsc`は不要です。生成HTML、CSS、画像、Islandの操作、納品用アーカイブを確認してください。CMSのデータ取得がある場合は、検査とビルドに必要な環境変数も用意します。
+
+コマンドの詳細は[CLI](/ja/docs/reference/cli)、出力設定は[設定リファレンス](/ja/docs/reference/config)を参照してください。

@@ -1,0 +1,108 @@
+---
+layout: docs
+locale: ja
+title: CSS・JS・TSのエントリー
+---
+
+# CSS・JS・TSのエントリー
+
+HTMLから参照するCSS・JavaScript・TypeScriptを、ビルドの入口（エントリー）として指定できます。`pluginSsg()`がファイルを処理して参照URLを更新するため、旧`pluginEntry()`は不要です。
+
+ここではトップページに、ボタンを押すと挨拶を表示する通常のJavaScriptを追加します。Reactの状態を使うUIは[Island](/ja/docs/guide/island)で扱います。
+
+## Table of Contents
+
+contents list
+
+## ブラウザ用のコードを作る ||create-browser-script||
+
+`src/assets/scripts.ts`を作ります。このファイルはブラウザで実行されるため、`document`や`window`を利用できます。
+
+```ts title="src/assets/scripts.ts"
+document.querySelector("[data-greeting]")?.addEventListener("click", () => {
+  window.alert("こんにちは！")
+})
+```
+
+TypeScriptを使わない場合は同じ内容を`scripts.js`へ書けます。ブラウザの処理は、静的HTMLを生成するページやレイアウトのトップレベルへ置かず、このファイルへ分けます。
+
+## HTMLからエントリーを指定する ||reference-entry||
+
+CSSは`link`、JavaScript・TypeScriptは`script`で参照します。ここで使う`globals.css`は[CSSのバンドル](/ja/docs/guide/styling)で作成したファイルです。
+
+```tsx title="src/pages/index.tsx"
+import { Head } from "minista/head"
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <link rel="stylesheet" href="/src/layouts/globals.css" />
+        <script type="module" src="/src/assets/scripts.ts" />
+      </Head>
+      <h1>My Site</h1>
+      <button type="button" data-greeting>
+        挨拶する
+      </button>
+    </>
+  )
+}
+```
+
+CSSをこの方法で指定する場合は、同じファイルのimportを外して二重読み込みを避けます。全ページ共通のエントリーなら、参照をレイアウトへ移します。
+
+## ビルド結果を確認する ||entry-output||
+
+```text title="プロジェクト構成"
+src/
+├── assets/
+│   └── scripts.ts
+├── layouts/
+│   ├── globals.css
+│   └── index.tsx
+└── pages/
+    └── index.tsx
+```
+
+```text title="ビルド結果の例"
+dist/
+├── index.html
+└── assets/
+    ├── globals-[hash].css
+    └── scripts-[hash].js
+```
+
+TypeScriptはJavaScriptへ変換されます。HTML内の参照も出力先へ書き換わるため、公開先へ`src/`をアップロードする必要はありません。ファイル名や分割結果は設定と依存関係によって変わります。
+
+## JavaScriptからCSSを読み込む ||entry-css||
+
+エントリーからCSSをimportすることもできます。
+
+```ts title="src/assets/scripts.ts"
+import "../layouts/globals.css"
+
+document.querySelector("[data-greeting]")?.addEventListener("click", () => {
+  window.alert("こんにちは！")
+})
+```
+
+この方法ではページの`link`を外します。ビルド時に、このscriptを参照するページへstylesheetが追加されます。別のページでもスタイルを使うなら、そのページや共通レイアウトから読み込んでください。
+
+## publicのコードを併用する ||public-scripts||
+
+既存のCSSやJavaScriptを無加工で使う場合は、`public/`へ置きます。
+
+```tsx
+<Head>
+  <link rel="stylesheet" href="/css/legacy.css" />
+  <script src="/js/legacy.js" defer />
+</Head>
+```
+
+この例は`public/css/legacy.css`と`public/js/legacy.js`を参照します。ソースのエントリーとpublicのファイルは同じページで併用できます。
+
+処理対象は`/`から始まり、プロジェクト内に実ファイルがある参照です。外部URLやHTML内の`./`から始まる相対URLは変更しません。
+
+対象属性などの詳細は[pluginSsg](/ja/docs/plugins/ssg#html-assets)を参照してください。
+
+次は[画像最適化](/ja/docs/guide/image)で、プラグインを追加して画像のサイズと形式を調整します。

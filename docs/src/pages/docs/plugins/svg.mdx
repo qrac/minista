@@ -1,68 +1,39 @@
 ---
-title: pluginSvg
 layout: docs
+locale: en
+title: pluginSvg
 ---
 
 # pluginSvg
 
-ルートパスのSVGファイルをHTMLにインラインで展開するプラグイン。
+A plugin that embeds SVG files referenced by root paths inline in HTML.
 
-- 展開時にSVGOでコードを最適化
+- Optimizes code with SVGO when embedding
+
+See the [guide](/docs/guide/svg) for setup and examples. This page covers settings, component props, and constraints.
 
 ## Table of Contents
 
 contents list
 
-## How To Use
-
-```js title="./vite.config.js"
-import { pluginSsg, pluginSvg } from "minista"
-
-export default {
-  plugins: [pluginSsg(), pluginSvg()],
-}
-```
-
-```jsx title="./src/pages/index.jsx"
-import { Svg } from "minista/assets"
-
-export default function () {
-  return <Svg src="/src/assets/square.svg" />
-}
-```
-
 ## Options
 
-```js title="Default"
+```js title="Defaults"
 pluginSvg({})
 ```
 
 ### config
 
-- 型: `Config`
-- デフォルト: `undefined`
+- Type: `Config`
+- Default: `undefined`
 
-[svgo](https://www.npmjs.com/package/svgo)のConfigを渡して最適化処理の内容を変更できます。
+Pass a [svgo](https://www.npmjs.com/package/svgo) Config to customize optimization.
 
 ## Svg
 
-ルートパスのSVGファイルを読み込んで `<svg>` タグに展開するコンポーネント。
+A component that reads an SVG file from a root path and expands it into an `<svg>` tag.
 
-- 展開時にSVGOでコードを最適化
-
-```jsx title="./src/pages/index.jsx"
-import { Svg } from "minista/assets"
-
-export default function () {
-  return <Svg src="/src/assets/square.svg" />
-}
-```
-
-```xml title="Dist"
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <path d="M76 76h360v360H76z" style="fill:#000;stroke-width:0"></path>
-</svg>
-```
+- Optimizes code with SVGO when embedding
 
 ```ts
 type SvgProps = {
@@ -72,3 +43,23 @@ type SvgProps = {
   attributes?: React.SVGProps<SVGSVGElement>
 } & React.SVGProps<SVGSVGElement>
 ```
+
+## Diagnostics
+
+If SVG embedding fails, the build emits the following diagnostic codes.
+
+- `MINISTA_SVG_READ_FAILED`: SVG file reading failed
+- `MINISTA_SVG_OPTIMIZE_FAILED`: SVGO optimization failed
+- `MINISTA_SVG_PARSE_FAILED`: SVG markup parsing failed
+
+A missing source file produces `MINISTA_SVG_SOURCE_NOT_FOUND` and fails the build. Diagnostics include the SVG's path relative to the project. Failures in HTML parsing, selectors, mutation, or serialization produce the corresponding `MINISTA_HTML_*_FAILED` code.
+
+## Attributes and dev updates
+
+The optimized root retains `viewBox`, `preserveAspectRatio`, dimensions, drawing attributes such as `fill` and `stroke`, and `style` and `class`. Explicit props of the same name on `Svg` take priority; `style` and `className` also replace their respective attributes. The source SVG's root `id`, event attributes, and arbitrary attributes such as `data-*` are not copied. If neither explicit props nor the source has a viewBox, `0 0 0 0` is used.
+
+During development, additions, changes, and deletions of referenced files trigger reloads of referencing pages. Source files are read again on rebuild as well.
+
+## SVG internal IDs
+
+Internal IDs and references for gradients, clipPath, and similar elements receive deterministic prefixes to avoid collisions. Multiple instances of the same SVG are supported. Do not reference original internal IDs from external CSS or JavaScript. Class names are preserved.

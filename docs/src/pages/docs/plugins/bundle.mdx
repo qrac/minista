@@ -1,62 +1,21 @@
 ---
-title: pluginBundle
 layout: docs
+locale: en
+title: pluginBundle
 ---
 
 # pluginBundle
 
-JSX内でimportしたCSS・画像を出力するプラグイン。
+This feature was integrated into `pluginSsg()` in v5. You no longer need to add the old plugin.
 
 ## Table of Contents
 
 contents list
 
-## How To Use
+## Current feature
 
-```js title="./vite.config.js"
-import { pluginSsg, pluginBundle } from "minista"
+See [Image bundling](/docs/guide/images-assets) and [CSS bundling](/docs/guide/styling) for usage, and [pluginSsg](/docs/plugins/ssg) for settings.
 
-export default {
-  plugins: [pluginSsg(), pluginBundle()],
-}
-```
+## Migration
 
-```jsx title="./src/pages/index.jsx"
-import "../assets/image.css"
-import iconUrl from "../assets/image.png"
-
-export default function () {
-  return <img src={iconUrl} alt="icon" width={76} height={76} />
-}
-```
-
-## Options
-
-```js title="Default"
-pluginBundle({
-  src: ["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"],
-  outName: "bundle",
-  useExportCss: true,
-})
-```
-
-### src
-
-- 型: `string[]`
-- デフォルト: `["/src/layouts/index.{tsx,jsx}", "/src/pages/**/*.{tsx,jsx,mdx}"]`
-
-CSS・画像を検出するテンプレートをglob形式で指定します。対象ファイルはViteの機能でglob importされます。
-
-### outName
-
-- 型: `string`
-- デフォルト: `"bundle"`
-
-JSX内でimportしたCSSを結合出力する場合のファイル名（拡張子なし）。
-
-### useExportCss
-
-- 型: `boolean`
-- デフォルト: `true`
-
-JSX内でimportしたCSSを結合出力します。
+Remove the old plugin import and configuration, and move any needed options to `pluginSsg()`. See [Migrating from v4 to v5](/docs/reference/migration) for details.

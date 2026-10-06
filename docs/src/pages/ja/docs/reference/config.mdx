@@ -1,0 +1,258 @@
+---
+layout: docs
+locale: ja
+title: 設定リファレンス
+---
+
+# 設定リファレンス
+
+ministaの設定にはViteの設定を使います。`vite.config.ts`または`vite.config.js`にプラグインとViteのオプションを記述します。`defineConfig`はViteと同じ設定型を提供します。基本的な導入例は[設定ガイド](/ja/docs/guide/configuration)を参照してください。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+## Table of Contents
+
+contents list
+
+## 設定ファイル ||config-file||
+
+`minista.config.*`も後方互換のため利用できます。新しいプロジェクトでは`vite.config.*`を使用してください。複数の設定ファイルを検出すると、`MINISTA_CLI_CONFIG_CONFLICT`で終了します。一つにまとめてください。
+
+`project.json`はサイト情報などをまとめるための利用者のデータファイルであり、ministaが自動的に読み込む設定ではありません。
+
+## 主な設定項目 ||config-options||
+
+| 項目                             | 用途                                                               |
+| -------------------------------- | ------------------------------------------------------------------ |
+| `plugins`                        | ministaや他のViteプラグインを登録                                  |
+| `base`                           | アセットの公開ベースパス。ページへの手書きリンクには利用者側で反映 |
+| `publicDir`                      | 内容をそのままコピーするディレクトリ。デフォルトは`public`         |
+| `server`                         | 開発サーバーのポートなどを設定                                     |
+| `build.outDir`                   | 出力ディレクトリ。デフォルトは`dist`                               |
+| `build.assetsInlineLimit`        | 小さいアセットのインライン化を制御                                 |
+| `build.minify` `build.cssMinify` | JavaScript・CSSの圧縮を制御                                        |
+| `build.rolldownOptions.output`   | ファイル名・コード分割・JavaScriptの出力段階の圧縮を設定           |
+| `environments`                   | 描画／ブラウザ向けの環境ごとの設定                                 |
+
+## プラグイン ||plugins||
+
+ministaはv4以降、すべての機能をViteプラグイン化しています。プロジェクトに必要なプラグインを選び、コンフィグの `plugins` に追加してください。
+
+ページを静的HTMLとして出力するには、`pluginSsg()`が必須です。JSX・TSX・Markdown・MDXからのHTML生成と、参照されたCSS・JavaScript・画像の出力を担います。静的サイトの最小設定は次のとおりです。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+画像最適化やIslandなどが必要な場合は、`pluginSsg()`に加え、対応するプラグインを追加します。導入手順はガイド、設定値の型と既定値は各プラグインのページを参照してください。
+
+## 用途別の設定 ||configuration-recipes||
+
+### 環境ごとの設定 ||environment-config||
+
+ministaはHTML生成用の環境とブラウザ向けの環境を一つのViteアプリケーションビルドで順にビルドします。多くのVite設定はそのまま両方の環境へ適用できます。Node.jsでページを描画する側とブラウザ向けアセットを生成する側で設定を分ける場合は、名前付き環境の設定かプラグインの環境別フックを使用します。
+
+例として、ブラウザ向けの環境だけ圧縮を無効にします。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+  environments: {
+    client: {
+      build: {
+        cssMinify: false,
+        rolldownOptions: {
+          output: { minify: false },
+        },
+      },
+    },
+  },
+})
+```
+
+既存の`isSsrBuild`を参照する設定は、同名プラグインでも設定を取り違えないよう、`MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT`を記録して同一プロセスの互換ビルドへフォールバックします。プラグインの名前や順序も変わる場合は`MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH`を記録します。新しい設定では`environments`、`applyToEnvironment`、`configEnvironment`を使用してください。
+
+`builder.buildApp`はministaがビルド順序を管理するために使用します。アプリケーション全体の前後処理にはプラグインの`buildApp`フックを使用してください。このフックから環境を直接ビルドすることはできません。
+
+通常のビルド／開発時はViteのAPIを使用します。ViteのAPIへ安全に渡せないCLIオプションを指定した場合だけ外部CLIへフォールバックします。
+
+### 画像のインライン化 ||inline-images||
+
+画像をファイルとして出力したい場合は、`build.assetsInlineLimit` を `0` に設定し、インライン化を無効化する方法があります。
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    assetsInlineLimit: 0,
+  },
+}
+```
+
+インライン化を利用したい場合は、インポートパスに`?inline`を付与してください。HTML生成用の環境でも明示的にインライン化されます。
+
+```tsx title="src/pages/index.tsx"
+import imageUrl from "../assets/image.png?inline"
+
+export default function () {
+  return <img src={imageUrl} alt="image" width={76} height={76} />
+}
+```
+
+### 圧縮を無効にする ||disable-minification||
+
+CSSの圧縮を無効にするには`build.cssMinify`を`false`、JavaScriptの出力段階の圧縮を無効にするには`build.rolldownOptions.output.minify`にします。[HTMLの整形ガイド](/ja/docs/guide/beautify#beautify-css-and-js)でも同じ設定を使います。
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    cssMinify: false,
+    rolldownOptions: {
+      output: { minify: false },
+    },
+  },
+}
+```
+
+`build.minify: false`も通常のJavaScript圧縮を無効にするViteの設定ですが、Rolldownの後段の`dce-only`処理（不要コードの除去）は残ります。JavaScriptを`pluginBeautify()`で整形する場合、この処理との併用は`MINISTA_BEAUTIFY_MINIFY_UNSUPPORTED`で停止するため、上記の`build.rolldownOptions.output.minify: false`を指定してください。
+
+圧縮の無効化だけでは整形は行いません。HTML・CSS・JavaScriptの整形とソースマップ・CSSファイル名の制約は[pluginBeautify](/ja/docs/plugins/beautify)を参照してください。
+
+### 画像のpreloadを制御する ||image-preload||
+
+`pluginSsg`はレンダラーの出力に含まれる画像の先読みを既定で除去します。残したい場合は`pluginSsg({ removeImagePreload: false })`を指定してください。`Head` APIで明示したpreloadは既定でも保持します。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。
+
+### ファイル名のハッシュを外す ||remove-filename-hashes||
+
+Viteのデフォルト設定では、出力ファイル名にハッシュが付与されます。ハッシュを外すには、以下のプロパティを設定し `[hash]` を削除してください。
+
+- CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
+- JavaScript（エントリー）: `build.rolldownOptions.output.entryFileNames`
+- JavaScript（チャンク）: `build.rolldownOptions.output.chunkFileNames`
+
+これらを設定した場合、出力先はパターン内のパスで決まります。同名ファイルの衝突と公開先のキャッシュ更新方法を確認してください。
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    rolldownOptions: {
+      output: {
+        assetFileNames: "assets/[name][extname]",
+        entryFileNames: "assets/[name].js",
+        chunkFileNames: "assets/[name].js",
+      },
+    },
+  },
+}
+```
+
+### アセットの種類ごとに出力先を分ける ||asset-directories||
+
+Viteのデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
+
+- CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
+- JavaScript（エントリー）: `build.rolldownOptions.output.entryFileNames`
+- JavaScript（チャンク）: `build.rolldownOptions.output.chunkFileNames`
+
+これらを設定した場合、出力先はパターン内のパスで決まります。同名ファイルの衝突と公開先のキャッシュ更新方法を確認してください。
+
+`assetFileNames` は拡張子ごとに分けることができます。
+
+```ts title="vite.config.ts"
+import type { PreRenderedAsset } from "rolldown"
+
+const assetFileNames = (assetInfo: PreRenderedAsset) => {
+  const name = assetInfo.name ?? ""
+  if (name.endsWith(".css")) {
+    return "assets/css/[name][extname]"
+  }
+  if (/\.(png|jpe?g|gif|bmp|svg|webp|avif)$/.test(name)) {
+    return "assets/images/[name][extname]"
+  }
+  if (/\.(woff2?|ttf|otf|eot)$/.test(name)) {
+    return "assets/fonts/[name][extname]"
+  }
+  return "assets/others/[name][extname]"
+}
+
+export default {
+  build: {
+    rolldownOptions: {
+      output: {
+        assetFileNames,
+        entryFileNames: "assets/js/[name].js",
+        chunkFileNames: "assets/js/[name].js",
+      },
+    },
+  },
+}
+```
+
+### JavaScriptを分割する ||code-splitting||
+
+JavaScriptから特定のコードを分割したい場合は以下のプロパティを設定してください。
+
+- `build.rolldownOptions.output.codeSplitting.groups`
+
+`node_modules` 内のモジュールを `vendor` という名前でまとめる例。
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [{ name: "vendor", test: /\/node_modules\/(?!\.)/ }],
+        },
+      },
+    },
+  },
+}
+```
+
+特定のモジュールごとに分割する例。
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: "react", test: /\/react(?:-dom)\// },
+            { name: "preact", test: /\/preact\// },
+            { name: "minista", test: /\/minista\/src|react-icons\// },
+          ],
+        },
+      },
+    },
+  },
+}
+```
+
+### クライアント側をRedactへ置き換える ||client-redact||
+
+静的HTMLの生成にはReactを維持し、ブラウザ向けのコードをRedactへ置き換えられます。公式Viteプラグインの追加で導入でき、nanoプリセットでさらに容量を削減できます。devと本番ビルドの両方に対応する設定と、Reactとの動作の違いは[Islandの容量削減](/ja/docs/guide/island-size#redact)を参照してください。
+
+### クライアント側をPreactへ置き換える ||client-preact||
+
+静的HTMLの生成にはReactを維持し、ブラウザ向けのコードだけをPreactの互換層へ置き換えられます。devと本番ビルドの両方に対応する設定は、[Islandの容量削減](/ja/docs/guide/island-size#preact)を参照してください。
+
+### 出力ディレクトリを空にする ||empty-output-directory||
+
+Viteのデフォルト設定では、プロジェクトルート配下にない出力ディレクトリは安全を考えて空にしません。その場所の既存ファイルを削除してよい場合に限り、`build.emptyOutDir`を`true`にします。出力先をソースや他の用途のディレクトリと共有しないでください。
+
+```ts title="vite.config.ts"
+export default { build: { emptyOutDir: true } }
+```

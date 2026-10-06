@@ -1,14 +1,21 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types.js').PluginOptions} PluginOptions */
 /** @typedef {import('./types.js').UserPluginOptions} UserPluginOptions */
 
-import { parse as parseHtml } from "node-html-parser"
-
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import {
+  composeViteHtml,
+  createViteCompatibilityTraceHooks,
+} from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
+import { createCommentFeature, createCommentFeatureDescriptor } from "../../features/comment/index.js"
 import { filterOutputAssets } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
-
 /**
  * @param {UserPluginOptions} uOpts
  * @returns {Plugin}
@@ -16,53 +23,53 @@ const defaultOptions = {}
 export function pluginComment(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = { ...defaultOptions, ...uOpts }
-  const targetAttr = "data-minista-comment"
+  const feature = createCommentFeature(opts)
+  const devServers = new ViteDevServerRegistry()
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-comment",
+    api: { minista: { feature: createCommentFeatureDescriptor(opts) } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isBuild
+      return command === "serve" || (command === "build" && !isSsrBuild)
     },
-    async transformIndexHtml(html) {
-      let parsedHtml = parseHtml(html)
-
-      const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-      if (!targetEls.length) return html
-
-      for (const el of targetEls) {
-        const text = el.innerText
-        const commentNode = `<!-- ${text} -->`
-        el.replaceWith(commentNode)
-      }
-      return parsedHtml.toString()
+    applyToEnvironment: isViteAppClientEnvironment,
+    configureServer(server) {
+      devServers.add(server)
+      server.httpServer?.once("close", () => devServers.delete(server))
+    },
+    async transformIndexHtml(html, context) {
+      const server = devServers.resolve(context)
+      return composeViteHtml(
+        html,
+        context.path,
+        [feature],
+        server
+          ? createViteCompatibilityTraceHooks(
+            getViteBuildSession(server.config),
+            "comment:dev",
+          )
+          : undefined,
+      )
     },
     async generateBundle(options, bundle) {
+      const traceHooks = createViteCompatibilityTraceHooks(
+        getViteBuildSession(this.environment.getTopLevelConfig()),
+        "comment:build",
+      )
       const outputAssets = filterOutputAssets(bundle)
       const htmlItems = Object.values(outputAssets).filter((item) =>
         item.fileName.endsWith(".html"),
       )
 
       for (const item of htmlItems) {
-        let parsedHtml = parseHtml(String(item.source))
-
-        const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-        if (targetEls.length === 0) continue
-
-        for (const el of targetEls) {
-          const text = el.innerText
-          const commentNode = `<!-- ${text} -->`
-          el.replaceWith(commentNode)
-        }
-        item.source = parsedHtml.toString()
+        item.source = await composeViteHtml(
+          String(item.source),
+          item.fileName,
+          [feature],
+          traceHooks,
+        )
       }
     },
-  }
+  }, { documentContent: true })
 }

@@ -4,9 +4,11 @@
 /** @typedef {import('rolldown').OutputBundle} OutputBundle */
 /** @typedef {import('rolldown').OutputAsset} OutputAsset */
 /** @typedef {import('rolldown').OutputChunk} OutputChunk */
+/** @typedef {NonNullable<import('vite').BuildOptions['rolldownOptions']>['external']} RolldownExternal */
+/** @typedef {{ssr?: {external?: SSROptions['external'], noExternal?: SSROptions['noExternal'] | false}, resolve?: UserConfig['resolve']}} ViteConfigLike */
 
 /**
- * @param {UserConfig} config
+ * @param {ViteConfigLike} config
  * @param {string[]} modules
  * @returns {SSROptions['external']}
  */
@@ -26,7 +28,7 @@ export function mergeSsrExternal(config, modules = []) {
 }
 
 /**
- * @param {UserConfig} config
+ * @param {ViteConfigLike} config
  * @param {string[]} modules
  * @returns {SSROptions['noExternal']}
  */
@@ -42,11 +44,35 @@ export function mergeSsrNoExternal(config, modules = []) {
   if (Array.isArray(noExternal)) {
     return Array.from(new Set([...noExternal, ...modules]))
   }
-  return noExternal
+  return /** @type {SSROptions['noExternal']} */ (noExternal)
 }
 
 /**
- * @param {UserConfig} config
+ * @param {RolldownExternal} external
+ * @param {string[]} modules
+ * @returns {RolldownExternal}
+ */
+export function mergeRolldownExternal(external, modules = []) {
+  if (typeof external === "function") {
+    return (source, importer, isResolved) =>
+      modules.includes(source) || external(source, importer, isResolved)
+  }
+  const current = external === undefined
+    ? []
+    : Array.isArray(external)
+      ? external
+      : [external]
+  const strings = new Set(
+    current.filter((item) => typeof item === "string"),
+  )
+  return [
+    ...current,
+    ...modules.filter((module) => !strings.has(module)),
+  ]
+}
+
+/**
+ * @param {ViteConfigLike} config
  * @param {Alias[]} aliases
  * @returns {Alias[]}
  */
@@ -84,33 +110,6 @@ export function filterOutputChunks(bundle) {
     }
     return acc
   }, /** @type {{[key:string]:OutputChunk}} */ ({}))
-}
-
-/**
- * Collect dependency CSS before entry CSS to preserve the cascade order.
- * @param {OutputChunk} entry
- * @param {{[key:string]:OutputChunk}} chunks
- * @returns {string[]}
- */
-export function getImportedCss(entry, chunks) {
-  const visited = new Set()
-  const cssFiles = new Set()
-
-  /** @param {OutputChunk} chunk */
-  function visit(chunk) {
-    if (visited.has(chunk.fileName)) return
-    visited.add(chunk.fileName)
-
-    for (const file of chunk.imports) {
-      if (chunks[file]) visit(chunks[file])
-    }
-    for (const file of chunk.viteMetadata?.importedCss || []) {
-      cssFiles.add(file)
-    }
-  }
-
-  visit(entry)
-  return [...cssFiles]
 }
 
 /**

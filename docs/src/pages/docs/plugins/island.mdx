@@ -1,49 +1,22 @@
 ---
-title: pluginIsland
 layout: docs
+locale: en
+title: pluginIsland
 ---
 
 # pluginIsland
 
-ページの一部をReact App化するプラグイン。AstroのIslandを再現しています。
+A plugin that runs React in parts of a static page.
+
+See the [guide](/docs/guide/island) for setup and examples. This page covers settings, component props, and constraints.
 
 ## Table of Contents
 
 contents list
 
-## How To Use
-
-動作させるには以下パッケージのいずれが必要です。
-
-- `@vitejs/plugin-react`
-- `@vitejs/plugin-react-swc`
-
-これによってIslandのJavaScriptにReactのimportが自動挿入され、同時に開発モードでIsland内のHMRが効くようになります。
-
-```sh
-$ npm install --save-dev @vitejs/plugin-react
-```
-
-```js title="./vite.config.js"
-import { pluginSsg, pluginIsland } from "minista"
-import react from "@vitejs/plugin-react"
-
-export default {
-  plugins: [pluginSsg(), pluginIsland(), react()],
-}
-```
-
-```jsx title="./src/pages/index.jsx"
-import { Counter } from "../components/counter"
-
-export default function () {
-  return <Counter client:load />
-}
-```
-
 ## Options
 
-```js title="Default"
+```js title="Defaults"
 pluginIsland({
   useSplitPages: true,
   outName: "island-[index]",
@@ -55,164 +28,76 @@ pluginIsland({
 
 ### useSplitPages
 
-- 型: `boolean`
-- デフォルト: `true`
+- Type: `boolean`
+- Default: `true`
 
-ページ毎に必要なJavaScriptを分割して読み込みます。
+Split and load the JavaScript needed by each page.
 
 ### outName
 
-- 型: `string`
-- デフォルト: `"island-[index]"`
+- Type: `string`
+- Default: `"island-[index]"`
 
-出力ファイル名。拡張子は含みません。以下の動的出力タグを使用できます。
+The output file name without an extension. The following dynamic output tag is available.
 
-- `[index]`:生成された順番（開始: 1）
+- `[index]`: Generation order (starting at 1)
 
 ### rootAttrName
 
-- 型: `string`
-- デフォルト: `"island"`
+- Type: `string`
+- Default: `"island"`
 
-ハイドレーションを行うルート要素のデータ属性名に使われる名前。
+The name used for data attributes on the root element being hydrated.
 
-- 例: `data-island-client-directive`
+- Example: `data-island-client-directive`
 
 ### rootDOMElement
 
-- 型: `"div" | "span"`
-- デフォルト: `"div"`
+- Type: `"div" | "span"`
+- Default: `"div"`
 
-ハイドレーションを行うルート要素のHTMLタグ。
+The HTML tag for the root element being hydrated.
 
 ### rootStyle
 
-- 型: `React.CSSProperties`
-- デフォルト: `{ display: "contents" }`
+- Type: `React.CSSProperties`
+- Default: `{ display: "contents" }`
 
-ハイドレーションを行うルート要素に付与するスタイル。
+Styles applied to the root element being hydrated.
 
-## Client Island
+## Props
 
-ministaはReactのJSXテンプレートを 静的なHTMLに変換し、クライアントサイドのJavaScriptを取り除きます。
+Actual prop values during SSR are serialized into HTML and restored when hydration starts. You can pass page variables, spreads, `getStaticData()` results, and values inside loops. The same component shares an entry even when values or startup conditions differ.
 
-```tsx
-import { Counter } from "../components/counter"
+Supported values are strings, finite numbers, booleans, `null`, `undefined`, arrays, and plain objects. JSX children and props containing JSX are restored as HTML tags, Fragments, or statically imported component references appearing in that Island's JSX. Props are readable from HTML, so do not pass secret values.
 
-export default function () {
-  return <Counter />
-}
-```
+Functions, symbols, `BigInt`, non-finite numbers, `Date`, `Map`, `Set`, `RegExp`, class instances, accessors, and circular references are unsupported. Inline event functions that worked in older examples cannot be passed either. Move event handling into the imported Island component.
 
-しかし、UIコンポーネントをインタラクティブにしたいシーンもあります。その場合は `client:*` ディレクティブを付与してください。ministaはその部分だけのJavaScriptを生成してハイドレーションします。`client:*` ディレクティブの種類と動作は次項を参照ください。
+- `MINISTA_ISLAND_PROPS_UNSUPPORTED`: A value cannot be serialized; diagnostics show its location in props
+- `MINISTA_ISLAND_COMPONENT_UNRESOLVED`: A component cannot be resolved through static imports; import it from another file
+- `MINISTA_ISLAND_DIRECTIVE_CONFLICT`: Multiple startup conditions on one element
+- `MINISTA_ISLAND_NESTED`: Islands nested in the same JSX; consolidate them at the outermost level
 
-```tsx
-import { Counter } from "../components/counter"
+During development, changes to page values update data stored in static HTML. Component changes are reflected through Vite's update path. Keep React's initial rendering consistent with the SSR display.
 
-export default function () {
-  return <Counter client:load />
-}
-```
+## Client directive
 
-※ハイドレーションを行うコンポーネン配下で読み込んだ画像パスはルートパス・または絶対パスとなり、埋め込み用の相対パスは反映されません
+Apply `client:*` to statically imported React components or HTML tags. Only one directive is allowed per element.
 
-## Client Directive
+| Directive | Condition | Options |
+| --- | --- | --- |
+| `client:load` | On page load | None |
+| `client:idle` | During browser idle time | `{ timeout: number }` (milliseconds) |
+| `client:visible` | When entering the viewport | `{ rootMargin: string }` |
+| `client:media` | When a media query matches | Media query string |
+| `client:only` | Render in the browser on page load | None |
 
-静的なHTMLに変換されるJSXの一部をReact Appとして動作させる効果があります。`client:*` ディレクティブ配下ではReactの `useState` `useEffect` などインタラクティブな実装がすべて使えます。`client:*` ディレクティブはReact ComponentsまたはHTMLタグに付与でき、同時にpropsを渡すことも可能です。
+`client:only` does not generate static HTML for the component body, but props and children are evaluated and static imports run. Keep `window` and similar APIs out of module top-level code; use them in events or `useEffect()`. Direct children with `slot="fallback"` appear before rendering and are removed from props and children passed to the client.
 
-### client:load
+## Conditional loading
 
-ページの読み込みと同時に、コンポーネントをハイドレーションします。
+`client:visible`, `client:media`, and `client:idle` fetch and evaluate component and hydration JavaScript only after their condition is met. `client:load` and `client:only` start fetching when the page's Island entry runs. Multiple instances of a component reuse the module, and each element is hydrated once.
 
-```tsx
-import { Counter } from "../components/counter"
+CSS needed to display the initial HTML is still loaded. Vite fetches CSS in lazy chunks with their modules. Dependencies shared with another immediate component or regular script may load earlier.
 
-export default function () {
-  return <Counter client:load />
-}
-```
-
-### client:idle
-
-ページの初期読み込みが終わり、ブラウザが待機状態になったときにコンポーネントをハイドレーションします。
-
-```tsx
-import { Counter } from "../components/counter"
-
-export default function () {
-  return <Counter client:idle />
-}
-```
-
-- `timeout`:初期読み込みがこの時間に到達した場合にハイドレーションを優先して実行
-  - 実装: `requestIdleCallback` の[timeout](https://developer.mozilla.org/ja/docs/Web/API/Window/requestIdleCallback#options)
-
-```tsx
-import { Counter } from "../components/counter"
-
-export default function () {
-  return <Counter client:idle={{ timeout: 5000 }} />
-}
-```
-
-### client:visible
-
-コンポーネントが画面内に表示されたときにハイドレーションします。
-
-```tsx
-import { Counter } from "../components/counter"
-
-export default function () {
-  return <Counter client:visible />
-}
-```
-
-- `rootMargin`:コンポーネントの認識範囲を拡大
-  - 実装: `IntersectionObserver` の[rootMargin](https://developer.mozilla.org/ja/docs/Web/API/IntersectionObserver/rootMargin)
-
-```tsx
-import { Counter } from "../components/counter"
-
-export default function () {
-  return <Counter client:visible={{ rootMargin: "200px" }} />
-}
-```
-
-### client:media
-
-CSSメディアクエリの条件が満たされたときに、コンポーネントをハイドレーションします。
-
-```tsx
-import { Counter } from "../components/counter"
-
-export default function () {
-  return <Counter client:media="(max-width: 500px)" />
-}
-```
-
-### client:only
-
-静的HTMLを出力せずに、`ReactDOM.createRoot` でコンポーネントをレンダリングします。タイミングは `client:load` と同じくページの読み込みと同時。静的なHTMLを初期表示させたくない場合に有効ですが、レンダリング前の高さを確保できないためCumulative Layout Shift（CLS）による画面のガタつきに注意が必要です。
-
-```tsx
-import { Counter } from "../components/counter"
-
-export default function () {
-  return <Counter client:only />
-}
-```
-
-- `slot="fallback"`:直下要素に付与することでレンダリング前に表示
-
-```tsx
-import { Counter } from "../components/counter"
-
-export default function () {
-  return (
-    <div client:only>
-      <div slot="fallback">Loading...</div>
-      <Counter />
-    </div>
-  )
-}
-```
+After a condition is met, network requests and JavaScript execution introduce a delay. Use `client:load` for immediately interactive UI. On loading failure, the SSR display remains and `MINISTA_ISLAND_LOAD_FAILED` is logged to the console. No automatic retry occurs; reload the page after the connection recovers.

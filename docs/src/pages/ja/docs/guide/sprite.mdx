@@ -1,0 +1,107 @@
+---
+layout: docs
+locale: ja
+title: SVGスプライト
+---
+
+# SVGスプライト
+
+`pluginSprite()`は同じディレクトリのSVGを一つのスプライトファイルへまとめます。各アイコンはHTMLの`use`要素から参照するため、複数ページで同じアイコンを使う構成に適しています。
+
+[SVG最適化](/ja/docs/guide/svg)はページ内へ図形を展開する方法、このページは外部のSVGファイルを共有する方法です。両方を使う場合は対応するプラグインをそれぞれ追加します。
+
+## Table of Contents
+
+contents list
+
+## プラグインを追加する ||add-sprite-plugin||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginSprite } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginSprite()],
+})
+```
+
+## アイコンをまとめる ||organize-icons||
+
+`src/assets/icons/`を作り、次の二つのSVGを配置します。
+
+```xml title="src/assets/icons/square.svg"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path fill="currentColor" d="M4 4h16v16H4z" />
+</svg>
+```
+
+```xml title="src/assets/icons/circle.svg"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <circle fill="currentColor" cx="12" cy="12" r="8" />
+</svg>
+```
+
+```text title="プロジェクト構成"
+src/
+├── assets/
+│   └── icons/
+│       ├── square.svg
+│       └── circle.svg
+└── pages/
+    └── index.tsx
+```
+
+## Spriteで参照する ||use-sprite||
+
+```tsx title="src/pages/index.tsx"
+import { Sprite } from "minista/assets"
+
+export default function Page() {
+  return (
+    <>
+      <h1>My Site</h1>
+      <Sprite src="/src/assets/icons/square.svg" title="四角" width={24} height={24} />
+      <Sprite src="/src/assets/icons/circle.svg" title="丸" width={24} height={24} />
+    </>
+  )
+}
+```
+
+参照したディレクトリのSVGがまとめられます。ディレクトリ名が出力ファイルの基になる名前、拡張子を除いたファイル名が`symbol`のIDになります。
+
+## ビルド結果を確認する ||sprite-output||
+
+```text title="ビルド結果の例"
+dist/
+├── index.html
+└── assets/
+    └── icons-[hash].svg
+```
+
+出力HTMLは次のようにスプライトを参照します。実際の属性やファイル名は設定によって変わります。
+
+```html title="dist/index.htmlの抜粋"
+<svg viewBox="0 0 24 24" width="24" height="24">
+  <use href="/assets/icons-[hash].svg#square"></use>
+</svg>
+```
+
+SVGを最適化したうえで`symbol`へ変換し、共通の出力へまとめます。公開時にはHTMLだけでなく、スプライトファイルも一緒に配置してください。
+
+## 既存スプライトを使う ||existing-sprite||
+
+`symbol`を含む既存のSVGも、同じディレクトリへ置けます。この場合は使いたいIDを`symbolId`で指定します。
+
+```tsx
+<Sprite
+  src="/src/assets/icons/common.svg"
+  symbolId="arrow-right"
+  width={24}
+  height={24}
+/>
+```
+
+この例には`arrow-right`という`symbol`を持つ`common.svg`が必要です。同じ出力内でIDが重複するとビルドが停止するため、ファイル名や既存のIDを一意にします。
+
+設定値、内部IDの扱い、SVGOの制約は[pluginSprite](/ja/docs/plugins/sprite)を参照してください。
+
+次は[Island](/ja/docs/guide/island)で、操作できるUIを追加します。

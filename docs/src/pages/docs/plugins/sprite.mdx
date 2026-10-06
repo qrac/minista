@@ -1,66 +1,39 @@
 ---
-title: pluginSprite
 layout: docs
+locale: en
+title: pluginSprite
 ---
 
 # pluginSprite
 
-ルートパスのSVGファイルをスプライト化して出力するプラグイン。
+A plugin that outputs SVG files referenced by root paths as sprites.
 
-- スプライト生成時にSVGOでコードを最適化
+- Optimizes code with SVGO during sprite generation
+
+See the [guide](/docs/guide/sprite) for setup and examples. This page covers settings, component props, and constraints.
 
 ## Table of Contents
 
 contents list
 
-## How To Use
-
-```js title="./vite.config.js"
-import { pluginSsg, pluginSprite } from "minista"
-
-export default {
-  plugins: [pluginSsg(), pluginSprite()],
-}
-```
-
-```jsx title="./src/pages/index.jsx"
-import { Sprite } from "minista/assets"
-
-export default function () {
-  return <Sprite src="/src/assets/sprite/square.svg" />
-}
-```
-
 ## Options
 
-```js title="Default"
+```js title="Defaults"
 pluginSprite({})
 ```
 
 ### config
 
-- 型: `Config`
-- デフォルト: `undefined`
+- Type: `Config`
+- Default: `undefined`
 
-[svgo](https://www.npmjs.com/package/svgo)のConfigを渡して最適化処理の内容を変更できます。
+Pass a [svgo](https://www.npmjs.com/package/svgo) Config to customize optimization.
 
 ## Sprite
 
-ルートパスのSVGファイルを読み込んで `<svg>` タグに展開するコンポーネント。
+A component that combines SVG files into sprites and references them with `svg` and `use`.
 
-- スプライト生成時にSVGOでコードを最適化
-
-```jsx title="./src/pages/index.jsx"
-import { Sprite } from "minista/assets"
-
-export default function () {
-  return <Sprite src="/src/assets/sprite/square.svg" />
-}
-```
-
-```xml title="Dist"
-<svg><use href="/assets/sprite.svg#square"></use>
-```
+- Optimizes code with SVGO during sprite generation
 
 ```ts
 export type SpriteProps = {
@@ -74,30 +47,36 @@ export type SpriteProps = {
 
 ### src
 
-`src` のファイル名が `symbolId` になり、ディレクトリ名が出力されるSVGスプライトのファイル名になります。
+The file name in `src` becomes the `symbolId`, and its directory name becomes the output SVG sprite file name.
 
 ```
 src: "/src/assets/sprite/square.svg"
 => sprite.svg#square
 ```
 
-対象となったディレクトリ内のSVGファイルは1つのSVGスプライトファイルとしてまとめられ、ビルドパイプラインに乗せられます。
+SVG files in the target directory are combined into one SVG sprite file and added to the build pipeline.
 
-SVGスプライトファイル内の `symbol` は `symbolId` 順に並べ替えられ、重複した `symbolId` が存在する場合は後から読み込まれたもので上書きされます。
+The sprite's `symbol` elements are sorted by `symbolId`. Duplicate IDs in the same output stop the build with `MINISTA_SPRITE_DUPLICATE_SYMBOL`.
 
 ### symbolId
 
-スプライト対象ディレクトリ内には既存のSVGスプライトファイルを混ぜることもできます。その場合、SVGスプライトのファイル名は `symbolId` にならないため、既存のSVGスプライトファイル内の `symbol` を使う場合はコンポーネントに `symbolId` を設定します。
+Existing SVG sprite files can also be placed in the target directory. Their file names do not become `symbolId` values, so set `symbolId` on the component to use a `symbol` from an existing sprite.
 
-```tsx title="./src/pages/index.jsx"
-import { Sprite } from "minista/assets"
+## Diagnostics
 
-export default function () {
-  return (
-    <Sprite
-      src="/src/assets/sprite/common-sprite.svg"
-      symbolId="common-square"
-    />
-  )
-}
-```
+If sprite generation fails, the build emits the following diagnostic codes.
+
+- `MINISTA_SPRITE_DISCOVERY_FAILED`: SVG source discovery failed
+- `MINISTA_SPRITE_READ_FAILED`: SVG file reading failed
+- `MINISTA_SPRITE_PARSE_FAILED`: SVG or symbol markup parsing failed
+- `MINISTA_SPRITE_OPTIMIZE_FAILED`: SVGO optimization failed
+
+Diagnostics include the SVG's path relative to the project.
+
+## SVG internal IDs
+
+Internal IDs and references for gradients, clipPath, and similar elements receive deterministic prefixes to avoid collisions. Multiple instances of the same SVG are supported. Do not reference original internal IDs from external CSS or JavaScript. Class names are preserved.
+
+Symbol IDs derived from file names and those in source files are preserved. Duplicate symbol IDs in one output stop the build with `MINISTA_SPRITE_DUPLICATE_SYMBOL`, identifying both source files. Change the IDs to be unique. Root drawing attributes and shared defs are also preserved.
+
+Custom SVGO settings that remove or rename public symbols produce `MINISTA_SPRITE_OPTIMIZE_FAILED`. Disable `cleanupIds` and `removeHiddenElems`.

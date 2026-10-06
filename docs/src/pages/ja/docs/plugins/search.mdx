@@ -1,0 +1,298 @@
+---
+layout: docs
+locale: ja
+title: pluginSearch
+---
+
+# pluginSearch
+
+全文検索機能を追加するプラグイン。
+
+導入手順と使用例は[ガイド](/ja/docs/guide/search)を参照してください。このページは設定値、コンポーネントのprops、制約をまとめています。
+
+## Table of Contents
+
+contents list
+
+## オプション ||options||
+
+```js title="既定値"
+pluginSearch({
+  outName: "search",
+  src: ["**/*.html"],
+  ignore: ["404.html"],
+  trimTitle: "",
+  targetSelector: "[data-search]",
+  relativeAttr: "data-search-relative",
+  inputAttr: "data-search-input",
+  hit: {
+    minLength: 3,
+    number: false,
+    english: true,
+    hiragana: false,
+    katakana: true,
+    kanji: true,
+  },
+})
+```
+
+### indexes ||indexes||
+
+- 型: `Record<string, SearchIndexOptions>`
+- デフォルト: `undefined`
+
+検索対象を名前付きのインデックスに分けます。指定時は`src` `ignore` `outName`を各インデックスに置きます。継承の規則は[複数の検索インデックス](#multiple-indexes)を参照してください。
+
+### outName ||outname||
+
+- 型: `string`
+- デフォルト: `"search"`
+
+検索用JSONファイルの出力名。拡張子は含みません。
+
+### src ||src||
+
+- 型: `string[]`
+- デフォルト: `["**/*.html"]`
+
+検索対象のHTMLをglob形式で指定します。対象ファイルはビルドパイプラインに含まれているものから[picomatch](https://www.npmjs.com/package/picomatch)で選ばれます。
+
+デフォルトではすべてのHTMLファイルが対象になっているため、`["posts/**/*.html"]` などで対象範囲を絞り込むことをお勧めします。
+
+### ignore ||ignore||
+
+- 型: `string[]`
+- デフォルト: `["404.html"]`
+
+検索対象外のHTMLをglob形式で指定します。対象ファイルはビルドパイプラインに含まれているものから[picomatch](https://www.npmjs.com/package/picomatch)で選ばれます。
+
+### trimTitle ||trimtitle||
+
+- 型: `string`
+- デフォルト: `""`
+
+検索したタイトルから削除する文字列。例えば「CSS - minista」というページタイトルに対して検索UIに不要な ` - minista` を指定して削除します。
+
+### targetSelector ||targetselector||
+
+- 型: `string`
+- デフォルト: `"[data-search]"`
+
+検索対象ページのインデックス化するセレクターを設定します。
+
+### ignoreSelectors ||ignoreselectors||
+
+- 型: `string[]`
+- デフォルト: `[]`
+
+`targetSelector` 内のインデックス化から除外するセレクターを配列で指定します。一致したすべての要素と子孫を、語彙（`words`）、本文（`content`）、見出し位置（`toc`）から除外します。`targetSelector` の要素自体が一致する場合も本文全体を除外します。ページタイトルは別に取得します。
+
+- 例: `["h1", "#table-of-contents", "#table-of-contents + div"]`
+
+### relativeAttr ||relativeattr||
+
+- 型: `string`
+- デフォルト: `"data-search-relative"`
+
+検索ルートまでの階層数を調べるために使用するデータ属性名。`body` に付与されます。
+
+### inputAttr ||inputattr||
+
+- 型: `string`
+- デフォルト: `"data-search-input"`
+
+検索フィールドに付与するデータ属性名。この属性の有無によって `relativeAttr` の付与を決めます。
+
+### hit.minLength ||hitminlength||
+
+- 型: `number`
+- デフォルト: `3`
+
+検索でヒットする単語の最低文字数。
+
+### hit.number ||hitnumber||
+
+- 型: `boolean`
+- デフォルト: `false`
+
+検索で数字をヒットさせるか否か。
+
+### hit.english ||hitenglish||
+
+- 型: `boolean`
+- デフォルト: `true`
+
+検索で英単語をヒットさせるか否か。
+
+### hit.hiragana ||hithiragana||
+
+- 型: `boolean`
+- デフォルト: `false`
+
+検索で連続したひらがなの文字列をヒットさせるか否か。
+
+### hit.katakana ||hitkatakana||
+
+- 型: `boolean`
+- デフォルト: `true`
+
+検索で連続したカタカナの文字列をヒットさせるか否か。
+
+### hit.kanji ||hitkanji||
+
+- 型: `boolean`
+- デフォルト: `true`
+
+検索で連続した漢字の文字列をヒットさせるか否か。
+
+## Search ||search||
+
+検索用のコンポーネント。検索フィールドと候補の出力がセットとなっており、`pluginIsland` の併用で動作します。
+
+入力は大文字・小文字を区別しない文字列検索として扱い、正規表現として解釈しません。強調表示も文字列として一致した部分に適用します。半角スペース区切りの各入力を検索対象語に部分一致させるため、記号を含む入力も、JSONの`hits`に対応する語に含まれる範囲でヒットします。初回の入力でJSONを取得し、取得完了時点の入力で結果を更新します。
+
+`<Search>` コンポーネントには、以下のpropsを渡せます。
+
+```ts
+type SearchProps = {
+  index?: string
+  className?: string
+  minHitLength?: number
+  maxHitPages?: number
+  maxHitWords?: number
+  attributes?: React.HTMLAttributes<HTMLElement>
+  field?: {
+    className?: string
+    placeholder?: string
+    beforeElement?: React.ReactElement
+    afterElement?: React.ReactElement
+    clearElement?: React.ReactElement<React.HTMLAttributes<HTMLElement>>
+    attributes?: React.HTMLAttributes<HTMLElement>
+  } & React.HTMLAttributes<HTMLElement>
+  list?: {
+    className?: string
+    showUrl?: boolean
+    attributes?: React.HTMLAttributes<HTMLElement>
+  } & React.HTMLAttributes<HTMLElement>
+} & React.HTMLAttributes<HTMLElement>
+```
+
+### index ||index||
+
+- 型: `string`
+- デフォルト: `undefined`
+
+`indexes`で設定した検索インデックス名。複数インデックスを使う場合に指定します。
+
+### className ||classname||
+
+- 型: `string`
+- デフォルト: `"search"`
+
+`<Search>` コンポーネントルートのクラス名。
+
+### minHitLength ||minhitlength||
+
+- 型: `number`
+- デフォルト: `2`
+
+検索を開始する最低文字数。
+
+### maxHitPages ||maxhitpages||
+
+- 型: `number`
+- デフォルト: `5`
+
+検索結果に表示するページの最大数。
+
+### maxHitWords ||maxhitwords||
+
+- 型: `number`
+- デフォルト: `20`
+
+検索結果に表示する単語の最大数。
+
+### field.className ||fieldclassname||
+
+- 型: `string`
+- デフォルト: `"search-field"`
+
+検索フィールドのクラス名。
+
+### field.placeholder ||fieldplaceholder||
+
+- 型: `string`
+- デフォルト: `""`
+
+検索フィールドのプレースホルダー。
+
+### field.beforeElement ||fieldbeforeelement||
+
+- 型: `React.ReactElement`
+- デフォルト: `undefined`
+
+検索フィールドの前に挿入する要素。虫眼鏡アイコンなど。
+
+### field.afterElement ||fieldafterelement||
+
+- 型: `React.ReactElement`
+- デフォルト: `undefined`
+
+検索フィールドの後に挿入する要素。虫眼鏡アイコンなど。
+
+### field.clearElement ||fieldclearelement||
+
+- 型: `React.ReactElement<React.HTMLAttributes<HTMLElement>>`
+- デフォルト: `undefined`
+
+検索フィールドをクリアする要素。× ボタンなど。
+
+### list.className ||listclassname||
+
+- 型: `string`
+- デフォルト: `"search-list"`
+
+検索結果のクラス名。
+
+### list.showUrl ||listshowurl||
+
+- 型: `boolean`
+- デフォルト: `true`
+
+検索結果にURLを表示させるか否か。
+
+## 複数の検索インデックス ||multiple-indexes||
+
+`indexes`のキーがインデックス名になります。`Search`の`index`で明示的に選択し、各UIは選択したJSONだけを取得します。URLによる自動判定はありません。導入例は[ガイド](/ja/docs/guide/search#multiple-indexes)を参照してください。
+
+### オプションの継承 ||option-inheritance||
+
+| オプション                                       | 複数インデックスでの指定場所 | 省略時                         |
+| ------------------------------------------------ | ----------------------- | ------------------------------ |
+| `src`                                            | 各インデックス                 | `["**/*.html"]`                |
+| `ignore`                                         | 各インデックス                 | `["404.html"]`                 |
+| `outName`                                        | 各インデックス                 | `search-${indexName}`          |
+| `trimTitle`、`targetSelector`、`ignoreSelectors` | トップレベルと各インデックス   | トップレベル、次に既存の既定値 |
+| `hit`                                            | トップレベルと各インデックス   | フィールドごとに継承           |
+| `inputAttr`、`relativeAttr`                      | トップレベルと各インデックス   | トップレベル、次に既存の既定値 |
+
+`src`と`ignore`は、出力先を基準にしたHTMLファイル名のglobです。例として`/ja/`は`ja/index.html`、`/ja/guide`は`ja/guide.html`に対応します。既定の`ignore: ["404.html"]`は`ja/404.html`を除外しないため、必要な除外範囲を明示してください。
+
+`hit`はフィールドごとに継承します。配列は結合せず置き換えるため、個別の`ignoreSelectors`には必要な共通項目も記載してください。空配列で除外を解除できます。`indexes`を使う場合、`src` `ignore` `outName`は各インデックスへ指定し、トップレベルへ置かないでください。
+
+### 生成されるJSON ||generated-json||
+
+インデックス名が`ja`なら、既定の出力名は`search-ja.json`です。ディレクトリとハッシュはViteの`build.rolldownOptions.output.assetFileNames`に従い、Searchは確定したファイル名を参照します。`outName`は拡張子を含めず、インデックス間で重複させないでください。
+
+複数インデックスのJSONには`index`名が入り、既存の`words` `hits` `pages`形式をそのまま使います。対象ページがないインデックスも出力されます。
+
+```json
+{
+  "index": "ja",
+  "words": [],
+  "hits": [],
+  "pages": []
+}
+```
+
+単一インデックスのJSONは`words`（語彙）、`hits`（検索対象語の位置）、`pages`（ページデータ）を持ちます。各ページの`url`、`title`、`toc`、`content`を検索UIが参照します。複数インデックスでは同じ形式に`index`名を追加します。

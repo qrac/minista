@@ -1,0 +1,248 @@
+---
+layout: docs
+locale: ja
+title: pluginImage
+---
+
+# pluginImage
+
+画像を最適化し、リモート画像をダウンロードするプラグイン。
+
+最適化した出力画像にはEXIF・XMP・IPTCなどのメタデータやICCプロファイルを保持・付与しません。EXIF Orientationによる向き補正は行います。メタデータを保持するオプションはありません。
+
+導入手順と使用例は[ガイド](/ja/docs/guide/image)を参照してください。このページは設定値、コンポーネントのprops、制約をまとめています。
+
+## Table of Contents
+
+contents list
+
+## オプション ||options||
+
+```js title="既定値"
+pluginImage({
+  useCache: true,
+  remoteCache: "immutable",
+  optimize: {
+    outName: "[name]-[width]x[height]",
+    remoteName: "remote-[index]",
+    layout: "constrained",
+    breakpoints: [320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840],
+    resolutions: [1, 2],
+    aspect: undefined,
+    format: "inherit",
+    formatOptions: {},
+    quality: undefined,
+    fit: "cover",
+    position: "centre",
+    background: undefined,
+  },
+  decoding: "async",
+  loading: "eager",
+})
+```
+
+### useCache ||usecache||
+
+- 型: `boolean`
+- デフォルト: `true`
+
+開発・ビルド中にキャッシュを利用します。
+
+### remoteCache ||remotecache||
+
+- 型: `"immutable" | { maxAge: number }`
+- デフォルト: `"immutable"`
+
+リモート画像の元画像のキャッシュ方針です。`"immutable"`はキャッシュを削除するまで同じURLの元ファイルを再取得しません。`{ maxAge }`はミリ秒単位の有効期間を指定し、期限後はETagまたはLast-Modifiedがあれば条件付きリクエストで再検証します。`useCache: false`の場合は使用されません。
+
+### optimize.outName ||optimizeoutname||
+
+- 型: `string`
+- デフォルト: `"[name]-[width]x[height]"`
+
+出力画像のファイル名。拡張子は含みません。以下の動的出力タグを使用できます。
+
+- `[name]`:元ファイルの名前
+- `[width]`:出力ファイルの幅
+- `[height]`:出力ファイルの高さ
+
+### optimize.remoteName ||optimizeremotename||
+
+- 型: `string`
+- デフォルト: `"remote-[index]"`
+
+リモート画像をダウンロードした際の名前。拡張子は含みません。`optimize.outName` の `[name]` として利用されます。以下の動的出力タグを使用できます。
+
+- `[index]`:ダウンロードされた順番（開始: 1）
+
+### optimize.layout ||optimizelayout||
+
+- 型: `"constrained" | "fixed"`
+- デフォルト: `"constrained"`
+
+出力画像のレイアウト方法。選択肢によって採用される出力パターンが決まります。
+
+- `"constrained"`:コンテナサイズ（`breakpoints`を採用）
+- `"fixed"`:固定サイズ（`resolutions` を採用）
+
+### optimize.breakpoints ||optimizebreakpoints||
+
+- 型: `number[] | { count: number; minWidth: number; maxWidth: number }`
+- デフォルト: `[320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840]`
+
+出力画像のレスポンシブ幅。数値配列で明示するか、範囲 `minWidth`〜`maxWidth` と生成数 `count` で指定できます。
+
+### optimize.resolutions ||optimizeresolutions||
+
+- 型: `number[]`
+- デフォルト: `[1, 2]`
+
+出力画像の解像度。デフォルトでは通常用と2倍サイズ用。
+
+### optimize.format ||optimizeformat||
+
+- 型: `"inherit" | "jpg" | "png" | "webp" | "avif"`
+- デフォルト: `"inherit"`
+
+出力画像のフォーマット。`"inherit"` を指定すると元画像と同じフォーマットになります。
+
+### optimize.formatOptions ||optimizeformatoptions||
+
+- 型: `{ jpg?: JpegOptions, png?: PngOptions, webp?: WebpOptions, avif?: AvifOptions }`
+- デフォルト: `{}`
+
+フォーマットごとの圧縮オプション。[sharp](https://www.npmjs.com/package/sharp)の各種オプションが利用できます。
+
+### optimize.quality ||optimizequality||
+
+- 型: `number`
+- デフォルト: `undefined`
+
+出力画像の品質。フォーマットごとに個別設定する場合は `optimize.formatOptions` をお使いください。
+
+### optimize.aspect ||optimizeaspect||
+
+- 型: `string`
+- デフォルト: `undefined`
+
+出力画像のアスペクト比。`"16:9"` などを指定すると、その比率でリサイズされます。
+
+### optimize.fit ||optimizefit||
+
+- 型: `ResizeOptions["fit"]`
+- デフォルト: `"cover"`
+
+[sharp](https://www.npmjs.com/package/sharp)のResizeにフィット方法を指定します。
+
+- 例: `"cover"`, `"contain"`, `"fill"`, `"inside"`, `"outside"`
+
+### optimize.position ||optimizeposition||
+
+- 型: `ResizeOptions["position"]`
+- デフォルト: `"centre"`
+
+[sharp](https://www.npmjs.com/package/sharp)のResizeにトリミングやリサイズ時の重心位置を指定します。
+
+- 例: `"centre"`, `"top"`, `"left"`, `"right"`, `"bottom"`
+
+### optimize.background ||optimizebackground||
+
+- 型: `ResizeOptions["background"]`
+- デフォルト: `undefined`
+
+[sharp](https://www.npmjs.com/package/sharp)のResizeに背景色を指定します。主に `fit` が `"contain"` の場合に有効となります。
+
+- 例: `"#ffffff"`, `{r: 255, g: 255, b: 255, alpha: 0.5}`
+
+### decoding ||decoding||
+
+- 型: `HTMLImageElement["decoding"]`
+- デフォルト: `"async"`
+
+生成される `<img>` タグに一括で `decoding` 属性を付与します。
+
+- `"async"`:非同期デコード
+- `"sync"`:同期デコード
+- `"auto"`:ブラウザに任せる
+
+### loading ||loading||
+
+- 型: `HTMLImageElement["loading"]`
+- デフォルト: `"eager"`
+
+生成される `<img>` タグに一括で `loading` 属性を付与します。
+
+- `"eager"`:ページロード時に即座に読み込み
+- `"lazy"`:ビューポートに入るまで遅延読み込み
+
+## Image ||image||
+
+シンプルな `<img>` タグで画像の最適化を行うコンポーネント。
+
+- 元画像1枚・出力フォーマット1種類にのみ対応
+- 自動で画像の幅と高さを取得して `width` `height` を付与
+- リモート画像をダウンロード
+
+`<Image>` コンポーネントには、プラグインオプション `optimize` を含めたpropsを個別に渡してオーバーライドできます。
+
+```ts
+type ImageProps = {
+  src: string
+  sizes?: string
+  width?: number | string
+  height?: number | string
+  alt?: string
+  decoding?: HTMLImageElement["decoding"]
+  loading?: HTMLImageElement["loading"]
+} & Partial<ImageOptimize> &
+  React.HTMLAttributes<HTMLImageElement>
+```
+
+## Picture ||picture||
+
+`<picture>` に `<source>` `<img>` タグを内包する詳細な画像最適化が行えるコンポーネント。
+
+- 画面幅によって元画像を変更するアートディレクティブに対応
+- 出力フォーマットを複数設定してフォールバック可能
+- 自動で画像の幅と高さを取得して `width` `height` を付与
+- リモート画像をダウンロード
+
+`<Picture>` コンポーネントには、プラグインオプション `optimize` を含めたpropsを個別に渡してオーバーライドできます。また、画面幅によって元画像を変更するアートディレクティブを `artDirectives` に設定できます。
+
+```ts
+type PictureProps = {
+  src: string
+  sizes?: string
+  width?: number | string
+  height?: number | string
+  alt?: string
+  decoding?: HTMLImageElement["decoding"]
+  loading?: HTMLImageElement["loading"]
+  artDirectives?: ArtDirective[]
+} & Partial<ImagesOptimize> &
+  React.HTMLAttributes<HTMLImageElement>
+
+type ImagesOptimize = Omit<ImageOptimize, "format"> & {
+  formats: ImageFormat[]
+}
+
+type ArtDirective = {
+  media: string
+  src: string
+  sizes?: string
+  width?: number | string
+  height?: number | string
+} & Partial<ImagesOptimize>
+```
+
+## 診断 ||diagnostics||
+
+画像処理に失敗した場合、ビルドは次の診断コードを出力します。
+
+- `MINISTA_IMAGE_DOWNLOAD_FAILED`: リモート画像の取得失敗
+- `MINISTA_IMAGE_READ_FAILED`: ローカル画像の欠落または読込失敗
+- `MINISTA_IMAGE_METADATA_FAILED`: 画像サイズ／形式の解析失敗
+- `MINISTA_IMAGE_TRANSFORM_FAILED`: Sharpによる変換失敗
+- `MINISTA_IMAGE_CACHE_FAILED`: キャッシュの読込／書込失敗
+
+ローカル画像の診断にはプロジェクト内の相対位置が含まれます。リモートURLのクエリパラメーターは診断メッセージへ出力しません。

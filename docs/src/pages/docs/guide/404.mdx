@@ -1,0 +1,71 @@
+---
+layout: docs
+locale: en
+title: 404 page
+---
+
+# 404 page
+
+Create a page to display when someone visits a URL that does not exist. minista generates `404.html` like any other page; configure your host to serve it as the 404 page.
+
+## Table of Contents
+
+contents list
+
+## Create a 404 page ||create-404-page||
+
+Create `src/pages/404.tsx`. No additional plugin is needed if your configuration includes `pluginSsg()`.
+
+```tsx title="src/pages/404.tsx"
+import type { Metadata } from "minista/types"
+
+export const metadata: Metadata = { title: "Page not found" }
+
+export default function NotFound() {
+  return (
+    <>
+      <h1>Page not found</h1>
+      <p>The URL may have changed or the page may have been removed.</p>
+      <a href="/">Back to the home page</a>
+    </>
+  )
+}
+```
+
+Match the home page link to your deployment location. If you publish under `/site/`, change it to `href="/site/"`. See [Layouts](/docs/guide/layouts) for how to reflect the title in the HTML head.
+
+## Check the structure and output ||404-output||
+
+Adding `404.tsx` to your existing pages adds `404.html` to the build output. Only the relevant files are shown below.
+
+```text title="Project structure"
+src/pages/
+├── index.tsx
+├── about.md
+└── 404.tsx
+```
+
+```text title="Build output"
+dist/
+├── index.html
+├── about.html
+└── 404.html
+```
+
+Use `404.md` for Markdown or `404.mdx` for MDX to output the same file name. Use only one, since pages with the same URL conflict.
+
+## Preview the 404 page ||preview-404-page||
+
+Start the development server with `npm run dev` and open `/404` to review the content. After building, use `npm run preview` to check `/404.html`.
+
+Opening the 404 page directly and checking its display for a missing URL are separate checks. Verify the response for missing URLs and its HTTP status on your deployed host.
+
+## Configure 404 hosting
+
+Publish the contents of `dist/` and configure your host to use `404.html` for responses to missing URLs. Some services automatically use a file with this name. Check your host's configuration instructions.
+
+After publishing, visit a URL that does not exist and confirm that your page appears and the HTTP status is `404`.
+
+A 404 page can appear at URLs at various depths, such as `/news/missing/`. Relative references to the home page or assets resolve from that URL and may break. An explicit deployment path, such as `base: "/"` or `base: "/site/"`, is suitable for a shared 404 page. See [Build and deploy](/docs/guide/build-deploy#public-base-path) for details.
+
+Next, [Passing data to pages](/docs/guide/static-data) introduces props from `metadata` and `getStaticData()`.

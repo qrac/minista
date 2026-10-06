@@ -1,0 +1,125 @@
+---
+layout: docs
+locale: en
+title: Layouts
+---
+
+# Layouts
+
+Here, add a shared header and footer to every page, including the 404 page. Manage shared elements as React components and the shared page structure as a layout. Both can be written in JSX and TSX.
+
+## Table of Contents
+
+contents list
+
+## Shared components
+
+```tsx title="src/components/header.tsx"
+type Props = { siteName: string }
+
+export default function Header({ siteName }: Props) {
+  return (
+    <header>
+      <a href="/">{siteName}</a>
+      <nav aria-label="Main">
+        <a href="/about">About us</a>
+      </nav>
+    </header>
+  )
+}
+```
+
+Import the component from pages or layouts and pass props. Static elements do not need an Island directive.
+
+## Shared layout
+
+`src/layouts/index.tsx` or `index.jsx` applies to every page by default. `children` contains the page body.
+
+```tsx title="src/layouts/index.tsx"
+import type { Metadata, LayoutProps } from "minista/types"
+import Header from "../components/header"
+
+export const metadata: Metadata = {
+  title: "My Site",
+}
+
+export default function Layout({ title, children }: LayoutProps) {
+  return (
+    <html lang="ja">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{title}</title>
+      </head>
+      <body>
+        <Header siteName="My Site" />
+        <main>{children}</main>
+        <footer>My Site</footer>
+      </body>
+    </html>
+  )
+}
+```
+
+This layout wraps content in `main`, so pages return elements such as `h1` or `article`. Decide whether the page or layout defines the main content area to avoid nesting `main` elements.
+
+A page's `metadata.title` takes priority over the layout's default title. `url` also provides the current page URL.
+
+The layout also receives props from the `getStaticData()` prepared in [Passing data to pages](/docs/guide/static-data). For custom data, extend `LayoutProps` with optional types so that pages without those values can still be displayed.
+
+## Check layout output ||layout-output||
+
+In addition to pages, place the header and shared layout at the following locations.
+
+```text title="Project structure"
+src/
+├── components/
+│   └── header.tsx
+├── layouts/
+│   └── index.tsx
+└── pages/
+    ├── index.tsx
+    ├── about.md
+    └── 404.tsx
+```
+
+```text title="Build output"
+dist/
+├── index.html
+├── about.html
+└── 404.html
+```
+
+No separate HTML files are generated for components or layouts. The shared header, page content, and footer are included in each page's HTML.
+
+The page in [Getting started](/docs/guide/) returns only its content. If an existing page returns `main`, adjust it so it does not overlap with the layout.
+
+## Fragment layout
+
+If the layout does not return a root `html` element, minista supplies `html`, `head`, and `body`. Use `Head` to set the language and title in this form.
+
+```tsx title="src/layouts/index.tsx"
+import type { LayoutProps } from "minista/types"
+import { Head } from "minista/head"
+
+export default function Layout({ title, children }: LayoutProps) {
+  return (
+    <>
+      <Head htmlAttributes={{ lang: "ja" }}>
+        <title>{title}</title>
+      </Head>
+      <main>{children}</main>
+    </>
+  )
+}
+```
+
+See [Head](/docs/guide/head) for adding elements and attributes and overwriting elements by the same `key`.
+
+## Page-specific layouts ||page-specific-layout||
+
+Branch within the shared layout using `url` or custom metadata, or use another wrapper component in a page. Placing a layout in a directory does not automatically apply nested layouts.
+
+Add styles with [CSS bundling](/docs/guide/styling).
+
+Next, [Head](/docs/guide/head) sets per-page head elements and HTML attributes.

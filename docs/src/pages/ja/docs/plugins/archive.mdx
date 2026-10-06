@@ -1,0 +1,77 @@
+---
+layout: docs
+locale: ja
+title: pluginArchive
+---
+
+# pluginArchive
+
+ビルド時に圧縮ファイルを生成するプラグイン。
+
+導入手順と使用例は[ガイド](/ja/docs/guide/archive)を参照してください。このページは設定値と制約をまとめています。
+
+## Table of Contents
+
+contents list
+
+## オプション ||options||
+
+```js title="既定値"
+pluginArchive({
+  archives: [
+    {
+      outName: "dist",
+    },
+  ],
+})
+```
+
+### archives ||archives||
+
+生成パターンを配列で設定します。ユーザー側で配列を入力するとデフォルトの配列と差し替えられます。
+
+### archives[].srcDir ||archivessrcdir||
+
+- 型: `string`
+
+圧縮対象のディレクトリをプロジェクトルート相対または絶対パスで指定します。省略時は解決済みの`build.outDir`を使用します。`outName`の既定値は引き続き`dist`です。
+
+アーカイブ内のパスはプロジェクトルート相対のディレクトリ名を含みます。例えば`build.outDir: "output"`なら`output/index.html`になります。プロジェクト外の入力では入力ディレクトリ名から始まります。
+
+### archives[].outName ||archivesoutname||
+
+- 型: `string`
+
+出力先の`build.outDir`からの相対パスで、拡張子を除いた名前を指定します。例えば`downloads/site`なら`<outDir>/downloads/site.zip`になります。
+
+同じ`pluginArchive`の`archives`に設定された全出力パスは、圧縮対象から自動除外します。`emptyOutDir: false`で保持された前回の同名アーカイブも取り込みません。設定から削除・改名した過去のアーカイブや、配布用として置いた別のZIP／TARは自動除外の対象外です。必要に応じて`ignore`で除外してください。
+
+### archives[].ignore ||archivesignore||
+
+- 型: `string | string[]`
+- デフォルト: `[]`
+
+プロジェクトルート相対のパス（プロジェクト外入力は入力ディレクトリの親からの相対パス）に対して、除外ファイルを[minimatch](https://www.npmjs.com/package/minimatch)のglob形式で指定します。
+
+- 例: `"dist/**/*.map"`
+
+### archives[].format ||archivesformat||
+
+- 型: `"zip" | "tar"`
+- デフォルト: `"zip"`
+
+[archiver](https://www.npmjs.com/package/archiver)の圧縮形式 `zip` または `tar` を指定します。
+
+### archives[].options ||archivesoptions||
+
+- 型: `ZipOptions | TarOptions`
+- デフォルト: `{ zlib: { level: 9 } }`
+
+[archiver](https://www.npmjs.com/package/archiver)の圧縮オプションを指定します。
+
+## 診断 ||diagnostics||
+
+- `MINISTA_ARCHIVE_SOURCE_NOT_FOUND`：入力ディレクトリが存在しない
+- `MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY`：入力がディレクトリではない
+
+存在する空ディレクトリは圧縮できます。

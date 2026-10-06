@@ -1,0 +1,144 @@
+---
+layout: docs
+locale: en
+title: Getting started
+---
+
+# Getting started
+
+This guide covers creating a minista v5 project and displaying your first page. The examples use npm and TypeScript, adding features one at a time to a minimal setup. The same setup works with JavaScript by omitting type annotations.
+
+To ask an AI agent to build your site, continue to [Building with agents](/docs/guide/agents).
+
+## Table of Contents
+
+contents list
+
+## Prerequisites
+
+minista v5 supports the following versions.
+
+| Package | Supported range |
+| ---------------- | ------------------------- |
+| Node.js          | `^20.19.0 \|\| >=22.12.0` |
+| Vite             | `^8.1.0`                  |
+| React and React DOM | `>=19.0.0` |
+
+Check that Node.js and npm are available in your terminal.
+
+```sh
+node --version
+npm --version
+```
+
+## Scaffold a project ||scaffold-project||
+
+Use `minimal-ts` to follow this guide in order. It starts with a minimal setup without layouts or styles.
+
+```sh
+npm create minista@latest my-minista-project -- --template minimal-ts
+cd my-minista-project
+npm install
+npm run dev
+```
+
+Open the displayed local URL in your browser. Stop the development server with `Ctrl + C`.
+
+If you omit the template, follow the prompts to choose a setup and language.
+
+| Template | Contents |
+| ------------ | ------------------------------------------------ |
+| `minimal-ts` | Minimal TypeScript setup |
+| `minimal-js` | Minimal JavaScript setup |
+| `basic-ts` | Basic TypeScript setup with layouts and shared elements |
+| `basic-js` | Basic JavaScript setup with layouts and shared elements |
+
+## Edit the first page ||edit-first-page||
+
+For a TypeScript template, open and edit `src/pages/index.tsx`. For JavaScript, use `index.jsx`.
+
+```tsx title="src/pages/index.tsx"
+export default function Page() {
+  return (
+    <>
+      <h1>Hello, minista!</h1>
+      <p>This is the first static page.</p>
+    </>
+  )
+}
+```
+
+Saving reflects changes in the development server. Pages are written as React components, but displaying them does not require React to run in the browser.
+
+## Minimal project and build output ||minimal-project||
+
+The main files in `minimal-ts` are:
+
+Development files such as `AGENTS.md` are omitted here.
+
+```text title="Project structure"
+my-minista-project/
+├── src/
+│   └── pages/
+│       └── index.tsx
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```
+
+There is no layout, CSS, or browser JavaScript yet. Building the page initially generates a single HTML file.
+
+```text title="Build output"
+dist/
+└── index.html
+```
+
+The following guide pages add files and settings to build pages, shared layouts, assets, and interactive UI in order. Each structure diagram shows the parts relevant to its explanation.
+
+## Manual installation
+
+To start without a template, run the following in an empty directory.
+
+```sh
+npm init -y
+npm pkg set type=module
+npm install --save-dev minista@^5 vite@^8.1 react@^19 react-dom@^19
+```
+
+Add scripts to `package.json`.
+
+```json title="package.json（scripts）"
+{
+  "scripts": {
+    "dev": "minista",
+    "build": "minista build",
+    "preview": "minista preview",
+    "check": "minista check"
+  }
+}
+```
+
+Create a configuration file at the project root and add `pluginSsg()`, which is required for static HTML output. Templates already include this configuration.
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+Create `src/pages/index.jsx` with the same component as the earlier page example, then start with `npm run dev`. See [Configuration](/docs/guide/configuration) to add TypeScript to a manual setup.
+
+## Build and preview
+
+```sh
+npm run build
+npm run preview
+```
+
+Static HTML and assets are generated in `dist/`. Publish the contents of this directory.
+
+Next, [Building with agents](/docs/guide/agents) explains how to request a site. To develop it yourself, continue to [Project structure](/docs/guide/project-structure).
+
+After reviewing [Configuration](/docs/guide/configuration) and [Build and deploy](/docs/guide/build-deploy), add pages starting with [File-based routing](/docs/guide/pages-routing). Each page covers one feature, so you can also start with the features you need.

@@ -6,7 +6,7 @@ export function findRootArg(args) {
   if (!args.length) {
     return ""
   }
-  const commands = /^(dev|build|optimize|preview)$/
+  const commands = /^(dev|build|optimize|preview|check|inspect|explain)$/
 
   if (!args[0].startsWith("-") && !args[0].match(commands)) {
     return args[0]
@@ -15,14 +15,6 @@ export function findRootArg(args) {
     return args[1]
   }
   return ""
-}
-
-/**
- * @param {string[]} args
- * @returns {boolean}
- */
-export function checkOneBuildArg(args) {
-  return args.includes("--oneBuild")
 }
 
 /**
@@ -42,27 +34,10 @@ export function resolveConfigArg(args, configFile) {
 
 /**
  * @param {string[]} args
- * @param {boolean} [isOneBuild]
  * @returns {string[]}
  */
-export function resolveOneBuildArg(args, isOneBuild) {
-  if (!args.length) {
-    return args
-  }
-  if (isOneBuild) {
-    const oneBuildIndex = args.indexOf("--oneBuild")
-    return args.filter((_, index) => index !== oneBuildIndex)
-  }
-  return args
-}
-
-/**
- * @param {string[]} args
- * @param {boolean} [isOneBuild]
- * @returns {string[]}
- */
-export function resolveSsrArg(args, isOneBuild) {
-  if (!args.length || isOneBuild || !args.includes("build")) {
+export function resolveSsrArg(args) {
+  if (!args.length || !args.includes("build")) {
     return args
   }
   const ssrIndex = args.indexOf("--ssr")

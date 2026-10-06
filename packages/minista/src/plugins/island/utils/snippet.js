@@ -1,21 +1,4 @@
 /**
- * @param {string[]} importLines
- * @param {string[]} jsxLines
- * @returns {string}
- */
-export function getSnippet(importLines, jsxLines) {
-  const prefix = importLines.length > 0 ? [...importLines, ""] : []
-  return [
-    ...prefix,
-    "export default function () {",
-    "  return (",
-    ...jsxLines.map((line) => "    " + line.trim()),
-    "  )",
-    "}",
-  ].join("\n")
-}
-
-/**
  * @param {string} snippet
  * @returns {string}
  */

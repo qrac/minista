@@ -1,0 +1,244 @@
+---
+layout: docs
+locale: ja
+title: Islandの容量削減
+---
+
+# Islandの容量削減
+
+Islandのブラウザ向けReactをRedactやPreactへ置き換えると、配信するJavaScriptの容量を削減できます。静的HTMLの生成にはReactを使い、コンポーネントのimportもそのままにします。
+
+容量削減が必要な場合に追加する設定です。Reactのまま進める場合は、次の[静的サイト内検索](/ja/docs/guide/search)へ進めます。
+
+## Table of Contents
+
+contents list
+
+## 置き換え先を選ぶ ||choose-runtime||
+
+| 置き換え先 | 特徴 | 設定 |
+| --- | --- | --- |
+| Redact | Reactと同じAPIで、導入しやすい。nanoでさらに削減できる | 公式Viteプラグインを追加 |
+| Preact | 容量削減を優先したい場合の候補 | ブラウザ側だけに適用する独自Viteプラグインを用意 |
+
+PreactはRedactより小さな容量を目指せますが、実際の出力は使うAPIや依存ライブラリによって変わります。どちらもReactとは実装が異なるため、使用中のUIで動作を確認して選びます。二つを同時に適用せず、いずれかを利用してください。
+
+## 容量の目安 ||bundle-size||
+
+`useState()`を使う小さなカウンターを一つ、`client:load`のIslandにした場合の比較です。同じページとコンポーネントを使い、ブラウザ向けのランタイムだけを変更して本番ビルドしました。
+
+| 構成 | 圧縮後のJavaScript | gzip容量 | React構成からのgzip削減率 |
+| --- | ---: | ---: | ---: |
+| React＋React DOM | 約225KB | 約71KB | — |
+| Redact（full） | 約62KB | 約22KB | 約68% |
+| Redact（nano＋hydration） | 約45KB | 約17KB | 約76% |
+| Preact（compat） | 約22KB | 約10KB | 約86% |
+
+2026年10月5日、React・React DOM 19.3.0、Redact 0.1.4、Preact 11.0.0、Vite 8.3.2、`@preact/preset-vite` 2.10.6で測定しました。1KBは1,000バイトです。出力されたJavaScript全ファイルを合計し、gzip容量は各ファイルを個別に圧縮して合計しています。
+
+ランタイム単体ではなく、カウンターとIslandの起動コードも含む値です。実際の容量は、使うAPI、Redactの機能フラグ、依存ライブラリなどによって変わります。
+
+## Redactを使う ||redact||
+
+[Redact](https://github.com/TanStack/redact)はReact互換のランタイムです。公式Viteプラグインを追加するだけで導入でき、コンポーネントの`import { useState } from "react"`などを書き換える必要はありません。
+
+```sh
+npm install @tanstack/redact
+```
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginIsland } from "minista"
+import { redact } from "@tanstack/redact/vite"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginIsland(), redact()],
+})
+```
+
+この構成では、ministaはReactで静的HTMLを生成し、ブラウザ向けのimportをRedactへ置き換えます。変換はdevでも有効なので、`npm run dev`で前のガイドのカウンターを確認できます。
+
+### nanoでさらに削減する ||redact-nano||
+
+`redact()`の既定のプリセットは`full`です。必要な機能を絞る場合は`nano`を選べます。
+
+```ts title="vite.config.ts（redactの設定）"
+redact({
+  preset: "nano",
+  features: {
+    hydration: true,
+  },
+})
+```
+
+`nano`は任意機能を無効にして容量を削減します。`client:load`など、静的HTMLを引き継ぐIslandにはハイドレーションが必要なため、`hydration: true`を指定してください。`nano`だけでは`hydrateRoot()`がエラーになります。
+
+ContextやSuspenseなどを使う場合は、`features`で必要な機能も有効にします。無効にした機能は元の動作を保つわけではありません。設定の詳細は[Redactの機能フラグ](https://github.com/TanStack/redact#feature-flags)を参照してください。
+
+### Reactとの動作の違いを確認する ||redact-compatibility||
+
+APIの名前が同じでも、すべての動作がReactと同じではありません。Redactは同期的に描画し、Reactの並行レンダリングや優先度による処理の分割を再現しません。
+
+例えば`startTransition()`は同期実行され、`useTransition()`のpendingは`false`、`useDeferredValue()`は入力値をそのまま返します。`StrictMode`による二重実行や、React DevTools・Fast Refreshの内部機構も再現されません。利用するAPIは[互換性の一覧](https://github.com/TanStack/redact#compatibility)を確認してください。
+
+## Preactを使う ||preact||
+
+[Preact](https://preactjs.com/)は小さなUIライブラリです。容量削減を優先し、独自のVite設定を管理できる場合の候補になります。この例では`preact/compat`を使い、Reactのimportを維持したままブラウザ向けコードを置き換えます。
+
+```sh
+npm install preact
+npm install --save-dev @preact/preset-vite
+```
+
+`@preact/preset-vite`をそのまま追加すると、静的HTML生成側のJSXやReactのimportも変更されます。ministaのReactレンダラーへPreactの要素を渡さないよう、プリセットとimportの置き換えをブラウザ向けの環境だけへ適用します。
+
+### ブラウザ向けのViteプラグインを作る ||preact-vite-plugin||
+
+プロジェクトルートに`.vite-plugins/preact.ts`を作ります。これはプロジェクト内で管理する独自プラグインです。
+
+```ts title=".vite-plugins/preact.ts"
+import preact from "@preact/preset-vite"
+import type { Plugin } from "vite"
+
+const clientAliases = {
+  "react-dom/test-utils": "preact/test-utils",
+  "react-dom": "preact/compat",
+  "react/jsx-dev-runtime": "preact/jsx-dev-runtime",
+  "react/jsx-runtime": "preact/jsx-runtime",
+  react: "preact/compat",
+}
+
+function pluginClientPreactResolve(): Plugin {
+  return {
+    name: "example:client-preact-resolve",
+    enforce: "pre",
+    applyToEnvironment: (environment) =>
+      environment.config.consumer === "client",
+    resolveId(source, importer, options) {
+      for (const [find, replacement] of Object.entries(clientAliases)) {
+        if (source !== find && !source.startsWith(`${find}/`)) continue
+        return this.resolve(
+          `${replacement}${source.slice(find.length)}`, importer,
+          { ...options, skipSelf: true },
+        )
+      }
+    },
+  }
+}
+
+function pluginPreactOptimizeDeps(): Plugin {
+  return {
+    name: "example:preact-optimize-deps",
+    enforce: "post",
+    configResolved(config) {
+      for (const optimizeDeps of [
+        config.optimizeDeps,
+        config.environments.client?.optimizeDeps,
+      ]) {
+        if (!optimizeDeps) continue
+        optimizeDeps.include = (optimizeDeps.include ?? []).filter(
+          (id) => id !== "react" && !id.startsWith("react/") &&
+            id !== "react-dom" && !id.startsWith("react-dom/"),
+        )
+        optimizeDeps.include.push("preact/compat", "preact/compat/client")
+        optimizeDeps.exclude = [
+          ...new Set([
+            ...(optimizeDeps.exclude ?? []),
+            ...Object.keys(clientAliases),
+            "react-dom/client",
+          ]),
+        ]
+      }
+    },
+  }
+}
+
+export function pluginPreact(): Plugin[] {
+  const clientPreactPlugins = preact({
+    reactAliasesEnabled: false,
+    jsxImportSource: "react",
+  }).map((plugin): Plugin => ({
+    ...plugin,
+    applyToEnvironment: (environment) =>
+      environment.config.consumer === "client",
+  }))
+
+  return [
+    pluginClientPreactResolve(),
+    ...clientPreactPlugins,
+    pluginPreactOptimizeDeps(),
+    {
+      name: "example:preact-dedupe",
+      config: () => ({ resolve: { dedupe: ["preact"] } }),
+    },
+  ]
+}
+```
+
+`applyToEnvironment`でブラウザ向け環境を選び、JSXのimport先とReactの互換層を置き換えます。開発時の依存関係の事前バンドルも調整して、ブラウザ側でReactとPreactが混在するのを防ぎます。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginIsland } from "minista"
+import { pluginPreact } from "./.vite-plugins/preact"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginIsland(), pluginPreact()],
+})
+```
+
+この設定はdevと本番ビルドの両方で有効です。`npm run dev`でカウンターを確認でき、コンポーネントのReactのimportを変更する必要はありません。
+
+### ReactとのAPIと実装の違いを確認する ||preact-compatibility||
+
+Preact本体のAPIはReactと完全には一致しません。この構成では`preact/compat`で差を吸収しますが、ReactのすべてのAPIや依存ライブラリが同じように動くとは限りません。
+
+PreactはDOMのネイティブイベントを使い、Reactの合成イベントを再実装していません。例えばPortal内のイベントはReactと同じようには親へ伝わりません。Preact本体では入力に`onInput`を使いますが、この例の`preact/compat`はReactの`onChange`に対応する変換を行います。詳しくは[Reactとの違い](https://preactjs.com/guide/v11/differences-to-react/)を参照してください。
+
+コンポーネントは静的HTML生成側でReactとしても実行されます。Preact専用のAPIを直接importする場合は、React側でも描画できるか確認が必要です。
+
+## 構成と出力を確認する ||runtime-output||
+
+コンポーネントやページは[Island](/ja/docs/guide/island)の例を利用できます。Preactの場合は独自プラグインのファイルが加わります。
+
+```text title="Preactを使うプロジェクト構成"
+my-minista-project/
+├── .vite-plugins/
+│   └── preact.ts
+├── src/
+│   ├── components/
+│   │   └── counter.tsx
+│   └── pages/
+│       └── index.tsx
+└── vite.config.ts
+```
+
+```text title="ビルド結果の例"
+dist/
+├── index.html
+└── assets/
+    └── island-0-[hash].js
+```
+
+出力先の構成は変わらず、IslandのJavaScriptに含まれるランタイムが変わります。ファイル名や分割数、容量は構成によって変わります。置き換え前後の本番ビルドで、出力されたJavaScriptの合計容量を比較してください。
+
+## devとpreviewで確認する ||verify-runtime||
+
+どちらの構成も、開発中から置き換えたランタイムで動作を確認できます。
+
+```sh
+npm run dev
+```
+
+カウンターが増えることや、フォーム、Context、外部ライブラリを使うUIが動作することを確認します。コンポーネントの変更は静的HTMLにも影響するため、フルリロードで状態が初期化される場合があります。
+
+本番用の出力でも確認します。
+
+```sh
+npm run build
+npm run preview
+```
+
+ハイドレーションの警告や実行時エラーがないか確認してください。nanoなどの設定を変えた場合も、devとpreviewの両方で試します。
+
+設定の実例は[Redactのplayground](https://github.com/qrac/minista/tree/main/playground/redact)と[Preactのplayground](https://github.com/qrac/minista/tree/main/playground/preact)を参照してください。
+
+次は[静的サイト内検索](/ja/docs/guide/search)で、Islandとして検索UIを追加します。ランタイムを置き換えている場合は、検索UIの動作も確認してください。

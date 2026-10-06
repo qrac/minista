@@ -1,28 +1,53 @@
+import { runAgentsCommand } from "./utils/agents.js"
 import {
   findRootArg,
-  checkOneBuildArg,
   resolveConfigArg,
-  resolveOneBuildArg,
   resolveSsrArg,
 } from "./utils/arg.js"
 import { findConfigFile } from "./utils/file.js"
 import { runMinista } from "./utils/command.js"
+import {
+  createRemovedOptionDiagnostic,
+  reportCliDiagnostic,
+  reportCliError,
+} from "./utils/diagnostic.js"
+import {
+  isProjectCommand,
+  parseProjectCommandArgs,
+  runProjectCommand,
+} from "./utils/project.js"
 
 async function main() {
   let args = process.argv.slice(2)
 
+  if (args[0] === "agents") {
+    await runAgentsCommand(args.slice(1))
+    return
+  }
+
+  if (isProjectCommand(args[0])) {
+    const parsed = parseProjectCommandArgs(args)
+    if (!parsed) return
+    const configFile = findConfigFile(parsed.root)
+    await runProjectCommand(parsed, configFile)
+    return
+  }
+
+  if (args.includes("--oneBuild")) {
+    reportCliDiagnostic(createRemovedOptionDiagnostic("--oneBuild"))
+    process.exitCode = 1
+    return
+  }
   const rootArg = findRootArg(args)
-  const isOneBuild = checkOneBuildArg(args)
   const configFile = findConfigFile(rootArg)
 
   args = resolveConfigArg(args, configFile)
-  args = resolveOneBuildArg(args, isOneBuild)
-  args = resolveSsrArg(args, isOneBuild)
+  args = resolveSsrArg(args)
 
-  await runMinista(args, isOneBuild)
+  await runMinista(args)
 }
 
 main().catch((error) => {
-  console.error(error)
+  reportCliError(error)
   process.exit(1)
 })

@@ -1,26 +1,34 @@
 import { clsx } from "clsx"
 import {
-  FiExternalLink,
-  FiSun,
-  FiMoon,
-  FiMonitor,
-  FiMenu,
-} from "react-icons/fi"
+  LuExternalLink,
+  LuSun,
+  LuMoon,
+  LuMonitor,
+  LuLanguages,
+  LuMenu,
+} from "react-icons/lu"
 import { Svg } from "minista/assets"
 
+import type { Locale, Locales } from "../../../../types"
 import ElementPulldown from "../../element/pulldown"
+import { localizeName, localizePath } from "../../utils/i18n"
 
 import type { Props } from "./props"
 import { initialProps } from "./props"
+import "./style.css"
 
 export default function CommonHeader(props: Partial<Props>) {
-  const { isSticky } = { ...initialProps, ...props }
+  const { layout, locale, locales } = {
+    ...initialProps,
+    ...props,
+  }
+  const isSticky = layout === "docs"
   return (
     <header className={clsx("section is-header", isSticky && "is-sticky")}>
       <div className="inner is-py-sm is-pr-md is-pl-lg">
         <div className="box is-flex is-between is-middle is-gap-sm">
           <div className="box is-flex is-middle is-gap-sm">
-            <a href="/">
+            <a href={localizePath("/", locale, locales)}>
               <Svg
                 src="/src/assets/images/logo.svg"
                 width={110}
@@ -28,12 +36,13 @@ export default function CommonHeader(props: Partial<Props>) {
                 className="image"
               />
             </a>
-            <NavVersions {...props} />
+            <NavVersion {...props} />
           </div>
           <div className="box is-flex is-middle is-gap-xs">
             <NavMain {...props} />
-            <NavThemes />
-            <NavButton />
+            <NavLocale {...props} />
+            <NavTheme />
+            <NavMenuButton />
           </div>
         </div>
       </div>
@@ -41,8 +50,8 @@ export default function CommonHeader(props: Partial<Props>) {
   )
 }
 
-function NavVersions(props: Partial<Props>) {
-  const { currentVersion, versionItems } = { ...initialProps, ...props }
+function NavVersion(props: Partial<Props>) {
+  const { currentVersion, archiveItems } = { ...initialProps, ...props }
   return (
     <ElementPulldown
       id="pulldown-version"
@@ -51,7 +60,7 @@ function NavVersions(props: Partial<Props>) {
           type="button"
           className="button is-plain is-round is-angle-right is-angle-down is-pr-xl is-xs"
         >
-          <span className="text is-font-sans-en">v{currentVersion}</span>
+          <span className="text">v{currentVersion}</span>
         </button>
       }
       radius="xl"
@@ -60,20 +69,18 @@ function NavVersions(props: Partial<Props>) {
         <ul>
           <li className="box is-flex">
             <div className="box is-flex is-middle is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full">
-              <span className="text is-font-sans-en is-primary">{`Latest(v${currentVersion})`}</span>
+              <span className="text is-primary">{`Latest(v${currentVersion})`}</span>
             </div>
           </li>
-          {versionItems.map((item, itemIndex) => (
+          {archiveItems.map((item, itemIndex) => (
             <li className="box is-flex" key={itemIndex}>
               <a
                 href={item.url}
                 className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full"
-                target={item.externalLink ? "_blank" : undefined}
+                target={item.external ? "_blank" : undefined}
               >
-                <span className="text is-font-sans-en">{item.name}</span>
-                {item.externalLink && (
-                  <FiExternalLink className="icon is-dark-4" />
-                )}
+                <span className="text">{item.name}</span>
+                {item.external && <LuExternalLink className="icon is-dark-4" />}
               </a>
             </li>
           ))}
@@ -83,83 +90,23 @@ function NavVersions(props: Partial<Props>) {
   )
 }
 
-function NavThemes() {
-  return (
-    <ElementPulldown
-      id="pulldown-theme"
-      buttonNode={
-        <button type="button" className="button is-melt is-slim is-square">
-          <FiSun
-            title="Theme"
-            className="icon is-lg"
-            data-theme-content="light"
-          />
-          <FiMoon
-            title="Theme"
-            className="icon is-lg"
-            data-theme-content="dark"
-          />
-        </button>
-      }
-      radius="xl"
-    >
-      <div className="box is-bg-light is-outline is-p-sm is-radius-xl is-font-sans-en">
-        <ul>
-          <li className="box is-flex">
-            <button
-              type="button"
-              className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full"
-              data-theme-button="light"
-            >
-              <FiSun className="icon is-lg" />
-              <span className="text is-font-sans-en">Light</span>
-            </button>
-          </li>
-          <li className="box is-flex">
-            <button
-              type="button"
-              className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full"
-              data-theme-button="dark"
-            >
-              <FiMoon className="icon is-lg" />
-              <span className="text is-font-sans-en">Dark</span>
-            </button>
-          </li>
-          <li className="box is-flex">
-            <button
-              type="button"
-              className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full"
-              data-theme-button="system"
-            >
-              <FiMonitor className="icon is-lg" />
-              <span className="text is-font-sans-en">System</span>
-            </button>
-          </li>
-        </ul>
-      </div>
-    </ElementPulldown>
-  )
-}
-
 function NavMain(props: Partial<Props>) {
-  const { mainItems } = { ...initialProps, ...props }
+  const { locale, locales, mainItems } = { ...initialProps, ...props }
   return (
     <div className="box is-none desktop:is-block">
-      <div className="box is-flex is-middle is-gap-xl is-px-md is-font-sans-en">
+      <div className="box is-flex is-middle is-gap-xl is-px-md">
         <ul className="box is-flex is-gap-xl">
           {mainItems.map((item, itemIndex) => (
             <li key={itemIndex}>
               <a
-                href={item.url}
+                href={localizePath(item.url, locale, locales)}
                 className="box is-flex is-middle is-gap-xxs"
-                target={item.externalLink ? "_blank" : undefined}
+                target={item.external ? "_blank" : undefined}
               >
-                <span className="text is-font-sans-en is-weight-500">
-                  {item.name}
+                <span className="text is-weight-500">
+                  {localizeName(item.name, locale)}
                 </span>
-                {item.externalLink && (
-                  <FiExternalLink className="icon is-dark-4" />
-                )}
+                {item.external && <LuExternalLink className="icon is-dark-4" />}
               </a>
             </li>
           ))}
@@ -169,7 +116,107 @@ function NavMain(props: Partial<Props>) {
   )
 }
 
-function NavButton() {
+function NavLocale(props: Partial<Props>) {
+  const { url, locale, locales } = { ...initialProps, ...props }
+  const localeEntries = Object.entries(locales) as [Locale, Locales[Locale]][]
+  const current = localeEntries.find(([key]) => key === locale)
+  const others = localeEntries.filter(([key]) => key !== locale)
+  const items = current ? [current, ...others] : others
+  return (
+    <ElementPulldown
+      id="pulldown-locale"
+      buttonNode={
+        <button type="button" className="button is-melt is-slim is-square">
+          <LuLanguages title="Locale" className="icon is-lg" />
+        </button>
+      }
+      radius="xl"
+    >
+      <div className="box is-bg-light is-outline is-p-sm is-radius-xl">
+        <ul>
+          {items.map(([key, item]) => (
+            <li key={key} className="box is-flex">
+              {key === locale ? (
+                <span className="box is-flex is-middle is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full">
+                  <span className="text is-primary">
+                    {localizeName(item.name, locale)}
+                  </span>
+                </span>
+              ) : (
+                <a
+                  href={localizePath(url, key, locales)}
+                  className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full"
+                >
+                  <span className="text">{localizeName(item.name, key)}</span>
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </ElementPulldown>
+  )
+}
+
+function NavTheme() {
+  return (
+    <ElementPulldown
+      id="pulldown-theme"
+      buttonNode={
+        <button type="button" className="button is-melt is-slim is-square">
+          <LuSun
+            title="Theme"
+            className="icon is-lg"
+            data-theme-content="light"
+          />
+          <LuMoon
+            title="Theme"
+            className="icon is-lg"
+            data-theme-content="dark"
+          />
+        </button>
+      }
+      radius="xl"
+    >
+      <div className="box is-bg-light is-outline is-p-sm is-radius-xl">
+        <ul>
+          <li className="box is-flex">
+            <button
+              type="button"
+              className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full"
+              data-theme-button="light"
+            >
+              <LuSun className="icon is-lg" />
+              <span className="text">Light</span>
+            </button>
+          </li>
+          <li className="box is-flex">
+            <button
+              type="button"
+              className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full"
+              data-theme-button="dark"
+            >
+              <LuMoon className="icon is-lg" />
+              <span className="text">Dark</span>
+            </button>
+          </li>
+          <li className="box is-flex">
+            <button
+              type="button"
+              className="box is-flex is-middle is-link is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full"
+              data-theme-button="system"
+            >
+              <LuMonitor className="icon is-lg" />
+              <span className="text">System</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </ElementPulldown>
+  )
+}
+
+function NavMenuButton() {
   return (
     <div className="box desktop:is-none">
       <div className="box is-flex is-middle is-gap-xxs">
@@ -178,7 +225,7 @@ function NavButton() {
           className="box is-flex is-p-xs"
           data-modal-open="menu"
         >
-          <FiMenu title="Menu" className="icon is-lg" />
+          <LuMenu title="Menu" className="icon is-lg" />
         </button>
       </div>
     </div>

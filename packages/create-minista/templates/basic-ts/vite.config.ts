@@ -1,0 +1,8 @@
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+  build: {
+    assetsInlineLimit: 0,
+  },
+})

@@ -1,0 +1,55 @@
+---
+layout: docs
+locale: en
+title: Why minista?
+---
+
+# Why minista?
+
+minista is a good fit when you want to use familiar React JSX while publishing or delivering static HTML, CSS, and JavaScript files.
+
+## Table of Contents
+
+contents list
+
+## Write with familiar tools
+
+Write pages and shared elements in JSX and TSX. React components, props, and JavaScript expressions let you build pages without learning another template syntax.
+
+You can use TypeScript completion and type checking, along with automatic code formatting. Choose Markdown or MDX for text-heavy pages and reuse shared parts as React components.
+
+## Output for delivery
+
+minista supports both publishing websites and handing over generated HTML and assets.
+
+Adjust file names and output locations, format HTML, CSS, and JavaScript for readability, and package them in a ZIP archive. This also makes minista suitable for updating existing sites or integrating HTML into another system.
+
+See [HTML formatting](/docs/guide/beautify) and [Delivery archives](/docs/guide/archive) for configuration examples.
+
+## Flexible hosting
+
+Use any environment that can serve static files. In addition to static hosting and CDNs, you can publish to shared hosting by uploading files over FTP.
+
+You do not need to operate a Node.js or minista server after deployment. Site search can also run using search data generated at build time and a browser UI.
+
+## Suitable projects
+
+- Corporate websites with multiple pages built from shared components
+- Landing pages and service websites delivered as HTML files
+- Documentation and blogs with content managed in Markdown and MDX
+- Content sites that fetch CMS data at build time
+
+minista is particularly suitable for sites whose content can be determined at build time, or projects that require delivery of static files. If parts of a page need interactive controls, you can combine regular scripts and Islands.
+
+## When to use other services
+
+minista specializes in static site generation, so it is not suitable for dynamic server-side processing on every request.
+
+For requirements such as the following, consider another full-stack framework, such as Next.js, or combine minista with external services.
+
+- **Dynamic page generation for each request**
+  - If the display depends on login state or data must be processed in real time when a page is accessed, you need SSR or ISR rather than static generation.
+- **Frequent content updates**
+  - To reflect changes from an admin interface in real time, trigger automatic rebuilds through a headless CMS webhook, or fetch API data in the browser.
+- **Form submissions and user authentication**
+  - Combine features that require server-side processing with external API services such as Formspree, Supabase, and Firebase, or serverless functions such as Cloudflare Workers.

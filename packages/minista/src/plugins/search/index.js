@@ -1,48 +1,49 @@
+import { registerViteFeatureLifecycle, runViteDevLifecycle, transformViteDocumentContent } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
-/** @typedef {import('./types').PluginOptions} PluginOptions */
-/** @typedef {import('../ssg/types').SsgPage} SsgPage */
+/** @typedef {import('../../features/ssg/index.js').RenderedPage} RenderedPage */
 
-import fs from "node:fs"
 import path from "node:path"
-import { pathToFileURL, fileURLToPath } from "node:url"
-import { glob } from "tinyglobby"
+import { fileURLToPath } from "node:url"
 import { normalizePath } from "vite"
-import { parse as parseHtml } from "node-html-parser"
 
-import { getSearchData } from "./utils/data.js"
-import { mergeObj } from "../../shared/obj.js"
-import { getRootDir, getTempDir } from "../../shared/path.js"
-import { getServeBase, getBuildBase } from "../../shared/url.js"
+import { NodeSearchDocumentAnalyzer } from "../../adapters/html/index.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { getViteAppEnvironmentNames } from "../../adapters/vite/app-config.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteDocuments,
+} from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteDevModuleEvaluator } from "../../adapters/vite/dev-module-evaluator.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
+import { createNodeId } from "../../core/graph/index.js"
+import {
+  createSearchFeature,
+  createSearchFeatureDescriptor,
+  createSearchDataArtifactId,
+  getSearchPageUrl,
+  getSearchIndexes,
+} from "../../features/search/index.js"
+import { resolveSearchIndex } from "../../features/search/reference.js"
+import { resolveSearchOptions } from "./internal/options.js"
+export { defaultOptions } from "./internal/options.js"
+import { getServeBase } from "../../shared/url.js"
 import {
   mergeSsrNoExternal,
   filterOutputAssets,
   filterOutputChunks,
 } from "../../shared/vite.js"
-import { createAssetEntryId } from "../../shared/asset.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-/** @type {PluginOptions} */
-export const defaultOptions = {
-  outName: "search",
-  src: ["**/*.html"],
-  ignore: ["404.html"],
-  trimTitle: "",
-  targetSelector: "[data-search]",
-  ignoreSelectors: [],
-  relativeAttr: "data-search-relative",
-  inputAttr: "data-search-input",
-  hit: {
-    minLength: 3,
-    number: false,
-    english: true,
-    hiragana: false,
-    katakana: true,
-    kanji: true,
-  },
+const analyzer = new NodeSearchDocumentAnalyzer()
+const devEndpoint = "/@__minista_search_json"
+
+/** @param {string | undefined} name */
+function getSearchEndpoint(name) {
+  return name === undefined ? devEndpoint : `${devEndpoint}?index=${encodeURIComponent(name)}`
 }
 
 /**
@@ -50,191 +51,227 @@ export const defaultOptions = {
  * @returns {Plugin}
  */
 export function pluginSearch(uOpts = {}) {
-  /** @type {PluginOptions} */
-  const opts = mergeObj(defaultOptions, uOpts)
-  const cwd = process.cwd()
+  const opts = resolveSearchOptions(uOpts)
+  const indexes = getSearchIndexes(opts)
+  const multiIndex = "indexes" in opts
   const cpSearchPath = normalizePath(
     path.resolve(__dirname, "components/search.js"),
   )
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
 
-  let base = "/"
-  let rootDir = ""
-  let tempDir = ""
-  let ssgDir = ""
-  /** @type {SsgPage[]} */
-  let ssgPages = []
-  let searchDir = ""
-  let searchFile = ""
-  let before = ""
-  let after = ""
+  /** @param {import("vite").Environment | undefined} environment */
+  function getOutputClaims(environment) {
+    return claimStates.get(environment).claims
+  }
 
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-search",
+    api: { minista: { outputClaims: getOutputClaims, feature: createSearchFeatureDescriptor(opts) } },
     enforce: "pre",
-    apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isBuild
-    },
-    config: async (config) => {
-      rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
-
-      if (isDev) {
-        base = getServeBase(config.base || base)
+    config: async (config, { command, isSsrBuild }) => {
+      if (command === "serve") {
         return {
           ssr: {
             noExternal: mergeSsrNoExternal(config, ["minista"]),
           },
         }
       }
-      if (isSsr) {
+      if (
+        command === "build" &&
+        !getViteAppEnvironmentNames(config) &&
+        isSsrBuild
+      ) {
         return {
           ssr: {
             noExternal: mergeSsrNoExternal(config, ["minista"]),
-          },
-        }
-      }
-      if (isBuild) {
-        base = getBuildBase(config.base || base)
-        ssgDir = path.resolve(tempDir, "ssg")
-        searchDir = path.resolve(tempDir, "search")
-        searchFile = path.resolve(searchDir, `${opts.outName}.txt`)
-
-        const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-        if (!ssgFiles.length) return
-
-        ssgPages = (
-          await Promise.all(
-            ssgFiles.map(async (file) => {
-              const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-              const { ssgPages } = await import(ssgFileUrl)
-              return ssgPages
-            }),
-          )
-        ).flat()
-
-        if (!ssgPages.length) return
-
-        const fullPath = path.resolve(searchDir, searchFile)
-        const pathId = normalizePath(path.relative(rootDir, fullPath))
-        const searchData = getSearchData(ssgPages, opts)
-        await fs.promises.mkdir(searchDir, { recursive: true })
-        await fs.promises.writeFile(
-          fullPath,
-          JSON.stringify(searchData),
-          "utf8",
-        )
-
-        return {
-          build: {
-            rolldownOptions: {
-              input: {
-                [createAssetEntryId(pathId)]: searchFile,
-              },
-            },
           },
         }
       }
     },
     configureServer(server) {
+      const basePath = new URL(getServeBase(server.config.base), "http://minista.local").pathname.replace(/\/$/, "")
+      /** @type {ViteDevModuleEvaluator | undefined} */
+      let evaluator
+      /** @type {{pages: import("../../adapters/vite/compatibility-lifecycle.js").ViteCompatibilityDocumentInput[], result: import("../../adapters/vite/compatibility-lifecycle.js").ViteCompatibilityDocumentResult} | undefined} */
+      let snapshot
       server.middlewares.use(async (req, res, next) => {
-        if (req.url === "/@__minista_search_json") {
-          const mod = await server.ssrLoadModule("virtual:ssg-pages")
-          /** @type {SsgPage[]} */
-          const ssgPages = mod.default ?? mod
-          const searchData = getSearchData(ssgPages, opts)
+        const request = new URL(req.url ?? "/", "http://minista.local")
+        if (request.pathname !== devEndpoint && request.pathname !== `${basePath}${devEndpoint}`) {
+          next()
+          return
+        }
+        try {
+          const index = resolveSearchIndex(indexes, request.searchParams.get("index") ?? undefined, multiIndex)
+          evaluator ??= new ViteDevModuleEvaluator(server)
+          /** @type {{default?: RenderedPage[]}} */
+          const mod = await evaluator.importModule("virtual:ssg-pages")
+          const ssgPages = mod.default ?? []
+          const result = await runViteDevLifecycle(server, async () => {
+            const pages = []
+            for (const { url, html } of ssgPages) {
+              pages.push({
+                // Dev document identity is its URL, shared with asset features.
+                fileName: url,
+                url,
+                html: await transformViteDocumentContent(html, {
+                  path: url, filename: path.resolve(server.config.root, url.replace(/^\//, "")), server,
+                }),
+              })
+            }
+            // All indexes belong to one transformed page snapshot. Consecutive
+            // requests reuse its artifacts; edits/deletions change the inputs.
+            if (snapshot && pages.length === snapshot.pages.length && pages.every((page, i) => {
+              const previous = snapshot?.pages[i]
+              return previous?.url === page.url && previous.html === page.html
+            })) return snapshot.result
+            const result = await processViteDocuments(
+              pages,
+              [createSearchFeature(opts, analyzer)],
+              ["analyze", "generate"],
+              createViteCompatibilityTraceHooks(
+                getViteBuildSession(server.config),
+                "search:dev",
+              ),
+            )
+            snapshot = { pages, result }
+            return result
+          })
+          const searchArtifact = result.artifacts.find(
+            ({ id }) => id === createSearchDataArtifactId(index.outName),
+          )
+          if (!searchArtifact) {
+            throw new Error("Search lifecycle did not generate search data.")
+          }
+          /** @type {import("../../features/search/index.js").SearchData} */
+          const searchData = JSON.parse(String(searchArtifact.content))
 
           res.setHeader("Content-Type", "application/json")
           res.end(JSON.stringify(searchData))
           return
+        } catch (error) {
+          next(error)
         }
-        next()
       })
     },
     transform(code, id) {
       if (![cpSearchPath].includes(id)) return
+      const environment = this.environment
+      const appEnvironmentNames = getViteAppEnvironmentNames(
+        environment.getTopLevelConfig(),
+      )
+      const isDev = environment.config.command === "serve"
+      const isAppClient = Boolean(appEnvironmentNames) &&
+        environment.name === appEnvironmentNames?.clientName
+      const isLegacyClient = !appEnvironmentNames &&
+        environment.config.command === "build" &&
+        !environment.config.build.ssr
 
       let newCode = code
 
       const regBase = /(const base = )"\/"/
       const regApply = /(const apply = )"serve"/
-      const regRelativeAttr = /(const relativeAttr = )"data-search-relative"/
-      const regInputAttr = /(const inputAttr = )"data-search-input"/
 
       if (isDev) {
-        newCode = newCode.replace(regBase, `$1"${base}"`)
+        const base = getServeBase(environment.config.base || "/")
+        newCode = newCode.replace(regBase, (_, prefix) => prefix + JSON.stringify(base))
       }
-      if (isBuild) {
+      if (isLegacyClient || isAppClient) {
         newCode = newCode.replace(regApply, `$1"build"`)
-        newCode = newCode.replace(regRelativeAttr, `$1"${opts.relativeAttr}"`)
       }
-      newCode = newCode.replace(regInputAttr, `$1"${opts.inputAttr}"`)
+      // The same reference table validates SSR and browser renders, including
+      // the legacy render build. Final asset names are resolved in generateBundle.
+      const searchConfig = {
+        multiIndex,
+        indexes: indexes.map((index) => ({
+          name: index.name ?? null,
+          filePath: getSearchEndpoint(index.name),
+          relativeAttr: index.relativeAttr,
+          inputAttr: index.inputAttr,
+        })),
+      }
+      newCode = newCode.replace(/^const searchConfig = .*$/m, () => `const searchConfig = ${JSON.stringify(searchConfig)}`)
       return newCode
     },
-    generateBundle(options, bundle) {
-      before = normalizePath(path.relative(rootDir, searchFile))
-
+    async generateBundle(options, bundle) {
+      const appEnvironmentNames = getViteAppEnvironmentNames(
+        this.environment.getTopLevelConfig(),
+      )
+      if (
+        this.environment.config.build.ssr ||
+        (appEnvironmentNames &&
+          this.environment.name !== appEnvironmentNames.clientName)
+      ) return
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
       const outputAssets = filterOutputAssets(bundle)
       const outputChunks = filterOutputChunks(bundle)
 
-      const entryId = createAssetEntryId(before)
-      const afterItem = Object.values(outputAssets).find((item) => {
-        return item.originalFileNames.some((name) =>
-          [before, entryId, searchFile].includes(name),
-        )
+      const htmlItems = Object.values(outputAssets).filter((item) =>
+        item.fileName.endsWith(".html"),
+      )
+      const renderedPages = htmlItems.map((item) => {
+        const url = getSearchPageUrl(item.fileName)
+        return {
+          url,
+          fileName: item.fileName,
+          item,
+          html: String(item.source),
+        }
       })
-      if (afterItem) {
-        afterItem.fileName = afterItem.fileName.replace(/\.txt$/, ".json")
-        after = afterItem.fileName
-      }
-
-      const fetchItems = Object.values(outputChunks).filter((item) => {
-        return item.moduleIds.includes(cpSearchPath)
-      })
-      for (const item of fetchItems) {
-        const beforeFetch = "/@__minista_search_json"
-        item.code = item.code.replace(beforeFetch, after)
-      }
-
-      const htmlItems = Object.values(outputAssets).filter((item) => {
-        return item.fileName.endsWith(".html")
-      })
-      for (const item of htmlItems) {
-        const htmlName = item.fileName
-        const html = String(item.source)
-
-        let parsedHtml = parseHtml(html)
-        const inputEl = parsedHtml.querySelector(`[${opts.inputAttr}]`)
-        if (!inputEl) continue
-
-        const isIndex = htmlName.split("/").pop() === "index.html"
-        const level = (htmlName.match(/\//g) || []).length + (isIndex ? 0 : 1)
-        const bodyEl = parsedHtml.querySelector("body")
-        bodyEl?.setAttribute(opts.relativeAttr, String(level))
-
-        item.source = parsedHtml.toString()
-      }
-    },
-    async writeBundle(options, bundle) {
-      const outputAssets = filterOutputAssets(bundle)
-
-      const entryId = createAssetEntryId(before)
-      const afterItem = Object.values(outputAssets).find((item) =>
-        item.originalFileNames.some((name) =>
-          [before, entryId, searchFile].includes(name),
+      const result = await processViteDocuments(
+        renderedPages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+        [createSearchFeature(opts, analyzer)],
+        undefined,
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(this.environment.getTopLevelConfig()),
+          "search:build",
         ),
       )
-      if (afterItem) {
-        const oldPath = path.resolve(options.dir || "", afterItem.fileName)
-        const newPath = oldPath.replace(/\.txt$/, ".json")
-        await fs.promises.rename(oldPath, newPath)
+      for (const index of indexes) {
+        const searchArtifact = result.artifacts.find(
+          ({ id }) => id === createSearchDataArtifactId(index.outName),
+        )
+        if (!searchArtifact) {
+          throw new Error("Search lifecycle did not generate search data.")
+        }
+        /** @type {import("../../features/search/index.js").SearchData} */
+        const searchData = JSON.parse(String(searchArtifact.content))
+        const outputPageUrls = searchData.pages.map(({ url }) => url)
+        const referenceId = this.emitFile({
+          type: "asset",
+          name: `${index.outName}.json`,
+          source: JSON.stringify(searchData),
+        })
+        const after = this.getFileName(referenceId)
+        outputClaims.push(Object.freeze({
+          id: createSearchDataArtifactId(index.outName),
+          kind: /** @type {const} */ ("data"),
+          owner: createNodeId("feature", "search"),
+          source: index.name === undefined ? "search-data" : `search:${index.name}`,
+          fileName: after,
+          pageUrls: Object.freeze(outputPageUrls),
+          dependencies: Object.freeze([]),
+        }))
+
+        // Match complete literals, including quotes/templates chosen by a minifier.
+        // Search may be moved into a shared chunk by the client bundler.
+        const beforeFetch = getSearchEndpoint(index.name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        const reference = new RegExp("([\"'`])" + beforeFetch + "\\1", "g")
+        for (const item of Object.values(outputChunks)) {
+          item.code = item.code.replace(reference, () => JSON.stringify(after))
+        }
+      }
+
+      const outputDocuments = new Map(
+        result.documents.map((document) => [document.fileName, document]),
+      )
+      for (const page of renderedPages) {
+        const output = outputDocuments.get(page.fileName)
+        if (output && output.html !== page.html) page.item.source = output.html
       }
     },
-  }
+  })
 }

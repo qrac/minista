@@ -1,0 +1,78 @@
+# ADR-0015: application lifecycle集約と出力transaction
+
+- Status: Accepted with scoped compatibility pipelines
+- Date: 2026-09-05
+- Amends: ADR-0002、0003、0004、0008、0009
+
+- Amended: 2026-09-08 by [ADR-0016](0016-workspace-and-agent-guide.md)
+
+保存先の`.minista`表記は解決済みworkspace directoryを指します。rootにpackage.jsonがある場合は`node_modules/.minista`、ない場合はroot直下の`.minista`です。
+
+## Context
+
+v5レビューで、plugin配列順によるSearch結果の差、同名pluginのSSR設定の取り違え、`buildApp` hookの未実行、emptyOutDir:falseでの既存file消失、metadata失敗時のdistとの不整合を再現しました。公開plugin APIを維持しながらapplication境界を明確にします。
+
+## Decision
+
+### Lifecycle
+
+Vite adapterのcoordinatorへ各公開pluginのdomain operationを登録します。対象environmentの全feature descriptorをCore schedulerで検証し、generateBundleとwriteBundleの各境界で一度だけ依存順にdispatchします。source transformとSSGのpre HTML hookは通常のVite semanticsを維持します。Comment、Svg、asset feature、Search、Beautifyの順序はdescriptorのoptionalAfterで宣言します。
+
+これはfeature単位のpipeline集約です。既存のscope付きCore runnerがanalyze／generate／compose等を実行する構造を維持し、全featureを一つのglobal phase loopへ移したとは扱いません。HTML markerを新しいfeature間protocolとして追加しません。Core runnerはerror diagnosticのあるphaseから次のphaseへ進みません。
+
+devではdomain mutationをserver単位のqueueへ直列化し、失敗したrequestが後続requestを止めないようにします。Searchは全RenderedPageへComment／Svgの内容変換を適用してから解析し、devのGraph identityをURLに統一します。この派生data処理にはdev script注入やclient asset生成を含めません。third-party HTML transform全体を再実行する契約ではありません。
+
+### Searchの解析・query契約（2026-09-08追記）
+
+devとbuildは同じanalyzerで、除外selectorに一致した全要素と子孫を読み飛ばします。共有Documentは変更せず、除外後の本文tokenと独立して取得したtitle tokenから語彙を作り、tocも同じ本文tokenの位置を使います。React UIの入力とhighlightはliteral検索とし、正規表現検索の公開optionは追加しません。index取得後は現在の入力から結果を再計算します。JSON schemaと公開optionは維持します。P06で実施した内部境界は末尾に記録します。
+
+### Vite app buildとconfig互換性
+
+Ministaがconfig.builder.buildAppを所有し、Viteのbuilder.buildApp()を呼びます。pluginのpre／post buildApp hookを含めて実行し、その内側でrender → prepareClient → clientを順にbuildします。user configやconfig pluginによるcallback置換と、application hookからの直接buildはMINISTA_VITE_APP_BUILD_RESERVEDで拒否します。追加environmentはtransactionの出力対象として扱わず、Viteの既定ssr以外を拒否します。
+
+config関数のisSsrBuild参照をgetterで検出し、MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT warningで既存のprogrammatic Legacy経路へ送ります。分割代入による参照も含みます。plugin名／順序が異なる場合は既存のMINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCHを優先します。同名pluginのclosureやaliasの同値性を推測しません。config評価回数を一回と保証せず、既存の二つのfallback以外を追加しません。
+
+同一processの再buildではrender entryのnative importにbuild IDを付け、split chunk名にはcontent hashを含めます。前回の評価済みmoduleを次buildのsourceとして再利用しません。
+
+### Output transaction
+
+Vite app buildとprogrammatic Legacyは共通のclient確定処理を使います。Vite app buildではpre buildApp hookの前、Legacyではclient build前にbackupを作り、build、output reconciliation、claim検証、manifest／diagnosticsのatomic writeまで完了してからcommitします。error diagnosticが残るbuildは成功にしません。
+
+emptyOutDir:falseとproject外outDirの既定動作ではbackupを作ったうえで出力をcopy backし、既存fileを保持します。root・祖先・それらを指すsymlink経路と直接のoutDir symlinkを拒否します。別のrolldown output.dir／output.fileも拒否し、transactionの対象をbuild.outDirへ限定します。
+
+捕捉可能な失敗時は旧outDirと旧manifest／diagnosticsを復元します。CLIはその後、直近実行結果として失敗diagnosticsを保存します。metadata復元の再試行では復元済みoutDirを削除しません。commit後のbackup削除失敗はMINISTA_OUTPUT_TRANSACTION_CLEANUP_FAILED warningとして返し、部分削除済みbackupからrollbackしません。この遅いcleanup warningはcommit前の成功diagnostics snapshotには含まれません。
+
+## Guarantees and limits
+
+- 公開plugin API、既存の成功出力、emptyOutDirの保持指定を維持する
+- 捕捉したbuild／post hook／metadata失敗から以前の出力へ復元する。復元自体が失敗した場合は元のerrorを保持し、rollback errorも添える
+- distとmetadataの同時可視化、process強制終了時の復旧、同じoutDirへの同時buildは保証しない
+- render cache、任意のuser hookの外部side effect、外部Vite CLI fallbackはtransaction対象外
+- 各feature内のphase bridgeは残る。単一global phase loopへの移行とgeneration単位の公開はroadmapで別途扱う
+
+## Validation
+
+実Vite fixtureでplugin順序交換、dev SearchのSVG文字列、同名SSR plugin、Preact fallback、連続再build、emptyOutDir:false、metadataとpost hookの失敗復元を検証します。unitでは全descriptorの依存検証、operationの一度だけの実行、dev queue、phase停止、危険なoutDir、commit後cleanup失敗を検証します。
+
+PR gateはVitest 5の対応範囲内であるNode.js 22.12上の全testとtypecheckに加え、Vite 8.1.0、repository lockfile版、対応minor最新でapplication contractを実行します。React 19を基準とし、Preactのcompatibility経路も別に検証します。公開engine最低版のNode.js 20.19はVitestを介さないCLI check／inspect／buildで検証します。実測でVite 8.0.0はrender後のlate client inputを反映せずEntry／Island出力が欠落したため、peer rangeの最低versionは8.1.0とします。
+
+feature descriptorはdomain feature factory側を正本とし、Vite compatibility facadeはCoreのbranded FeatureIdを従来の公開名へ変換するだけにします。coordinatorと各feature内のscope付きphase構造は維持します。
+
+## Rejected alternatives
+
+plugin名や関数の文字列表現だけでconfigの同値性を判定する方法はclosureを識別できません。配列順へ依存したHTML変換やmetadata保存前のcommitも、今回再現した不整合を残すため採用しません。
+
+### Searchの内部責務分離（2026-09-08、P06）
+
+P06時点ではDOM解析とmojigiriによる文字種分割をNodeSearchDocumentAnalyzerに維持しました。文字種分割の現在の境界は以下の2026-09-09追記で更新します。`features/search/create-search-data.js`は解析recordからJSON用の辞書・hit・pageを生成する純粋関数とし、featureはArtifactとphaseの管理を担当します。整列済み語彙からword→indexのMapを一度生成し、hit／title／contentで共有します。語彙・URLの整列、重複token、toc位置、hit選別は変更しません。
+
+`plugins/search/internal/query.js`はReact／DOM／Vite非依存の内部query engineです。index取得時に辞書Mapとpageごとの重複を除いた検索用配列を準備し、入力変更では再利用します。UIは取得・入力・highlightの描画・URL解決を担当します。検索順位、同点時の順序、辞書順で選ばれる本文抜粋の起点、tocリンク、literal検索を維持します。package exportや公開optionは追加しません。検索品質の変更や新規検索libraryは今回の性能改善と分離します。
+
+
+### Search tokenizerの内製化（2026-09-09）
+
+利用者の内製化要求を受け、P06のmojigiri依存維持を変更します。文字種分割をSearch専用の`features/search/tokenize.js`へ移し、analyzerはHTML走査とtokenizer呼出しを担当します。Core、共通utils、公開APIへは追加しません。mojigiri 0.3.0由来の範囲・順序・`i`フラグ・splitと空token除去を維持し、パターン配列とRegExpの生成をmodule初期化へ移します。splitは共有RegExpのlastIndexを変更しないため、呼出し間で走査位置を共有しません。target不在時のwordsは既に分割したtitleのcopyとし、再分割しません。
+
+npm依存とlockfile entryを削除し、由来のMIT noticeをruntime内に保持します。旧実装はtest helperへ固定し、既存例と文字範囲の境界・混在文字列を差分検証します。benchmarkもこのhelperを使い、依存削除後のfresh installで実行できます。Map化したindex生成・query・公開schema・hit選別には変更を加えません。
+
+Unicode property escapesへの置換は今回は採用しません。漢数字の優先順位、長音符、空白、未一致のemoji等を含むtoken境界が変わり、toc位置と検索結果へ波及するためです。全角小文字は既存の全角大文字範囲と`i`フラグで既に扱われます。効率改善とUnicode対応範囲の変更を分離します。

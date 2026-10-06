@@ -1,5 +1,6 @@
 import type { Props } from "./props"
 import { initialProps } from "./props"
+import "./style.css"
 
 export default function ElementSpacer(props: Partial<Props>) {
   const { width, height } = { ...initialProps, ...props }

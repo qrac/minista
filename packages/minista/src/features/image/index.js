@@ -1,0 +1,13 @@
+// @ts-check
+
+export {
+  IMAGE_FEATURE_ID,
+  applyImageComposition,
+  collectImageReferences,
+  composeImageDocument,
+  createImageFeature,
+  createImageFeatureDescriptor,
+  createImageOutputsArtifactId,
+  createImagePlansArtifactId,
+} from "./image.js"
+export { DevImagePageIndex } from "./dev-page-index.js"

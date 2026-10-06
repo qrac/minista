@@ -1,20 +1,28 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
-import fs from "node:fs"
 import path from "node:path"
-import { ZipArchive, TarArchive } from "archiver"
 import pc from "picocolors"
-import { normalizePath } from "vite"
 
-import { getRootDir, getTempDir } from "../../shared/path.js"
+import { NodeArchivePublisher } from "../../adapters/archive/node.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteOutputs,
+} from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
+import { createNodeId } from "../../core/graph/index.js"
+import { createArchiveFeature, createArchiveFeatureDescriptor } from "../../features/archive/index.js"
+import { getRootDir } from "../../shared/path.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
   archives: [
     {
-      srcDir: "dist",
       outName: "dist",
     },
   ],
@@ -28,91 +36,67 @@ export function pluginArchive(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = { ...defaultOptions, ...uOpts }
   const cwd = process.cwd()
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-
-  let rootDir = ""
-  let tempDir = ""
-  let archiveDir = ""
-
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-archive",
+    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: createArchiveFeatureDescriptor(opts) } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isBuild
+      return command === "build" && !isSsrBuild
     },
-    config: (config) => {
-      rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
-      archiveDir = path.resolve(tempDir, "archive")
-    },
+    applyToEnvironment: isViteAppClientEnvironment,
     async writeBundle(options) {
       const dist = options.dir
       if (!dist) return
-
-      await fs.promises.mkdir(archiveDir, { recursive: true })
-      await Promise.all(
-        opts.archives.map(async (archive) => {
-          const { srcDir, outName } = archive
-          const ignore = archive.ignore || []
-          const format = archive.format || "zip"
-          const archOpts = archive.options || { zlib: { level: 9 } }
-          const outFile = `${outName}.${format}`
-          const archiveFile = path.resolve(archiveDir, outFile)
-
-          try {
-            await new Promise((resolve, reject) => {
-              const archive =
-                format === "zip"
-                  ? new ZipArchive(archOpts)
-                  : new TarArchive(archOpts)
-              const output = fs.createWriteStream(archiveFile)
-
-              output.on("error", reject)
-              archive.on("error", reject)
-              archive.on("warning", (err) => {
-                if (err.code === "ENOENT") {
-                  console.warn(pc.yellow(`Archive warning: ${err.message}`))
-                } else {
-                  reject(err)
-                }
-              })
-              output.on("close", () => resolve(undefined))
-
-              archive.pipe(output)
-              archive.glob(`${normalizePath(srcDir)}/**/*`, {
-                cwd: rootDir,
-                ignore,
-              })
-              archive.finalize()
-            })
-
-            const finalPath = path.resolve(dist, outFile)
-            await fs.promises.copyFile(archiveFile, finalPath)
-
-            const rel = path.relative(rootDir, path.dirname(finalPath))
-            console.log(
-              pc.gray(
-                normalizePath(rel + path.sep) +
-                  pc.green(path.basename(finalPath)),
-              ),
-            )
-          } catch (err) {
-            if (err instanceof Error) {
-              console.error(
-                pc.red(`Error creating archive ${outName}: ${err.message}`),
-              )
-            } else {
-              console.error(pc.red(`An unknown error occurred: ${err}`))
-            }
-          }
-        }),
-      )
+      const rootDir = getRootDir(cwd, this.environment.config.root || "")
+      /** @type {import("../../features/archive/index.js").ArchiveFeatureOptions} */
+      const resolvedOptions = {
+        archives: opts.archives.map((archive) => ({
+          ...archive,
+          srcDir: archive.srcDir ?? (path.relative(rootDir,
+            path.resolve(rootDir, this.environment.config.build.outDir)) || "."),
+        })),
+      }
+      const builder = new NodeArchivePublisher(rootDir, dist, resolvedOptions.archives.map(
+        (archive) => path.resolve(dist, `${archive.outName}.${archive.format ?? "zip"}`),
+      ))
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
+      await processViteOutputs([], [
+        createArchiveFeature(resolvedOptions, builder),
+      ], createViteCompatibilityTraceHooks(
+        getViteBuildSession(this.environment.getTopLevelConfig()),
+        "archive:build",
+      ))
+      const outputs = resolvedOptions.archives.map((archive) => ({
+        fileName: `${archive.outName}.${archive.format ?? "zip"}`,
+      }))
+      const archiveByFileName = new Map(resolvedOptions.archives.map((archive) => [
+        `${archive.outName}.${archive.format ?? "zip"}`,
+        archive,
+      ]))
+      for (const output of outputs) {
+        const archive = archiveByFileName.get(output.fileName)
+        if (!archive) continue
+        outputClaims.push(Object.freeze({
+          id: createNodeId("artifact", "archive-output", output.fileName),
+          kind: "archive",
+          owner: createNodeId("feature", "archive"),
+          source: path.relative(rootDir, path.resolve(rootDir, archive.srcDir)).replaceAll("\\", "/") || ".",
+          fileName: output.fileName,
+          pageUrls: Object.freeze([]),
+          dependencies: Object.freeze([]),
+        }))
+        const finalPath = path.resolve(dist, output.fileName)
+        const rel = path.relative(rootDir, path.dirname(finalPath))
+        console.log(pc.gray(
+          (rel + path.sep).replaceAll("\\", "/") +
+            pc.green(path.basename(finalPath)),
+        ))
+      }
     },
-  }
+  })
 }

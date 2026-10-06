@@ -1,0 +1,115 @@
+---
+layout: docs
+locale: ja
+title: ファイルベースルーティング
+---
+
+# ファイルベースルーティング
+
+[はじめる](/ja/docs/guide/)で作ったトップページに、会社情報とお知らせのページを追加します。ministaでは`src/pages/`のファイル名とディレクトリ構造からURLが決まります。
+
+このガイドは、静的HTMLの出力に必須の`pluginSsg()`を設定した構成を前提にしています。
+
+## Table of Contents
+
+contents list
+
+## ページを追加する ||add-a-page||
+
+`src/pages/about.tsx`を作り、Reactコンポーネントをdefault exportします。開発サーバーを起動して、`/about`を開いてください。
+
+```tsx title="src/pages/about.tsx"
+import type { Metadata, PageProps } from "minista/types"
+
+export const metadata: Metadata = { title: "私たちについて" }
+
+export default function About({ title }: PageProps) {
+  return <h1>{title}</h1>
+}
+```
+
+`metadata`はページやレイアウトへ渡すデータです。`Metadata`でその項目を、`PageProps`でページが受け取るpropsを型チェックできます。この例では、`metadata`の`title`をpropsから受け取り、見出しに表示しています。`title`をHTMLのheadに反映する方法は[レイアウト](/ja/docs/guide/layouts)で扱います。
+
+## ディレクトリで階層を作る ||nested-pages||
+
+`news/`を作り、その中へ`index.tsx`と`hello.tsx`を追加します。どちらもトップページと同じようにコンポーネントを書けばページになります。
+
+```text title="プロジェクト構成"
+src/pages/
+├── index.tsx
+├── about.tsx
+└── news/
+    ├── index.tsx
+    └── hello.tsx
+```
+
+`npm run build`を実行すると、次の構成で出力されます。
+
+```text title="ビルド結果"
+dist/
+├── index.html
+├── about.html
+└── news/
+    ├── index.html
+    └── hello.html
+```
+
+| ページファイル             | 開発時のURL   | ビルド結果             |
+| -------------------------- | ------------- | ---------------------- |
+| `src/pages/index.tsx`      | `/`           | `dist/index.html`      |
+| `src/pages/about.tsx`      | `/about`      | `dist/about.html`      |
+| `src/pages/news/index.tsx` | `/news/`      | `dist/news/index.html` |
+| `src/pages/news/hello.tsx` | `/news/hello` | `dist/news/hello.html` |
+
+公開後に拡張子を省略したURLを使えるかは、ホスティング側の設定によります。ディレクトリのインデックスを配信する構成なら、`about/index.tsx`のように配置します。
+
+## ページ間をリンクする ||link-between-pages||
+
+ページ間の移動には通常の`a`要素を使います。専用のルーターやリンクコンポーネントは不要です。
+
+```tsx title="src/pages/index.tsx"
+import type { Metadata, PageProps } from "minista/types"
+
+export const metadata: Metadata = { title: "My Site" }
+
+export default function Page({ title }: PageProps) {
+  return (
+    <>
+      <h1>{title}</h1>
+      <nav>
+        <a href="/about">私たちについて</a>
+        <a href="/news/">お知らせ</a>
+      </nav>
+    </>
+  )
+}
+```
+
+`base`を指定してサブディレクトリへ公開する場合は、ページリンクにも公開パスを付けます。詳しくは[ビルドとデプロイ](/ja/docs/guide/build-deploy#public-base-path)を参照してください。
+
+## 下書きを除外する ||draft-pages||
+
+制作中のページには`draft: true`を指定できます。開発中は表示され、本番ビルドからは除外されます。
+
+```tsx title="src/pages/news/hello.tsx"
+import type { Metadata, PageProps } from "minista/types"
+
+export const metadata: Metadata = {
+  title: "制作中のお知らせ",
+  draft: true,
+}
+
+export default function Article({ title }: PageProps) {
+  return <h1>{title}</h1>
+}
+```
+
+## 配置のルール ||page-file-rules||
+
+`.jsx` `.tsx` `.md` `.mdx`がページの対象です。共通パーツやデータファイルは`src/components/`や`src/data/`など、ページの探索範囲外へ置きます。
+
+同じURLになるファイルは作らないでください。例えば`about.tsx`と`about.mdx`は競合します。`npx minista check`でページ構成を検査できます。
+
+APIから取得したデータで複数ページを作る方法は[APIによるページ生成](/ja/docs/guide/fetch)で紹介します。
+
+次は[Markdown・MDX](/ja/docs/guide/mdx)で、本文を記述する方法を追加します。

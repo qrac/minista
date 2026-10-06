@@ -108,7 +108,7 @@ export function getPatternMap(optimize, recipe, view, resizeOnly) {
       formatOptions,
       resizeOptions,
     }
-    const patternHash = generateHash(`strip-metadata-v1:${JSON.stringify(pattern)}`)
+    const patternHash = generateHash(JSON.stringify(pattern))
     result[patternHash] = pattern
   }
   return result

@@ -1,0 +1,190 @@
+---
+layout: docs
+locale: en
+title: TypeScript
+---
+
+# TypeScript
+
+minista supports TSX pages and components and TypeScript configuration files. Use `minista/client` for client declarations and `minista/types` for public types such as page data.
+
+## Table of Contents
+
+contents list
+
+## Installation
+
+TypeScript templates are already configured. For manual setup, install the following.
+
+```sh
+npm install --save-dev typescript @types/react@^19 @types/react-dom@^19
+```
+
+Match React and React DOM types to your React version. Add `@types/node` if you need types for Node.js APIs in configuration or data fetching.
+
+## tsconfig.json
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "noErrorTruncation": true,
+    "jsx": "react-jsx",
+    "types": ["minista/client"]
+  },
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+This is the basic configuration used by templates. Add `strict: true` for stricter type checking. Set `skipLibCheck: false` to also check dependency declarations.
+
+If `types` is already configured, keep required existing entries and add `minista/client`. Include `"node"` to explicitly load Node.js global types as well.
+
+## minista/client ||minista-client||
+
+This loads the following declarations together.
+
+- Vite client types for asset imports, `import.meta.env`, and more
+- Types treating `.md` and `.mdx` default exports as React components
+- `client:*` Island directives
+
+Concrete types for arbitrary named exports or frontmatter fields in `.md` and `.mdx` are not automatically generated.
+
+## minista/types ||minista-types||
+
+```ts
+import type {
+  Metadata,
+  PageProps,
+  LayoutProps,
+  StaticData,
+  GetStaticData,
+} from "minista/types"
+```
+
+| Type | Main fields |
+| --------------- | ---------------------------------------------------------- |
+| `Metadata` | Optional `title: string` and `draft: boolean` |
+| `PageProps`     | `url: string`、`title: string`、`draft: boolean`           |
+| `LayoutProps` | The same basic fields as PageProps, plus `children: React.ReactNode` |
+| `StaticData` | `props` and optional `paths` |
+| `GetStaticData` | A function returning `Promise<StaticData \| StaticData[]>` |
+
+`StaticData.paths` has string keys and string values. Convert numeric IDs with `String(id)` when using them in dynamic routes.
+
+## Page props
+
+Define data needed only by a page as an intersection with `PageProps`.
+
+```tsx title="src/pages/news/[slug].tsx"
+import type { GetStaticData, PageProps } from "minista/types"
+
+type Article = { slug: string; title: string; body: string }
+type Props = PageProps & { article: Article }
+
+export const getStaticData: GetStaticData = async () => {
+  const article: Article = {
+    slug: "hello",
+    title: "Our site is live",
+    body: "This is our first announcement.",
+  }
+  return [
+    {
+      paths: { slug: article.slug },
+      props: { title: article.title, article },
+    },
+  ]
+}
+
+export default function ArticlePage({ article }: Props) {
+  return (
+    <article>
+      <h1>{article.title}</h1>
+      <p>{article.body}</p>
+    </article>
+  )
+}
+```
+
+`StaticData.props` permits arbitrary values. Annotating with `GetStaticData` alone does not check correspondence between returned props and page arguments. Define types or runtime validation for API data yourself.
+
+## Metadata augmentation
+
+Use module augmentation to add fields used across all pages and layouts.
+
+```ts title="types.d.ts"
+import "minista/types"
+
+declare module "minista/types" {
+  interface Metadata {
+    description?: string
+  }
+  interface PageProps {
+    description?: string
+  }
+  interface LayoutProps {
+    description?: string
+  }
+}
+```
+
+Include this file in TypeScript's scope. For example, add `"./types.d.ts"` to `compilerOptions.types`.
+
+```tsx title="src/pages/about.tsx"
+import type { Metadata } from "minista/types"
+
+export const metadata: Metadata = {
+  title: "About us",
+  description: "An introduction to our business.",
+}
+
+export default function About() {
+  return <h1>About us</h1>
+}
+```
+
+Adding types alone does not generate HTML meta elements. Output `description` through a layout or `Head`.
+
+## Plugin option types
+
+`defineConfig()` and plugin arguments provide completion and type checking for settings. When extracting options into a separate variable, derive the argument type from the public function.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+type SsgOptions = NonNullable<Parameters<typeof pluginSsg>[0]>
+
+const ssgOptions = {
+  src: ["src/pages/**/*.{tsx,jsx,mdx,md}"],
+} satisfies SsgOptions
+
+export default defineConfig({
+  plugins: [pluginSsg(ssgOptions)],
+})
+```
+
+Import types from public entry points instead of internal package file paths.
+
+## Typecheck
+
+```sh
+npx tsc --noEmit
+```
+
+TSX conversion in `minista build` does not replace TypeScript type checking. To add type checking to CI, run it as a separate npm script.
+
+```json title="package.json（scripts）"
+{
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "minista build"
+  }
+}
+```
+
+`minista check` checks routes and page structure. Use `tsc` for type checking.

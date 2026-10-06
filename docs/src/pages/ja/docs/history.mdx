@@ -1,0 +1,137 @@
+---
+layout: docs
+locale: ja
+title: 歴史
+---
+
+import ElementRecord from "../../../components/element/record"
+import ElementStageLogo from "../../../components/element/stage-logo"
+import ElementStageSpeed from "../../../components/element/stage-speed"
+
+# 歴史
+
+ministaは、ReactのJSXでページを作り、綺麗なHTMLを納品するためのツールとして2021年に開発が始まりました。
+
+Next.jsで使い慣れたJSXやエディターの補完を、静的HTMLの制作でも使いたい。一方で、納品するファイルの名前や構成、読みやすさは調整したい。この両立を目指しています。
+
+## Table of Contents
+
+contents list
+
+## v0：JSXでHTMLを作る試作版 ||v0-writing-html-with-jsx||
+
+<ElementRecord text="First Commit: 2021/03/21" />
+
+<ElementStageLogo version={1} />
+
+Reactの`renderToStaticMarkup()`とwebpackを組み合わせ、JSXから静的HTMLを書き出す仕組みをパッケージ化しました。これが初期のministaです。
+
+ページや共通パーツをReactコンポーネントで管理し、成果物は通常のHTMLとして出力する処理を実現しています。
+
+- [React(JSX)で書けるコーディング用SSG - minista v0](https://zenn.dev/qrac/articles/7537521afcd1bf)
+
+## v1：実務での利用と課題 ||v1-practical-use-and-challenges||
+
+<ElementRecord text="Release: 2022/01/15" />
+
+単純で拡張しやすい構成を活かし、実際のWeb制作で利用するようになりました。一方で、v0〜v1はプロジェクトが大きくなるとwebpackの起動に時間がかかり、終盤には10秒以上待つこともありました。
+
+ページをHTML化する関数を毎回書く必要があり、コンポーネントからCSSをimportすることもできませんでした。APIのデータからページを生成する機能やMarkdownへの対応も課題となり、設計を見直すことにしました。
+
+- [Reactで書けるSSG改善点と今後について- minista v1](https://zenn.dev/qrac/articles/a24de970148c7e)
+
+## v2：Viteとesbuildを採用 ||v2-vite-and-esbuild||
+
+<ElementRecord text="Release: 2022/04/12" />
+
+webpackをViteとesbuildへ置き換え、ゼロから作り直しました。開発サーバーにはVite、本番の静的HTML生成にはesbuildを使い、起動とビルドを高速化しました。
+
+<ElementStageSpeed
+  comparisons={[
+    {
+      label: "develop:",
+      unit: "s",
+      before: { label: "v1-latest", value: 9.1715 },
+      after: { label: "v2.0.0", value: 0.6006 },
+    },
+    {
+      label: "build:",
+      unit: "s",
+      before: { label: "v1-latest", value: 10.7899 },
+      after: { label: "v2.0.0", value: 5.9628 },
+    },
+  ]}
+  caption="Example: { pages: 15, components: 38, css: 101KB, js: 319KB }"
+/>
+
+ページの書き方も整理し、`getStaticData()`によるデータ取得とルート生成、Markdown・MDXに対応しました。v2.4ではページの一部をReactで動かすPartial Hydration、v2.7ではブラウザだけで動作する全文検索を追加しました。
+
+- [Viteとesbuildを組み込みReact製SSGを再構築- minista v2](https://zenn.dev/qrac/articles/fbbbe7ccc3bdb1)
+
+- [SSG + Partial Hydration (部分的なReact App) - minista v2.4](https://zenn.dev/qrac/articles/b9c65c1c0be901)
+
+- [SSGにclientサイド完結型の全文検索を実装した- minista v2.7](https://zenn.dev/qrac/articles/653f7512b707ff)
+
+## v3：開発中も静的HTMLを表示 ||v3-align-development-and-build||
+
+<ElementRecord text="Release: 2023/03/31" />
+
+<ElementStageLogo version={3} />
+
+基本的な使い方を保ちながら、ソースコードをすべて書き直しました。開発中もSPAではなく静的HTMLを表示し、本番に近い状態で確認できるようにしました。本番ビルドもesbuildからViteへ統一しています。
+
+画像最適化、アセットのエントリー指定、納品ページの一覧生成、ZIPアーカイブの生成など、HTML制作と納品を支える機能も追加しました。
+
+- [ReactのJSXで書けるSSGを1から作り直した- minista v3](https://zenn.dev/qrac/articles/980efced76634f)
+
+## v4：機能をViteプラグインへ ||v4-vite-plugins||
+
+<ElementRecord text="Release: 2026/03/15" />
+
+<ElementStageLogo version={4} />
+
+RolldownベースのViteと統合し、すべての機能をViteプラグインとして提供する構成へ変更しました。`vite.config.ts`に必要なプラグインを追加します。
+
+従来のPartial HydrationをIslandへ置き換えました。JSXの任意の部分に`client:*`を付けてReactで動かし、propsや読み込みのタイミングに対応しました。
+
+- [SSGをViteプラグイン化し3年振りにリリース - minista v4](https://zenn.dev/qrac/articles/48d43fdc4a4822)
+
+## v5：基本構成とビルドを整理 ||v5-simplify-setup-and-build||
+
+<ElementRecord text="Release: 開発中" />
+
+使い勝手はそのままに大幅なリファクタリングと仕様の追加を行いました。
+
+Project Graphによるroute, page, assetの一元管理やライブラリの非同期ロードなどによってbuildを最大約67%高速化しました。v4.0.11とv5の比較では、ソースと設定が同じ6個のplaygroundでclean buildの所要時間を最大67.0%短縮しています。
+
+<ElementStageSpeed
+  comparisons={[
+    {
+      label: "build:",
+      unit: "ms",
+      before: { label: "v4.0.11", value: 702.98 },
+      after: { label: "v5", value: 233.88 },
+    },
+  ]}
+  caption="2026/10/05: _default playground / clean build / 3回の中央値 / Node.js v26.10.0 / macOS arm64"
+/>
+
+Searchの辞書参照をMap化し、検索JSONのindex生成を最大約77倍に高速化しました。1,000ページ・10,000語彙の合成データでは、所要時間を約98.7%短縮しています。この計測はv5内の最適化前後の比較で、DOM解析やJSONのシリアライズは含みません。
+
+<ElementStageSpeed
+  comparisons={[
+    {
+      label: "index:",
+      unit: "ms",
+      before: { label: "Map化前", value: 5012.39 },
+      after: { label: "Map化後", value: 65.39 },
+    },
+  ]}
+  caption="2026/10/05: 1,000ページ / 10,000語彙 / 1,001,000tokens / 3回の中央値 / Node.js v26.10.0 / macOS arm64"
+/>
+
+Layoutにhtml, head, bodyの編集機能を追加、publicへのパスにbaseを反映、Islandにシリアライズ化される変数の受け渡しを実装、pluginSearchの複数検索出力に対応など、細かい仕様の改善も行いました。
+
+また、このタイミングでドキュメントサイトを多言語化しており、英語圏のユーザーにもコンテンツを提供しやすくなりました。
+
+※過去の記事にあるAPIや設定は、そのバージョンのものです。現行の手順は[はじめる](/ja/docs/guide/)を参照してください。

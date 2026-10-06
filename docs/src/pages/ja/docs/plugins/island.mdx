@@ -1,0 +1,103 @@
+---
+layout: docs
+locale: ja
+title: pluginIsland
+---
+
+# pluginIsland
+
+静的ページの一部をReactで動かすプラグインです。
+
+導入手順と使用例は[ガイド](/ja/docs/guide/island)を参照してください。このページは設定値、コンポーネントのprops、制約をまとめています。
+
+## Table of Contents
+
+contents list
+
+## オプション ||options||
+
+```js title="既定値"
+pluginIsland({
+  useSplitPages: true,
+  outName: "island-[index]",
+  rootAttrName: "island",
+  rootDOMElement: "div",
+  rootStyle: { display: "contents" },
+})
+```
+
+### useSplitPages ||usesplitpages||
+
+- 型: `boolean`
+- デフォルト: `true`
+
+ページ毎に必要なJavaScriptを分割して読み込みます。
+
+### outName ||outname||
+
+- 型: `string`
+- デフォルト: `"island-[index]"`
+
+出力ファイル名。拡張子は含みません。以下の動的出力タグを使用できます。
+
+- `[index]`:生成された順番（開始: 1）
+
+### rootAttrName ||rootattrname||
+
+- 型: `string`
+- デフォルト: `"island"`
+
+ハイドレーションを行うルート要素のデータ属性名に使われる名前。
+
+- 例: `data-island-client-directive`
+
+### rootDOMElement ||rootdomelement||
+
+- 型: `"div" | "span"`
+- デフォルト: `"div"`
+
+ハイドレーションを行うルート要素のHTMLタグ。
+
+### rootStyle ||rootstyle||
+
+- 型: `React.CSSProperties`
+- デフォルト: `{ display: "contents" }`
+
+ハイドレーションを行うルート要素に付与するスタイル。
+
+## propsの制約 ||props||
+
+propsはSSR時の実際の値をシリアライズしてHTMLへ保存し、ハイドレーションの開始時に復元します。ページの変数、スプレッド構文、`getStaticData()`の結果、ループ内の値を渡せます。値や起動条件が異なっても、同じコンポーネントのエントリーを共有します。
+
+対応する値は文字列、有限数値、真偽値、`null`、`undefined`、配列、通常のオブジェクトです。JSX childrenやJSXを値に持つpropsはHTMLタグ／Fragment／そのIslandのJSXに現れる静的importのコンポーネント参照として復元します。propsはHTMLから読めるため、秘密の値を渡さないでください。
+
+関数、シンボル、`BigInt`、非有限数値、`Date`／`Map`／`Set`／`RegExp`／クラスのインスタンス、アクセサー、循環参照は非対応です。従来のコード例で動作したインラインのイベント関数も渡せません。イベント処理をimportするIslandコンポーネント内へ移してください。
+
+- `MINISTA_ISLAND_PROPS_UNSUPPORTED`: シリアライズできない値。診断にpropsの位置を表示
+- `MINISTA_ISLAND_COMPONENT_UNRESOLVED`: 静的importで解決できないコンポーネント。別ファイルからimportする
+- `MINISTA_ISLAND_DIRECTIVE_CONFLICT`: 一つの要素に複数の起動条件を指定
+- `MINISTA_ISLAND_NESTED`: 同じJSX内でIslandを入れ子に指定。最も外側へまとめる
+
+開発時はページの値を変更すると静的HTMLに保存したデータが更新されます。コンポーネントの変更はViteの更新経路で反映されます。Reactの初期描画とSSRの表示は一致させてください。
+
+## 起動条件 ||client-directive||
+
+`client:*`は静的importしたReactコンポーネントまたはHTMLタグへ指定します。一つの要素には一つだけ指定できます。
+
+| ディレクティブ | 条件 | オプション |
+| --- | --- | --- |
+| `client:load` | ページ読み込み時 | なし |
+| `client:idle` | ブラウザの待機時 | `{ timeout: number }`（ミリ秒） |
+| `client:visible` | 画面内へ入ったとき | `{ rootMargin: string }` |
+| `client:media` | メディアクエリ成立時 | メディアクエリ文字列 |
+| `client:only` | ページ読み込み時にブラウザで描画 | なし |
+
+`client:only`は本体の静的HTMLを生成しませんが、props・childrenの評価と静的importは行います。モジュールのトップレベルで`window`などを使わず、イベントや`useEffect()`内へ置いてください。直下の`slot="fallback"`要素は描画前の表示に使われ、クライアントへ渡すprops・childrenからは取り除かれます。
+
+## 条件付きのJavaScript読み込み ||conditional-loading||
+
+`client:visible`、`client:media`、`client:idle`は条件が成立してからコンポーネントとハイドレーション用のJavaScriptを取得・評価します。`client:load`と`client:only`はページのIslandのエントリー実行時に取得を開始します。同じコンポーネントを複数配置してもモジュールは再利用し、各要素を一度ずつハイドレーションします。
+
+初期HTMLの表示に必要なCSSは引き続き読み込みます。遅延チャンクに含まれるCSSはViteがモジュールと一緒に取得します。別の即時コンポーネントや通常のscriptと共有する依存は先に読み込まれる場合があります。
+
+条件成立後には通信とJavaScript実行の待ち時間が発生します。すぐに操作するUIには`client:load`を使ってください。読み込み失敗時はSSRの表示を残し、コンソールへ`MINISTA_ISLAND_LOAD_FAILED`を出力します。自動で再試行しないため、接続回復後はページを再読み込みしてください。

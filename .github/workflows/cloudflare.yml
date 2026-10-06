@@ -1,0 +1,118 @@
+name: Publish docs to Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "packages/minista/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/cloudflare.yml"
+  repository_dispatch:
+    types: [docs-archive-updated]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Force rebuild (auto checks unpublished changes)
+        type: choice
+        default: auto
+        options: [auto, main, v3, v4, all]
+
+permissions:
+  contents: read
+
+# Hold the lock from reading the published state through pushing the new state.
+concurrency:
+  group: cloudflare-docs
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      changed: ${{ steps.plan.outputs.changed }}
+      controller: ${{ steps.plan.outputs.controller }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && github.sha || 'main' }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+      - id: plan
+        env:
+          FORCE_TARGET: ${{ inputs.target || 'auto' }}
+        run: node scripts/docs-deploy/deploy.js plan
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docs-plan
+          path: .docs-plan.json
+          include-hidden-files: true
+          retention-days: 7
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.sha }}
+          path: source
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.controller }}
+          path: controller
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: source/package-lock.json
+      - run: npm ci
+        working-directory: source
+      - name: Configure archive base
+        run: node controller/scripts/docs-deploy/deploy.js prepare source ${{ matrix.id }}
+      - name: Build legacy v3 runtime
+        if: matrix.id == 'v3'
+        run: npm run build:main-src
+        working-directory: source
+      - name: Build docs
+        run: npm run ${{ matrix.command }}
+        working-directory: source
+      - name: Normalize and check output
+        run: node controller/scripts/docs-deploy/deploy.js finalize source ${{ matrix.id }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docs-${{ matrix.id }}
+          path: source/docs/dist
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: [plan, build]
+    if: needs.plan.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.controller }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: docs-*
+          path: .docs-artifacts
+      - run: node scripts/docs-deploy/deploy.js publish

@@ -1,6 +1,6 @@
 /**
- * @param {number} base
- * @param {number} other
+ * @param {unknown} base
+ * @param {unknown} other
  * @returns {number}
  */
 export function getRatio(base, other) {

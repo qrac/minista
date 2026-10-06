@@ -1,0 +1,122 @@
+---
+layout: docs
+locale: ja
+title: 設定
+---
+
+# 設定
+
+ministaのプラグインとViteの設定は、プロジェクトルートの`vite.config.ts`または`vite.config.js`にまとめます。
+
+## Table of Contents
+
+contents list
+
+## 最小の設定 ||minimal-config||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+`defineConfig`はministaから利用できます。`pluginSsg()`はページを静的HTMLとして出力するための必須プラグインです。Markdown・MDXの変換や、ページから参照するCSS・JavaScript・画像の出力も担います。
+
+`minista.config.*`も後方互換のため利用できますが、新しいプロジェクトでは`vite.config.*`を使います。複数の設定ファイルがあると競合エラーになるため、一つにまとめてください。
+
+## 必要なプラグインを追加する ||add-plugins||
+
+静的HTML出力に必要な`pluginSsg()`に加え、画像最適化やIslandなどのプラグインを`vite.config.*`に追加します。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginImage, pluginIsland } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginImage(), pluginIsland()],
+})
+```
+
+静的ページだけであれば、最小設定から始められます。
+
+| 目的                                    | プラグイン                                                                             |
+| --------------------------------------- | -------------------------------------------------------------------------------------- |
+| ページ生成・Markdown・MDX・アセット出力 | [pluginSsg](/ja/docs/plugins/ssg)                                                      |
+| 画像最適化                              | [pluginImage](/ja/docs/plugins/image)                                                  |
+| SVG最適化・SVGスプライト                | [pluginSvg](/ja/docs/plugins/svg)・[pluginSprite](/ja/docs/plugins/sprite)             |
+| HTMLコメント                            | [pluginComment](/ja/docs/plugins/comment)                                              |
+| Reactによる部分的な操作UI               | [pluginIsland](/ja/docs/plugins/island)                                                |
+| 静的サイト内検索                        | [静的サイト内検索](/ja/docs/guide/search)                                              |
+| コードの整形・アーカイブ生成            | [pluginBeautify](/ja/docs/plugins/beautify)・[pluginArchive](/ja/docs/plugins/archive) |
+
+各機能の導入手順はガイド、引数の型と既定値はプラグインのページで確認できます。
+
+各プラグインの引数に、その機能のオプションを渡します。MDXなどSSGに含まれる機能は、`pluginSsg({ mdx: { ... } })`のように指定します。
+
+## 開発サーバーと出力先 ||server-and-output||
+
+開発サーバーと出力を変更する場合の設定例です。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+  server: {
+    port: 3000,
+    open: true,
+  },
+  build: {
+    outDir: "dist",
+    assetsInlineLimit: 0,
+  },
+})
+```
+
+`assetsInlineLimit: 0`は、小さな画像などをインライン化せずファイルとして出力したい場合に指定します。
+
+## TypeScriptを設定する ||typescript-setup||
+
+TypeScriptのテンプレートを使わなかった場合は、必要なパッケージを追加します。
+
+```sh
+npm install --save-dev typescript @types/react @types/react-dom
+```
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "types": ["minista/client"]
+  },
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+`minista/client`にはMDX・Markdown・IslandやViteの型定義が含まれます。
+
+型チェックは`npx tsc --noEmit`で別途実行します。ministaのビルドは型エラーの検査を含みません。
+
+## 出力の設定を選ぶ ||choose-output-settings||
+
+配信用の圧縮やファイル名、アセットの出力先はViteの`build`で設定します。基本的な出力から始め、公開先や納品要件に合わせて調整してください。
+
+- コードを読みやすくする：[HTMLの整形](/ja/docs/guide/beautify)
+- 成果物をZIPにまとめる：[納品用アーカイブ](/ja/docs/guide/archive)
+- 公開パスと出力先を変える：[ビルドとデプロイ](/ja/docs/guide/build-deploy)
+- ハッシュや種類別の出力先を変える：[設定リファレンス](/ja/docs/reference/config)
+
+## 環境変数を利用する ||environment-variables||
+
+ビルド時のデータ取得には、Node.js側で`process.env`を参照できます。例えばCIやターミナルで設定したAPIの認証情報を利用します。データを用意する基本の仕組みは[ページへデータを渡す](/ja/docs/guide/static-data)、APIを使った取得とページ生成は[APIによるページ生成](/ja/docs/guide/fetch)を参照してください。
+
+ブラウザへ公開するViteの環境変数は`import.meta.env.VITE_*`で参照します。認証情報を`VITE_`付きの変数へ入れたり、ページのpropsやHTMLへ出力したりしないでください。
+
+次は[ビルドとデプロイ](/ja/docs/guide/build-deploy)で、最小構成の出力を確認し、公開手順や公開先の設定を紹介します。

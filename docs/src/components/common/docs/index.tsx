@@ -1,5 +1,6 @@
 import type { Props } from "./props"
 import { initialProps } from "./props"
+import "./style.css"
 
 export default function CommonDocs(props: Partial<Props>) {
   const { DOMElement, isSidetocTarget, hasSearch, children } = {

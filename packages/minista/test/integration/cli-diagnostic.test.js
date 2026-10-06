@@ -1,0 +1,67 @@
+import fs from "node:fs"
+import os from "node:os"
+import path from "node:path"
+import { spawn } from "node:child_process"
+import { fileURLToPath } from "node:url"
+
+import { describe, expect, test } from "vitest"
+
+const here = path.dirname(fileURLToPath(import.meta.url))
+const packageDir = path.resolve(here, "../..")
+const binFile = path.resolve(packageDir, "bin/minista.js")
+
+/** @param {string[]} args @param {string} [cwd] */
+function runCli(args, cwd = packageDir) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [binFile, ...args], {
+      cwd,
+      env: { ...process.env, NO_COLOR: "1" },
+      stdio: ["ignore", "pipe", "pipe"],
+    })
+    let stdout = ""
+    let stderr = ""
+    child.stdout.on("data", (chunk) => (stdout += chunk))
+    child.stderr.on("data", (chunk) => (stderr += chunk))
+    child.on("error", reject)
+    child.on("close", (code) => resolve({ code, stdout, stderr }))
+  })
+}
+
+describe("CLI diagnostic process contract", () => {
+  test("reports config conflicts and exits before running Vite", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "minista-conflict-"))
+    try {
+      fs.writeFileSync(path.join(root, "vite.config.js"), "")
+      fs.writeFileSync(path.join(root, "minista.config.js"), "")
+
+      const result = await runCli(["--version"], root)
+
+      expect(result).toEqual({
+        code: 1,
+        stdout: "",
+        stderr:
+          "[MINISTA_CLI_CONFIG_CONFLICT] " +
+          "Error: Multiple config files were found.\n\n" +
+          "  vite.config.js\n" +
+          "  minista.config.js\n\n" +
+          "Please remove one of them. `vite.config.js` is recommended.\n",
+      })
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  test("rejects --oneBuild and keeps the current CLI path unchanged", async () => {
+    const removed = await runCli(["--version", "--oneBuild"])
+    const current = await runCli(["--version"])
+
+    expect(removed).toMatchObject({ code: 1 })
+    expect(removed.stderr).toContain(
+      "[MINISTA_CLI_OPTION_REMOVED]",
+    )
+    expect(current).toMatchObject({ code: 0 })
+    expect(current.stderr).not.toContain(
+      "MINISTA_CLI_OPTION_REMOVED",
+    )
+  })
+})

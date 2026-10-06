@@ -1,13 +1,28 @@
+import { JsBeautifyFormatter } from "../../adapters/formatter/js-beautify.js"
+import {
+  BeautifyOutputError,
+  assertBeautifyAssetOutput,
+} from "../../adapters/vite/beautify-output.js"
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
 
-import picomatch from "picomatch"
-import { parse as parseHtml } from "node-html-parser"
-import beautify from "js-beautify"
-
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteOutputs,
+} from "../../adapters/vite/compatibility-lifecycle.js"
+import {
+  createBeautifyFeature,
+  createBeautifyFeatureDescriptor,
+  createOutputMatcher,
+  createOutputFormatter,
+} from "../../features/beautify/index.js"
 import { mergeObj } from "../../shared/obj.js"
-import { filterOutputAssets, filterOutputChunks } from "../../shared/vite.js"
+import { filterOutputAssets } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 export const defaultOptions = {
@@ -26,7 +41,6 @@ export const defaultOptions = {
   jsOptions: {
     indent_size: 2,
   },
-  removeImagePreload: true,
 }
 
 /**
@@ -36,68 +50,70 @@ export const defaultOptions = {
 export function pluginBeautify(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = mergeObj(defaultOptions, uOpts)
+  const isMatch = createOutputMatcher(opts)
+  const formatter = new JsBeautifyFormatter()
+  const feature = createBeautifyFeature(opts, formatter)
+  const format = createOutputFormatter(opts, formatter)
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
-
-  return {
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-beautify",
+    api: { minista: { feature: createBeautifyFeatureDescriptor(opts) } },
     enforce: "post",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isBuild
+      return command === "build" && !isSsrBuild
     },
-    generateBundle(options, bundle) {
-      const isMatch = picomatch(opts.src)
-      const parseOpts = [opts.removeImagePreload]
-      const hasParse = parseOpts.some((item) => item)
-      const regAssets = /\.(html|css)$/
-      const regChunks = /\.js$/
-
-      const outputAssets = filterOutputAssets(bundle)
-      const outputChunks = filterOutputChunks(bundle)
-
-      for (const item of Object.values(outputAssets)) {
-        if (!isMatch(item.fileName)) continue
-        if (!regAssets.test(item.fileName)) continue
-
-        const ext = item.fileName.split(".").pop()
-
-        let newSource = String(item.source)
-
-        if (ext === "html") {
-          if (hasParse) {
-            let parsedHtml = parseHtml(newSource)
-
-            if (opts.removeImagePreload) {
-              parsedHtml
-                .querySelectorAll("body > link[rel=preload][as=image]")
-                .forEach((el) => {
-                  el.remove()
-                })
-            }
-            newSource = parsedHtml.toString()
-          }
-          newSource = beautify.html(newSource, opts.htmlOptions)
-          item.source = newSource
-        } else if (ext === "css") {
-          newSource = beautify.css(newSource, opts.cssOptions)
-          item.source = newSource
+    applyToEnvironment: isViteAppClientEnvironment,
+    buildStart() {
+      if (uOpts.removeImagePreload !== undefined) {
+        throw new BeautifyOutputError(
+          "MINISTA_BEAUTIFY_OPTION_MOVED",
+          "removeImagePreload moved to pluginSsg (default: true). Move the option to pluginSsg and remove it from pluginBeautify.",
+        )
+      }
+    },
+    renderChunk: {
+      order: "post",
+      async handler(code, chunk, options) {
+        if (!isMatch(chunk.fileName) || !chunk.fileName.endsWith(".js")) return null
+        if (options.sourcemap) {
+          throw new BeautifyOutputError(
+            "MINISTA_BEAUTIFY_SOURCEMAP_UNSUPPORTED",
+            "JS beautification cannot preserve sourcemaps. Disable sourcemaps or exclude JS from pluginBeautify.src.",
+          )
         }
-      }
-
-      for (const item of Object.values(outputChunks)) {
-        if (!isMatch(item.fileName)) continue
-        if (!regChunks.test(item.fileName)) continue
-
-        let newSource = item.code
-
-        newSource = beautify.js(newSource, opts.jsOptions)
-        item.code = newSource
+        if (options.minify !== false) {
+          throw new BeautifyOutputError(
+            "MINISTA_BEAUTIFY_MINIFY_UNSUPPORTED",
+            "JS beautification requires build.rolldownOptions.output.minify: false because Rolldown minification (including dce-only) runs after renderChunk. Set output.minify to false or exclude JS from pluginBeautify.src.",
+          )
+        }
+        const formatted = await format({ fileName: chunk.fileName, content: code })
+        return { code: String(formatted.content), map: null }
+      },
+    },
+    async generateBundle(options, bundle) {
+      const outputAssets = filterOutputAssets(bundle)
+      const assets = Object.values(outputAssets).filter((item) =>
+        isMatch(item.fileName) && /\.(html|css)$/.test(item.fileName)
+      )
+      for (const item of assets) assertBeautifyAssetOutput(item, options, bundle)
+      const processed = await processViteOutputs([
+        ...assets.map((item) => ({
+          fileName: item.fileName,
+          content: item.source,
+        })),
+      ], [feature], createViteCompatibilityTraceHooks(
+        getViteBuildSession(this.environment.getTopLevelConfig()),
+        "beautify:build",
+      ))
+      const contentByFileName = new Map(processed.map((file) => [
+        file.fileName,
+        file.content,
+      ]))
+      for (const item of assets) {
+        const content = contentByFileName.get(item.fileName)
+        if (content !== undefined) item.source = content
       }
     },
-  }
+  })
 }

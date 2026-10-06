@@ -9,6 +9,7 @@ export type PluginOptions = {
   htmlOptions: HTMLBeautifyOptions
   cssOptions: CSSBeautifyOptions
   jsOptions: JSBeautifyOptions
-  removeImagePreload: boolean
+  /** @deprecated Move this option to pluginSsg. Explicit use reports MINISTA_BEAUTIFY_OPTION_MOVED. */
+  removeImagePreload?: boolean
 }
 export type UserPluginOptions = Partial<PluginOptions>

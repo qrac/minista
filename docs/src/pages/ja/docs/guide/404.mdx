@@ -1,0 +1,71 @@
+---
+layout: docs
+locale: ja
+title: 404ページ
+---
+
+# 404ページ
+
+存在しないURLへアクセスしたときに表示するページを作ります。ministaでは通常のページと同じように`404.html`を生成し、公開先で404ページとして配信するよう設定します。
+
+## Table of Contents
+
+contents list
+
+## ページを作る ||create-404-page||
+
+`src/pages/404.tsx`を作成します。`pluginSsg()`を設定した構成であれば、追加のプラグインは不要です。
+
+```tsx title="src/pages/404.tsx"
+import type { Metadata } from "minista/types"
+
+export const metadata: Metadata = { title: "ページが見つかりません" }
+
+export default function NotFound() {
+  return (
+    <>
+      <h1>ページが見つかりません</h1>
+      <p>URLが変更されたか、ページが削除された可能性があります。</p>
+      <a href="/">トップページへ戻る</a>
+    </>
+  )
+}
+```
+
+トップページへのリンクは、サイトの公開先に合わせます。`/site/`へ公開する場合は、`href="/site/"`に変更してください。タイトルをHTMLのheadへ反映する方法は、[レイアウト](/ja/docs/guide/layouts)で紹介します。
+
+## 構成と出力を確認する ||404-output||
+
+既存のページに`404.tsx`を追加すると、ビルド結果に`404.html`が加わります。以下は関係するファイルだけを示しています。
+
+```text title="プロジェクト構成"
+src/pages/
+├── index.tsx
+├── about.md
+└── 404.tsx
+```
+
+```text title="ビルド結果"
+dist/
+├── index.html
+├── about.html
+└── 404.html
+```
+
+Markdownで作る場合は`404.md`、MDXなら`404.mdx`でも同じファイル名で出力されます。同じURLのページが競合するため、いずれか一つを使用します。
+
+## 表示を確認する ||preview-404-page||
+
+`npm run dev`で開発サーバーを起動し、`/404`を開いて内容を確認します。ビルド後は`npm run preview`で`/404.html`を確認できます。
+
+404ページを直接開く確認と、存在しないURLで表示される確認は別です。存在しないURLに対する表示とHTTPステータスは、公開先で確認します。
+
+## 公開先で404ページを設定する ||configure-404-hosting||
+
+`dist/`の中身を公開し、存在しないURLへの応答に`404.html`を使うよう、ホスティング側で設定します。`404.html`という名前だけで自動的に利用するサービスもあります。公開先の設定方法を確認してください。
+
+公開後に存在しないURLへアクセスし、作成したページが表示されることと、HTTPステータスが`404`であることを確認します。
+
+404ページは`/news/missing/`など、さまざまな階層のURLで表示されます。トップページやアセットへの相対参照は、そのURLから解決されるためリンク切れになることがあります。共通の404ページには、`base: "/"`や`base: "/site/"`のように公開先を指定する構成が適しています。詳しくは[ビルドとデプロイ](/ja/docs/guide/build-deploy#public-base-path)を参照してください。
+
+次は[ページへデータを渡す](/ja/docs/guide/static-data)で、`metadata`と`getStaticData()`からpropsを渡す方法を紹介します。

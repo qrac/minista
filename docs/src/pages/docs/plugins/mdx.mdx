@@ -1,68 +1,21 @@
 ---
-title: pluginMdx
 layout: docs
+locale: en
+title: pluginMdx
 ---
 
 # pluginMdx
 
-`pluginSsg` にMDX・Markdownのファイルを対応させるプラグイン。
+This feature was integrated into `pluginSsg()` in v5. You no longer need to add the old plugin.
 
 ## Table of Contents
 
 contents list
 
-## How To Use
+## Current feature
 
-```js title="./vite.config.js"
-import { pluginSsg, pluginMdx } from "minista"
+See [Markdown and MDX](/docs/guide/mdx) for usage and [pluginSsg](/docs/plugins/ssg) for settings.
 
-export default {
-  plugins: [pluginSsg(), pluginMdx()],
-}
-```
+## Migration
 
-```mdx title="./src/pages/index.mdx"
-# heading
-
-## heading2
-
-paragraph
-```
-
-## Options
-
-```js title="Default"
-pluginMdx({
-  remarkPlugins: [],
-  rehypePlugins: [],
-})
-```
-
-オプションは[@mdx-js/rollup](https://www.npmjs.com/package/@mdx-js/rollup)のOptionsと同一です。
-
-remarkPluginsにremark-frontmatterまたはremark-mdx-frontmatterを用いると、デフォルトの設定を上書きできます。
-
-## Frontmatter
-
-フロントマターは `props` としてLayoutやPageで使用可能です。`draft` を `true` にしたページは本番ビルドから除外されます。
-
-```mdx title="./src/pages/index.mdx"
----
-title: Index
-draft: false // true = Don't build the page
----
-
-# {props.title}
-```
-
-## Component
-
-MDX・Markdownのファイルはレイアウトテンプレートやページテンプレート内でコンポーネントとして使用できます。
-
-```jsx title="./src/pages/index.jsx"
-import Content from "./index.mdx"
-
-export default function () {
-  return <Content />
-}
-```
+Remove the old plugin import and configuration, and move any needed options to `pluginSsg()`. See [Migrating from v4 to v5](/docs/reference/migration) for details.

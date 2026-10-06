@@ -1,0 +1,116 @@
+---
+layout: docs
+locale: en
+title: Passing data to pages
+---
+
+# Passing data to pages
+
+Pass page data as props through `metadata` or `getStaticData()`. Here, pass an array of news items to a page to create a list without using an API.
+
+## Table of Contents
+
+contents list
+
+## Metadata and static data
+
+Use `metadata` for fixed page information such as a title or draft status.
+
+```tsx
+import type { Metadata } from "minista/types"
+
+export const metadata: Metadata = { title: "News" }
+```
+
+`getStaticData()` is an asynchronous function that prepares data for rendering a page. Export it from the page file and return `{ props: { ... } }` to add those values to the page's props. It can also load data from APIs and files.
+
+```tsx
+import type { GetStaticData } from "minista/types"
+
+export const getStaticData: GetStaticData = async () => ({
+  props: {
+    notices: [
+      { id: "hello", title: "Our site is live" },
+      { id: "update", title: "We added a service introduction" },
+    ],
+  },
+})
+```
+
+Both provide data for displaying a page. Use `metadata` for fixed information and `getStaticData()` for data prepared through processing to keep their roles clear.
+
+## Pass page data
+
+Update the `src/pages/news/index.tsx` created earlier with the following content. It works with `pluginSsg()` and requires no additional plugin.
+
+```tsx title="src/pages/news/index.tsx"
+import type { Metadata, GetStaticData, PageProps } from "minista/types"
+
+type Notice = { id: string; title: string }
+type Props = PageProps & { notices: Notice[] }
+
+export const metadata: Metadata = { title: "News" }
+
+export const getStaticData: GetStaticData = async () => ({
+  props: {
+    notices: [
+      { id: "hello", title: "Our site is live" },
+      { id: "update", title: "We added a service introduction" },
+    ],
+  },
+})
+
+export default function News({ title, notices }: Props) {
+  return (
+    <>
+      <h1>{title}</h1>
+      <ul>
+        {notices.map((notice) => (
+          <li key={notice.id}>{notice.title}</li>
+        ))}
+      </ul>
+    </>
+  )
+}
+```
+
+`title` comes from `metadata` and `notices` from `getStaticData()`. Extend `PageProps` with types for custom props.
+
+The same data can also be passed to [layouts](/docs/guide/layouts).
+
+You can also specify fields such as `title` in `getStaticData()`'s `props`. When a field appears in both `metadata` and `props`, the value in `props` takes priority.
+
+## Check static data output ||static-data-output||
+
+At this stage, only the page content changes. The following shows files relevant to the explanation.
+
+```text title="Project structure"
+src/pages/
+└── news/
+    └── index.tsx
+```
+
+```text title="Build output"
+dist/news/
+└── index.html
+```
+
+`npm run build` outputs the news list to `dist/news/index.html`. It does not generate a separate page for each array item.
+
+```html title="dist/news/index.html (content excerpt)"
+<h1>News</h1>
+<ul>
+  <li>Our site is live</li>
+  <li>We added a service introduction</li>
+</ul>
+```
+
+## Execution and public data
+
+`getStaticData()` runs for page display during development, production builds, `check`, and `inspect`. It does not run for each visit to the published site. If source data changes after a build, rebuild to update the HTML.
+
+Data fetching does not run in the browser, but prop values are used for output in HTML and Islands. Use API credentials only within the fetching logic and return only data that can be public in props.
+
+See [pluginSsg](/docs/plugins/ssg#fetch) for types and return value contracts. If you do not use an API, continue to [Layouts](/docs/guide/layouts).
+
+Next, [Page generation from APIs](/docs/guide/fetch) covers fetching from APIs and generating a page for each data item.

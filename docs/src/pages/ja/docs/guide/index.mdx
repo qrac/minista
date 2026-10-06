@@ -1,0 +1,144 @@
+---
+layout: docs
+locale: ja
+title: はじめる
+---
+
+# はじめる
+
+このガイドではminista v5のプロジェクトを作り、最初のページを表示するまでを紹介します。以下の例はnpmとTypeScriptを使い、最小構成に機能を一つずつ追加します。JavaScriptでも、型注釈を省いて同じ構成を利用できます。
+
+AIエージェントに制作を依頼する場合は、[エージェントを使った制作](/ja/docs/guide/agents)へ進んでください。
+
+## Table of Contents
+
+contents list
+
+## 必要な環境 ||prerequisites||
+
+minista v5の対応範囲は次のとおりです。
+
+| パッケージ       | 対応範囲                  |
+| ---------------- | ------------------------- |
+| Node.js          | `^20.19.0 \|\| >=22.12.0` |
+| Vite             | `^8.1.0`                  |
+| React・React DOM | `>=19.0.0`                |
+
+ターミナルでNode.jsとnpmが利用できることを確認します。
+
+```sh
+node --version
+npm --version
+```
+
+## テンプレートから作る ||scaffold-project||
+
+このガイドを順に試す場合は、`minimal-ts`を指定します。レイアウトやスタイルを含まない最小構成から始められます。
+
+```sh
+npm create minista@latest my-minista-project -- --template minimal-ts
+cd my-minista-project
+npm install
+npm run dev
+```
+
+表示されたローカルURLをブラウザで開きます。開発サーバーは`Ctrl + C`で停止できます。
+
+テンプレートを省略すると、案内に従って構成と言語を選べます。
+
+| テンプレート | 内容                                             |
+| ------------ | ------------------------------------------------ |
+| `minimal-ts` | TypeScriptの最小構成                             |
+| `minimal-js` | JavaScriptの最小構成                             |
+| `basic-ts`   | レイアウトや共通パーツを含むTypeScriptの基本構成 |
+| `basic-js`   | レイアウトや共通パーツを含むJavaScriptの基本構成 |
+
+## 最初のページを編集する ||edit-first-page||
+
+TypeScriptのテンプレートでは`src/pages/index.tsx`を開いて編集します。JavaScriptの場合は`index.jsx`です。
+
+```tsx title="src/pages/index.tsx"
+export default function Page() {
+  return (
+    <>
+      <h1>Hello, minista!</h1>
+      <p>最初の静的ページです。</p>
+    </>
+  )
+}
+```
+
+保存すると開発サーバーへ変更が反映されます。ページはReactコンポーネントとして書きますが、表示のためにブラウザでReactを実行する必要はありません。
+
+## 最小構成とビルド結果 ||minimal-project||
+
+`minimal-ts`の主なファイルは次のとおりです。
+
+※`AGENTS.md`などの開発用ファイルは省略しています。
+
+```text title="プロジェクト構成"
+my-minista-project/
+├── src/
+│   └── pages/
+│       └── index.tsx
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```
+
+まだレイアウト、CSS、ブラウザ用JavaScriptはありません。ページをビルドすると、まず一つのHTMLが生成されます。
+
+```text title="ビルド結果"
+dist/
+└── index.html
+```
+
+この後のガイドでは、ファイルと設定を追加して、ページ、共通レイアウト、アセット、操作UIを順に作ります。各構成図は説明に関係する部分を示しています。
+
+## 手動でセットアップする ||manual-installation||
+
+テンプレートを使わずに始める場合は、空のディレクトリで次を実行します。
+
+```sh
+npm init -y
+npm pkg set type=module
+npm install --save-dev minista@^5 vite@^8.1 react@^19 react-dom@^19
+```
+
+`package.json`へスクリプトを追加します。
+
+```json title="package.json（scripts）"
+{
+  "scripts": {
+    "dev": "minista",
+    "build": "minista build",
+    "preview": "minista preview",
+    "check": "minista check"
+  }
+}
+```
+
+プロジェクトルートに設定ファイルを作成し、静的HTMLの出力に必須の`pluginSsg()`を追加します。テンプレートには設定済みです。
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+`src/pages/index.jsx`を作り、前のページ例と同じコンポーネントを記述すれば、`npm run dev`で起動できます。手動構成へTypeScriptを加える方法は[設定](/ja/docs/guide/configuration)を参照してください。
+
+## ビルドして確認する ||build-and-preview||
+
+```sh
+npm run build
+npm run preview
+```
+
+`dist/`に静的HTMLとアセットが生成されます。公開ファイルはこのディレクトリの中身です。
+
+次は[エージェントを使った制作](/ja/docs/guide/agents)で、サイトの制作を依頼する方法を紹介します。自分で制作を進める場合は、[プロジェクト構成](/ja/docs/guide/project-structure)へ進めます。
+
+[設定](/ja/docs/guide/configuration)と[ビルドとデプロイ](/ja/docs/guide/build-deploy)を確認した後、[ファイルベースルーティング](/ja/docs/guide/pages-routing)からページを追加します。各ページは一つの機能を扱うので、必要な機能から読むこともできます。

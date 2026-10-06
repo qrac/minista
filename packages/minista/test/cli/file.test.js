@@ -3,10 +3,15 @@ import os from "node:os"
 import path from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
-import { findConfigFile } from "../../src/cli/utils/file.js"
+import {
+  ConfigFileConflictError,
+  findConfigFile,
+} from "../../src/cli/utils/file.js"
 
 describe("findConfigFile", () => {
+  /** @type {string} */
   let cwd
+  /** @type {string} */
   let testRoot
 
   beforeEach(() => {
@@ -37,26 +42,23 @@ describe("findConfigFile", () => {
   })
 
   it("複数検出時はvite.configを先に表示する", () => {
-    fs.writeFileSync("vite.config.js", "")
-    fs.writeFileSync("vite.config.ts", "")
+    fs.writeFileSync("minista.config.ts", "")
+    fs.writeFileSync("vite.config.mjs", "")
 
-    expect(() => findConfigFile()).toThrow(
-      "Multiple config files were found."
-    )
-  })
+    expect(() => findConfigFile()).toThrowError(ConfigFileConflictError)
 
-  it("複数の設定ファイルがある場合はファイル名を含むエラーを投げる", () => {
-    fs.writeFileSync("vite.config.js", "")
-    fs.writeFileSync("minista.config.js", "")
-
-    expect(() => findConfigFile()).toThrow(
-      new Error(
-        "Multiple config files were found.\n\n" +
-          "  vite.config.js\n" +
-          "  minista.config.js\n\n" +
-          "Please remove one of them. `vite.config.js` is recommended."
-      )
-    )
+    try {
+      findConfigFile()
+    } catch (error) {
+      expect(error).toMatchObject({
+        diagnostic: {
+          code: "MINISTA_CLI_CONFIG_CONFLICT",
+          message: expect.stringMatching(
+            /vite\.config\.mjs[\s\S]+minista\.config\.ts/,
+          ),
+        },
+      })
+    }
   })
 
   it("root引数で指定されたディレクトリから設定ファイルを検出する", () => {

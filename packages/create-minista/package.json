@@ -1,6 +1,6 @@
 {
   "name": "create-minista",
-  "version": "4.0.13",
+  "version": "5.0.0",
   "type": "module",
   "bin": {
     "create-minista": "./bin/create-minista.js"
@@ -8,10 +8,11 @@
   "files": [
     "bin",
     "src",
-    "templates"
+    "templates",
+    "agents"
   ],
   "license": "MIT",
-  "homepage": "https://minista.qranoko.jp",
+  "homepage": "https://minista.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/qrac/minista",
@@ -28,7 +29,7 @@
     "minista"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "dependencies": {
     "cac": "^7.0.0",

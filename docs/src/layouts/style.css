@@ -46,12 +46,12 @@
   position: sticky;
   top: var(--header-height);
   max-height: calc(100vh - var(--header-height));
-  padding-top: 40px;
+  padding-top: 24px;
   padding-bottom: 20vh;
   overflow-y: auto;
 }
 
 .layout-grid.is-docs > .layout-column.is-main > .layout-content {
-  padding-top: 40px;
+  padding-top: 48px;
   padding-bottom: 20vh;
 }

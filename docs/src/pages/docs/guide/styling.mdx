@@ -1,0 +1,180 @@
+---
+layout: docs
+locale: en
+title: CSS bundling
+---
+
+# CSS bundling
+
+Here, add shared CSS to a [layout](/docs/guide/layouts). Import CSS from pages, layouts, or components. `pluginSsg()` outputs referenced CSS, so no additional minista plugin is needed for CSS.
+
+## Table of Contents
+
+contents list
+
+## Shared CSS
+
+Place site-wide CSS in `src/layouts/globals.css` and import it from the adjacent layout. Keep the layout and shared CSS in the same directory.
+
+```tsx title="src/layouts/index.tsx"
+import type { Metadata, LayoutProps } from "minista/types"
+import Header from "../components/header"
+import "./globals.css"
+
+export const metadata: Metadata = { title: "My Site" }
+
+export default function Layout({ title, children }: LayoutProps) {
+  return (
+    <html lang="ja">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{title}</title>
+      </head>
+      <body>
+        <Header siteName="My Site" />
+        <main className="site-main">{children}</main>
+        <footer>My Site</footer>
+      </body>
+    </html>
+  )
+}
+```
+
+```css title="src/layouts/globals.css"
+:root {
+  font-family: sans-serif;
+  color: #222;
+  background: #fff;
+}
+
+body {
+  margin: 0;
+}
+
+.site-main {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 2rem 1rem;
+}
+```
+
+Regular CSS selectors apply globally. Importing CSS from a component does not automatically scope it to that component.
+
+As CSS grows, split it into files such as `style.css` in the same directory and import them. Choose locations and names freely.
+
+## Check bundled CSS output ||bundled-css-output||
+
+```text title="Project structure"
+src/
+├── layouts/
+│   ├── globals.css
+│   └── index.tsx
+└── pages/
+    ├── index.tsx
+    └── about.md
+```
+
+```text title="Example build output"
+dist/
+├── index.html
+├── about.html
+└── assets/
+    └── bundle-[hash].css
+```
+
+CSS imported by pages and layouts is combined into CSS based on the name `bundle` by default. Output names receive hashes according to the configuration, and stylesheet references are added to generated HTML.
+
+With this method, CSS imported by components is also included in the global output. Use [CSS, JS, and TS entries](/docs/guide/entry) to explicitly load files for specific pages.
+
+## CSS Modules
+
+Use `.module.css` to avoid class name collisions.
+
+```css title="src/components/card.module.css"
+.card {
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+}
+```
+
+```tsx title="src/components/card.tsx"
+import type { ReactNode } from "react"
+import styles from "./card.module.css"
+
+type Props = { children: ReactNode }
+
+export default function Card({ children }: Props) {
+  return <article className={styles.card}>{children}</article>
+}
+```
+
+Using Card from a page also loads its CSS.
+
+```tsx title="src/pages/index.tsx"
+import Card from "../components/card"
+
+export default function Page() {
+  return (
+    <>
+      <h1>My Site</h1>
+      <Card>News from the creative studio.</Card>
+    </>
+  )
+}
+```
+
+Generated class names are reflected in HTML and CSS. Using CSS Modules alone does not add React runtime code to the browser.
+
+## Stylesheet links
+
+You can also declare stylesheets as part of the HTML structure.
+
+```tsx
+import { Head } from "minista/head"
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <link rel="stylesheet" href="/src/layouts/globals.css" />
+        <link rel="stylesheet" href="/css/legacy.css" />
+      </Head>
+      <h1>Style example</h1>
+    </>
+  )
+}
+```
+
+`src/layouts/globals.css` is processed by Vite and rewritten to its built URL. CSS referenced with a `link` element this way is treated as a CSS build entry. See [CSS, JS, and TS entries](/docs/guide/entry) for details.
+
+`public/css/legacy.css` is copied unchanged. Choose the loading method for your use case and avoid registering the same CSS through both an import and a link.
+
+## Sass
+
+Add a preprocessor to use Sass.
+
+```sh
+npm install --save-dev sass-embedded
+```
+
+Then import `.scss` and `.module.scss` just like CSS.
+
+```tsx
+import "./globals.scss"
+```
+
+## Inline styles
+
+React's `style` attribute is also supported.
+
+```tsx
+<p style={{ color: "tomato", marginBlock: "1rem" }}>News</p>
+```
+
+This is output as a static `style` attribute. To change values in the browser based on state, use regular scripts or an [Island](/docs/guide/island).
+
+See the [configuration reference](/docs/reference/config) for CSS minification and output locations.
+
+Next, [CSS, JS, and TS entries](/docs/guide/entry) declares code loaded from HTML.

@@ -1,31 +1,40 @@
+import { registerViteFeatureLifecycle } from "../../adapters/vite/feature-lifecycle.js"
+
 /** @typedef {import('vite').Plugin} Plugin */
-/** @typedef {import('vite').ViteDevServer} ViteDevServer */
 /** @typedef {import('./types').PluginOptions} PluginOptions */
 /** @typedef {import('./types').UserPluginOptions} UserPluginOptions */
-/** @typedef {import('../ssg/types').SsgPage} SsgPage */
 
 import fs from "node:fs"
 import path from "node:path"
-import { pathToFileURL } from "url"
-import { glob } from "tinyglobby"
 import { normalizePath } from "vite"
-import { parse as parseHtml } from "node-html-parser"
 
-import { generateSprite } from "./utils/sprite.js"
+import { NodeSpriteBuilder } from "../../adapters/sprite/index.js"
+import { getViteBuildSession } from "../../adapters/vite/build-session.js"
+import { isViteAppClientEnvironment } from "../../adapters/vite/app-config.js"
+import {
+  createViteCompatibilityTraceHooks,
+  processViteDocuments,
+} from "../../adapters/vite/compatibility-lifecycle.js"
+import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
+import { ViteDevUpdateAdapter } from "../../adapters/vite/dev-update.js"
+import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
+import {
+  createSpriteFeature,
+  createSpriteFeatureDescriptor,
+  DevSpritePageIndex,
+} from "../../features/sprite/index.js"
 import { mergeObj } from "../../shared/obj.js"
 import { getRootDir, getTempDir } from "../../shared/path.js"
+import { getHtmlPageUrl } from "../../shared/filename.js"
 import {
-  extractUrls,
-  getServeBase,
-  getBuildBase,
   getBasedAssetUrl,
+  getBuildBase,
+  getServeBase,
 } from "../../shared/url.js"
-import { mergeAlias, filterOutputAssets } from "../../shared/vite.js"
-import { createAssetEntryId } from "../../shared/asset.js"
+import { filterOutputAssets, mergeAlias } from "../../shared/vite.js"
 
 /** @type {PluginOptions} */
 const defaultOptions = {}
-
 /**
  * @param {UserPluginOptions} uOpts
  * @returns {Plugin}
@@ -34,237 +43,250 @@ export function pluginSprite(uOpts = {}) {
   /** @type {PluginOptions} */
   const opts = mergeObj(defaultOptions, uOpts)
   const cwd = process.cwd()
-  const spriteAlias = `/@__minista-sprite`
-  const targetAttr = "data-minista-sprite"
-  const srcAttr = "data-minista-sprite-src"
-  const symbolIdAttr = "data-minista-sprite-symbol-id"
+  const spriteAlias = "/@__minista-sprite"
 
-  let isDev = false
-  let isSsr = false
-  let isBuild = false
+  const devStates = new ViteEnvironmentState(() => ({
+    rootDir: "",
+    spriteDir: "",
+    base: "/",
+    /** @type {NodeSpriteBuilder | undefined} */
+    builder: undefined,
+    watchDirectories: /** @type {Set<string>} */ (new Set()),
+    pageIndex: new DevSpritePageIndex(),
+  }))
+  const devServers = new ViteDevServerRegistry()
+  const claimStates = new ViteEnvironmentState(() => ({
+    claims: /** @type {import("../../core/graph/index.js").OutputClaim[]} */ ([]),
+  }))
 
-  let base = "/"
-  let rootDir = ""
-  let tempDir = ""
-  let ssgDir = ""
-  /** @type {SsgPage[]} */
-  let ssgPages = []
-  let spriteDir = ""
-  /** @type {string[]} */
-  let assetNames = []
-  /** @type {string[]} */
-  let assetDirNames = []
-  /** @type {{[assetName: string]: string}} */
-  let assetMap = {}
-  /** @type {Set<string>} */
-  let watchDirs = new Set()
-  /** @type {ViteDevServer} */
-  let viteServer
-  /** @type {{[assetName: string]: string}} */
-  let spriteMap = {}
-  /** @type {{[pathId: string]: string}} */
-  let entries = {}
-  /** @type {{[before: string]: string}} */
-  let entryChanges = {}
-
-  /**
-   * @param {string[]} htmlArray
-   */
-  function selfUpdateAssetDirNames(htmlArray) {
-    for (const html of htmlArray) {
-      assetNames = [...assetNames, ...extractUrls(html, "use", srcAttr, "/")]
+  /** @param {import("vite").ViteDevServer} server */
+  function getDevState(server) {
+    const state = devStates.get(server)
+    if (!state.builder) {
+      state.rootDir = getRootDir(cwd, server.config.root || "")
+      state.spriteDir = path.resolve(getTempDir(cwd, state.rootDir), "sprite")
+      state.base = getServeBase(server.config.base || "/")
+      state.builder = new NodeSpriteBuilder(state.rootDir, opts.config)
     }
-    assetNames = [...new Set(assetNames)].map((url) => url.replace(/^\//, ""))
-    assetDirNames = assetNames.map((assetName) => path.dirname(assetName))
-    assetDirNames = [...new Set(assetDirNames)]
+    return state
   }
 
-  return {
+  /** @param {ReturnType<typeof getDevState>} state @param {string} sourceDirectory */
+  async function writeDevSprite(state, sourceDirectory) {
+    if (!state.builder) return
+    const name = path.basename(sourceDirectory)
+    const sprite = await state.builder.build(sourceDirectory)
+    await fs.promises.writeFile(
+      path.resolve(state.spriteDir, `${name}.svg`),
+      sprite,
+      "utf8",
+    )
+  }
+
+  return registerViteFeatureLifecycle({
     name: "vite-plugin:minista-sprite",
+    api: { minista: { outputClaims: /** @param {import("vite").Environment | undefined} environment */ (environment) => claimStates.get(environment).claims, feature: createSpriteFeatureDescriptor(opts) } },
     enforce: "pre",
     apply(_, { command, isSsrBuild }) {
-      isDev = command === "serve"
-      isSsr = command === "build" && Boolean(isSsrBuild)
-      isBuild = command === "build" && !isSsrBuild
-      return isDev || isBuild
+      return command === "serve" || (command === "build" && !isSsrBuild)
     },
-    config: async (config) => {
-      rootDir = getRootDir(cwd, config.root || "")
-      tempDir = getTempDir(cwd, rootDir)
-      spriteDir = path.resolve(tempDir, "sprite")
+    applyToEnvironment: isViteAppClientEnvironment,
+    async config(config, { command }) {
+      if (command !== "serve") return
+      const rootDir = getRootDir(cwd, config.root || "")
+      const spriteDir = path.resolve(getTempDir(cwd, rootDir), "sprite")
       await fs.promises.mkdir(spriteDir, { recursive: true })
-
-      if (isDev) {
-        base = getServeBase(config.base || base)
-        return {
-          resolve: {
-            alias: mergeAlias(config, [
-              {
-                find: spriteAlias,
-                replacement: normalizePath(spriteDir),
-              },
-            ]),
-          },
-        }
-      }
-      if (isBuild) {
-        base = getBuildBase(config.base || base)
-        ssgDir = path.resolve(tempDir, "ssg")
-
-        const ssgFiles = await glob("*.mjs", { cwd: ssgDir })
-        if (!ssgFiles.length) return
-
-        ssgPages = (
-          await Promise.all(
-            ssgFiles.map(async (file) => {
-              const ssgFileUrl = pathToFileURL(path.resolve(ssgDir, file)).href
-              const { ssgPages } = await import(ssgFileUrl)
-              return ssgPages
-            }),
-          )
-        ).flat()
-
-        if (!ssgPages.length) return
-
-        const htmlArray = ssgPages.map((page) => page.html)
-
-        selfUpdateAssetDirNames(htmlArray)
-        if (!assetDirNames.length) return
-
-        for (const assetName of assetNames) {
-          const name = path.basename(path.dirname(assetName))
-          const fullPath = path.resolve(spriteDir, `${name}.svg`)
-          spriteMap[assetName] = normalizePath(path.relative(rootDir, fullPath))
-        }
-
-        await Promise.all(
-          assetDirNames.map(async (assetDirName) => {
-            const targetDir = path.resolve(rootDir, assetDirName)
-            const name = path.basename(targetDir)
-            const fullPath = path.resolve(spriteDir, `${name}.svg`)
-            const sprite = await generateSprite(targetDir, opts.config)
-            await fs.promises.writeFile(fullPath, sprite, "utf8")
-            const pathId = normalizePath(path.relative(rootDir, fullPath))
-            entries[createAssetEntryId(pathId, new Set(Object.keys(entries)))] = fullPath
-          }),
-        )
-        return {
-          build: {
-            rolldownOptions: {
-              input: entries,
+      return {
+        resolve: {
+          alias: mergeAlias(config, [
+            {
+              find: spriteAlias,
+              replacement: normalizePath(spriteDir),
             },
-          },
-        }
+          ]),
+        },
       }
     },
-    configureServer(server) {
-      viteServer = server
-
+    async configureServer(server) {
+      devServers.add(server)
+      server.httpServer?.once("close", () => devServers.delete(server))
+      const state = getDevState(server)
+      await fs.promises.mkdir(state.spriteDir, { recursive: true })
+      const updates = new ViteDevUpdateAdapter(server)
       server.watcher.on("all", async (event, filePath) => {
         if (!filePath.endsWith(".svg")) return
-
-        const triggers = ["add", "change", "unlink"]
-        const targetDir = path.dirname(filePath)
-
-        if (triggers.includes(event) && watchDirs.has(targetDir)) {
-          const name = path.basename(targetDir)
-          const fullPath = path.resolve(spriteDir, `${name}.svg`)
-          const sprite = await generateSprite(targetDir, opts.config)
-          await fs.promises.writeFile(fullPath, sprite, "utf8")
-          server.ws.send({ type: "full-reload" })
-        }
+        if (!["add", "change", "unlink"].includes(event)) return
+        const targetDirectory = path.dirname(filePath)
+        if (!state.watchDirectories.has(targetDirectory)) return
+        const sourceDirectory = normalizePath(
+          path.relative(state.rootDir, targetDirectory),
+        )
+        await writeDevSprite(state, sourceDirectory)
+        const pages = state.pageIndex.getPages(sourceDirectory)
+        if (pages.length > 0) updates.reloadPages(pages)
+        else updates.fullReload()
       })
     },
-    async transformIndexHtml(html) {
-      selfUpdateAssetDirNames([html])
-      if (!assetDirNames.length) return html
-
-      for (const assetName of assetNames) {
-        const name = path.basename(path.dirname(assetName))
-        const aliasUrl = normalizePath(`${spriteAlias}/${name}.svg`)
-        assetMap[assetName] = aliasUrl
-      }
-
-      await Promise.all(
-        assetDirNames.map(async (assetDirName) => {
-          const watchDir = path.resolve(rootDir, assetDirName)
-          if (!watchDirs.has(watchDir)) {
-            const name = path.basename(assetDirName)
-            const fullPath = path.resolve(spriteDir, `${name}.svg`)
-            const sprite = await generateSprite(watchDir, opts.config)
-            await fs.promises.writeFile(fullPath, sprite, "utf8")
-            watchDirs.add(watchDir)
-            if (viteServer) {
-              viteServer.watcher.add(spriteDir)
+    async transformIndexHtml(html, context) {
+      const server = devServers.resolve(context)
+      if (!server) return html
+      const state = getDevState(server)
+      if (!state.builder) return html
+      const timestamp = Date.now()
+      const prefixBase = state.base.replace(/\/$/, "")
+      /** @type {Map<import("../../core/graph/index.js").ArtifactId, string>} */
+      const outputByArtifact = new Map()
+      const feature = createSpriteFeature(opts, state.builder, {
+        resolve: (artifactId) => outputByArtifact.get(artifactId),
+      })
+      const result = await processViteDocuments(
+        [{ fileName: context.path, url: context.path, html }],
+        [feature],
+        undefined,
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(server.config),
+          "sprite:dev",
+          {
+            artifactUpdate: "input-pages",
+            async beforeCompose({ artifacts, graph }) {
+              const page = [...graph.pages.values()].find((item) => {
+                const route = graph.routes.get(item.routeId)
+                return item.url === context.path &&
+                  route?.pageModuleId === context.path
+              })
+              /** @type {import("../../features/sprite/index.js").SpriteReference[]} */
+              const references = artifacts
+                .filter((record) =>
+                  record.owner === feature.id &&
+                  record.mediaType ===
+                    "application/vnd.minista.sprite-references+json"
+                )
+                .flatMap((record) => JSON.parse(String(record.content)))
+              const sourceDirectories = [...new Set(references
+                .filter((reference) => reference.pageId === page?.id)
+                .map(({ sourceDirectory }) => sourceDirectory))]
+              state.pageIndex.replacePage(context.path, sourceDirectories)
+              for (const sourceDirectory of sourceDirectories) {
+                const watchDirectory = path.resolve(
+                  state.rootDir,
+                  sourceDirectory,
+                )
+                if (!state.watchDirectories.has(watchDirectory)) {
+                  state.watchDirectories.add(watchDirectory)
+                  server.watcher.add(watchDirectory)
+                }
+              }
+              for (const artifact of artifacts) {
+                if (artifact.owner !== feature.id ||
+                  artifact.mediaType !== "image/svg+xml") continue
+                const sourceDirectory = graph.artifacts.get(artifact.id)?.source
+                if (!sourceDirectory) continue
+                await fs.promises.writeFile(
+                  path.resolve(
+                    state.spriteDir,
+                    `${path.basename(sourceDirectory)}.svg`,
+                  ),
+                  artifact.content,
+                )
+                outputByArtifact.set(
+                  artifact.id,
+                  `${prefixBase}${spriteAlias}/${path.basename(sourceDirectory)}.svg?t=${timestamp}`,
+                )
+              }
+            },
+          },
+        ),
+      )
+      return result.documents[0]?.html ?? html
+    },
+    async generateBundle(options, bundle) {
+      const rootDir = getRootDir(cwd, this.environment.config.root || "")
+      const base = getBuildBase(this.environment.config.base || "/")
+      const builder = new NodeSpriteBuilder(rootDir, opts.config)
+      const outputClaims = claimStates.get(this.environment).claims
+      outputClaims.length = 0
+      const htmlItems = Object.values(filterOutputAssets(bundle)).filter((item) =>
+        item.fileName.endsWith(".html"),
+      )
+      const pages = htmlItems.map((item) => ({
+        item,
+        fileName: item.fileName,
+        url: getHtmlPageUrl(item.fileName),
+        html: String(item.source),
+      }))
+      const outputByArtifact = new Map()
+      const pageFileNames = new Map()
+      const feature = createSpriteFeature(opts, builder, {
+        resolve(artifactId, pageId) {
+          const fileName = outputByArtifact.get(artifactId)
+          const pageFileName = pageFileNames.get(pageId)
+          return fileName && pageFileName
+            ? getBasedAssetUrl(base, pageFileName, fileName)
+            : undefined
+        },
+      })
+      const result = await processViteDocuments(
+        pages.map(({ fileName, url, html }) => ({ fileName, url, html })),
+        [feature],
+        undefined,
+        createViteCompatibilityTraceHooks(
+          getViteBuildSession(this.environment.getTopLevelConfig()),
+          "sprite:build",
+          {
+          beforeCompose: async ({ artifacts, graph }) => {
+            for (const page of graph.pages.values()) {
+              const route = graph.routes.get(page.routeId)
+              if (route) pageFileNames.set(page.id, route.pageModuleId)
             }
-          }
+            /** @type {import("../../features/sprite/index.js").SpriteReference[]} */
+            const references = artifacts
+              .filter((record) =>
+                record.owner === feature.id &&
+                record.mediaType ===
+                  "application/vnd.minista.sprite-references+json"
+              )
+              .flatMap((record) => JSON.parse(String(record.content)))
+            for (const artifact of artifacts.filter(
+              (record) =>
+                record.owner === feature.id &&
+                record.mediaType === "image/svg+xml",
+            )) {
+              const sourceDirectory = graph.artifacts.get(artifact.id)?.source
+              if (!sourceDirectory) continue
+              const referenceId = this.emitFile({
+                type: "asset",
+                name: `${path.basename(sourceDirectory)}.svg`,
+                source: artifact.content,
+              })
+              const fileName = this.getFileName(referenceId)
+              outputByArtifact.set(artifact.id, fileName)
+              outputClaims.push(Object.freeze({
+                id: artifact.id,
+                kind: "sprite",
+                owner: feature.id,
+                source: sourceDirectory,
+                fileName,
+                pageUrls: Object.freeze([
+                  ...new Set(references
+                    .filter((reference) =>
+                      reference.sourceDirectory === sourceDirectory
+                    )
+                    .map((reference) => graph.pages.get(reference.pageId)?.url)
+                    .filter((url) => url !== undefined)),
+                ]),
+                dependencies: Object.freeze([]),
+              }))
+            }
+          },
         }),
       )
-
-      let parsedHtml = parseHtml(html)
-      const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-
-      if (!targetEls.length) return html
-
-      for (const el of targetEls) {
-        const assetName = el?.getAttribute(srcAttr)?.replace(/^\//, "") || ""
-        const symbolId =
-          el.getAttribute(symbolIdAttr) || path.parse(assetName).name
-        const assetUrl = assetMap[assetName]
-        const timestamp = Date.now()
-        const prefixBase = base.replace(/\/$/, "")
-        const href = `${prefixBase}${assetUrl}?t=${timestamp}#${symbolId}`
-        el.setAttribute("href", href)
-        el.removeAttribute(targetAttr)
-        el.removeAttribute(srcAttr)
-        el.removeAttribute(symbolIdAttr)
-      }
-      return parsedHtml.toString()
-    },
-    generateBundle(options, bundle) {
-      const outputAssets = filterOutputAssets(bundle)
-      const beforeSet = new Set(Object.values(spriteMap))
-
-      for (const item of Object.values(outputAssets)) {
-        const matches = item.originalFileNames.filter((tag) =>
-          beforeSet.has(tag) ||
-          [...beforeSet].some((before) =>
-            tag.endsWith(`/${before}`) || tag === path.basename(before),
-          ),
-        )
-        if (matches.length > 0) {
-          entryChanges[matches[0]] = item.fileName
-        }
-      }
-
-      const htmlItems = Object.values(outputAssets).filter((item) => {
-        return item.fileName.endsWith(".html")
-      })
-
-      for (const item of htmlItems) {
-        const htmlName = item.fileName
-        const html = String(item.source)
-
-        let parsedHtml = parseHtml(html)
-        const targetEls = parsedHtml.querySelectorAll(`[${targetAttr}]`)
-
-        if (!targetEls.length) continue
-
-        for (const el of targetEls) {
-          const assetName = el?.getAttribute(srcAttr)?.replace(/^\//, "") || ""
-          const symbolId =
-            el.getAttribute(symbolIdAttr) || path.parse(assetName).name
-          const before = spriteMap[assetName]
-          const after = entryChanges[before]
-          const assetUrl = getBasedAssetUrl(base, htmlName, after)
-          const href = `${assetUrl}#${symbolId}`
-          el.setAttribute("href", href)
-          el.removeAttribute(targetAttr)
-          el.removeAttribute(srcAttr)
-          el.removeAttribute(symbolIdAttr)
-        }
-        item.source = parsedHtml.toString()
+      const outputDocuments = new Map(
+        result.documents.map((document) => [document.fileName, document]),
+      )
+      for (const page of pages) {
+        const output = outputDocuments.get(page.fileName)
+        if (output && output.html !== page.html) page.item.source = output.html
       }
     },
-  }
+  })
 }

@@ -1,0 +1,656 @@
+{
+  "i18n": {
+    "defaultLocale": "en",
+    "locales": {
+      "en": {
+        "name": "English",
+        "path": "/"
+      },
+      "ja": {
+        "name": "日本語",
+        "path": "/ja/"
+      }
+    }
+  },
+
+  "site": {
+    "name": "minista",
+
+    "description": {
+      "en": "minista is a React static site generator for Vite that turns JSX and TSX into 100% static HTML, featuring TypeScript, MDX, image optimization, and optional Islands architecture.",
+      "ja": "minista（ミニスタ）は、React（JSX/TSX）とViteで100%静的なHTMLを生成するスタティックサイトジェネレーターです。TypeScript、MDX、画像最適化、Islandアーキテクチャに対応。"
+    },
+
+    "url": "https://minista.dev",
+
+    "assets": {
+      "ogp": "/ogp.png",
+      "appleTouchIcon": "/apple-touch-icon.png",
+      "favicon": "/favicon.png"
+    },
+
+    "social": {
+      "x": {
+        "card": "summary_large_image",
+        "id": "Qrac_JP",
+        "name": "Qrac",
+        "url": "https://x.com/Qrac_JP"
+      },
+      "github": {
+        "url": "https://github.com/qrac/minista"
+      }
+    },
+
+    "copyright": {
+      "since": 2021,
+      "holder": "QRANOKO",
+      "url": "https://qranoko.jp"
+    },
+
+    "software": {
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Cross-platform",
+      "license": "MIT",
+      "repository": "https://github.com/qrac/minista",
+      "package": "https://www.npmjs.com/package/minista",
+      "isAccessibleForFree": true
+    }
+  },
+
+  "home": {
+    "hero": {
+      "title": {
+        "en": "React Static Site Generator for Vite",
+        "ja": "ViteのためのReactスタティックサイトジェネレーター"
+      },
+      "description": {
+        "en": "Build 100% static websites with React JSX, TypeScript, and Vite. Add client-side JavaScript only where you need it.",
+        "ja": "React JSX、TypeScript、Viteで100%静的なWebサイトを構築。必要な場所にだけクライアントサイドJavaScriptを追加できます。"
+      },
+      "actions": [
+        {
+          "name": {
+            "en": "Get Started",
+            "ja": "はじめる"
+          },
+          "url": "/docs/guide/",
+          "variant": "primary"
+        },
+        {
+          "name": {
+            "en": "What is minista?",
+            "ja": "ministaとは？"
+          },
+          "url": "/docs/",
+          "variant": "secondary"
+        }
+      ]
+    },
+    "tagline": {
+      "heading": {
+        "en": "Write it all in JSX. Generate clean HTML.",
+        "ja": "すべてをJSXで書き、綺麗なHTMLを生成！"
+      },
+      "texts": {
+        "en": [
+          "Bring reusable JSX components to web projects that need static HTML.",
+          "Use TypeScript and familiar editor tools without learning a custom template language."
+        ],
+        "ja": [
+          "静的HTMLが必要なWeb制作の現場にも、JSXのコンポーネント管理を導入したい。",
+          "独自構文を使わず、エディタサポートの優れたTypeScriptを活用したい。"
+        ]
+      },
+      "note": "minista concept by Qrac."
+    },
+    "features": {
+      "heading": {
+        "en": "Features",
+        "ja": "Features"
+      },
+      "items": [
+        {
+          "id": "static-html",
+          "tabletColumn": 6,
+          "title": {
+            "en": "🏗️ Static HTML with JSX",
+            "ja": "🏗️ JSXから静的HTMLへ"
+          },
+          "description": {
+            "en": "Write pages and reusable components in JSX or TSX. Generate static HTML with file-based routing and data fetched at build time.",
+            "ja": "JSX・TSXでページと共通パーツを記述。ファイルベースのルーティングとビルド時のデータ取得で静的HTMLを生成します。"
+          },
+          "url": "/docs/guide/pages-routing"
+        },
+        {
+          "id": "vite",
+          "tabletColumn": 6,
+          "title": {
+            "en": "⚡️ Powered by Vite",
+            "ja": "⚡️ Viteで快適な開発"
+          },
+          "description": {
+            "en": "Develop with Vite and extend your project with plugins. Choose the minista features you need through your Vite configuration.",
+            "ja": "Viteの開発環境とプラグインを活用。必要なministaの機能をViteの設定から選んで組み合わせられます。"
+          },
+          "url": "/docs/guide/configuration"
+        },
+        {
+          "id": "island",
+          "tabletColumn": 6,
+          "title": {
+            "en": "🏝️ Interactive Islands",
+            "ja": "🏝️ 必要な部分だけインタラクティブに"
+          },
+          "description": {
+            "en": "Keep templates free of client-side React. Hydrate only interactive components, immediately or when they become visible or idle.",
+            "ja": "テンプレート用のReactはブラウザに送りません。操作が必要な部分だけを、即時・表示時・アイドル時にハイドレーションできます。"
+          },
+          "url": "/docs/guide/island"
+        },
+        {
+          "id": "image",
+          "tabletColumn": 6,
+          "title": {
+            "en": "🖼️ Optimized Images",
+            "ja": "🖼️ 画像の最適化"
+          },
+          "description": {
+            "en": "Generate responsive images with modern formats and sizes. Download and optimize remote images for local delivery.",
+            "ja": "複数のサイズや次世代フォーマットでレスポンシブ画像を生成。リモート画像もダウンロードして最適化し、ローカルから配信できます。"
+          },
+          "url": "/docs/guide/image"
+        },
+        {
+          "id": "mdx",
+          "tabletColumn": 4,
+          "title": {
+            "en": "📘 Markdown and MDX",
+            "ja": "📘 Markdown・MDXでページ制作"
+          },
+          "description": {
+            "en": "Write content in Markdown or combine it with JSX in MDX. Use either format as a page or import it into a component.",
+            "ja": "Markdownで本文を書き、MDXでJSXも組み合わせる。ページとしても、コンポーネントへインポートしても利用できます。"
+          },
+          "url": "/docs/guide/mdx"
+        },
+        {
+          "id": "entry",
+          "tabletColumn": 4,
+          "title": {
+            "en": "✍️ Automatic Asset Bundling",
+            "ja": "✍️ アセットを自動でバンドル"
+          },
+          "description": {
+            "en": "Reference CSS, JavaScript, and TypeScript in HTML attributes. minista discovers and bundles these entries for production.",
+            "ja": "HTMLの属性からCSS・JavaScript・TypeScriptを参照するだけ。エントリーを自動で検出し、公開用にバンドルします。"
+          },
+          "url": "/docs/guide/entry"
+        },
+        {
+          "id": "sprite",
+          "tabletColumn": 4,
+          "title": {
+            "en": "🧩 SVG Sprites",
+            "ja": "🧩 SVGスプライト"
+          },
+          "description": {
+            "en": "Optimize SVG icons and combine them into a sprite. Reuse icons with colors controlled through CSS.",
+            "ja": "SVGアイコンを最適化してスプライトに集約。CSSで色を調整しながら、同じアイコンを再利用できます。"
+          },
+          "url": "/docs/guide/sprite"
+        },
+        {
+          "id": "search",
+          "tabletColumn": 4,
+          "title": {
+            "en": "🔍 Static Site Search",
+            "ja": "🔍 静的サイト内検索"
+          },
+          "description": {
+            "en": "Generate search data at build time with no search server. Separate indexes by language or content area.",
+            "ja": "ビルド時に検索データを生成するため、検索サーバーは不要。言語やコンテンツごとにインデックスを分けられます。"
+          },
+          "url": "/docs/guide/search"
+        },
+        {
+          "id": "delivery",
+          "tabletColumn": 4,
+          "title": {
+            "en": "📦 Ready for Delivery",
+            "ja": "📦 綺麗なコードで納品"
+          },
+          "description": {
+            "en": "Format HTML, CSS, and JavaScript for readability, then package output and source files into ZIP archives for delivery.",
+            "ja": "HTML・CSS・JavaScriptを読みやすく整形。出力やソースファイルをZIPにまとめて、制作物を納品できます。"
+          },
+          "url": "/docs/why#output-for-delivery"
+        },
+        {
+          "id": "agents",
+          "tabletColumn": 4,
+          "title": {
+            "en": "🤖 Built for AI Agents",
+            "ja": "🤖 AIエージェントと制作"
+          },
+          "description": {
+            "en": "Give coding agents a project guide and use check, inspect, and explain to examine configuration, routes, and build diagnostics.",
+            "ja": "制作ルールをAIエージェントと共有。check・inspect・explainで設定やルート、ビルドの診断を確認しながら制作できます。"
+          },
+          "url": "/docs/guide/agents"
+        }
+      ]
+    }
+  },
+
+  "navigation": {
+    "main": {
+      "name": {
+        "en": "Main",
+        "ja": "メイン"
+      },
+
+      "items": [
+        {
+          "id": "docs",
+          "name": {
+            "en": "Docs",
+            "ja": "ドキュメント"
+          },
+          "url": "/docs/",
+          "external": false
+        },
+        {
+          "id": "github",
+          "name": {
+            "en": "GitHub",
+            "ja": "GitHub"
+          },
+          "url": "https://github.com/qrac/minista",
+          "external": true
+        }
+      ]
+    },
+
+    "versions": {
+      "name": {
+        "en": "Versions",
+        "ja": "バージョン"
+      },
+
+      "archives": [
+        {
+          "id": "v4",
+          "name": "v4.0.13",
+          "url": "/v4/",
+          "external": false
+        },
+        {
+          "id": "v3",
+          "name": "v3.1.12",
+          "url": "/v3/",
+          "external": false
+        }
+      ]
+    },
+
+    "docs": {
+      "name": {
+        "en": "Docs",
+        "ja": "ドキュメント"
+      },
+
+      "groups": [
+        {
+          "id": "introduction",
+          "name": {
+            "en": "Introduction",
+            "ja": "イントロダクション"
+          },
+          "pager": true,
+          "items": [
+            {
+              "id": "what-is-minista",
+              "name": {
+                "en": "What is minista?",
+                "ja": "ministaとは？"
+              },
+              "url": "/docs/"
+            },
+            {
+              "id": "why-minista",
+              "name": {
+                "en": "Why minista?",
+                "ja": "ministaを選ぶ理由"
+              },
+              "url": "/docs/why"
+            },
+            {
+              "id": "philosophy",
+              "name": {
+                "en": "Philosophy",
+                "ja": "理念"
+              },
+              "url": "/docs/philosophy"
+            },
+            {
+              "id": "history",
+              "name": {
+                "en": "History",
+                "ja": "歴史"
+              },
+              "url": "/docs/history"
+            }
+          ]
+        },
+        {
+          "id": "guide",
+          "name": {
+            "en": "Guide",
+            "ja": "ガイド"
+          },
+          "pager": true,
+          "items": [
+            {
+              "id": "getting-started",
+              "name": {
+                "en": "Getting started",
+                "ja": "はじめる"
+              },
+              "url": "/docs/guide/"
+            },
+            {
+              "id": "agents",
+              "name": {
+                "en": "Building with agents",
+                "ja": "エージェントを使った制作"
+              },
+              "url": "/docs/guide/agents"
+            },
+            {
+              "id": "project-structure",
+              "name": {
+                "en": "Project structure",
+                "ja": "プロジェクト構成"
+              },
+              "url": "/docs/guide/project-structure"
+            },
+            {
+              "id": "configuration",
+              "name": {
+                "en": "Configuration",
+                "ja": "設定"
+              },
+              "url": "/docs/guide/configuration"
+            },
+            {
+              "id": "build-deploy",
+              "name": {
+                "en": "Build and deploy",
+                "ja": "ビルドとデプロイ"
+              },
+              "url": "/docs/guide/build-deploy"
+            },
+            {
+              "id": "pages-routing",
+              "name": {
+                "en": "File-based routing",
+                "ja": "ファイルベースルーティング"
+              },
+              "url": "/docs/guide/pages-routing"
+            },
+            {
+              "id": "mdx",
+              "name": {
+                "en": "Markdown and MDX",
+                "ja": "Markdown・MDX"
+              },
+              "url": "/docs/guide/mdx"
+            },
+            {
+              "id": "404",
+              "name": {
+                "en": "404 page",
+                "ja": "404ページ"
+              },
+              "url": "/docs/guide/404"
+            },
+            {
+              "id": "static-data",
+              "name": {
+                "en": "Passing data to pages",
+                "ja": "ページへデータを渡す"
+              },
+              "url": "/docs/guide/static-data"
+            },
+            {
+              "id": "fetch",
+              "name": {
+                "en": "Page generation from APIs",
+                "ja": "APIによるページ生成"
+              },
+              "url": "/docs/guide/fetch"
+            },
+            {
+              "id": "layouts",
+              "name": {
+                "en": "Layouts",
+                "ja": "レイアウト"
+              },
+              "url": "/docs/guide/layouts"
+            },
+            {
+              "id": "head",
+              "name": {
+                "en": "Head",
+                "ja": "Head"
+              },
+              "url": "/docs/guide/head"
+            },
+            {
+              "id": "public",
+              "name": {
+                "en": "Public files",
+                "ja": "publicのファイル"
+              },
+              "url": "/docs/guide/public"
+            },
+            {
+              "id": "images-assets",
+              "name": {
+                "en": "Image bundling",
+                "ja": "画像のバンドル"
+              },
+              "url": "/docs/guide/images-assets"
+            },
+            {
+              "id": "styling",
+              "name": {
+                "en": "CSS bundling",
+                "ja": "CSSのバンドル"
+              },
+              "url": "/docs/guide/styling"
+            },
+            {
+              "id": "entry",
+              "name": {
+                "en": "CSS, JS, and TS entries",
+                "ja": "CSS・JS・TSのエントリー"
+              },
+              "url": "/docs/guide/entry"
+            },
+            {
+              "id": "image",
+              "name": {
+                "en": "Image optimization",
+                "ja": "画像最適化"
+              },
+              "url": "/docs/guide/image"
+            },
+            {
+              "id": "svg",
+              "name": {
+                "en": "SVG optimization",
+                "ja": "SVG最適化"
+              },
+              "url": "/docs/guide/svg"
+            },
+            {
+              "id": "sprite",
+              "name": {
+                "en": "SVG sprites",
+                "ja": "SVGスプライト"
+              },
+              "url": "/docs/guide/sprite"
+            },
+            {
+              "id": "island",
+              "name": {
+                "en": "Island",
+                "ja": "Island"
+              },
+              "url": "/docs/guide/island"
+            },
+            {
+              "id": "island-size",
+              "name": {
+                "en": "Reducing Island size",
+                "ja": "Islandの容量削減"
+              },
+              "url": "/docs/guide/island-size"
+            },
+            {
+              "id": "search",
+              "name": {
+                "en": "Static site search",
+                "ja": "静的サイト内検索"
+              },
+              "url": "/docs/guide/search"
+            },
+            {
+              "id": "comment",
+              "name": {
+                "en": "HTML comments",
+                "ja": "HTMLコメント"
+              },
+              "url": "/docs/guide/comment"
+            },
+            {
+              "id": "beautify",
+              "name": {
+                "en": "HTML formatting",
+                "ja": "HTMLの整形"
+              },
+              "url": "/docs/guide/beautify"
+            },
+            {
+              "id": "archive",
+              "name": {
+                "en": "Delivery archives",
+                "ja": "納品用アーカイブの生成"
+              },
+              "url": "/docs/guide/archive"
+            }
+          ]
+        },
+        {
+          "id": "reference",
+          "name": {
+            "en": "Reference",
+            "ja": "リファレンス"
+          },
+          "pager": false,
+          "items": [
+            {
+              "id": "cli",
+              "name": {
+                "en": "CLI",
+                "ja": "CLI"
+              },
+              "url": "/docs/reference/cli"
+            },
+            {
+              "id": "config",
+              "name": {
+                "en": "Configuration reference",
+                "ja": "設定リファレンス"
+              },
+              "url": "/docs/reference/config"
+            },
+            {
+              "id": "typescript",
+              "name": {
+                "en": "TypeScript",
+                "ja": "TypeScript"
+              },
+              "url": "/docs/reference/typescript"
+            },
+            {
+              "id": "migration",
+              "name": {
+                "en": "Migrating from v4 to v5",
+                "ja": "v4からv5への移行"
+              },
+              "url": "/docs/reference/migration"
+            }
+          ]
+        },
+        {
+          "id": "plugins",
+          "name": {
+            "en": "Plugins",
+            "ja": "プラグイン"
+          },
+          "pager": false,
+          "items": [
+            {
+              "id": "plugin-ssg",
+              "name": "pluginSsg",
+              "url": "/docs/plugins/ssg"
+            },
+            {
+              "id": "plugin-image",
+              "name": "pluginImage",
+              "url": "/docs/plugins/image"
+            },
+            {
+              "id": "plugin-svg",
+              "name": "pluginSvg",
+              "url": "/docs/plugins/svg"
+            },
+            {
+              "id": "plugin-sprite",
+              "name": "pluginSprite",
+              "url": "/docs/plugins/sprite"
+            },
+            {
+              "id": "plugin-comment",
+              "name": "pluginComment",
+              "url": "/docs/plugins/comment"
+            },
+            {
+              "id": "plugin-island",
+              "name": "pluginIsland",
+              "url": "/docs/plugins/island"
+            },
+            {
+              "id": "plugin-search",
+              "name": "pluginSearch",
+              "url": "/docs/plugins/search"
+            },
+            {
+              "id": "plugin-beautify",
+              "name": "pluginBeautify",
+              "url": "/docs/plugins/beautify"
+            },
+            {
+              "id": "plugin-archive",
+              "name": "pluginArchive",
+              "url": "/docs/plugins/archive"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,140 @@
+---
+layout: docs
+locale: en
+title: Static site search
+---
+
+# Static site search
+
+`pluginSearch()` generates search JSON from page content. The search UI loads this data in the browser, so no search server or external service is needed.
+
+Use the [Island](/docs/guide/island) setup to search news on the site.
+
+## Table of Contents
+
+contents list
+
+## Add the search plugin ||add-search-plugin||
+
+The search UI runs as an Island. Add `pluginIsland()` and `pluginSearch()` alongside `pluginSsg()`.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginIsland, pluginSearch } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginIsland(), pluginSearch()],
+})
+```
+
+## Mark search content
+
+Add `data-search` to the area included in search. Place navigation and the footer outside it. The HTML `title` is used for search result titles.
+
+```tsx title="src/pages/news/hello.tsx"
+import { Head } from "minista/head"
+
+export default function Article() {
+  return (
+    <>
+      <Head>
+        <title>Our studio is open</title>
+      </Head>
+      <article data-search>
+        <h1>Our studio is open</h1>
+        <h2 id="equipment">Studio equipment</h2>
+        <p>We installed new lighting in the photography studio.</p>
+      </article>
+    </>
+  )
+}
+```
+
+Heading IDs allow search results to link to positions within the content. For Markdown and MDX pages, you can wrap content in an area with `data-search` in the shared layout.
+
+## Add the search UI ||add-search-ui||
+
+```tsx title="src/pages/search.tsx"
+import { Search } from "minista/assets"
+
+export default function SearchPage() {
+  return (
+    <>
+      <h1>Site search</h1>
+      <Search
+        client:load
+        field={{ placeholder: "Enter keywords" }}
+        maxHitPages={10}
+      />
+    </>
+  )
+}
+```
+
+`Search` outputs a search field and result list. Add `client:load` to make it interactive and style it with CSS.
+
+## Build and search ||search-output||
+
+```text title="Project structure"
+src/pages/
+├── index.tsx
+├── search.tsx
+└── news/
+    └── hello.tsx
+```
+
+```text title="Example build output"
+dist/
+├── index.html
+├── search.html
+├── news/
+│   └── hello.html
+└── assets/
+    ├── search-[hash].json
+    └── ... (JavaScript for the search UI and other dependencies)
+```
+
+Run `npm run build` and `npm run preview`, then enter "studio" at `/search`. Search data is fetched on the first input. When updating content, rebuild the HTML and search JSON and publish them together.
+
+## Search scope
+
+`src` and `ignore` are HTML file globs relative to the output directory. For example, use the following configuration to search only news.
+
+```ts
+pluginSearch({
+  src: ["news/**/*.html"],
+  ignore: ["news/draft.html"],
+  ignoreSelectors: ["h1", ".navigation"],
+  trimTitle: " - My Site",
+})
+```
+
+`ignoreSelectors` specifies unwanted elements within the content, and `trimTitle` specifies strings to remove from search result titles.
+
+Adjust the words included in generated data with `hit`. Lower `hit.minLength` to include short Japanese phrases. This differs from `minHitLength`, which controls when the UI starts searching.
+
+```ts
+pluginSearch({ hit: { minLength: 2, hiragana: true } })
+```
+
+## Multiple indexes
+
+Set `indexes` for multilingual sites or to separate targets such as a blog and documentation.
+
+```ts
+pluginSearch({
+  indexes: {
+    docs: { src: ["docs/**/*.html"] },
+    news: { src: ["news/**/*.html"] },
+  },
+})
+```
+
+```tsx
+<Search index="docs" client:load />
+```
+
+This example outputs two JSON files based on `search-docs` and `search-news`. Select a target explicitly with the UI's `index`. There is no automatic selection based on the URL.
+
+See [pluginSearch](/docs/plugins/search) for per-index setting inheritance, search UI props, and the JSON format.
+
+Next, [HTML comments](/docs/guide/comment) leaves section markers and notes in generated HTML.

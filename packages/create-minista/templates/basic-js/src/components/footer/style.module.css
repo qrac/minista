@@ -1,0 +1,9 @@
+.footer {
+  padding: 32px;
+}
+
+.copyright {
+  margin: 0;
+  color: var(--theme-tx-3);
+  font-size: 0.875rem;
+}
