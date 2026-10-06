@@ -14,7 +14,7 @@ contents list
 
 ## コマンド一覧 ||commands||
 
-表の`[root]`は省略可能なプロジェクトルートです。省略すると現在のディレクトリを使います。
+表の`[root]`は省略可能なプロジェクトルートです。コマンド入力時に省略すると、現在のディレクトリを使います。
 
 | コマンド                           | 内容                                              |
 | ---------------------------------- | ------------------------------------------------- |
@@ -23,7 +23,7 @@ contents list
 | `minista preview [root]`           | ビルド済みファイルをローカルで配信                |
 | `minista check [root]`             | ページやルートの問題を検査                        |
 | `minista inspect [root]`           | Project Graphの概要を表示                         |
-| `minista explain <node-id> [root]` | 指定したGraphの要素の関係を表示                    |
+| `minista explain <node-id> [root]` | 指定したGraphの要素の関係を表示                   |
 | `minista agents [root]`            | インストール済みバージョンのagent向けガイドを表示 |
 
 ## 開発・ビルド・プレビュー ||dev-build-preview||
@@ -114,11 +114,11 @@ npx minista agents --write
 
 ## 独自オプション ||cli-options||
 
-| オプション   | 対象                                    | 内容                           |
-| ------------ | --------------------------------------- | ------------------------------ |
+| オプション   | 対象                                 | 内容                           |
+| ------------ | ------------------------------------ | ------------------------------ |
 | `--json`     | `check` `inspect` `explain` `agents` | 結果をJSON形式で出力           |
-| `--manifest` | `inspect`                               | 保存済みmanifestだけを読み取る |
-| `--write`    | `agents`                                | `AGENTS.md`へ案内を追加・更新  |
+| `--manifest` | `inspect`                            | 保存済みmanifestだけを読み取る |
+| `--write`    | `agents`                             | `AGENTS.md`へ案内を追加・更新  |
 
 v4の`--oneBuild`は削除されました。指定すると`MINISTA_CLI_OPTION_REMOVED`で終了します。標準の`minista build`を使用してください。
 
