@@ -6,16 +6,16 @@ import ElementSectionTitle from "../../../element/section-title"
 import type { Props } from "./props"
 import { initialProps } from "./props"
 
-export default function PageLegacyFeatures(props: Partial<Props>) {
-  const { items } = { ...initialProps, ...props }
+export default function PageHomeFeatures(props: Partial<Props>) {
+  const { heading, items } = { ...initialProps, ...props }
   return (
     <section className="section">
       <div className="inner is-px-lg">
-        <ElementSectionTitle text="Features" align="right" fixPosition={true} />
+        <ElementSectionTitle text={heading} align="right" fixPosition={true} />
         <div className="grid is-gap-sm">
-          {items.map((item, index) => (
+          {items.map((item) => (
             <div
-              key={index}
+              key={item.id}
               className={clsx(
                 "column is-flex-12",
                 `tablet:is-flex-${item.tabletColumn}`,

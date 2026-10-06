@@ -63,308 +63,181 @@
         "en": "React Static Site Generator for Vite",
         "ja": "ViteのためのReactスタティックサイトジェネレーター"
       },
-
       "description": {
         "en": "Build 100% static websites with React JSX, TypeScript, and Vite. Add client-side JavaScript only where you need it.",
         "ja": "React JSX、TypeScript、Viteで100%静的なWebサイトを構築。必要な場所にだけクライアントサイドJavaScriptを追加できます。"
       },
-
       "actions": [
         {
-          "id": "get-started",
           "name": {
             "en": "Get Started",
             "ja": "はじめる"
           },
-          "url": "/docs/",
-          "external": false,
+          "url": "/docs/guide/",
           "variant": "primary"
         },
         {
-          "id": "github",
           "name": {
-            "en": "View on GitHub",
-            "ja": "GitHubで見る"
+            "en": "What is minista?",
+            "ja": "ministaとは？"
           },
-          "url": "https://github.com/qrac/minista",
-          "external": true,
+          "url": "/docs/",
           "variant": "secondary"
         }
-      ],
-
-      "quickStart": {
-        "default": "npm",
-        "items": [
-          {
-            "id": "npm",
-            "name": "npm",
-            "command": "npm create minista@latest"
-          },
-          {
-            "id": "pnpm",
-            "name": "pnpm",
-            "command": "pnpm create minista"
-          },
-          {
-            "id": "yarn",
-            "name": "Yarn",
-            "command": "yarn create minista"
-          },
-          {
-            "id": "bun",
-            "name": "Bun",
-            "command": "bun create minista"
-          }
+      ]
+    },
+    "tagline": {
+      "heading": {
+        "en": "Write it all in JSX. Generate clean HTML.",
+        "ja": "すべてをJSXで書き、綺麗なHTMLを生成！"
+      },
+      "texts": {
+        "en": [
+          "Bring reusable JSX components to web projects that need static HTML.",
+          "Use TypeScript and familiar editor tools without learning a custom template language."
+        ],
+        "ja": [
+          "静的HTMLが必要なWeb制作の現場にも、JSXのコンポーネント管理を導入したい。",
+          "独自構文を使わず、エディタサポートの優れたTypeScriptを活用したい。"
         ]
-      }
+      },
+      "note": "minista concept by Qrac."
     },
-
-    "about": {
-      "eyebrow": {
-        "en": "About minista",
-        "ja": "ministaについて"
+    "features": {
+      "heading": {
+        "en": "Features",
+        "ja": "Features"
       },
-
-      "title": {
-        "en": "What is minista?",
-        "ja": "ministaとは？"
-      },
-
-      "description": {
-        "en": "minista is an open-source static site generator for React and Vite. Write pages and components with familiar JSX and TypeScript, then generate lightweight, production-ready static HTML.",
-        "ja": "ministaはReactとViteのためのオープンソースのスタティックサイトジェネレーターです。使い慣れたJSXとTypeScriptでページやコンポーネントを作り、軽量で本番環境に適した静的HTMLを生成できます。"
-      }
-    },
-
-    "benefits": {
-      "eyebrow": {
-        "en": "Why minista",
-        "ja": "ministaを選ぶ理由"
-      },
-
-      "title": {
-        "en": "Static by default. Interactive when needed.",
-        "ja": "基本は静的。必要な場所だけインタラクティブ。"
-      },
-
-      "description": {
-        "en": "Use React as a powerful template system without turning every page into a client-side application.",
-        "ja": "すべてのページをクライアントサイドアプリにすることなく、Reactを強力なテンプレートシステムとして利用できます。"
-      },
-
       "items": [
         {
           "id": "static-html",
+          "tabletColumn": 6,
           "title": {
-            "en": "100% Static HTML",
-            "ja": "100% 静的HTML"
+            "en": "🏗️ Static HTML with JSX",
+            "ja": "🏗️ JSXから静的HTMLへ"
           },
           "description": {
-            "en": "Pages are generated as static HTML with no client-side runtime required by default.",
-            "ja": "ページは静的HTMLとして生成され、デフォルトではクライアントサイドのランタイムを必要としません。"
-          }
-        },
-        {
-          "id": "react-typescript",
-          "title": {
-            "en": "React + TypeScript",
-            "ja": "React + TypeScript"
+            "en": "Write pages and reusable components in JSX or TSX. Generate static HTML with file-based routing and data fetched at build time.",
+            "ja": "JSX・TSXでページと共通パーツを記述。ファイルベースのルーティングとビルド時のデータ取得で静的HTMLを生成します。"
           },
-          "description": {
-            "en": "Build pages and reusable components with JSX, TSX, props, and TypeScript.",
-            "ja": "JSX・TSX・props・TypeScriptを使って、ページや再利用可能なコンポーネントを構築できます。"
-          }
+          "url": "/docs/guide/pages-routing"
         },
         {
           "id": "vite",
+          "tabletColumn": 6,
           "title": {
-            "en": "Built on Vite",
-            "ja": "Viteベース"
+            "en": "⚡️ Powered by Vite",
+            "ja": "⚡️ Viteで快適な開発"
           },
           "description": {
-            "en": "Use Vite's fast development experience and extend your build with Vite plugins.",
-            "ja": "Viteの高速な開発体験を利用し、Viteプラグインでビルドを拡張できます。"
-          }
-        },
-        {
-          "id": "islands",
-          "title": {
-            "en": "Optional Islands",
-            "ja": "必要な部分だけIsland化"
+            "en": "Develop with Vite and extend your project with plugins. Choose the minista features you need through your Vite configuration.",
+            "ja": "Viteの開発環境とプラグインを活用。必要なministaの機能をViteの設定から選んで組み合わせられます。"
           },
-          "description": {
-            "en": "Add client-side React hydration only to components that require interactivity.",
-            "ja": "インタラクティブ性が必要なコンポーネントにのみ、ピンポイントでクライアントサイドReactを適用できます。"
-          }
-        }
-      ]
-    },
-
-    "features": {
-      "eyebrow": {
-        "en": "Features",
-        "ja": "機能"
-      },
-
-      "title": {
-        "en": "Everything you need to build static sites.",
-        "ja": "静的サイト制作に必要な機能をひとつに。"
-      },
-
-      "description": {
-        "en": "A modern toolkit for building, optimizing, and shipping static websites with React and Vite.",
-        "ja": "ReactとViteで静的サイトを構築・最適化・公開するためのモダンなツールキットです。"
-      },
-
-      "items": [
-        {
-          "id": "ssg",
-          "title": {
-            "en": "File-based SSG",
-            "ja": "ファイルベースSSG"
-          },
-          "description": {
-            "en": "Create static pages from JSX and TSX with simple file-based routing.",
-            "ja": "JSX・TSXとシンプルなファイルベースルーティングから静的ページを生成します。"
-          }
-        },
-        {
-          "id": "mdx",
-          "title": {
-            "en": "MDX",
-            "ja": "MDX"
-          },
-          "description": {
-            "en": "Write content in Markdown while using React components where needed.",
-            "ja": "Markdownでコンテンツを書きながら、必要な場所でReactコンポーネントを利用できます。"
-          }
-        },
-        {
-          "id": "image",
-          "title": {
-            "en": "Image Optimization",
-            "ja": "画像最適化"
-          },
-          "description": {
-            "en": "Optimize local and remote images automatically during the build.",
-            "ja": "ローカル画像やリモート画像をビルド時に自動で最適化します。"
-          }
+          "url": "/docs/guide/configuration"
         },
         {
           "id": "island",
+          "tabletColumn": 6,
           "title": {
-            "en": "Islands",
-            "ja": "Islands"
+            "en": "🏝️ Interactive Islands",
+            "ja": "🏝️ 必要な部分だけインタラクティブに"
           },
           "description": {
-            "en": "Hydrate interactive React components independently from the static page.",
-            "ja": "静的ページの中でインタラクティブなReactコンポーネントだけを個別にハイドレートします。"
-          }
+            "en": "Keep templates free of client-side React. Hydrate only interactive components, immediately or when they become visible or idle.",
+            "ja": "テンプレート用のReactはブラウザに送りません。操作が必要な部分だけを、即時・表示時・アイドル時にハイドレーションできます。"
+          },
+          "url": "/docs/guide/island"
+        },
+        {
+          "id": "image",
+          "tabletColumn": 6,
+          "title": {
+            "en": "🖼️ Optimized Images",
+            "ja": "🖼️ 画像の最適化"
+          },
+          "description": {
+            "en": "Generate responsive images with modern formats and sizes. Download and optimize remote images for local delivery.",
+            "ja": "複数のサイズや次世代フォーマットでレスポンシブ画像を生成。リモート画像もダウンロードして最適化し、ローカルから配信できます。"
+          },
+          "url": "/docs/guide/image"
+        },
+        {
+          "id": "mdx",
+          "tabletColumn": 4,
+          "title": {
+            "en": "📘 Markdown and MDX",
+            "ja": "📘 Markdown・MDXでページ制作"
+          },
+          "description": {
+            "en": "Write content in Markdown or combine it with JSX in MDX. Use either format as a page or import it into a component.",
+            "ja": "Markdownで本文を書き、MDXでJSXも組み合わせる。ページとしても、コンポーネントへインポートしても利用できます。"
+          },
+          "url": "/docs/guide/mdx"
+        },
+        {
+          "id": "entry",
+          "tabletColumn": 4,
+          "title": {
+            "en": "✍️ Automatic Asset Bundling",
+            "ja": "✍️ アセットを自動でバンドル"
+          },
+          "description": {
+            "en": "Reference CSS, JavaScript, and TypeScript in HTML attributes. minista discovers and bundles these entries for production.",
+            "ja": "HTMLの属性からCSS・JavaScript・TypeScriptを参照するだけ。エントリーを自動で検出し、公開用にバンドルします。"
+          },
+          "url": "/docs/guide/entry"
+        },
+        {
+          "id": "sprite",
+          "tabletColumn": 4,
+          "title": {
+            "en": "🧩 SVG Sprites",
+            "ja": "🧩 SVGスプライト"
+          },
+          "description": {
+            "en": "Optimize SVG icons and combine them into a sprite. Reuse icons with colors controlled through CSS.",
+            "ja": "SVGアイコンを最適化してスプライトに集約。CSSで色を調整しながら、同じアイコンを再利用できます。"
+          },
+          "url": "/docs/guide/sprite"
         },
         {
           "id": "search",
+          "tabletColumn": 4,
           "title": {
-            "en": "Static Site Search",
-            "ja": "静的サイト内検索"
+            "en": "🔍 Static Site Search",
+            "ja": "🔍 静的サイト内検索"
           },
           "description": {
-            "en": "Generate a lightweight search index for your static content.",
-            "ja": "静的コンテンツから軽量なサイト内検索インデックスを生成します。"
-          }
+            "en": "Generate search data at build time with no search server. Separate indexes by language or content area.",
+            "ja": "ビルド時に検索データを生成するため、検索サーバーは不要。言語やコンテンツごとにインデックスを分けられます。"
+          },
+          "url": "/docs/guide/search"
         },
         {
-          "id": "archive",
+          "id": "delivery",
+          "tabletColumn": 4,
           "title": {
-            "en": "Production Archive",
-            "ja": "納品用アーカイブ"
+            "en": "📦 Ready for Delivery",
+            "ja": "📦 綺麗なコードで納品"
           },
           "description": {
-            "en": "Package production-ready static output into a deliverable zip archive.",
-            "ja": "本番用の静的出力を納品用アーカイブとしてまとめられます。"
-          }
-        }
-      ]
-    },
-
-    "useCases": {
-      "eyebrow": {
-        "en": "Use Cases",
-        "ja": "ユースケース"
-      },
-
-      "title": {
-        "en": "Built for content-driven static websites.",
-        "ja": "コンテンツ中心の静的サイトに。"
-      },
-
-      "description": {
-        "en": "Use minista for documentation, marketing sites, corporate websites, and other content-focused projects.",
-        "ja": "ドキュメント、マーケティングサイト、コーポレートサイトなど、コンテンツ中心のプロジェクトに利用できます。"
-      },
-
-      "items": [
-        {
-          "id": "documentation",
-          "title": {
-            "en": "Documentation",
-            "ja": "ドキュメント"
-          }
-        },
-        {
-          "id": "marketing",
-          "title": {
-            "en": "Marketing Sites",
-            "ja": "マーケティングサイト"
-          }
-        },
-        {
-          "id": "corporate",
-          "title": {
-            "en": "Corporate Sites",
-            "ja": "コーポレートサイト"
-          }
-        },
-        {
-          "id": "content",
-          "title": {
-            "en": "Content Sites",
-            "ja": "コンテンツサイト"
-          }
-        }
-      ]
-    },
-
-    "cta": {
-      "title": {
-        "en": "Ready to build with minista?",
-        "ja": "ministaではじめませんか？"
-      },
-
-      "description": {
-        "en": "Start building fast, static websites with React and Vite.",
-        "ja": "ReactとViteで、高速な静的Webサイトを作り始めましょう。"
-      },
-
-      "actions": [
-        {
-          "id": "get-started",
-          "name": {
-            "en": "Get Started",
-            "ja": "はじめる"
+            "en": "Format HTML, CSS, and JavaScript for readability, then package output and source files into ZIP archives for delivery.",
+            "ja": "HTML・CSS・JavaScriptを読みやすく整形。出力やソースファイルをZIPにまとめて、制作物を納品できます。"
           },
-          "url": "/docs/",
-          "external": false,
-          "variant": "primary"
+          "url": "/docs/why#output-for-delivery"
         },
         {
-          "id": "github",
-          "name": {
-            "en": "View on GitHub",
-            "ja": "GitHubで見る"
+          "id": "agents",
+          "tabletColumn": 4,
+          "title": {
+            "en": "🤖 Built for AI Agents",
+            "ja": "🤖 AIエージェントと制作"
           },
-          "url": "https://github.com/qrac/minista",
-          "external": true,
-          "variant": "secondary"
+          "description": {
+            "en": "Give coding agents a project guide and use check, inspect, and explain to examine configuration, routes, and build diagnostics.",
+            "ja": "制作ルールをAIエージェントと共有。check・inspect・explainで設定やルート、ビルドの診断を確認しながら制作できます。"
+          },
+          "url": "/docs/guide/agents"
         }
       ]
     }
