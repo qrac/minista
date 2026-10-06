@@ -1,0 +1,27 @@
+# Copy this file to .github/workflows/cloudflare-archive.yml on BOTH archive branches.
+name: Notify docs archive update
+
+on:
+  push:
+    branches: [v3-archive, v4-archive]
+    paths:
+      - "docs/**"
+      - "packages/minista/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/cloudflare-archive.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reconcile docs on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh api --method POST "repos/$GH_REPO/dispatches" -f event_type=docs-archive-updated
