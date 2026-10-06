@@ -31,7 +31,11 @@ archive内のHTMLのhref／src／posterについて、prefix付きの内部参�
 3. GitHub Actionsにrepository contentsの書き込みを許可し、cloudflareブランチのルールでbotによる通常pushを許可する。
 4. Cloudflare WorkersでGit repositoryを接続する。Worker名はminista、本番branchはcloudflare、build commandは`exit 0`、deploy commandは`npx wrangler@4 deploy`、root directoryはrepository root。静的asset directoryはwrangler.jsoncの`./public`から解決する。非本番branchの自動buildは無効にする。
 
-   新規作成画面で本番branchを選べない場合、default branchのmainからデプロイしない。cloudflare branchのcheckoutから`npx wrangler@4 deploy`で初回公開し、既存WorkerのSettings > BuildsからGit repositoryを接続する。Branch controlで本番branchをcloudflareへ変更し、preview buildsを無効にしてから自動公開を運用する。Wrangler設定のあるmain内のdirectoryにはpublicがないため、そのままの公開元には使わない。
+   APIを使う場合、Workers APIで未公開のWorkerを作成できる。公開前はworkers.devとpreview URLsを無効にし、Builds APIのGit repository設定でbranchをcloudflareに指定する。Buildsの設定にはデプロイ用build token UUIDが必須で、API操作に使うプラグインの認証とは別に登録する。現在のWorkers Buildsはuser-owned tokenを使う。プラグインにAPIトークン管理権限がない場合、Cloudflare側でminista用のbuild tokenを登録してから続ける。仮ドメイン、アカウント・zone・token・Git接続などの識別子、トークン値、deploy hook URLは内部文書やリポジトリへ記載しない。手順には具体値を含めず、必要な値はCloudflare側で確認する。
+
+   未公開Workerにversionがない場合、dashboardのGit接続ボタンも無効になる。公開しない初期versionをAPIで登録すると接続できる。初期versionはGit設定を有効にするためだけのもので、本番へdeployしない。Git接続時の初回buildも公開前の確認に留める場合、deploy commandを一時的に`npx wrangler@4 versions upload`とし、成果物versionの確認後に通常のdeploy commandへ変更する。
+
+   新規作成画面で本番branchを選べない場合、default branchのmainからデプロイしない。APIでbranchを指定するか、cloudflare branchのcheckoutから`npx wrangler@4 deploy`で初回公開し、既存WorkerのSettings > BuildsからGit repositoryを接続する。Branch controlで本番branchをcloudflareへ変更し、preview buildsを無効にしてから自動公開を運用する。Wrangler設定のあるmain内のdirectoryにはpublicがないため、そのままの公開元には使わない。
 
 5. ActionsのGITHUB_TOKENによるpushでCloudflareのGit連携が公開を起動することを初回に確認する。GitHub Actions自身のpush trigger抑制と外部連携は区別する。連携が起動しない場合はCloudflare Workers Buildsのdeploy hookやGitHub ActionsからのWrangler deployへ切り替える判断を行う。
 6. workers.devのURLでトップ、深いページの直接アクセス、検索JSON取得と検索結果の遷移、CSS／JS／画像、version切り替え、404を確認する。rootの404.htmlがない成果物は公開しない。
@@ -43,10 +47,16 @@ workflow_dispatchのtargetはauto／main／v3／v4／all。autoは差分確認�
 
 `node --test scripts/docs-deploy/deploy.test.js`で、main更新時のarchive保持、古い成果物の削除、予約path衝突、archive単独更新、URL補正、ビルド対象pathを確認する。公開scriptは`node --check scripts/docs-deploy/deploy.js`で構文確認する。workflowはYAML構造を確認する。
 
+2026-10-06にworkers.devで初回公開した。最新docsの英語・日本語、v3・v4のページと検索結果への遷移、version切り替えをブラウザで確認。公開成果物188ファイルのURLはすべてHTTP 200、各世代の欠落URLは404、`.html`のURLは拡張子なしURLへリダイレクトした。
+
+Cloudflareの本番branchはcloudflare、build commandは`exit 0`、deploy commandは`npx wrangler@4 deploy`へ設定済み。初回buildはAPIの手動起動で確認したため、ActionsのGITHUB_TOKENによる次回pushから外部Git連携が起動することは未確認。minista.devのCustom Domainは未接続。
+
 公式資料（2026-10-06確認）:
 
 - [GitHub Actions concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency): queue maxで複数待機を保持する。
 - [GitHub Actions workflow triggers](https://docs.github.com/en/actions/concepts/security/github_token): repository_dispatchはGITHUB_TOKENによる起動抑制の例外。
 - [Cloudflare Workers Git integration](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/): 成果物branchを監視してWranglerで公開する。
+- [Cloudflare Workers Builds API](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/): API操作の認証とデプロイ用build tokenを分ける。
+- [Cloudflare Workers Builds configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/): デプロイ用API tokenの種類と権限。
 - [Cloudflare Workers build branches](https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/): 本番branchは既定branchからBranch controlで変更する。
 - [Cloudflare Workers SSG](https://developers.cloudflare.com/workers/static-assets/routing/static-site-generation/): 拡張子なしURLと階層別404。
