@@ -14,11 +14,28 @@ v3以前を利用している場合は、先に[v3→v4の移行手順（保存�
 
 contents list
 
+## エージェントを使って移行する ||migrate-with-agents||
+
+エージェントにこのページのURLを渡して、v4からv5への移行を依頼できます。URLと合わせて、対象のプロジェクトと確認してほしいことを伝えてください。プロジェクトを開いた状態なら、次のように依頼できます。
+
+```text
+このプロジェクトをminista v4からv5へ移行してください。
+以下の移行ガイドを読み、依存関係・設定・コードを更新してください。
+https://minista.qranoko.jp/ja/docs/reference/migration
+
+表示や機能を維持し、移行後に型チェック・ビルド・プレビューを確認してください。
+変更点と、確認できなかった項目を報告してください。
+```
+
+v5への更新後は`npx minista agents`で、インストール済みのバージョンに対応するエージェント向けガイドを取得できます。エージェントの使い方は[エージェントを使った制作](/ja/docs/guide/agents)を参照してください。
+
 ## 対応環境と基本設定 ||requirements-and-setup||
 
 Node.jsは`^20.19.0 || >=22.12.0`、Viteは`^8.1.0`が必要です。
 
 ReactとReact DOMのpeerDependenciesを`>=19.0.0`へ変更しました。React 18のサポートと専用テストを終了し、React 19を検証の基準とします。React 18を利用しているプロジェクトは、v5への移行時に両方を19以降へ更新してください。
+
+TypeScriptを使用する場合は、`@types/react`と`@types/react-dom`もReactのバージョンに合わせて更新してください。
 
 基本的なVite設定は継続して使用できます。Bundle・MDX・Entryの公開プラグインAPIは以下の手順でSSGへ移してください。内部ビルドは、Vite CLIをHTML生成用とブラウザ用に2回起動する方式から、HTML生成用の環境とブラウザ向けの環境を一つのViteアプリケーションビルドで順にビルドする方式へ変更されました。
 
@@ -78,25 +95,100 @@ JSがimportしたCSSへscriptのURLが誤って置換される場合と、互換
 
 `pluginSsg()`の戻り値は内部Viteプラグインの配列になりました。通常の`plugins: [pluginSsg()]`は変更不要です。独自コードで戻り値を直接調べている場合は、配列を展開してから各プラグインを参照してください。
 
-## TypeScriptの公開型 ||public-types||
+## HTMLの言語とレイアウト ||html-language-and-layout||
 
-Island／Beautifyのオプション型と`minista/client`のMD／MDX宣言の参照を修正しました。Archive／Beautifyの宣言に必要な型依存はministaと一緒にインストールされます。Reactに対応する`@types/react`／`@types/react-dom`をプロジェクトへ追加してください。React 19で`skipLibCheck:false`で公開型を利用できます。プラグイン統合やオプションの移動は、このページの各項目に従って反映してください。
+`html`のデフォルトの言語を`ja`から`en`へ変更しました。日本語のサイトでは、`lang="ja"`を明示してください。
 
-## コード整形と画像の先読み ||beautify-and-image-preload||
+v5ではLayoutに`html` `head` `body`を書いて、HTML全体の構造や属性を編集できます。次のレイアウトは、そのままページのHTMLとして出力されます。
 
-`removeImagePreload`を`pluginBeautify`から`pluginSsg`へ移します。旧オプションの明示指定は`MINISTA_BEAUTIFY_OPTION_MOVED`になります。
+```tsx title="src/layouts/index.tsx"
+import type { LayoutProps } from "minista/types"
+
+export default function Layout({ title, children }: LayoutProps) {
+  return (
+    <html lang="ja">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{title}</title>
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+HTML全体を書かないレイアウトを継続する場合は、従来どおり`Head`の`htmlAttributes`で指定できます。
+
+```tsx title="src/layouts/index.tsx"
+import { Head } from "minista"
+import type { LayoutProps } from "minista/types"
+
+export default function Layout({ children }: LayoutProps) {
+  return (
+    <>
+      <Head htmlAttributes={{ lang: "ja" }} />
+      <main>{children}</main>
+    </>
+  )
+}
+```
+
+構造の編集は[レイアウト](/ja/docs/guide/layouts)、ページごとのタイトルやmeta要素の設定は[Head](/ja/docs/guide/head)を参照してください。
+
+## Beautifyの圧縮とファイル名の設定 ||beautify-output-settings||
+
+v4の`pluginBeautify()`は、ファイル名にハッシュを付けた後でもJSやCSSの内容を書き換えていました。そのため、ファイル名のハッシュと最終的な内容が一致しない場合がありました。v5では整形のタイミングを見直し、出力設定が整形と両立しない場合はエラーにします。
+
+HTMLに加えてJSとCSSも整形する場合は、次のように設定してください。
 
 ```js title="vite.config.js"
 import { defineConfig, pluginSsg, pluginBeautify } from "minista"
 
 export default defineConfig({
-  plugins: [pluginSsg({ removeImagePreload: false }), pluginBeautify()],
+  plugins: [pluginSsg(), pluginBeautify()],
+  build: {
+    sourcemap: false,
+    cssMinify: false,
+    rolldownOptions: {
+      output: {
+        minify: false,
+        assetFileNames: "assets/[name][extname]",
+      },
+    },
+  },
+})
+```
+
+- JSはハッシュの計算前に整形します。整形後の圧縮を防ぐため、`build.rolldownOptions.output.minify: false`が必要です。`build.minify: false`だけでは、Rolldownの処理をすべて無効にできません。JSの`entryFileNames`と`chunkFileNames`には引き続き`[hash]`を使えます。
+- CSSはファイル名が決まった後に整形します。ハッシュと内容の不一致を避けるため、`assetFileNames`には`[hash]`を含まない文字列を指定してください。この設定は画像などのアセット名にも適用されます。`cssMinify: false`でCSSの圧縮も無効にします。
+- 整形後の位置に対応するソースマップを生成できないため、JSやCSSを整形する場合はソースマップを無効にしてください。
+
+HTMLだけを整形する場合は、対象を絞ればJSやCSSの出力設定を変更する必要はありません。
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg, pluginBeautify } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginBeautify({ src: ["**/*.html"] })],
+})
+```
+
+設定と診断の詳細は[pluginBeautify](/ja/docs/plugins/beautify)を参照してください。
+
+## 画像の先読み設定の移動 ||beautify-and-image-preload||
+
+`removeImagePreload`を`pluginBeautify`から`pluginSsg`へ移します。旧オプションの明示指定は`MINISTA_BEAUTIFY_OPTION_MOVED`になります。
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg({ removeImagePreload: false })],
 })
 ```
 
 SSGの既定値は`true`です。以前Beautifyを使わなかったプロジェクトも、開発時／ビルドともにReactのレンダラーによる画像の先読みを除去します。保持する場合は上記の`false`を指定してください。従来のbody直下限定からレンダラーの出力全体へ対象が変わるため、Layoutのheadへ直接書いた画像の先読みは`Head` APIへ移すと保持できます。Beautifyの対象globでpreloadを制御する方法は終了します。
-
-JS整形には`build.rolldownOptions.output.minify: false`、CSS整形には`[hash]`のない文字列の`assetFileNames`が必要です。整形対象のJS／CSSとソースマップの併用は診断で停止します。詳しい設定例と診断は[pluginBeautify](/ja/docs/plugins/beautify)を参照してください。
 
 ## HTMLからのアセット参照 ||html-assets||
 
