@@ -407,6 +407,12 @@
 
       "archives": [
         {
+          "id": "v4",
+          "name": "v4.0.13",
+          "url": "https://minista-archive-v4.netlify.app/",
+          "external": true
+        },
+        {
           "id": "v3",
           "name": "v3.1.12",
           "url": "https://minista-archive-v3.netlify.app/",
