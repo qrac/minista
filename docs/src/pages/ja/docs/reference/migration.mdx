@@ -43,10 +43,6 @@ v5では次の機械可読な出力とコマンドを利用できます。
 
 通常のCLI実行にminista自身の事前ビルドは必要ありません。
 
-## 画像最適化のメタデータ ||image-metadata||
-
-v5では`pluginImage()`の出力画像にEXIF・XMP・IPTCなどのメタデータやICCプロファイルを保持・付与しません。EXIF Orientationによる向き補正は継続します。設定の変更は不要で、メタデータを保持するオプションはありません。既存の最適化画像キャッシュは再生成されます。
-
 ## pluginBundle／pluginMdxのSSG統合 ||bundle-mdx-integration||
 
 `pluginBundle()`と`pluginMdx()`をimportとplugins配列から削除し、それぞれの設定を`pluginSsg()`の`bundle`と`mdx`へ移してください。
