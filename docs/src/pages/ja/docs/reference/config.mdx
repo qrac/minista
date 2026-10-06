@@ -138,8 +138,8 @@ export default {
 Viteのデフォルト設定では、出力ファイル名にハッシュが付与されます。ハッシュを外すには、以下のプロパティを設定し `[hash]` を削除してください。
 
 - CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
-- JavaScript（チャンク）: `build.rolldownOptions.output.chunkFileNames`
 - JavaScript（エントリー）: `build.rolldownOptions.output.entryFileNames`
+- JavaScript（チャンク）: `build.rolldownOptions.output.chunkFileNames`
 
 これらを設定した場合、出力先はパターン内のパスで決まります。同名ファイルの衝突と公開先のキャッシュ更新方法を確認してください。
 
@@ -149,8 +149,8 @@ export default {
     rolldownOptions: {
       output: {
         assetFileNames: "assets/[name][extname]",
-        chunkFileNames: "assets/[name].js",
         entryFileNames: "assets/[name].js",
+        chunkFileNames: "assets/[name].js",
       },
     },
   },
@@ -162,8 +162,8 @@ export default {
 Viteのデフォルト設定では、すべてのアセットが同じディレクトリに出力されます。CSS・JavaScript・画像・フォントを別々のディレクトリに出力したい場合は、以下のプロパティを設定してください。
 
 - CSS・画像・フォント: `build.rolldownOptions.output.assetFileNames`
-- JavaScript（チャンク）: `build.rolldownOptions.output.chunkFileNames`
 - JavaScript（エントリー）: `build.rolldownOptions.output.entryFileNames`
+- JavaScript（チャンク）: `build.rolldownOptions.output.chunkFileNames`
 
 これらを設定した場合、出力先はパターン内のパスで決まります。同名ファイルの衝突と公開先のキャッシュ更新方法を確認してください。
 
@@ -191,8 +191,8 @@ export default {
     rolldownOptions: {
       output: {
         assetFileNames,
-        chunkFileNames: "assets/js/[name].js",
         entryFileNames: "assets/js/[name].js",
+        chunkFileNames: "assets/js/[name].js",
       },
     },
   },
@@ -240,6 +240,10 @@ export default {
   },
 }
 ```
+
+### クライアント側をRedactへ置き換える ||client-redact||
+
+静的HTMLの生成にはReactを維持し、ブラウザ向けのコードをRedactへ置き換えられます。公式Viteプラグインの追加で導入でき、nanoプリセットでさらに容量を削減できます。devと本番ビルドの両方に対応する設定と、Reactとの動作の違いは[Islandの容量削減](/ja/docs/guide/island-size#redact)を参照してください。
 
 ### クライアント側をPreactへ置き換える ||client-preact||
 
