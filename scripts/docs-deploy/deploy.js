@@ -23,7 +23,7 @@ export function relevant(file) {
 
 async function revision() {
   const hash = createHash("sha256")
-  for (const name of ["deploy.js", "archive-trigger.yml"]) {
+  for (const name of ["deploy.js", "archive-trigger.yml", "wrangler.jsonc"]) {
     hash.update(await fs.readFile(path.join(scriptDir, name)))
   }
   hash.update(await fs.readFile(path.resolve(scriptDir, "../../.github/workflows/cloudflare.yml")))
@@ -237,6 +237,9 @@ async function publish() {
   for (const name of ["index.html", "v3/index.html", "v4/index.html", "404.html"]) {
     if (!(await exists(path.join(checkout, "public", name)))) throw new Error(`Incomplete site: ${name}`)
   }
+  // Workers Builds reads this file from the root of the output branch.
+  // Keep it outside public so deployment state and configuration are not served.
+  await fs.copyFile(path.join(scriptDir, "wrangler.jsonc"), path.join(checkout, "wrangler.jsonc"))
   await fs.mkdir(path.join(checkout, ".deploy"), { recursive: true })
   await writeJson(path.join(checkout, ".deploy/state.json"), state)
   git(["config", "user.name", "github-actions[bot]"], checkout)

@@ -98,6 +98,13 @@ test("publication bootstraps all targets and reconciles changes since the last s
     }
     await fs.writeFile(path.join(artifacts, "docs-main/404.html"), "404")
     run("publish")
+    const worker = JSON.parse(runGit("show", "origin/cloudflare:wrangler.jsonc"))
+    assert.equal(worker.name, "minista")
+    assert.equal(worker.assets.directory, "./public")
+    assert.equal(worker.assets.html_handling, "auto-trailing-slash")
+    assert.equal(worker.assets.not_found_handling, "404-page")
+    assert.equal(worker.preview_urls, false)
+    assert.throws(() => runGit("show", "origin/cloudflare:public/wrangler.jsonc"))
     run("plan")
     const unchanged = JSON.parse(await fs.readFile(path.join(repo, ".docs-plan.json"), "utf8"))
     assert.equal(unchanged.selected.length, 0)

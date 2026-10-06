@@ -12,7 +12,7 @@ contributorとAI coding tool向けの内部設計資料です。作業に関係�
 | Viteのbuild／dev・experimental API・fallback | [vite.md](vite.md) |
 | 個別機能の設計理由・却下案 | [ADR索引](decisions/README.md)から該当する判断 |
 | テストの選択・実行方法 | [testing.md](testing.md) |
-| docsのCloudflare公開・archive更新・移行手順 | [docs-deployment.md](docs-deployment.md) |
+| docsのCloudflare Workers公開・archive更新・移行手順 | [docs-deployment.md](docs-deployment.md) |
 | 未実装・上流待ち・再検討条件 | [roadmap.md](roadmap.md) |
 | v5への移行・完了済み変更 | [release-notes-v5.md](release-notes-v5.md) |
 | 性能比較・過去の測定条件 | [benchmarks/](benchmarks/) |

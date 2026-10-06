@@ -1,4 +1,4 @@
-# docsのCloudflare Pages公開
+# docsのCloudflare Workers公開
 
 ## 構成
 
@@ -6,7 +6,7 @@
 
 v5をmainへマージする変更で、`.github/workflows/gh-pages.yml`を削除し、`cloudflare.yml`へ置き換える。互換性CIは残す。GitHub Pagesの既存公開・DNS・Cloudflare側の設定はworkflowの追加では変更しない。
 
-`cloudflare`ブランチは成果物だけの独立履歴とする。公開directoryは`public/`、最新docsは直下、v3は`v3/`、v4は`v4/`。`.deploy/state.json`は公開directory外に置き、schemaVersion 1、各対象のビルド元SHAと公開処理のhashを記録する。
+`cloudflare`ブランチは成果物だけの独立履歴とする。公開directoryは`public/`、最新docsは直下、v3は`v3/`、v4は`v4/`。mainの`scripts/docs-deploy/wrangler.jsonc`をcloudflare branchのrootへコピーし、Workers Static Assetsの配信設定とする。Worker scriptは不要。HTMLはauto-trailing-slash、欠落URLは最寄りの404.htmlを404 statusで返す。Wrangler設定変更も公開処理hashに含める。`.deploy/state.json`は公開directory外に置き、schemaVersion 1、各対象のビルド元SHAと公開処理のhashを記録する。
 
 mainからのpush、archiveからのrepository_dispatch、手動実行で起動する。共通concurrency groupを取得してから公開状態を読み、3ブランチの最新SHAを固定する。最後にビルドしたSHAと比較し、docs、本体、依存関係、scriptsの変更がある対象だけビルドする。公開処理のhash変更、初回、過去SHAの取得失敗は再ビルドする。イベント間の差分だけを使わず、未公開の変更を次回実行で回収する。
 
@@ -29,10 +29,13 @@ archive内のHTMLのhref／src／posterについて、prefix付きの内部参�
 1. v5側の変更をmainへマージする。初回workflowは3ブランチをビルドしてcloudflareブランチを作成する。
 2. `scripts/docs-deploy/archive-trigger.yml`をv3-archiveとv4-archiveの`.github/workflows/cloudflare-archive.yml`へコピーする。この入口はGITHUB_TOKENでmain側のrepository_dispatchを呼ぶ。入口を追加するまではmain更新かmain側の手動実行でarchiveを更新できる。
 3. GitHub Actionsにrepository contentsの書き込みを許可し、cloudflareブランチのルールでbotによる通常pushを許可する。
-4. Cloudflare PagesでGit repositoryを接続する。本番branchはcloudflare、build commandは`exit 0`、output directoryは`public`。preview branchの自動公開は無効にする。
-5. ActionsのGITHUB_TOKENによるpushでCloudflareのGit連携が公開を起動することを初回に確認する。GitHub Actions自身のpush trigger抑制と外部連携は区別する。連携が起動しない場合はCloudflare側のdeploy hookや直接uploadへ切り替える判断を行う。
-6. PagesのURLでトップ、深いページの直接アクセス、検索JSON取得と検索結果の遷移、CSS／JS／画像、version切り替え、404を確認する。rootの404.htmlがない成果物は公開しない。
-7. 独自domainのDNSを切り替えた後にGitHub Pagesの公開を停止する。
+4. Cloudflare WorkersでGit repositoryを接続する。Worker名はminista、本番branchはcloudflare、build commandは`exit 0`、deploy commandは`npx wrangler@4 deploy`、root directoryはrepository root。静的asset directoryはwrangler.jsoncの`./public`から解決する。非本番branchの自動buildは無効にする。
+
+   新規作成画面で本番branchを選べない場合、default branchのmainからデプロイしない。cloudflare branchのcheckoutから`npx wrangler@4 deploy`で初回公開し、既存WorkerのSettings > BuildsからGit repositoryを接続する。Branch controlで本番branchをcloudflareへ変更し、preview buildsを無効にしてから自動公開を運用する。Wrangler設定のあるmain内のdirectoryにはpublicがないため、そのままの公開元には使わない。
+
+5. ActionsのGITHUB_TOKENによるpushでCloudflareのGit連携が公開を起動することを初回に確認する。GitHub Actions自身のpush trigger抑制と外部連携は区別する。連携が起動しない場合はCloudflare Workers Buildsのdeploy hookやGitHub ActionsからのWrangler deployへ切り替える判断を行う。
+6. workers.devのURLでトップ、深いページの直接アクセス、検索JSON取得と検索結果の遷移、CSS／JS／画像、version切り替え、404を確認する。rootの404.htmlがない成果物は公開しない。
+7. 動作確認後、WorkersのCustom Domainとしてminista.devを接続し、DNS／証明書を確認してからGitHub Pagesの公開を停止する。初回確認前はwrangler.jsoncにroutesを追加せず、本番domainへ接続しない。
 
 workflow_dispatchのtargetはauto／main／v3／v4／all。autoは差分確認、他は指定対象の強制再ビルドを加える。既存cloudflareブランチにstateがない場合は自動で破壊せず失敗するので、既存成果物を確認して初期化方法を決める。
 
@@ -44,5 +47,6 @@ workflow_dispatchのtargetはauto／main／v3／v4／all。autoは差分確認�
 
 - [GitHub Actions concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency): queue maxで複数待機を保持する。
 - [GitHub Actions workflow triggers](https://docs.github.com/en/actions/concepts/security/github_token): repository_dispatchはGITHUB_TOKENによる起動抑制の例外。
-- [Cloudflare static HTML](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/): ビルド済み静的成果物を公開する。
-- [Cloudflare serving Pages](https://developers.cloudflare.com/pages/configuration/serving-pages/): 拡張子なしURLと階層別404。
+- [Cloudflare Workers Git integration](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/): 成果物branchを監視してWranglerで公開する。
+- [Cloudflare Workers build branches](https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/): 本番branchは既定branchからBranch controlで変更する。
+- [Cloudflare Workers SSG](https://developers.cloudflare.com/workers/static-assets/routing/static-site-generation/): 拡張子なしURLと階層別404。

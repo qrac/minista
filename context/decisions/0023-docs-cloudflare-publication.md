@@ -13,6 +13,8 @@ GitHub Actionsで各ソースbranchの固定SHAを独立してビルドし、clo
 
 archive側は小さな入口workflowでmainのrepository_dispatchを起動する。共通処理はmain側に集約し、archiveの依存・Node runtime・CLI手順を分離する。archive baseの補正はCI checkoutと生成成果物に限定し、minista本体の公開API・Vite adapter・feature間の契約へ持ち込まない。
 
+配信先はCloudflare Workers Static Assetsとする。mainの`scripts/docs-deploy/wrangler.jsonc`を成果物branchのrootへコピーし、Workers Buildsはcloudflare branchだけを監視してWranglerで公開する。Worker scriptは作成せず、静的assetsのHTML routingと階層別404を設定する。初回はworkers.devで確認し、minista.devのcustom domainは別操作で接続する。
+
 ## Consequences
 
 main更新でarchiveは既存成果物を保持する。Cloudflareへ渡すsnapshotは常に全対象を含む。ビルド・検証失敗時に旧公開を変更しない。archive入口の追加とCloudflareのGit連携・DNS設定は、v5側のworkflow追加とは別の導入手順になる。詳細は[docs-deployment.md](../docs-deployment.md)。
