@@ -177,12 +177,13 @@ export function pluginSsg(uOpts = {}) {
           try {
             const base = server.config.base || "/"
             const originalUrl = req.originalUrl || ""
+            const pathname = originalUrl.split("?")[0]
             const normalizedBase = base
               .replace(/\/+$/, "")
               .replace(/^([^/])/, "/$1")
-            const url = originalUrl.startsWith(normalizedBase)
-              ? originalUrl.slice(normalizedBase.length) || "/"
-              : originalUrl
+            const url = pathname.startsWith(normalizedBase)
+              ? pathname.slice(normalizedBase.length) || "/"
+              : pathname
             const ssr = server.ssrLoadModule
             const { LAYOUTS = {}, PAGES = {} } = await ssr(globFile)
             const formatedLayout = formatLayout(LAYOUTS)
