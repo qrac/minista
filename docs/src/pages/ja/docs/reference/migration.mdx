@@ -37,7 +37,7 @@ ReactとReact DOMのpeerDependenciesを`>=19.0.0`へ変更しました。React 1
 
 TypeScriptを使用する場合は、`@types/react`と`@types/react-dom`もReactのバージョンに合わせて更新してください。
 
-基本的なVite設定は継続して使用できます。Bundle・MDX・Entryの公開プラグインAPIは以下の手順でSSGへ移してください。内部ビルドは、Vite CLIをHTML生成用とブラウザ用に2回起動する方式から、HTML生成用の環境とブラウザ向けの環境を一つのViteアプリケーションビルドで順にビルドする方式へ変更されました。
+基本的なVite設定は継続して使用できます。MDX・Bundle・Entryの公開プラグインAPIは以下の手順でSSGへ移してください。内部ビルドは、Vite CLIをHTML生成用とブラウザ用に2回起動する方式から、HTML生成用の環境とブラウザ向けの環境を一つのViteアプリケーションビルドで順にビルドする方式へ変更されました。
 
 SSGへ統合されたプラグインの設定を移したうえで、コマンドに`--oneBuild`が残っている場合は削除してください。v5ではこのオプションを指定すると`MINISTA_CLI_OPTION_REMOVED`で終了します。
 
@@ -60,9 +60,9 @@ v5では次の機械可読な出力とコマンドを利用できます。
 
 通常のCLI実行にminista自身の事前ビルドは必要ありません。
 
-## pluginBundle／pluginMdxのSSG統合 ||bundle-mdx-integration||
+## pluginMdx／pluginBundleのSSG統合 ||bundle-mdx-integration||
 
-`pluginBundle()`と`pluginMdx()`をimportとplugins配列から削除し、それぞれの設定を`pluginSsg()`の`bundle`と`mdx`へ移してください。
+`pluginMdx()`と`pluginBundle()`をimportとplugins配列から削除し、それぞれの設定を`pluginSsg()`の`mdx`と`bundle`へ移してください。
 
 ```js title="vite.config.js"
 import { defineConfig, pluginSsg } from "minista"
@@ -70,8 +70,8 @@ import { defineConfig, pluginSsg } from "minista"
 export default defineConfig({
   plugins: [
     pluginSsg({
-      bundle: { outName: "bundle" },
       mdx: { frontmatter: { name: "metadata" } },
+      bundle: { outName: "bundle" },
     }),
   ],
 })

@@ -14,12 +14,12 @@ export type PluginSsgMdxOptions = MdxCompileOptions & {
 }
 
 export type PluginOptions = {
-  removeImagePreload: boolean
-  layout: string
   src: string[]
   srcBases: string[]
-  bundle: PluginSsgBundleOptions
+  layout: string
   mdx: false | PluginSsgMdxOptions
+  bundle: PluginSsgBundleOptions
+  removeImagePreload: boolean
 }
 export type UserPluginOptions = Omit<Partial<PluginOptions>, "bundle"> & {
   bundle?: Partial<PluginSsgBundleOptions>
