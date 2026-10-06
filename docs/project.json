@@ -481,7 +481,7 @@
             {
               "id": "getting-started",
               "name": {
-                "en": "Getting Started",
+                "en": "Getting started",
                 "ja": "はじめる"
               },
               "url": "/docs/guide/"
@@ -489,7 +489,7 @@
             {
               "id": "agents",
               "name": {
-                "en": "Building with Agents",
+                "en": "Building with agents",
                 "ja": "エージェントを使った制作"
               },
               "url": "/docs/guide/agents"
@@ -497,7 +497,7 @@
             {
               "id": "project-structure",
               "name": {
-                "en": "Project Structure",
+                "en": "Project structure",
                 "ja": "プロジェクト構成"
               },
               "url": "/docs/guide/project-structure"
@@ -513,7 +513,7 @@
             {
               "id": "build-deploy",
               "name": {
-                "en": "Build & Deploy",
+                "en": "Build and deploy",
                 "ja": "ビルドとデプロイ"
               },
               "url": "/docs/guide/build-deploy"
@@ -521,7 +521,7 @@
             {
               "id": "pages-routing",
               "name": {
-                "en": "Pages & Routing",
+                "en": "File-based routing",
                 "ja": "ファイルベースルーティング"
               },
               "url": "/docs/guide/pages-routing"
@@ -529,7 +529,7 @@
             {
               "id": "mdx",
               "name": {
-                "en": "Markdown & MDX",
+                "en": "Markdown and MDX",
                 "ja": "Markdown・MDX"
               },
               "url": "/docs/guide/mdx"
@@ -537,7 +537,7 @@
             {
               "id": "404",
               "name": {
-                "en": "404 Page",
+                "en": "404 page",
                 "ja": "404ページ"
               },
               "url": "/docs/guide/404"
@@ -545,7 +545,7 @@
             {
               "id": "static-data",
               "name": {
-                "en": "Passing Data to Pages",
+                "en": "Passing data to pages",
                 "ja": "ページへデータを渡す"
               },
               "url": "/docs/guide/static-data"
@@ -553,7 +553,7 @@
             {
               "id": "fetch",
               "name": {
-                "en": "Data-driven Pages",
+                "en": "Page generation from APIs",
                 "ja": "APIによるページ生成"
               },
               "url": "/docs/guide/fetch"
@@ -561,7 +561,7 @@
             {
               "id": "layouts",
               "name": {
-                "en": "Components & Layouts",
+                "en": "Layouts",
                 "ja": "レイアウト"
               },
               "url": "/docs/guide/layouts"
@@ -577,7 +577,7 @@
             {
               "id": "public",
               "name": {
-                "en": "Public Files",
+                "en": "Public files",
                 "ja": "publicのファイル"
               },
               "url": "/docs/guide/public"
@@ -585,7 +585,7 @@
             {
               "id": "images-assets",
               "name": {
-                "en": "Images & Assets",
+                "en": "Image bundling",
                 "ja": "画像のバンドル"
               },
               "url": "/docs/guide/images-assets"
@@ -593,7 +593,7 @@
             {
               "id": "styling",
               "name": {
-                "en": "Styling",
+                "en": "CSS bundling",
                 "ja": "CSSのバンドル"
               },
               "url": "/docs/guide/styling"
@@ -601,7 +601,7 @@
             {
               "id": "entry",
               "name": {
-                "en": "CSS, JS & TS Entries",
+                "en": "CSS, JS, and TS entries",
                 "ja": "CSS・JS・TSのエントリー"
               },
               "url": "/docs/guide/entry"
@@ -609,7 +609,7 @@
             {
               "id": "image",
               "name": {
-                "en": "Image Optimization",
+                "en": "Image optimization",
                 "ja": "画像最適化"
               },
               "url": "/docs/guide/image"
@@ -617,7 +617,7 @@
             {
               "id": "svg",
               "name": {
-                "en": "SVG Optimization",
+                "en": "SVG optimization",
                 "ja": "SVG最適化"
               },
               "url": "/docs/guide/svg"
@@ -625,7 +625,7 @@
             {
               "id": "sprite",
               "name": {
-                "en": "SVG Sprites",
+                "en": "SVG sprites",
                 "ja": "SVGスプライト"
               },
               "url": "/docs/guide/sprite"
@@ -641,7 +641,7 @@
             {
               "id": "island-size",
               "name": {
-                "en": "Reducing Island Bundle Size",
+                "en": "Reducing Island size",
                 "ja": "Islandの容量削減"
               },
               "url": "/docs/guide/island-size"
@@ -649,7 +649,7 @@
             {
               "id": "search",
               "name": {
-                "en": "Static Site Search",
+                "en": "Static site search",
                 "ja": "静的サイト内検索"
               },
               "url": "/docs/guide/search"
@@ -657,7 +657,7 @@
             {
               "id": "comment",
               "name": {
-                "en": "HTML Comments",
+                "en": "HTML comments",
                 "ja": "HTMLコメント"
               },
               "url": "/docs/guide/comment"
@@ -665,7 +665,7 @@
             {
               "id": "beautify",
               "name": {
-                "en": "HTML Formatting",
+                "en": "HTML formatting",
                 "ja": "HTMLの整形"
               },
               "url": "/docs/guide/beautify"
@@ -673,7 +673,7 @@
             {
               "id": "archive",
               "name": {
-                "en": "Delivery Archives",
+                "en": "Delivery archives",
                 "ja": "納品用アーカイブの生成"
               },
               "url": "/docs/guide/archive"
@@ -699,7 +699,7 @@
             {
               "id": "config",
               "name": {
-                "en": "Config",
+                "en": "Configuration reference",
                 "ja": "設定リファレンス"
               },
               "url": "/docs/reference/config"
@@ -715,7 +715,7 @@
             {
               "id": "migration",
               "name": {
-                "en": "Migration v4 to v5",
+                "en": "Migrating from v4 to v5",
                 "ja": "v4からv5への移行"
               },
               "url": "/docs/reference/migration"
