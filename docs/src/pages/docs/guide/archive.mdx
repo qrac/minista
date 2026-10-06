@@ -1,0 +1,98 @@
+---
+layout: docs
+locale: en
+title: Delivery archives
+---
+
+# Delivery archives
+
+`pluginArchive()` packages build output as ZIP or TAR archives when the build finishes. Here, combine it with [HTML formatting](/docs/guide/beautify) to generate files for delivery.
+
+## Table of Contents
+
+contents list
+
+## Add the archive plugin ||add-archive-plugin||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginBeautify, pluginArchive } from "minista"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg(),
+    pluginBeautify({ src: ["**/*.html"] }),
+    pluginArchive(),
+  ],
+})
+```
+
+Running `npm run build` creates `dist/dist.zip` containing the default output directory, `dist/`. No separate command is needed to create the archive.
+
+## Input and archive contents ||archive-output||
+
+```text title="Example build output"
+dist/
+├── index.html
+├── about.html
+├── assets/
+│   └── ...
+└── dist.zip
+```
+
+```text title="Structure after extracting dist.zip"
+dist/
+├── index.html
+├── about.html
+└── assets/
+    └── ...
+```
+
+Paths inside the archive include the input directory name: `dist/index.html` in this example. Configured archive destinations are excluded from compression, preventing the ZIP from including itself.
+
+Extract the archive before delivery and confirm that the HTML, assets, and files copied from public are all included.
+
+## Set the archive name ||archive-name||
+
+Specify the name without an extension. The following configuration generates `dist/downloads/site.zip`.
+
+```ts
+pluginArchive({
+  archives: [{ outName: "downloads/site" }],
+})
+```
+
+`archives` is an array. Add multiple configurations to create multiple archives in one build. The supplied array replaces the default configuration.
+
+## Exclude unwanted files ||archive-ignore||
+
+Specify exclusions as globs based on paths from the project root.
+
+```ts
+pluginArchive({
+  archives: [
+    {
+      outName: "site",
+      ignore: ["dist/**/*.map", "dist/internal/**"],
+    },
+  ],
+})
+```
+
+Old archives removed from the configuration and ZIP files placed separately are not automatically excluded. Add exclusions if you leave them in the output directory.
+
+## Change the source and format ||archive-source-and-format||
+
+If the input is omitted, the output directory resolved from `build.outDir` is used. For example, with `build.outDir: "output"`, the default archive is `output/dist.zip`.
+
+Use `srcDir` to compress another directory. You can also choose TAR format.
+
+```ts
+pluginArchive({
+  archives: [
+    { srcDir: "dist", outName: "site" },
+    { srcDir: "dist", outName: "site-tar", format: "tar", options: {} },
+  ],
+})
+```
+
+The build stops if the input directory does not exist or the path is not a directory. See [pluginArchive](/docs/plugins/archive) for settings and diagnostics.

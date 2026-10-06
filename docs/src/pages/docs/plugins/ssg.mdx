@@ -1,0 +1,166 @@
+---
+layout: docs
+locale: en
+title: pluginSsg
+---
+
+# pluginSsg
+
+The required plugin for outputting pages as static HTML. It generates HTML from JSX, TSX, Markdown, and MDX, and outputs CSS, JavaScript, and images referenced by pages.
+
+It also includes the former features of `pluginMdx()`, `pluginBundle()`, and `pluginEntry()`.
+
+See [Getting started](/docs/guide/) for setup and [File-based routing](/docs/guide/pages-routing) for creating pages. This page covers settings and public API contracts.
+
+## Table of Contents
+
+contents list
+
+## Options
+
+```js title="Defaults"
+pluginSsg({
+  src: ["src/pages/**/*.{tsx,jsx,mdx,md}"],
+  srcBases: ["src/pages"],
+  layout: "src/layouts/index.{tsx,jsx}",
+  mdx: {
+    frontmatter: {
+      name: "metadata",
+    },
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+  bundle: {
+    outName: "bundle",
+  },
+  removeImagePreload: true,
+})
+```
+
+### src
+
+- Type: `string[]`
+- Default: `["src/pages/**/*.{tsx,jsx,mdx,md}"]`
+
+Specify page templates as project-root-relative globs. Vite's glob import loads matching files. Legacy paths with a leading slash are treated as the same locations.
+
+### srcBases
+
+- Type: `string[]`
+- Default: `["src/pages"]`
+
+Project-root-relative path prefixes removed when converting page templates to URLs. Matching prefixes are removed. Legacy paths with a leading slash are treated as the same locations.
+
+### layout ||layout-option||
+
+- Type: `string`
+- Default: `"src/layouts/index.{tsx,jsx}"`
+
+Specify the component wrapping all page templates relative to the project root. Vite's glob import loads matching files and the first file found is used. Legacy paths with a leading slash are treated as the same locations.
+
+### mdx
+
+- Type: `false | (MdxCompileOptions & { frontmatter?: false | { name?: string } })`
+- Default: `{ frontmatter: { name: "metadata" }, remarkPlugins: [], rehypePlugins: [] }`
+
+MDX and Markdown conversion settings. YAML and TOML frontmatter become an MDX export named by `frontmatter.name`; set `frontmatter: false` to disable only frontmatter conversion. Enclose YAML with `---` and TOML with `+++`. MDX as a whole is enabled by default; set `mdx: false` to disable it. If `src` is omitted, disabling MDX also limits default discovery to JSX and TSX.
+
+### bundle
+
+- Type: `{ outName: string }`
+- Default: `{ outName: "bundle" }`
+
+Outputs CSS and images referenced by pages and layouts using the same transformation results as rendering. `outName` is the CSS bundle entry name without an extension. CSS Modules are output with the same class names as the HTML.
+
+### removeImagePreload
+
+- Type: `boolean`
+- Default: `true`
+
+Removes `link[rel="preload"][as="image"]` from React renderer output before composing the Head API. This applies to development and builds, regular pages, and static Island rendering. `client:only` content is not statically rendered. Set `false` to preserve renderer output.
+
+This setting does not distinguish automatically generated and handwritten elements. Image preloads written directly in regular JSX, including a Layout's `<head>`, are also removed. Use the `Head` API to preserve explicit preloads. Resource hints for other types, such as fonts, are unchanged.
+
+## Page
+
+Default discovery uses `src/pages/**/*.{tsx,jsx,mdx,md}`. JSX and TSX files default-export a component. Markdown and MDX content becomes the page.
+
+`metadata` is read as page data, and pages with `draft: true` are excluded from production builds. Markdown and MDX frontmatter becomes `metadata` by default. If you change the export name, also export it as `metadata` to pass it as page data.
+
+## Static data and route generation ||fetch||
+
+Return `{ props }` or an array of `{ paths, props }` from `getStaticData()`. `paths` has keys matching dynamic file name parameters and string values.
+
+Page modules and fetching functions run during development, builds, `check`, and regular `inspect`. They do not run for each request after publishing. See [Page generation from APIs](/docs/guide/fetch) for examples.
+
+## Layout
+
+The default file is `src/layouts/index.{tsx,jsx}`. Its default-exported component receives page data and `children`. Use `metadata` and `getStaticData()` to provide shared data.
+
+If the root returns `html`, the layout's `html`, `head`, and `body` are used. Otherwise, a default structure wraps it. The default language is `en`; change it through the layout's `html` or `Head.htmlAttributes`.
+
+Layouts in directories do not automatically nest. See [Layouts](/docs/guide/layouts) for examples.
+
+## Head
+
+Import from `minista/head` to add head elements from pages and components. See [Head](/docs/guide/head) for usage.
+
+| Field | Purpose |
+| ---------------- | ------------------------------------------ |
+| `children` | Elements such as `title`, `meta`, `link`, `script`, and `style` |
+| `htmlAttributes` | Attributes of the `html` element |
+| `bodyAttributes` | Attributes of the `body` element |
+| Child element `key` | Replace an element with the later one sharing its key |
+
+Head is applied after the layout and takes priority for duplicate `title`, charset, and viewport elements. Missing charset and viewport values are supplied by default and placed at the start of the head in that order.
+
+## Public assets
+
+Reference `public/logo.svg` as `/logo.svg` in JSX or MDX. At build time, `pluginSsg()` identifies existing public files and automatically applies Vite's `base` to reference URLs. No additional option is needed. Changes to `publicDir` and `publicDir: false` are supported.
+
+| `base`                     | `index.html`                       | `demos/index.html`                 |
+| -------------------------- | ---------------------------------- | ---------------------------------- |
+| `/`                        | `/logo.svg`                        | `/logo.svg`                        |
+| `/test/`                   | `/test/logo.svg`                   | `/test/logo.svg`                   |
+| `./` or an empty string | `logo.svg` | `../logo.svg` |
+| `https://cdn.example.com/` | `https://cdn.example.com/logo.svg` | `https://cdn.example.com/logo.svg` |
+
+Supported attributes include image `src` and `srcset`, link `href` and `imagesrcset`, script `src`, video/audio/track `src`, video `poster`, SVG `image`/`use` `href` and `xlink:href`, `object[data]`, `embed[src]`, and `input[src]`. Open Graph `og:image`, `og:audio`, and `og:video` and their URL-related derived properties, `twitter:image`, and Microsoft tile image and configuration meta elements are also adjusted.
+
+`a[href]` is adjusted only for links to actual public files. Regular `url()` in style attributes and `<style>` is also supported. Query strings and fragments such as `/logo.svg?v=1#mark`, and srcset descriptors, are preserved. External URLs, data URLs, fragment-only references, relative references such as `./`, regular page links, and custom data attributes are unchanged.
+
+Public files are copied unchanged. URLs inside public CSS, JS, or JSON, escaped URLs, `@import` strings, and image-set strings in inline CSS, and browser runtime URLs are not automatically adjusted. Island internals, including `client:only` fallbacks, are excluded to maintain consistency between SSR and the client. Pass required URLs as identical props to both SSR and the client.
+
+## HTML assets
+
+CSS, JavaScript, and images referenced through HTML attributes are included in builds. See [CSS, JS, and TS entries](/docs/guide/entry) for setup examples.
+
+SSG also continues to output CSS and images referenced through imports in page and Layout modules.
+
+### Supported elements and attributes
+
+When bundling source files inside the project root as entries, collection and rewriting are limited to the following targets. For public files, see "Public assets" above.
+
+| Element | Attribute | Value handling |
+| --------------- | -------- | ------------------------------------- |
+| `link` | `href` | Single URL; not limited by `rel` |
+| `script` | `src` | Single URL |
+| `img` | `src` | Single URL |
+| `img`, `source` | `srcset` | Each candidate URL; preserves `1x` and `640w` |
+| SVG `use` | `href` | Single URL; preserves the symbol fragment |
+
+Only project-root-relative references starting with `/` are collected, and only actual files inside the root are bundled. References such as `https://`, `//cdn.example.com/`, `data:`, `#icon`, and `./image.png` are unchanged. Commas inside single URLs and data URLs in srcset are preserved. Place whitespace between srcset URLs and descriptors.
+
+`meta[content]`, `video[poster]`, `a[href]`, `source[src]`, SVG `image[href]` and `use[xlink:href]`, and identically named attributes on arbitrary elements are excluded. For example, `<meta property="og:image" content="/src/image.png" />` alone does not output the image. Use an image URL imported through SSG or a public asset URL for these attributes.
+
+Vite copies `public/public.svg` referenced as `/public.svg`, and SSG applies base to its reference URL. References with no actual file in either the root or public are left unchanged without missing-file diagnostics. Avoid placing files for the same URL in both the project root and public, because Entry bundles the root file.
+
+`/src/app.ts?v=1#start` bundles `src/app.ts` and preserves `?v=1#start` in the output URL. The query is not passed as a Vite module transformation directive such as `?raw` or `?url`. Output URLs follow Vite's `base`, supporting `/site/`, absolute CDN URLs, and page-relative URLs with `./` or an empty string. Do not add base to the input `/src/…` path.
+
+CSS imported by an entry is inserted only into pages referencing that entry. A stylesheet with the same URL is not inserted again, including when multiple entries share CSS. Stylesheet URLs with different queries or fragments are treated separately.
+
+## Public types ||merge-types||
+
+Import `Metadata`, `PageProps`, `LayoutProps`, `StaticData`, and `GetStaticData` from `minista/types`. Pages and layouts receive fields such as `url`, `title`, and `draft`. Layouts also receive `children`.
+
+See [TypeScript](/docs/reference/typescript) for custom field types and module augmentation. Adding types alone does not generate HTML elements.

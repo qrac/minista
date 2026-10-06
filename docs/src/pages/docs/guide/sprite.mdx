@@ -1,0 +1,107 @@
+---
+layout: docs
+locale: en
+title: SVG sprites
+---
+
+# SVG sprites
+
+`pluginSprite()` combines SVGs in the same directory into a single sprite file. Each icon is referenced through an HTML `use` element, making this suitable for sharing icons across multiple pages.
+
+[SVG optimization](/docs/guide/svg) embeds shapes in a page; this page shares an external SVG file. Add the corresponding plugins if you use both.
+
+## Table of Contents
+
+contents list
+
+## Add the sprite plugin ||add-sprite-plugin||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginSprite } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginSprite()],
+})
+```
+
+## Organize icons
+
+Create `src/assets/icons/` and place the following two SVGs in it.
+
+```xml title="src/assets/icons/square.svg"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path fill="currentColor" d="M4 4h16v16H4z" />
+</svg>
+```
+
+```xml title="src/assets/icons/circle.svg"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <circle fill="currentColor" cx="12" cy="12" r="8" />
+</svg>
+```
+
+```text title="Project structure"
+src/
+├── assets/
+│   └── icons/
+│       ├── square.svg
+│       └── circle.svg
+└── pages/
+    └── index.tsx
+```
+
+## Use Sprite
+
+```tsx title="src/pages/index.tsx"
+import { Sprite } from "minista/assets"
+
+export default function Page() {
+  return (
+    <>
+      <h1>My Site</h1>
+      <Sprite src="/src/assets/icons/square.svg" title="Square" width={24} height={24} />
+      <Sprite src="/src/assets/icons/circle.svg" title="Circle" width={24} height={24} />
+    </>
+  )
+}
+```
+
+SVGs in the referenced directory are combined. The directory name forms the base output name, and file names without extensions become `symbol` IDs.
+
+## Check sprite output ||sprite-output||
+
+```text title="Example build output"
+dist/
+├── index.html
+└── assets/
+    └── icons-[hash].svg
+```
+
+The output HTML references the sprite as follows. Actual attributes and file names depend on the configuration.
+
+```html title="Excerpt from dist/index.html"
+<svg viewBox="0 0 24 24" width="24" height="24">
+  <use href="/assets/icons-[hash].svg#square"></use>
+</svg>
+```
+
+SVGs are optimized, converted to `symbol` elements, and combined into shared output. Deploy the sprite file along with the HTML.
+
+## Existing sprites ||existing-sprite||
+
+You can also place an existing SVG containing `symbol` elements in the same directory. Specify the ID to use with `symbolId`.
+
+```tsx
+<Sprite
+  src="/src/assets/icons/common.svg"
+  symbolId="arrow-right"
+  width={24}
+  height={24}
+/>
+```
+
+This example requires `common.svg` containing a `symbol` named `arrow-right`. Duplicate IDs in the same output stop the build, so keep file names and existing IDs unique.
+
+See [pluginSprite](/docs/plugins/sprite) for settings, internal IDs, and SVGO constraints.
+
+Next, [Island](/docs/guide/island) adds interactive UI.

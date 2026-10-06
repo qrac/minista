@@ -1,0 +1,83 @@
+---
+layout: docs
+locale: en
+title: SVG optimization
+---
+
+# SVG optimization
+
+`pluginSvg()` optimizes SVG files with SVGO and embeds them inline in HTML. Use it to change SVG colors with CSS or place SVG elements inside pages.
+
+Here, add a small mark. To use SVG only as an external image, a [regular image import](/docs/guide/images-assets) is sufficient.
+
+## Table of Contents
+
+contents list
+
+## Add the SVG plugin ||add-svg-plugin||
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginSvg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginSvg()],
+})
+```
+
+## Create an SVG source ||create-svg-source||
+
+```xml title="src/assets/mark.svg"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path fill="currentColor" d="M4 4h16v16H4z" />
+</svg>
+```
+
+A `viewBox` preserves the shape's ratio when its display size changes. Parts using `currentColor` inherit the surrounding text color.
+
+## Use Svg
+
+```tsx title="src/pages/index.tsx"
+import { Svg } from "minista/assets"
+
+export default function Page() {
+  return (
+    <>
+      <h1>My Site</h1>
+      <Svg src="/src/assets/mark.svg" title="Square mark" width={24} height={24} />
+    </>
+  )
+}
+```
+
+`src` is relative to the project root. For decorative SVGs, you can omit the title and add `aria-hidden`.
+
+```tsx
+<Svg src="/src/assets/mark.svg" aria-hidden="true" width={24} height={24} />
+```
+
+## Check inline SVG output ||inline-svg-output||
+
+```text title="Project structure"
+src/
+├── assets/
+│   └── mark.svg
+└── pages/
+    └── index.tsx
+```
+
+```text title="Build output"
+dist/
+└── index.html
+```
+
+For this usage alone, `mark.svg` does not need to be output as a separate file for delivery. The optimized `svg` element appears in generated HTML. Check its display with `npm run preview`.
+
+## SVG attributes and optimization ||svg-attributes||
+
+The source SVG's `viewBox` and drawing attributes are inherited, with explicitly supplied props of the same name taking priority. You can also pass `className` to apply CSS.
+
+Use `pluginSvg({ config: { ... } })` to change SVGO settings. See [pluginSvg](/docs/plugins/svg) for attribute preservation and configuration types.
+
+Internal IDs used by gradients and clips receive prefixes to avoid collisions across instances. Use classes or props instead of directly referencing original internal IDs from external CSS or JavaScript.
+
+Next, [SVG sprites](/docs/guide/sprite) combines multiple icons in one file.

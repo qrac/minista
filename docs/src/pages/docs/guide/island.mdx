@@ -1,0 +1,151 @@
+---
+layout: docs
+locale: en
+title: Island
+---
+
+# Island
+
+An Island runs React in just part of a static page. Keep page content and layouts as static HTML and add the JavaScript needed for UI with state and events.
+
+## Table of Contents
+
+contents list
+
+## Add the Island plugin ||add-island-plugin||
+
+Add `pluginIsland()` alongside `pluginSsg()`, which is required for static HTML output.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginIsland } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginIsland()],
+})
+```
+
+For TypeScript, include `minista/client` in `types` in `tsconfig.json`. Templates already configure this.
+
+## Create an interactive component ||interactive-component||
+
+```tsx title="src/components/counter.tsx"
+import { useState } from "react"
+
+type Props = { initialCount?: number }
+
+export default function Counter({ initialCount = 0 }: Props) {
+  const [count, setCount] = useState(initialCount)
+  return (
+    <button type="button" onClick={() => setCount(count + 1)}>
+      Count: {count}
+    </button>
+  )
+}
+```
+
+Import it from a page and add `client:load`.
+
+```tsx title="src/pages/index.tsx"
+import Counter from "../components/counter"
+
+export default function Page() {
+  return (
+    <>
+      <h1>Counter</h1>
+      <p>This heading and description are static HTML.</p>
+      <Counter initialCount={3} client:load />
+    </>
+  )
+}
+```
+
+Connecting React in the browser to the initial HTML to make it interactive is called hydration. Using the component statically without `client:*` does not run event handlers such as `onClick` in the browser.
+
+## Check Island output ||island-output||
+
+```text title="Project structure"
+src/
+├── components/
+│   └── counter.tsx
+└── pages/
+    └── index.tsx
+```
+
+```text title="Example build output"
+dist/
+├── index.html
+└── assets/
+    ├── island-1-[hash].js
+    └── ... (JavaScript for React, Counter, and other dependencies)
+```
+
+JavaScript splitting depends on settings and dependencies. Run `npm run build` and `npm run preview`, and confirm that the count increases. Verify behavior through a local server instead of opening the HTML file directly.
+
+## Island props
+
+Island props accept serializable values that can be embedded in HTML and restored in the browser. Variables in the page and values fetched through `getStaticData()` also work if they can be serialized. Props are restored before hydration in the browser. Multiple instances of the same component retain their individual values.
+
+```tsx title="src/pages/index.tsx"
+import Counter from "../components/counter"
+
+export function getStaticData() {
+  return { props: { counts: [3, 7] } }
+}
+
+export default function Page({ counts }: { counts: number[] }) {
+  return (
+    <>
+      {counts.map((count) => (
+        <Counter key={count} initialCount={count} client:load />
+      ))}
+    </>
+  )
+}
+```
+
+minista supports strings, finite numbers, booleans, `null`, `undefined`, arrays, plain objects, and combinations of these. Props are exposed to the browser, so do not include secret values.
+
+Functions, `Date`, `Map`, `Set`, `RegExp`, `BigInt`, class instances, and circular references cannot be passed. Unsupported values produce `MINISTA_ISLAND_PROPS_UNSUPPORTED`. Put event handlers inside the Island component instead of passing them as props from the page.
+
+Statically import Island components from separate files. HTML tag wrappers and JSX children are also supported. Write components inside children using statically imported names in that Island's JSX. Function components defined in the page and components selected dynamically from variables cannot be targets.
+
+## Client directives
+
+| Directive | Behavior |
+| ----------------------------------- | ------------------------------------------------ |
+| `client:load` | Hydrates on page load |
+| `client:idle` | Hydrates during browser idle time |
+| `client:visible` | Hydrates when the component enters the viewport |
+| `client:media="(max-width: 640px)"` | Hydrates when the media query matches |
+| `client:only` | Renders in the browser without generating static HTML |
+
+Use `client:load` for UI that needs immediate interaction. For offscreen UI, you can use the following, for example.
+
+```tsx
+<Counter client:visible={{ rootMargin: "200px" }} />
+```
+
+`client:visible`, `client:media`, and `client:idle` fetch the target JavaScript only after their condition is met. Until then, static HTML is displayed and React events do not run.
+
+## Browser APIs
+
+Regular Islands also render at build time. Put code using `window` or `document` in event handlers or `useEffect()`. Keep the initial content consistent between build-time and browser rendering.
+
+Even with `client:only`, props and children expressions are evaluated on the server, with the same serialization constraints. It skips rendering the component body; it does not guarantee that using `window` at the top level of an imported module will work.
+
+Use `client:only` for UI that should not generate static HTML, but the component will not appear until JavaScript runs. Provide a fallback if you need a loading display.
+
+```tsx
+<div client:only>
+  <p slot="fallback">Loading…</p>
+  <Counter />
+</div>
+```
+
+## Island boundaries
+
+Group UI that shares state into one parent component and make that parent an Island. Children do not need their own `client:*`. Nesting Islands in the same JSX causes an error.
+
+Small DOM interactions that do not use React can also be implemented with a [regular script](/docs/guide/entry). See [pluginIsland](/docs/plugins/island) for option details.
+
+Next, [Reducing Island size](/docs/guide/island-size) introduces replacing browser-side React with Redact or Preact.

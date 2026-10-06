@@ -1,0 +1,119 @@
+---
+layout: docs
+locale: en
+title: Building with agents
+---
+
+# Building with agents
+
+Tell an AI agent what your site should contain and how it should look to develop it together. The agent can check minista's configuration and APIs using the project instructions and CLI.
+
+This page covers preparing a working folder, requesting a site, and reviewing the result.
+
+## Table of Contents
+
+contents list
+
+## Prepare a project ||prepare-project||
+
+Set up an environment with Node.js and npm. See [Getting started](/docs/guide/#prerequisites) for supported versions and how to check them.
+
+Run the following in a terminal to create a minimal project. If you already have a project, use its folder.
+
+```sh
+npm create minista@latest my-minista-project -- --template minimal-ts
+cd my-minista-project
+npm install
+```
+
+Set `my-minista-project` as your agent's working folder. Use an agent that can edit files and run terminal commands.
+
+```text title="Main files"
+my-minista-project/
+├── src/
+│   └── pages/
+│       └── index.tsx
+├── AGENTS.md
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```
+
+## Have the agent read AGENTS.md ||agent-instructions||
+
+Projects created from a template include `AGENTS.md`. This file directs agents to commands for learning minista and checking configuration and diagnostics. Ask the agent to read it in your first request.
+
+The agent can run `npx --no-install minista agents` to retrieve the guide bundled with the installed version. It can use this guide to learn about pages, layouts, and plugins.
+
+To add minista instructions to `AGENTS.md`, such as in a manually configured project, run:
+
+```sh
+npx --no-install minista agents --write
+```
+
+This adds or updates the existing minista-managed block and preserves the rest of the file. See [CLI agents](/docs/reference/cli#agents) for command details.
+
+## Request a site ||request-site||
+
+Describe the purpose, required pages, content, appearance, and interactive elements. Specify reference sites or images you already have to make the request more concrete.
+
+Adapt the following example to your site and give it to the agent.
+
+```text title="Example site request"
+Build a website for a creative studio in this folder's minista project.
+
+First read AGENTS.md and run npx --no-install minista agents to
+check the usage instructions for the installed version.
+
+Site requirements:
+- Three pages: home, about us, and a news list
+- A simple design with a white background and dark blue accents
+- A layout that is easy to read on smartphones
+- A service introduction and expandable FAQ on the home page
+- Write the content in Japanese. Use placeholder text where no copy is provided
+
+Development approach:
+- Use static HTML as the default and put the shared header and footer in a layout
+- Add scripts where interaction requires JavaScript
+- Use Islands where React state or events are needed
+- Add plugins according to the required features
+
+After development, check the page structure, run TypeScript type checking,
+build the site, and verify its display and interactions in preview.
+Report the results and the URL to open in the browser.
+```
+
+If you use an API or CMS, also describe the endpoint and data shape. Put credentials in environment variables and instruct the agent to keep them out of HTML and browser code.
+
+## Review and refine
+
+Use `npm run dev` to view the site during development. Ask the agent to start the development server and open the URL it provides in your browser.
+
+Check page text, links, smartphone layouts, and interactions such as buttons. For revisions, specify the page and the changes you want.
+
+```text title="Example revision request"
+Change the home page's service introduction from three columns to two.
+Use one column on smartphones and increase the space between headings and text a little.
+When an FAQ item opens, close the other items.
+```
+
+Generate production output with `npm run build` and review it with `npm run preview`. After making changes, rebuild before checking the preview again.
+
+## Ask the agent to validate and investigate ||agent-validation||
+
+Ask the agent to perform the following checks as appropriate for the changes.
+
+| What to check | Command |
+| -------------------------- | --------------------------------------- |
+| Page and URL issues | `npx --no-install minista check --json` |
+| TypeScript types | `npx --no-install tsc --noEmit` |
+| Production file generation | `npm run build` |
+| Generated page display and interactions | `npm run preview` |
+
+If there is a problem, ask the agent to check the current configuration with `inspect --json`. `agents --json` returns the locations of the bundled guide and diagnostic files. See [CLI](/docs/reference/cli) for investigation using command output and errors.
+
+Even after a successful build, verify the appearance and interactions in a browser. If the agent cannot operate a browser, check them yourself and describe any issues.
+
+Files to publish are generated in `dist/`. See [Build and deploy](/docs/guide/build-deploy) for hosting configuration and verification.
+
+Next, [Images and assets](/docs/guide/images-assets) covers handling images and fonts.

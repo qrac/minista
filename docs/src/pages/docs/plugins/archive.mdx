@@ -1,0 +1,77 @@
+---
+layout: docs
+locale: en
+title: pluginArchive
+---
+
+# pluginArchive
+
+A plugin that generates compressed archives at build time.
+
+See the [guide](/docs/guide/archive) for setup and examples. This page covers settings and constraints.
+
+## Table of Contents
+
+contents list
+
+## Options
+
+```js title="Defaults"
+pluginArchive({
+  archives: [
+    {
+      outName: "dist",
+    },
+  ],
+})
+```
+
+### archives
+
+Configure generation patterns as an array. A user-supplied array replaces the default array.
+
+### archives[].srcDir
+
+- Type: `string`
+
+Specify the directory to compress as a path relative to the project root or an absolute path. When omitted, the resolved `build.outDir` is used. The default `outName` remains `dist`.
+
+Paths inside the archive include the directory name relative to the project root. For example, `build.outDir: "output"` produces `output/index.html`. For input outside the project, paths start with the input directory name.
+
+### archives[].outName
+
+- Type: `string`
+
+Specify a name without an extension, relative to `build.outDir`. For example, `downloads/site` produces `<outDir>/downloads/site.zip`.
+
+All output paths configured in `archives` of the same `pluginArchive` are automatically excluded from compression. Previous archives with the same names retained by `emptyOutDir: false` are also excluded. Older archives removed or renamed in the configuration and separate ZIP or TAR files placed for distribution are not automatically excluded. Use `ignore` as needed.
+
+### archives[].ignore
+
+- Type: `string | string[]`
+- Default: `[]`
+
+Specify excluded files using [minimatch](https://www.npmjs.com/package/minimatch) globs against project-root-relative paths. For input outside the project, paths are relative to the input directory's parent.
+
+- Example: `"dist/**/*.map"`
+
+### archives[].format
+
+- Type: `"zip" | "tar"`
+- Default: `"zip"`
+
+Choose the [archiver](https://www.npmjs.com/package/archiver) compression format: `zip` or `tar`.
+
+### archives[].options
+
+- Type: `ZipOptions | TarOptions`
+- Default: `{ zlib: { level: 9 } }`
+
+Set [archiver](https://www.npmjs.com/package/archiver) compression options.
+
+## Diagnostics
+
+- `MINISTA_ARCHIVE_SOURCE_NOT_FOUND`: The input directory does not exist
+- `MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY`: The input is not a directory
+
+An existing empty directory can be compressed.

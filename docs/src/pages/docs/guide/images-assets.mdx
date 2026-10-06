@@ -1,0 +1,110 @@
+---
+layout: docs
+locale: en
+title: Image bundling
+---
+
+# Image bundling
+
+When you import images from pages or components, `pluginSsg()` processes and outputs them through Vite and rewrites reference URLs to their built locations. No additional plugin is needed.
+
+Here, add one photo to the home page. Regular bundling does not change image dimensions or formats. See [Image optimization](/docs/guide/image) for resizing and WebP conversion.
+
+## Table of Contents
+
+contents list
+
+## Add an image
+
+Place a 1200×800-pixel `photo.jpg` in `src/assets/`. If you use another size, adjust `width` and `height` in the code accordingly.
+
+```text title="Project structure"
+src/
+├── assets/
+│   └── photo.jpg
+└── pages/
+    └── index.tsx
+```
+
+The name `src/assets/` has no special requirement. Place assets outside the page discovery directory and reference them where needed.
+
+## Import an image URL ||import-image-url||
+
+The default import of an image is its public URL. Pass that value to the `src` of an `img`.
+
+```tsx title="src/pages/index.tsx"
+import photoUrl from "../assets/photo.jpg"
+
+export default function Page() {
+  return (
+    <>
+      <h1>My Site</h1>
+      <img src={photoUrl} alt="View of the creative studio" width={1200} height={800} />
+    </>
+  )
+}
+```
+
+This import does not make the page run as a React app in the browser. It places the image URL in HTML and outputs the image file.
+
+## Check bundled image output ||bundled-image-output||
+
+Set `build.assetsInlineLimit` to `0` for this example, which outputs a separate file.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+  build: { assetsInlineLimit: 0 },
+})
+```
+
+```text title="Example build output"
+dist/
+├── index.html
+└── assets/
+    └── photo-[hash].jpg
+```
+
+`[hash]` represents a string determined by the file content. The actual name follows Vite's output settings. The finalized file name is also reflected in the generated HTML's `src`.
+
+```html title="Excerpt from dist/index.html"
+<img
+  src="/assets/photo-[hash].jpg"
+  alt="View of the creative studio"
+  width="1200"
+  height="800"
+/>
+```
+
+## Reference images in HTML attributes ||image-attributes||
+
+You can also write a path from the project root directly in `src`.
+
+```tsx
+<img
+  src="/src/assets/photo.jpg"
+  alt="View of the creative studio"
+  width={1200}
+  height={800}
+/>
+```
+
+Attributes such as `img[src]` and `img[srcset]` are bundled. However, not all URL attributes are processed: `meta[content]` and `a[href]`, for example, are not. For Open Graph images, pass the URL obtained from an import.
+
+Relative URLs in HTML such as `./photo.jpg` are not bundled. Distinguish relative import paths from URLs written in HTML attributes.
+
+## Inline images
+
+Add `?inline` to an import to embed an image as a data URL instead of outputting a separate file.
+
+```tsx
+import iconUrl from "../assets/icon.svg?inline"
+```
+
+Imports on the rendering side also explicitly inline the image. This is useful for small icons, but increases the size of the HTML itself.
+
+Place files you want copied without renaming in [public](/docs/guide/public).
+
+Next, [CSS bundling](/docs/guide/styling) adds styles.

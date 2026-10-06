@@ -1,0 +1,82 @@
+---
+layout: docs
+locale: en
+title: pluginSprite
+---
+
+# pluginSprite
+
+A plugin that outputs SVG files referenced by root paths as sprites.
+
+- Optimizes code with SVGO during sprite generation
+
+See the [guide](/docs/guide/sprite) for setup and examples. This page covers settings, component props, and constraints.
+
+## Table of Contents
+
+contents list
+
+## Options
+
+```js title="Defaults"
+pluginSprite({})
+```
+
+### config
+
+- Type: `Config`
+- Default: `undefined`
+
+Pass a [svgo](https://www.npmjs.com/package/svgo) Config to customize optimization.
+
+## Sprite
+
+A component that combines SVG files into sprites and references them with `svg` and `use`.
+
+- Optimizes code with SVGO during sprite generation
+
+```ts
+export type SpriteProps = {
+  src: string
+  symbolId?: string
+  className?: string
+  title?: string
+  attributes?: React.SVGProps<SVGSVGElement>
+} & React.SVGProps<SVGSVGElement>
+```
+
+### src
+
+The file name in `src` becomes the `symbolId`, and its directory name becomes the output SVG sprite file name.
+
+```
+src: "/src/assets/sprite/square.svg"
+=> sprite.svg#square
+```
+
+SVG files in the target directory are combined into one SVG sprite file and added to the build pipeline.
+
+The sprite's `symbol` elements are sorted by `symbolId`. Duplicate IDs in the same output stop the build with `MINISTA_SPRITE_DUPLICATE_SYMBOL`.
+
+### symbolId
+
+Existing SVG sprite files can also be placed in the target directory. Their file names do not become `symbolId` values, so set `symbolId` on the component to use a `symbol` from an existing sprite.
+
+## Diagnostics
+
+If sprite generation fails, the build emits the following diagnostic codes.
+
+- `MINISTA_SPRITE_DISCOVERY_FAILED`: SVG source discovery failed
+- `MINISTA_SPRITE_READ_FAILED`: SVG file reading failed
+- `MINISTA_SPRITE_PARSE_FAILED`: SVG or symbol markup parsing failed
+- `MINISTA_SPRITE_OPTIMIZE_FAILED`: SVGO optimization failed
+
+Diagnostics include the SVG's path relative to the project.
+
+## SVG internal IDs
+
+Internal IDs and references for gradients, clipPath, and similar elements receive deterministic prefixes to avoid collisions. Multiple instances of the same SVG are supported. Do not reference original internal IDs from external CSS or JavaScript. Class names are preserved.
+
+Symbol IDs derived from file names and those in source files are preserved. Duplicate symbol IDs in one output stop the build with `MINISTA_SPRITE_DUPLICATE_SYMBOL`, identifying both source files. Change the IDs to be unique. Root drawing attributes and shared defs are also preserved.
+
+Custom SVGO settings that remove or rename public symbols produce `MINISTA_SPRITE_OPTIMIZE_FAILED`. Disable `cleanupIds` and `removeHiddenElems`.

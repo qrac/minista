@@ -1,0 +1,103 @@
+---
+layout: docs
+locale: en
+title: pluginIsland
+---
+
+# pluginIsland
+
+A plugin that runs React in parts of a static page.
+
+See the [guide](/docs/guide/island) for setup and examples. This page covers settings, component props, and constraints.
+
+## Table of Contents
+
+contents list
+
+## Options
+
+```js title="Defaults"
+pluginIsland({
+  useSplitPages: true,
+  outName: "island-[index]",
+  rootAttrName: "island",
+  rootDOMElement: "div",
+  rootStyle: { display: "contents" },
+})
+```
+
+### useSplitPages
+
+- Type: `boolean`
+- Default: `true`
+
+Split and load the JavaScript needed by each page.
+
+### outName
+
+- Type: `string`
+- Default: `"island-[index]"`
+
+The output file name without an extension. The following dynamic output tag is available.
+
+- `[index]`: Generation order (starting at 1)
+
+### rootAttrName
+
+- Type: `string`
+- Default: `"island"`
+
+The name used for data attributes on the root element being hydrated.
+
+- Example: `data-island-client-directive`
+
+### rootDOMElement
+
+- Type: `"div" | "span"`
+- Default: `"div"`
+
+The HTML tag for the root element being hydrated.
+
+### rootStyle
+
+- Type: `React.CSSProperties`
+- Default: `{ display: "contents" }`
+
+Styles applied to the root element being hydrated.
+
+## Props
+
+Actual prop values during SSR are serialized into HTML and restored when hydration starts. You can pass page variables, spreads, `getStaticData()` results, and values inside loops. The same component shares an entry even when values or startup conditions differ.
+
+Supported values are strings, finite numbers, booleans, `null`, `undefined`, arrays, and plain objects. JSX children and props containing JSX are restored as HTML tags, Fragments, or statically imported component references appearing in that Island's JSX. Props are readable from HTML, so do not pass secret values.
+
+Functions, symbols, `BigInt`, non-finite numbers, `Date`, `Map`, `Set`, `RegExp`, class instances, accessors, and circular references are unsupported. Inline event functions that worked in older examples cannot be passed either. Move event handling into the imported Island component.
+
+- `MINISTA_ISLAND_PROPS_UNSUPPORTED`: A value cannot be serialized; diagnostics show its location in props
+- `MINISTA_ISLAND_COMPONENT_UNRESOLVED`: A component cannot be resolved through static imports; import it from another file
+- `MINISTA_ISLAND_DIRECTIVE_CONFLICT`: Multiple startup conditions on one element
+- `MINISTA_ISLAND_NESTED`: Islands nested in the same JSX; consolidate them at the outermost level
+
+During development, changes to page values update data stored in static HTML. Component changes are reflected through Vite's update path. Keep React's initial rendering consistent with the SSR display.
+
+## Client directive
+
+Apply `client:*` to statically imported React components or HTML tags. Only one directive is allowed per element.
+
+| Directive | Condition | Options |
+| --- | --- | --- |
+| `client:load` | On page load | None |
+| `client:idle` | During browser idle time | `{ timeout: number }` (milliseconds) |
+| `client:visible` | When entering the viewport | `{ rootMargin: string }` |
+| `client:media` | When a media query matches | Media query string |
+| `client:only` | Render in the browser on page load | None |
+
+`client:only` does not generate static HTML for the component body, but props and children are evaluated and static imports run. Keep `window` and similar APIs out of module top-level code; use them in events or `useEffect()`. Direct children with `slot="fallback"` appear before rendering and are removed from props and children passed to the client.
+
+## Conditional loading
+
+`client:visible`, `client:media`, and `client:idle` fetch and evaluate component and hydration JavaScript only after their condition is met. `client:load` and `client:only` start fetching when the page's Island entry runs. Multiple instances of a component reuse the module, and each element is hydrated once.
+
+CSS needed to display the initial HTML is still loaded. Vite fetches CSS in lazy chunks with their modules. Dependencies shared with another immediate component or regular script may load earlier.
+
+After a condition is met, network requests and JavaScript execution introduce a delay. Use `client:load` for immediately interactive UI. On loading failure, the SSR display remains and `MINISTA_ISLAND_LOAD_FAILED` is logged to the console. No automatic retry occurs; reload the page after the connection recovers.

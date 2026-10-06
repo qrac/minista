@@ -1,0 +1,298 @@
+---
+layout: docs
+locale: en
+title: pluginSearch
+---
+
+# pluginSearch
+
+A plugin that adds full-text search.
+
+See the [guide](/docs/guide/search) for setup and examples. This page covers settings, component props, and constraints.
+
+## Table of Contents
+
+contents list
+
+## Options
+
+```js title="Defaults"
+pluginSearch({
+  outName: "search",
+  src: ["**/*.html"],
+  ignore: ["404.html"],
+  trimTitle: "",
+  targetSelector: "[data-search]",
+  relativeAttr: "data-search-relative",
+  inputAttr: "data-search-input",
+  hit: {
+    minLength: 3,
+    number: false,
+    english: true,
+    hiragana: false,
+    katakana: true,
+    kanji: true,
+  },
+})
+```
+
+### indexes
+
+- Type: `Record<string, SearchIndexOptions>`
+- Default: `undefined`
+
+Divide search targets into named indexes. When used, put `src`, `ignore`, and `outName` in each index. See [Multiple indexes](#multiple-indexes) for inheritance rules.
+
+### outName
+
+- Type: `string`
+- Default: `"search"`
+
+The search JSON output file name without an extension.
+
+### src
+
+- Type: `string[]`
+- Default: `["**/*.html"]`
+
+Specify searchable HTML as globs. Files included in the build pipeline are selected using [picomatch](https://www.npmjs.com/package/picomatch).
+
+All HTML files are included by default. Narrow the scope with a pattern such as `["posts/**/*.html"]`.
+
+### ignore
+
+- Type: `string[]`
+- Default: `["404.html"]`
+
+Specify excluded HTML as globs. Files included in the build pipeline are selected using [picomatch](https://www.npmjs.com/package/picomatch).
+
+### trimTitle
+
+- Type: `string`
+- Default: `""`
+
+A string to remove from result titles. For a page title such as "CSS - minista", specify ` - minista` to remove the part unnecessary for the search UI.
+
+### targetSelector
+
+- Type: `string`
+- Default: `"[data-search]"`
+
+The selector to index on searchable pages.
+
+### ignoreSelectors
+
+- Type: `string[]`
+- Default: `[]`
+
+An array of selectors to exclude from indexing within `targetSelector`. All matched elements and their descendants are excluded from vocabulary (`words`), content (`content`), and heading positions (`toc`). If the `targetSelector` element itself matches, its entire content is excluded. Page titles are collected separately.
+
+- Example: `["h1", "#table-of-contents", "#table-of-contents + div"]`
+
+### relativeAttr
+
+- Type: `string`
+- Default: `"data-search-relative"`
+
+The data attribute used to determine the depth to the search root. It is added to `body`.
+
+### inputAttr
+
+- Type: `string`
+- Default: `"data-search-input"`
+
+The data attribute added to the search field. Its presence determines whether `relativeAttr` is added.
+
+### hit.minLength
+
+- Type: `number`
+- Default: `3`
+
+The minimum word length included in search hits.
+
+### hit.number
+
+- Type: `boolean`
+- Default: `false`
+
+Whether numbers are included in search hits.
+
+### hit.english
+
+- Type: `boolean`
+- Default: `true`
+
+Whether English words are included in search hits.
+
+### hit.hiragana
+
+- Type: `boolean`
+- Default: `false`
+
+Whether consecutive hiragana strings are included in search hits.
+
+### hit.katakana
+
+- Type: `boolean`
+- Default: `true`
+
+Whether consecutive katakana strings are included in search hits.
+
+### hit.kanji
+
+- Type: `boolean`
+- Default: `true`
+
+Whether consecutive kanji strings are included in search hits.
+
+## Search
+
+A search component combining a search field and result output. It runs together with `pluginIsland`.
+
+Input is treated as a case-insensitive string search, not a regular expression. Highlighting applies to literal matching parts as well. Each input term separated by an ASCII space partially matches indexed search words, so input containing symbols also matches when those symbols occur in words referenced by JSON `hits`. JSON is fetched on the first input, and results are updated using the current input when fetching completes.
+
+The `<Search>` component accepts the following props.
+
+```ts
+type SearchProps = {
+  index?: string
+  className?: string
+  minHitLength?: number
+  maxHitPages?: number
+  maxHitWords?: number
+  attributes?: React.HTMLAttributes<HTMLElement>
+  field?: {
+    className?: string
+    placeholder?: string
+    beforeElement?: React.ReactElement
+    afterElement?: React.ReactElement
+    clearElement?: React.ReactElement<React.HTMLAttributes<HTMLElement>>
+    attributes?: React.HTMLAttributes<HTMLElement>
+  } & React.HTMLAttributes<HTMLElement>
+  list?: {
+    className?: string
+    showUrl?: boolean
+    attributes?: React.HTMLAttributes<HTMLElement>
+  } & React.HTMLAttributes<HTMLElement>
+} & React.HTMLAttributes<HTMLElement>
+```
+
+### index
+
+- Type: `string`
+- Default: `undefined`
+
+The search index name configured in `indexes`. Specify it when using multiple indexes.
+
+### className
+
+- Type: `string`
+- Default: `"search"`
+
+The class name for the `<Search>` component root.
+
+### minHitLength
+
+- Type: `number`
+- Default: `2`
+
+The minimum input length to start searching.
+
+### maxHitPages
+
+- Type: `number`
+- Default: `5`
+
+The maximum number of pages displayed in search results.
+
+### maxHitWords
+
+- Type: `number`
+- Default: `20`
+
+The maximum number of words displayed in search results.
+
+### field.className
+
+- Type: `string`
+- Default: `"search-field"`
+
+The search field class name.
+
+### field.placeholder
+
+- Type: `string`
+- Default: `""`
+
+The search field placeholder.
+
+### field.beforeElement
+
+- Type: `React.ReactElement`
+- Default: `undefined`
+
+An element inserted before the search field, such as a magnifying glass icon.
+
+### field.afterElement
+
+- Type: `React.ReactElement`
+- Default: `undefined`
+
+An element inserted after the search field, such as a magnifying glass icon.
+
+### field.clearElement
+
+- Type: `React.ReactElement<React.HTMLAttributes<HTMLElement>>`
+- Default: `undefined`
+
+An element that clears the search field, such as a close button.
+
+### list.className
+
+- Type: `string`
+- Default: `"search-list"`
+
+The search result class name.
+
+### list.showUrl
+
+- Type: `boolean`
+- Default: `true`
+
+Whether URLs are displayed in search results.
+
+## Multiple indexes
+
+Keys in `indexes` become index names. Select one explicitly using `Search`'s `index`; each UI fetches only the selected JSON. No URL-based automatic selection occurs. See the [guide](/docs/guide/search#multiple-indexes) for setup examples.
+
+### Option inheritance
+
+| Option | Location with multiple indexes | When omitted |
+| ------------------------------------------------ | ----------------------- | ------------------------------ |
+| `src` | Each index | `["**/*.html"]` |
+| `ignore` | Each index | `["404.html"]` |
+| `outName` | Each index | `search-${indexName}` |
+| `trimTitle`, `targetSelector`, `ignoreSelectors` | Top level and each index | Top level, then existing defaults |
+| `hit` | Top level and each index | Inherited per field |
+| `inputAttr`, `relativeAttr` | Top level and each index | Top level, then existing defaults |
+
+`src` and `ignore` are HTML file name globs relative to the output directory. For example, `/ja/` corresponds to `ja/index.html`, and `/ja/guide` to `ja/guide.html`. The default `ignore: ["404.html"]` does not exclude `ja/404.html`, so specify the required exclusions explicitly.
+
+`hit` is inherited per field. Arrays replace rather than merge, so include required shared entries in each index's `ignoreSelectors`. An empty array clears exclusions. When using `indexes`, specify `src`, `ignore`, and `outName` in each index rather than at the top level.
+
+### Generated JSON
+
+For an index named `ja`, the default output name is `search-ja.json`. The directory and hash follow Vite's `build.rolldownOptions.output.assetFileNames`, and Search references the finalized file name. Omit the extension from `outName` and keep it unique across indexes.
+
+Multiple-index JSON includes the `index` name and retains the existing `words`, `hits`, and `pages` format. Indexes with no matching pages are also output.
+
+```json
+{
+  "index": "ja",
+  "words": [],
+  "hits": [],
+  "pages": []
+}
+```
+
+Single-index JSON contains `words` (vocabulary), `hits` (positions of searchable words), and `pages` (page data). The search UI reads each page's `url`, `title`, `toc`, and `content`. Multiple indexes add the `index` name to the same format.

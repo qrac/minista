@@ -1,0 +1,115 @@
+---
+layout: docs
+locale: en
+title: File-based routing
+---
+
+# File-based routing
+
+Add about and news pages to the home page created in [Getting started](/docs/guide/). minista determines URLs from file names and the directory structure in `src/pages/`.
+
+This guide assumes a configuration with `pluginSsg()`, which is required for static HTML output.
+
+## Table of Contents
+
+contents list
+
+## Add a page
+
+Create `src/pages/about.tsx` and export a React component as the default export. Start the development server and open `/about`.
+
+```tsx title="src/pages/about.tsx"
+import type { Metadata, PageProps } from "minista/types"
+
+export const metadata: Metadata = { title: "About us" }
+
+export default function About({ title }: PageProps) {
+  return <h1>{title}</h1>
+}
+```
+
+`metadata` is data passed to pages and layouts. Use `Metadata` to type-check its fields and `PageProps` to type-check the props received by the page. This example receives the metadata's `title` through props and displays it as a heading. See [Layouts](/docs/guide/layouts) to reflect the title in the HTML head.
+
+## Nested pages
+
+Create `news/` and add `index.tsx` and `hello.tsx` inside it. Each becomes a page by writing a component just like the home page.
+
+```text title="Project structure"
+src/pages/
+├── index.tsx
+├── about.tsx
+└── news/
+    ├── index.tsx
+    └── hello.tsx
+```
+
+Running `npm run build` produces the following structure.
+
+```text title="Build output"
+dist/
+├── index.html
+├── about.html
+└── news/
+    ├── index.html
+    └── hello.html
+```
+
+| Page file | Development URL | Build output |
+| -------------------------- | ------------- | ---------------------- |
+| `src/pages/index.tsx`      | `/`           | `dist/index.html`      |
+| `src/pages/about.tsx`      | `/about`      | `dist/about.html`      |
+| `src/pages/news/index.tsx` | `/news/`      | `dist/news/index.html` |
+| `src/pages/news/hello.tsx` | `/news/hello` | `dist/news/hello.html` |
+
+Whether extensionless URLs work after deployment depends on the host's configuration. If the host serves directory indexes, use a structure such as `about/index.tsx`.
+
+## Link between pages
+
+Use regular `a` elements to navigate between pages. No dedicated router or link component is needed.
+
+```tsx title="src/pages/index.tsx"
+import type { Metadata, PageProps } from "minista/types"
+
+export const metadata: Metadata = { title: "My Site" }
+
+export default function Page({ title }: PageProps) {
+  return (
+    <>
+      <h1>{title}</h1>
+      <nav>
+        <a href="/about">About us</a>
+        <a href="/news/">News</a>
+      </nav>
+    </>
+  )
+}
+```
+
+When publishing to a subdirectory with `base`, add the deployment path to page links as well. See [Build and deploy](/docs/guide/build-deploy#public-base-path) for details.
+
+## Draft pages
+
+Set `draft: true` for pages still in progress. They appear during development and are excluded from production builds.
+
+```tsx title="src/pages/news/hello.tsx"
+import type { Metadata, PageProps } from "minista/types"
+
+export const metadata: Metadata = {
+  title: "News in progress",
+  draft: true,
+}
+
+export default function Article({ title }: PageProps) {
+  return <h1>{title}</h1>
+}
+```
+
+## Page file rules
+
+Pages use `.jsx`, `.tsx`, `.md`, and `.mdx`. Place shared elements and data files outside page discovery, such as in `src/components/` or `src/data/`.
+
+Do not create files that resolve to the same URL. For example, `about.tsx` and `about.mdx` conflict. Check the page structure with `npx minista check`.
+
+See [Page generation from APIs](/docs/guide/fetch) for creating multiple pages from API data.
+
+Next, [Markdown and MDX](/docs/guide/mdx) adds another way to write content.

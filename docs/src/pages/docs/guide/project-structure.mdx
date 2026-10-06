@@ -1,0 +1,100 @@
+---
+layout: docs
+locale: en
+title: Project structure
+---
+
+# Project structure
+
+Using the minimal setup from [Getting started](/docs/guide/), review file responsibilities and an example structure after adding features.
+
+By default, minista loads pages from `src/pages/` and a layout from `src/layouts/index.tsx` or `index.jsx`.
+
+Organize shared components and assets to suit your project.
+
+## Table of Contents
+
+contents list
+
+## Directory structure
+
+```text
+my-minista-project/
+├── public/
+│   └── favicon.svg
+├── src/
+│   ├── assets/
+│   │   ├── styles.css
+│   │   └── scripts.ts
+│   ├── components/
+│   │   └── header.tsx
+│   ├── layouts/
+│   │   └── index.tsx
+│   └── pages/
+│       ├── index.tsx
+│       └── about.tsx
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```
+
+This is an example structure. The minimal template does not include layouts or shared components, so add them as needed.
+
+## Pages: src/pages ||pages||
+
+Files with `.tsx`, `.jsx`, `.mdx`, and `.md` extensions become pages. File names and the directory structure determine their URLs.
+
+Place shared elements and MDX that should not be published as pages outside page discovery, such as in `src/components/`. See [File-based routing](/docs/guide/pages-routing) for creating pages.
+
+## Layouts: src/layouts ||layouts||
+
+`src/layouts/index.tsx` or `index.jsx` is the shared layout wrapping all pages. It brings together the header, footer, HTML language, and shared head elements.
+
+Create one layout in the language you use, rather than the same layout with both extensions. Pages can also be generated without a layout.
+
+## Components: src/components ||components||
+
+Place reusable React components such as headers and cards here. The directory name has no special behavior; import components from pages and layouts to use them.
+
+## Assets: src/assets and public ||assets||
+
+| Location | Purpose |
+| ------------- | ------------------------------------------------------------------- |
+| `src/assets/` | CSS, JavaScript, images, and other files referenced through imports or HTML attributes and processed by Vite |
+| `public/` | Favicons, PDFs, and other files output with their names and contents preserved |
+
+For example, reference `public/favicon.svg` as `/favicon.svg`. Do not include `public` in the URL. See [Public files](/docs/guide/public) and [Image bundling](/docs/guide/images-assets) for choosing between these locations.
+
+## Configuration file ||config-file||
+
+Configure plugins, the development server, and builds in `vite.config.ts` or `vite.config.js`. Add `tsconfig.json` for TypeScript setups.
+
+The basic template's `project.json` is a data file for site information and similar values. minista does not automatically read it as configuration; import it from components that need it.
+
+## Generated directories
+
+`dist/` is the production build output directory. Edit the source and rebuild instead of editing generated files directly.
+
+Caches and inspection results are saved in `node_modules/.minista/` if the root has a `package.json`, or `.minista/` directly under the root otherwise. These are not files to publish as part of the site.
+
+## Custom page directory
+
+Set both the page discovery range and the base directory removed from URLs.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg({
+      src: ["src/screens/**/*.{tsx,jsx,mdx,md}"],
+      srcBases: ["src/screens"],
+      layout: "src/layouts/site.tsx",
+    }),
+  ],
+})
+```
+
+Paths are relative to the project root. See [pluginSsg](/docs/plugins/ssg) for configuration details.
+
+Next, [Configuration](/docs/guide/configuration) covers plugin and output directory settings.

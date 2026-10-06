@@ -1,0 +1,78 @@
+---
+layout: docs
+locale: en
+title: pluginBeautify
+---
+
+# pluginBeautify
+
+A plugin that formats HTML, CSS, and JS at build time.
+
+See the [guide](/docs/guide/beautify) for setup and examples. This page covers settings and constraints.
+
+## Table of Contents
+
+contents list
+
+## Options
+
+```js title="Defaults"
+pluginBeautify({
+  src: ["**/*.{html,css,js}"],
+  htmlOptions: {
+    indent_size: 2,
+    max_preserve_newlines: 0,
+    indent_inner_html: true,
+    extra_liners: [],
+    inline: ["span", "strong", "b", "small", "del", "s", "code", "br", "wbr"],
+  },
+  cssOptions: {
+    indent_size: 2,
+    space_around_combinator: true,
+  },
+  jsOptions: {
+    indent_size: 2,
+  },
+})
+```
+
+### src
+
+- Type: `string[]`
+- Default: `["**/*.{html,css,js}"]`
+
+Specify target files as globs relative to dist. Files included in the build pipeline are selected using [picomatch](https://www.npmjs.com/package/picomatch).
+
+### htmlOptions
+
+- Type: `HTMLBeautifyOptions`
+
+[js-beautify](https://www.npmjs.com/package/js-beautify) settings for HTML formatting.
+
+### cssOptions
+
+- Type: `CSSBeautifyOptions`
+
+[js-beautify](https://www.npmjs.com/package/js-beautify) settings for CSS formatting.
+
+### jsOptions
+
+- Type: `JSBeautifyOptions`
+
+[js-beautify](https://www.npmjs.com/package/js-beautify) settings for JavaScript formatting.
+
+## Output constraints
+
+Set `build.rolldownOptions.output.minify: false` when formatting JavaScript. With `build.minify: false` alone, Rolldown's later `dce-only` processing overwrites formatting. JS `entryFileNames` and `chunkFileNames` can use `[hash]`.
+
+When formatting CSS, set `assetFileNames` to a string without `[hash]`, such as `"assets/[name][extname]"`. CSS is formatted after names are finalized, so hashed names or function-based naming stop the build with `MINISTA_BEAUTIFY_CSS_HASH_UNSUPPORTED`.
+
+js-beautify does not generate source maps, so combining formatting with source maps for the target JS or CSS stops the build with `MINISTA_BEAUTIFY_SOURCEMAP_UNSUPPORTED`. This includes external CSS maps and inline map references. Exclude such files with a setting such as `src: ["**/*.html"]` if you need source maps. Excluded JS, CSS, and maps are unchanged.
+
+Combining formatting with subsequent JS minification produces `MINISTA_BEAUTIFY_MINIFY_UNSUPPORTED`. These constraints are validated when matching output exists. Transformations by later custom plugins are not covered.
+
+Formatting makes delivered files readable. Spaces and line breaks increase uncompressed sizes, so if transfer size is a priority, limit targets to HTML or remove this plugin and use Vite's minification.
+
+## Preload migration
+
+`removeImagePreload` moved to `pluginSsg` and defaults to `true`. The old Beautify option remains as a deprecated type only during migration; explicit use returns `MINISTA_BEAUTIFY_OPTION_MOVED`. Move the same value to `pluginSsg` and remove it from Beautify. See [pluginSsg](/docs/plugins/ssg) for details.

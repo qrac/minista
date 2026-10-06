@@ -1,0 +1,244 @@
+---
+layout: docs
+locale: en
+title: Reducing Island size
+---
+
+# Reducing Island size
+
+Replace browser-side React in Islands with Redact or Preact to reduce the JavaScript delivered. Static HTML generation continues to use React, and component imports stay the same.
+
+Add this configuration when you need to reduce size. To continue with React, proceed to [Static site search](/docs/guide/search).
+
+## Table of Contents
+
+contents list
+
+## Choose a runtime ||choose-runtime||
+
+| Replacement | Characteristics | Setup |
+| --- | --- | --- |
+| Redact | Uses the same API as React and is easy to adopt. nano can reduce size further | Add the official Vite plugin |
+| Preact | An option when reducing size is a priority | Create a custom Vite plugin applied only to browser code |
+
+Preact can achieve smaller output than Redact, but actual output depends on the APIs and dependencies used. Both differ from React internally, so choose after checking your UI's behavior. Use one at a time.
+
+## Bundle size
+
+This comparison uses one small counter with `useState()` as a `client:load` Island. Production builds used the same page and component, changing only the browser runtime.
+
+| Setup | Minified JavaScript | gzip size | gzip reduction from React |
+| --- | ---: | ---: | ---: |
+| React + React DOM | About 225KB | About 71KB | — |
+| Redact (full) | About 62KB | About 22KB | About 68% |
+| Redact (nano + hydration) | About 45KB | About 17KB | About 76% |
+| Preact (compat) | About 22KB | About 10KB | About 86% |
+
+Measured on October 5, 2026 with React and React DOM 19.3.0, Redact 0.1.4, Preact 11.0.0, Vite 8.3.2, and `@preact/preset-vite` 2.10.6. 1KB means 1,000 bytes. JavaScript sizes are totals across all output files; gzip sizes sum each file compressed separately.
+
+These values include the counter and Island startup code, not just the runtime. Actual size depends on APIs, Redact feature flags, dependencies, and other factors.
+
+## Redact
+
+[Redact](https://github.com/TanStack/redact) is a React-compatible runtime. Add its official Vite plugin without rewriting component imports such as `import { useState } from "react"`.
+
+```sh
+npm install @tanstack/redact
+```
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginIsland } from "minista"
+import { redact } from "@tanstack/redact/vite"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginIsland(), redact()],
+})
+```
+
+With this setup, minista generates static HTML with React and replaces browser imports with Redact. Conversion also runs in dev, so check the counter from the previous guide with `npm run dev`.
+
+### Redact nano
+
+The default preset for `redact()` is `full`. Choose `nano` to limit enabled features.
+
+```ts title="vite.config.ts (redact settings)"
+redact({
+  preset: "nano",
+  features: {
+    hydration: true,
+  },
+})
+```
+
+`nano` disables optional features to reduce size. Islands that reuse static HTML, such as `client:load`, need hydration, so set `hydration: true`. With `nano` alone, `hydrateRoot()` throws an error.
+
+Enable required features such as Context and Suspense through `features`. Disabled features do not preserve their original behavior. See [Redact feature flags](https://github.com/TanStack/redact#feature-flags) for details.
+
+### Redact compatibility
+
+Matching API names do not mean all behavior matches React. Redact renders synchronously and does not reproduce React's concurrent rendering or priority-based work splitting.
+
+For example, `startTransition()` executes synchronously, `useTransition()` returns `false` for pending, and `useDeferredValue()` returns its input unchanged. StrictMode double execution and the internals of React DevTools and Fast Refresh are not reproduced either. Check the [compatibility list](https://github.com/TanStack/redact#compatibility) for the APIs you use.
+
+## Preact
+
+[Preact](https://preactjs.com/) is a small UI library. Consider it when reducing size is a priority and you can maintain custom Vite configuration. This example uses `preact/compat` to replace browser code while keeping React imports.
+
+```sh
+npm install preact
+npm install --save-dev @preact/preset-vite
+```
+
+Adding `@preact/preset-vite` directly also changes JSX and React imports on the static HTML generation side. Apply the preset and import replacements only to browser environments to avoid passing Preact elements to minista's React renderer.
+
+### Preact Vite plugin
+
+Create `.vite-plugins/preact.ts` at the project root. This is a custom plugin maintained in your project.
+
+```ts title=".vite-plugins/preact.ts"
+import preact from "@preact/preset-vite"
+import type { Plugin } from "vite"
+
+const clientAliases = {
+  "react-dom/test-utils": "preact/test-utils",
+  "react-dom": "preact/compat",
+  "react/jsx-dev-runtime": "preact/jsx-dev-runtime",
+  "react/jsx-runtime": "preact/jsx-runtime",
+  react: "preact/compat",
+}
+
+function pluginClientPreactResolve(): Plugin {
+  return {
+    name: "example:client-preact-resolve",
+    enforce: "pre",
+    applyToEnvironment: (environment) =>
+      environment.config.consumer === "client",
+    resolveId(source, importer, options) {
+      for (const [find, replacement] of Object.entries(clientAliases)) {
+        if (source !== find && !source.startsWith(`${find}/`)) continue
+        return this.resolve(
+          `${replacement}${source.slice(find.length)}`, importer,
+          { ...options, skipSelf: true },
+        )
+      }
+    },
+  }
+}
+
+function pluginPreactOptimizeDeps(): Plugin {
+  return {
+    name: "example:preact-optimize-deps",
+    enforce: "post",
+    configResolved(config) {
+      for (const optimizeDeps of [
+        config.optimizeDeps,
+        config.environments.client?.optimizeDeps,
+      ]) {
+        if (!optimizeDeps) continue
+        optimizeDeps.include = (optimizeDeps.include ?? []).filter(
+          (id) => id !== "react" && !id.startsWith("react/") &&
+            id !== "react-dom" && !id.startsWith("react-dom/"),
+        )
+        optimizeDeps.include.push("preact/compat", "preact/compat/client")
+        optimizeDeps.exclude = [
+          ...new Set([
+            ...(optimizeDeps.exclude ?? []),
+            ...Object.keys(clientAliases),
+            "react-dom/client",
+          ]),
+        ]
+      }
+    },
+  }
+}
+
+export function pluginPreact(): Plugin[] {
+  const clientPreactPlugins = preact({
+    reactAliasesEnabled: false,
+    jsxImportSource: "react",
+  }).map((plugin): Plugin => ({
+    ...plugin,
+    applyToEnvironment: (environment) =>
+      environment.config.consumer === "client",
+  }))
+
+  return [
+    pluginClientPreactResolve(),
+    ...clientPreactPlugins,
+    pluginPreactOptimizeDeps(),
+    {
+      name: "example:preact-dedupe",
+      config: () => ({ resolve: { dedupe: ["preact"] } }),
+    },
+  ]
+}
+```
+
+Use `applyToEnvironment` to select browser environments and replace JSX imports and the React compatibility layer. Adjust development dependency prebundling as well to prevent React and Preact from mixing in the browser.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginIsland } from "minista"
+import { pluginPreact } from "./.vite-plugins/preact"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginIsland(), pluginPreact()],
+})
+```
+
+This setup works in both dev and production builds. Check the counter with `npm run dev` without changing React imports in components.
+
+### Preact compatibility
+
+Preact's core API does not fully match React's. This setup bridges differences through `preact/compat`, but not every React API or dependency necessarily behaves the same.
+
+Preact uses native DOM events and does not reimplement React's synthetic events. For example, events in a Portal do not propagate to parents as they do in React. Core Preact uses `onInput` for input, but `preact/compat` in this example converts React's `onChange`. See [Differences to React](https://preactjs.com/guide/v11/differences-to-react/) for details.
+
+Components also run as React components during static HTML generation. If you directly import Preact-only APIs, check that they can also render on the React side.
+
+## Check runtime output ||runtime-output||
+
+Use the components and pages from the [Island](/docs/guide/island) example. For Preact, add the custom plugin file.
+
+```text title="Project structure with Preact"
+my-minista-project/
+├── .vite-plugins/
+│   └── preact.ts
+├── src/
+│   ├── components/
+│   │   └── counter.tsx
+│   └── pages/
+│       └── index.tsx
+└── vite.config.ts
+```
+
+```text title="Example build output"
+dist/
+├── index.html
+└── assets/
+    └── island-0-[hash].js
+```
+
+The output structure stays the same, while the runtime included in Island JavaScript changes. File names, chunk counts, and sizes depend on the setup. Compare total output JavaScript size between production builds before and after replacement.
+
+## Verify the runtime in dev and preview ||verify-runtime||
+
+Both setups let you check behavior with the replacement runtime during development.
+
+```sh
+npm run dev
+```
+
+Verify that the counter increments and UI using forms, Context, and external libraries works. Component changes also affect static HTML, so a full reload may reset state.
+
+Also check production output.
+
+```sh
+npm run build
+npm run preview
+```
+
+Check for hydration warnings and runtime errors. Try both dev and preview again after changing settings such as nano.
+
+See the [Redact playground](https://github.com/qrac/minista/tree/main/playground/redact) and [Preact playground](https://github.com/qrac/minista/tree/main/playground/preact) for working configurations.
+
+Next, [Static site search](/docs/guide/search) adds a search UI as an Island. If you replaced the runtime, check the search UI's behavior as well.

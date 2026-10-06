@@ -1,0 +1,83 @@
+---
+layout: docs
+locale: en
+title: Head
+---
+
+# Head
+
+Use `Head` to add elements to the HTML head from pages or child components. Here, add descriptions and HTML attributes from a page (this is also possible in a [layout](/docs/guide/layouts)).
+
+## Table of Contents
+
+contents list
+
+## Add head elements per page ||page-head||
+
+Import `Head` from `minista/head` and write the elements to add as its children. It works with `pluginSsg()` and requires no additional plugin.
+
+```tsx title="src/pages/news/hello.tsx"
+import type { Metadata, PageProps } from "minista/types"
+import { Head } from "minista/head"
+
+export const metadata: Metadata = { title: "Our site is live" }
+
+export default function Article({ title }: PageProps) {
+  return (
+    <>
+      <Head>
+        <meta name="description" content="Announcing the launch of our site." />
+      </Head>
+      <h1>{title}</h1>
+    </>
+  )
+}
+```
+
+`Head` does not output HTML at its position in the component. It collects elements during page rendering and adds them to the layout's head. This example adds a description alongside the existing `title` and `meta` elements.
+
+```html title="dist/news/hello.html (head excerpt)"
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Our site is live</title>
+  <meta name="description" content="Announcing the launch of our site." />
+</head>
+```
+
+If `title`, charset, or viewport duplicates an element in the layout, the element from `Head` takes priority.
+
+## Overwrite by key
+
+When elements in `Head` have the same `key`, the later element is used. For example, both `meta` elements below have `key="desc"`, so only the later description is output.
+
+```tsx title="src/pages/news/hello.tsx (excerpt)"
+<Head>
+  <meta name="description" content="A shared description." key="desc" />
+  <meta name="description" content="A description of this page." key="desc" />
+</Head>
+```
+
+```html title="Output HTML"
+<meta name="description" content="A description of this page." />
+```
+
+Even across separate `Head` components, a later element with the same `key` overwrites the earlier one during rendering.
+
+`key` identifies elements and is not output as an HTML attribute. A `description` is not overwritten just because its `name` matches; give elements you want to replace the same `key`.
+
+For `title`, `charset`, and `viewport`, the later element of each type takes priority even without a `key`.
+
+## Document attributes
+
+Use `htmlAttributes` and `bodyAttributes` to add attributes to the layout's `html` and `body`. If the same attribute is specified again, the later value takes priority.
+
+```tsx title="src/pages/news/hello.tsx (excerpt)"
+<Head htmlAttributes={{ lang: "ja" }} bodyAttributes={{ class: "news-page" }} />
+```
+
+This example produces `<html lang="ja">` and `<body class="news-page">`. Use the HTML attribute name `class` in `bodyAttributes`.
+
+See [Head in pluginSsg](/docs/plugins/ssg#head) for the public API.
+
+Next, [Public files](/docs/guide/public) publishes favicons and PDFs without processing.

@@ -1,0 +1,36 @@
+---
+layout: docs
+locale: en
+title: pluginComment
+---
+
+# pluginComment
+
+A plugin that outputs comments in HTML.
+
+See the [guide](/docs/guide/comment) for setup and examples. This page covers settings, component props, and constraints.
+
+## Table of Contents
+
+contents list
+
+## Options
+
+There are no options.
+
+## Comment
+
+A component that outputs comments in HTML.
+
+```ts
+type CommentProps = CommentUseContent | CommentUseChildren
+
+type CommentUseContent = {
+  text: string
+  children?: string
+}
+type CommentUseChildren = {
+  text?: string
+  children: string
+}
+```

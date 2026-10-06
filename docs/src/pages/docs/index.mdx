@@ -1,0 +1,100 @@
+---
+layout: docs
+locale: en
+title: What is minista?
+---
+
+# What is minista?
+
+minista is a Vite-based static site generator (SSG) that generates static HTML from React JSX and TSX.
+
+The name is short for mini static site generator.
+
+Write pages and shared elements as React components and output them as standard HTML, CSS, and JavaScript.
+
+## Table of Contents
+
+contents list
+
+## Building static sites with React
+
+Place React components in `src/pages/` and export them as the default export. Build pages using JSX and TSX expressions and props.
+
+```tsx title="src/pages/index.tsx"
+export default function Page() {
+  return (
+    <main>
+      <h1>Hello, minista!</h1>
+      <p>This is the first static page.</p>
+    </main>
+  )
+}
+```
+
+Building generates HTML like the following in `dist/index.html`.
+
+```html title="dist/index.html"
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+  </head>
+  <body>
+    <main>
+      <h1>Hello, minista!</h1>
+      <p>This is the first static page.</p>
+    </main>
+  </body>
+</html>
+```
+
+Set the language, title, and shared elements such as headers in a [layout](/docs/guide/layouts). You can also write pages in Markdown and MDX.
+
+## SSG based on Vite
+
+minista uses Vite for the development server and builds. `pluginSsg()` is required to output static HTML. The smallest setup consists of a configuration that includes this plugin and a single page.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+`pluginSsg()` handles page generation, Markdown and MDX conversion, and output of referenced CSS, JavaScript, and images. Add plugins for advanced features such as image optimization and search when you need them.
+
+## Static by default
+
+Page content is converted to HTML at build time. You do not need to ship the React runtime to the browser to display static components.
+
+Publish the files in `dist/`. You do not need to keep minista running on your host; deploy the files wherever static files can be served.
+
+## Interactive when needed
+
+You can also use React state and events in parts of a page. Add `pluginIsland()` and specify `client:*`.
+
+```tsx title="src/pages/index.tsx"
+import Counter from "../components/counter"
+
+export default function Page() {
+  return <Counter client:load />
+}
+```
+
+Choose when a component starts running: on load, during idle time, or when it enters the viewport. See [Island](/docs/guide/island) for setup and component examples.
+
+## Main features
+
+- Pages and components in JSX and TSX
+- File-based routing and static page generation from APIs
+- Markdown, MDX, and shared layouts
+- CSS and image bundling
+- JavaScript and TypeScript builds
+- Image optimization, SVG optimization, and SVG sprites
+- Islands and static site search
+- HTML, CSS, and JavaScript formatting and delivery archive generation
+
+The [guide](/docs/guide/) covers setup through adding features. See [Why minista?](/docs/why) to decide whether it fits your project, and the [configuration reference](/docs/reference/config) and individual plugin pages for settings and APIs.

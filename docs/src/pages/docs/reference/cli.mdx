@@ -1,0 +1,138 @@
+---
+layout: docs
+locale: en
+title: CLI
+---
+
+# CLI
+
+minista's CLI starts the development server, generates static files, and checks page structure. Run the CLI installed in your project through npm scripts or `npx minista`.
+
+## Table of Contents
+
+contents list
+
+## Commands
+
+`[root]` in the table is an optional project root. When omitted, the current directory is used.
+
+| Command | Description |
+| ---------------------------------- | ------------------------------------------------- |
+| `minista [root]` | Start the development server |
+| `minista build [root]` | Generate static HTML and assets |
+| `minista preview [root]` | Serve built files locally |
+| `minista check [root]` | Check page and route issues |
+| `minista inspect [root]` | Show a Project Graph overview |
+| `minista explain <node-id> [root]` | Show relationships for a specified Graph node |
+| `minista agents [root]` | Show the agent guide for the installed version |
+
+## Development, build, and preview ||dev-build-preview||
+
+```json title="package.json（scripts）"
+{
+  "scripts": {
+    "dev": "minista",
+    "build": "minista build",
+    "preview": "minista preview",
+    "check": "minista check"
+  }
+}
+```
+
+```sh
+npm run dev
+npm run build
+npm run preview
+```
+
+Stop the development server with `Ctrl + C`. Preview is for reviewing existing build output; it does not automatically build source changes.
+
+`minista build` builds the rendering and browser environments in sequence within one Vite application build. The default output directory is `dist/`; change it with `build.outDir`.
+
+Specify the project root and development server options as follows.
+
+```sh
+npx minista site --port 3000
+npx minista build site
+npx minista preview site --port 4173
+```
+
+Development, build, and preview accept Vite CLI options. minista normally handles them, but may fall back to the external Vite CLI for options it cannot translate.
+
+## check: Inspect page structure ||check||
+
+```sh
+npx minista check
+npx minista check --json
+```
+
+Evaluates page modules and `getStaticData()` to check route and page issues. Errors cause a nonzero exit code. This is separate from TypeScript type checking and browser verification of build output.
+
+Add `--json` to return machine-readable results to stdout. Diagnostics include stable `code`, `severity`, and `message` fields, with fields such as `hint`, `location`, `phase`, and `nodeId` depending on the issue.
+
+## inspect: Show configuration ||inspect||
+
+```sh
+npx minista inspect --json
+```
+
+Builds the Project Graph from source and displays structures such as pages and routes. Regular `inspect` runs page modules and `getStaticData()`.
+
+Use `--manifest` to read only information from the last successful build.
+
+```sh
+npx minista inspect --manifest --json
+```
+
+This form does not start a Vite server or execute user modules. If no saved manifest exists, it returns `MINISTA_MANIFEST_NOT_FOUND` without building automatically. Even after source changes, the manifest stays unchanged until the next successful build.
+
+## explain: Show node relationships ||explain||
+
+```sh
+npx minista explain "page:route%3Asrc/pages/index.jsx#/" --json
+```
+
+Shows relationships for a specified Graph node. The example ID belongs to the root page generated from `src/pages/index.jsx`. Pass an ID obtained from the target project's `inspect --json`, enclosed in quotes.
+
+Like regular `check` and `inspect`, this evaluates user modules, so provide environment variables required for data fetching.
+
+## agents: Retrieve the usage guide ||agents||
+
+```sh
+npx minista agents
+npx minista agents --json
+npx minista agents --write
+```
+
+`agents` displays the guide bundled with minista. It does not evaluate configuration or page modules.
+
+`--json` returns the version, guide text and path, working directory location, and paths and existence status of manifest and diagnostic files. Displaying this information alone does not create files.
+
+`--write` adds or updates instructions in the project's `AGENTS.md`. It updates only the existing minista-managed block and preserves other content. Use `--write --json` to get changes as JSON. create-minista generates the same instructions automatically.
+
+See [Building with agents](/docs/guide/agents) for example site requests and review steps.
+
+## CLI options
+
+| Option | Commands | Description |
+| ------------ | ------------------------------------ | ------------------------------ |
+| `--json` | `check`, `inspect`, `explain`, `agents` | Output results as JSON |
+| `--manifest` | `inspect` | Read only the saved manifest |
+| `--write` | `agents` | Add or update instructions in `AGENTS.md` |
+
+The v4 `--oneBuild` option was removed. Using it exits with `MINISTA_CLI_OPTION_REMOVED`. Use standard `minista build` instead.
+
+## Generated workspace and saved information ||generated-workspace||
+
+The storage location depends on whether `package.json` exists directly under the project root.
+
+| Condition | Storage location |
+| ---------------------------- | ------------------------ |
+| The root has `package.json` | `node_modules/.minista/` |
+| The root has no `package.json` | `.minista/` |
+
+`check` saves results to `diagnostics.json`. A successful `build` saves configuration and output information to `manifest.json` and also records build diagnostics in `diagnostics.json`.
+
+The manifest represents the last successful build, while diagnostics represent the most recently recorded check or build, so they may come from different runs. Do not edit the working directory manually or include it in published site files.
+
+See [Getting started](/docs/guide/) for setup and the [configuration reference](/docs/reference/config) for configuration files.

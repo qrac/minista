@@ -1,0 +1,248 @@
+---
+layout: docs
+locale: en
+title: pluginImage
+---
+
+# pluginImage
+
+A plugin that optimizes images and downloads remote images.
+
+Optimized output images do not retain or receive metadata such as EXIF, XMP, or IPTC, or ICC profiles. Orientation correction based on EXIF Orientation is applied. There is no option to preserve metadata.
+
+See the [guide](/docs/guide/image) for setup and examples. This page covers settings, component props, and constraints.
+
+## Table of Contents
+
+contents list
+
+## Options
+
+```js title="Defaults"
+pluginImage({
+  useCache: true,
+  remoteCache: "immutable",
+  optimize: {
+    outName: "[name]-[width]x[height]",
+    remoteName: "remote-[index]",
+    layout: "constrained",
+    breakpoints: [320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840],
+    resolutions: [1, 2],
+    aspect: undefined,
+    format: "inherit",
+    formatOptions: {},
+    quality: undefined,
+    fit: "cover",
+    position: "centre",
+    background: undefined,
+  },
+  decoding: "async",
+  loading: "eager",
+})
+```
+
+### useCache
+
+- Type: `boolean`
+- Default: `true`
+
+Use caching during development and builds.
+
+### remoteCache
+
+- Type: `"immutable" | { maxAge: number }`
+- Default: `"immutable"`
+
+The cache policy for remote source images. `"immutable"` does not fetch the source at the same URL again until the cache is deleted. `{ maxAge }` specifies an expiration time in milliseconds; after expiration, the source is revalidated with a conditional request if ETag or Last-Modified is available. This is unused when `useCache: false`.
+
+### optimize.outName
+
+- Type: `string`
+- Default: `"[name]-[width]x[height]"`
+
+The output image file name without an extension. The following dynamic output tags are available.
+
+- `[name]`: Source file name
+- `[width]`: Output file width
+- `[height]`: Output file height
+
+### optimize.remoteName
+
+- Type: `string`
+- Default: `"remote-[index]"`
+
+The name assigned when downloading a remote image, without an extension. It is used as `[name]` in `optimize.outName`. The following dynamic output tag is available.
+
+- `[index]`: Download order (starting at 1)
+
+### optimize.layout
+
+- Type: `"constrained" | "fixed"`
+- Default: `"constrained"`
+
+The output image layout. The choice determines the output variants used.
+
+- `"constrained"`: Container size (uses `breakpoints`)
+- `"fixed"`: Fixed size (uses `resolutions`)
+
+### optimize.breakpoints
+
+- Type: `number[] | { count: number; minWidth: number; maxWidth: number }`
+- Default: `[320, 400, 640, 800, 1024, 1280, 1440, 1920, 2560, 2880, 3840]`
+
+Responsive widths for output images. Specify an array of numbers, or a range from `minWidth` to `maxWidth` and the number of variants in `count`.
+
+### optimize.resolutions
+
+- Type: `number[]`
+- Default: `[1, 2]`
+
+Output image resolutions. Defaults to standard and double-size variants.
+
+### optimize.format
+
+- Type: `"inherit" | "jpg" | "png" | "webp" | "avif"`
+- Default: `"inherit"`
+
+The output image format. `"inherit"` uses the same format as the source image.
+
+### optimize.formatOptions
+
+- Type: `{ jpg?: JpegOptions, png?: PngOptions, webp?: WebpOptions, avif?: AvifOptions }`
+- Default: `{}`
+
+Compression options for each format. Supports the corresponding [sharp](https://www.npmjs.com/package/sharp) options.
+
+### optimize.quality
+
+- Type: `number`
+- Default: `undefined`
+
+Output image quality. Use `optimize.formatOptions` for per-format settings.
+
+### optimize.aspect
+
+- Type: `string`
+- Default: `undefined`
+
+Output image aspect ratio. A value such as `"16:9"` resizes the image to that ratio.
+
+### optimize.fit
+
+- Type: `ResizeOptions["fit"]`
+- Default: `"cover"`
+
+Set the fitting method for [sharp](https://www.npmjs.com/package/sharp) Resize.
+
+- Examples: `"cover"`, `"contain"`, `"fill"`, `"inside"`, `"outside"`
+
+### optimize.position
+
+- Type: `ResizeOptions["position"]`
+- Default: `"centre"`
+
+Set the alignment for cropping and resizing in [sharp](https://www.npmjs.com/package/sharp) Resize.
+
+- Examples: `"centre"`, `"top"`, `"left"`, `"right"`, `"bottom"`
+
+### optimize.background
+
+- Type: `ResizeOptions["background"]`
+- Default: `undefined`
+
+Set the background color for [sharp](https://www.npmjs.com/package/sharp) Resize. Primarily applies when `fit` is `"contain"`.
+
+- Examples: `"#ffffff"`, `{r: 255, g: 255, b: 255, alpha: 0.5}`
+
+### decoding
+
+- Type: `HTMLImageElement["decoding"]`
+- Default: `"async"`
+
+Apply the `decoding` attribute to generated `<img>` tags.
+
+- `"async"`: Asynchronous decoding
+- `"sync"`: Synchronous decoding
+- `"auto"`: Let the browser decide
+
+### loading
+
+- Type: `HTMLImageElement["loading"]`
+- Default: `"eager"`
+
+Apply the `loading` attribute to generated `<img>` tags.
+
+- `"eager"`: Load immediately on page load
+- `"lazy"`: Defer loading until the image enters the viewport
+
+## Image
+
+A component that optimizes an image using a simple `<img>` tag.
+
+- Supports one source image and one output format
+- Automatically reads image dimensions and adds `width` and `height`
+- Downloads remote images
+
+Pass individual props, including the plugin's `optimize` options, to `<Image>` to override settings.
+
+```ts
+type ImageProps = {
+  src: string
+  sizes?: string
+  width?: number | string
+  height?: number | string
+  alt?: string
+  decoding?: HTMLImageElement["decoding"]
+  loading?: HTMLImageElement["loading"]
+} & Partial<ImageOptimize> &
+  React.HTMLAttributes<HTMLImageElement>
+```
+
+## Picture
+
+A component for advanced image optimization using `<picture>` with `<source>` and `<img>` tags.
+
+- Supports art directives that change the source image according to viewport width
+- Supports multiple output formats with fallbacks
+- Automatically reads image dimensions and adds `width` and `height`
+- Downloads remote images
+
+Pass individual props, including the plugin's `optimize` options, to `<Picture>` to override settings. Use `artDirectives` to change source images according to viewport width.
+
+```ts
+type PictureProps = {
+  src: string
+  sizes?: string
+  width?: number | string
+  height?: number | string
+  alt?: string
+  decoding?: HTMLImageElement["decoding"]
+  loading?: HTMLImageElement["loading"]
+  artDirectives?: ArtDirective[]
+} & Partial<ImagesOptimize> &
+  React.HTMLAttributes<HTMLImageElement>
+
+type ImagesOptimize = Omit<ImageOptimize, "format"> & {
+  formats: ImageFormat[]
+}
+
+type ArtDirective = {
+  media: string
+  src: string
+  sizes?: string
+  width?: number | string
+  height?: number | string
+} & Partial<ImagesOptimize>
+```
+
+## Diagnostics
+
+If image processing fails, the build emits the following diagnostic codes.
+
+- `MINISTA_IMAGE_DOWNLOAD_FAILED`: Remote image fetching failed
+- `MINISTA_IMAGE_READ_FAILED`: Local image is missing or could not be read
+- `MINISTA_IMAGE_METADATA_FAILED`: Image dimension or format parsing failed
+- `MINISTA_IMAGE_TRANSFORM_FAILED`: Sharp conversion failed
+- `MINISTA_IMAGE_CACHE_FAILED`: Cache reading or writing failed
+
+Local image diagnostics include paths relative to the project. Remote URL query parameters are omitted from diagnostic messages.

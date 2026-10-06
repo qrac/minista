@@ -1,0 +1,79 @@
+---
+layout: docs
+locale: en
+title: Public files
+---
+
+# Public files
+
+`public/` holds files you want to publish with their names and contents preserved. Here, add a favicon and a downloadable PDF.
+
+## Table of Contents
+
+contents list
+
+## Add public files
+
+Create `public/` at the project root and place your SVG and PDF in it as follows.
+
+```text title="Project structure"
+public/
+├── favicon.svg
+└── downloads/
+    └── brochure.pdf
+src/
+├── layouts/
+│   └── index.tsx
+└── pages/
+    └── index.tsx
+```
+
+Files in `public/` are copied at build time even if no page references them. Do not place files you do not want to publish in this directory.
+
+## Reference public files
+
+URLs start with `/` and omit `public`. For `public/downloads/brochure.pdf`, use `/downloads/brochure.pdf`.
+
+```tsx title="src/pages/index.tsx"
+import { Head } from "minista/head"
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <link rel="icon" href="/favicon.svg" />
+      </Head>
+      <h1>My Site</h1>
+      <a href="/downloads/brochure.pdf" download>
+        Download the brochure
+      </a>
+    </>
+  )
+}
+```
+
+To use the favicon on every page, move its link to the shared layout's head. Load CSS and JavaScript from `public/` with `link` and `script` as well.
+
+## Check public output ||public-output||
+
+Running `npm run build` copies the contents of `public/` to the output root.
+
+```text title="Build output"
+dist/
+├── index.html
+├── favicon.svg
+└── downloads/
+    └── brochure.pdf
+```
+
+Files are not resized, compressed, or given hashed names. Use [Image bundling](/docs/guide/images-assets) to process images with Vite, or [Image optimization](/docs/guide/image) to change sizes and formats.
+
+## Public base path
+
+With `base: "/site/"`, HTML references to existing public files are adjusted to URLs such as `/site/favicon.svg`. With `base: "./"`, they become URLs relative to the output page.
+
+The files themselves are unchanged. URLs written inside public CSS, JavaScript, and JSON, or assembled in the browser, are not adjusted. Island internals are also excluded from automatic adjustment; align them by passing URLs that include the deployment path as props, for example.
+
+See [Public references in pluginSsg](/docs/plugins/ssg#public-assets) for supported attributes and limitations.
+
+Next, [Image bundling](/docs/guide/images-assets) outputs images from the source.

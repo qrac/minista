@@ -1,0 +1,161 @@
+---
+layout: docs
+locale: en
+title: Page generation from APIs
+---
+
+# Page generation from APIs
+
+Build on the `getStaticData()` introduced in [Passing data to pages](/docs/guide/static-data) to populate a list with articles fetched from an API or CMS and generate a detail page for each article.
+
+Data fetching here runs during development and builds. It does not call the API on every visit to the published site.
+
+## Table of Contents
+
+contents list
+
+## API response
+
+This example uses an API that returns JSON in the following shape. `https://api.example.com/news` is an illustrative URL; replace it with your actual API.
+
+```json title="Example API response"
+[
+  { "slug": "hello", "title": "Our site is live", "body": "This is our first announcement." },
+  { "slug": "update", "title": "Site update", "body": "We added a service introduction." }
+]
+```
+
+Put the fetching logic in `src/data/news.ts`. If you do not have an API yet, return the same array from the function to try the example.
+
+```ts title="src/data/news.ts"
+export type Article = { slug: string; title: string; body: string }
+
+export async function getArticles(): Promise<Article[]> {
+  const response = await fetch("https://api.example.com/news")
+  if (!response.ok) {
+    throw new Error(`Failed to fetch news: ${response.status}`)
+  }
+  const data: unknown = await response.json()
+  if (!Array.isArray(data)) throw new Error("Invalid news format")
+  return data.map((item) => {
+    if (
+      typeof item !== "object" || item === null ||
+      typeof item.slug !== "string" || !/^[a-z0-9-]+$/.test(item.slug) ||
+      typeof item.title !== "string" || typeof item.body !== "string"
+    ) {
+      throw new Error("Invalid news article data")
+    }
+    return { slug: item.slug, title: item.title, body: item.body }
+  })
+}
+```
+
+Check HTTP errors and the data shape, failing the build if fetching fails. Implement API-specific authentication and validation in this function.
+
+## Pass data to a list page ||static-page-data||
+
+Call `getArticles()` in the list page's `getStaticData()` and pass the fetched articles as `props`.
+
+```tsx title="src/pages/news/index.tsx"
+import type { Metadata, PageProps, GetStaticData } from "minista/types"
+import { getArticles, type Article } from "../../data/news"
+
+type Props = PageProps & { articles: Article[] }
+
+export const metadata: Metadata = { title: "News" }
+
+export const getStaticData: GetStaticData = async () => ({
+  props: { articles: await getArticles() },
+})
+
+export default function News({ title, articles }: Props) {
+  return (
+    <>
+      <h1>{title}</h1>
+      <ul>
+        {articles.map((article) => (
+          <li key={article.slug}>
+            <a href={`/news/${article.slug}`}>{article.title}</a>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+```
+
+Fetched article titles and links are output to HTML at build time. Visitors do not need to connect to this API.
+
+## Dynamic routes
+
+Use `[slug]` in the file name and return an array with `paths` and `props` for each page. If you created `news/hello.tsx` in [File-based routing](/docs/guide/pages-routing), remove it to avoid a conflict at the same URL.
+
+```tsx title="src/pages/news/[slug].tsx"
+import type { GetStaticData, PageProps } from "minista/types"
+import { getArticles, type Article } from "../../data/news"
+
+type Props = PageProps & { article: Article }
+
+export const getStaticData: GetStaticData = async () => {
+  const articles = await getArticles()
+  return articles.map((article) => ({
+    paths: { slug: article.slug },
+    props: { title: article.title, article },
+  }))
+}
+
+export default function ArticlePage({ article }: Props) {
+  return (
+    <article>
+      <h1>{article.title}</h1>
+      <p>{article.body}</p>
+    </article>
+  )
+}
+```
+
+Keys in `paths` must match the `[slug]` parameter name. Values must be strings. Convert numeric IDs with `String(id)`.
+
+## Check data-driven output ||data-driven-output||
+
+```text title="Project structure"
+src/
+├── data/
+│   └── news.ts
+└── pages/
+    └── news/
+        ├── index.tsx
+        └── [slug].tsx
+```
+
+```text title="Build output"
+dist/news/
+├── index.html
+├── hello.html
+└── update.html
+```
+
+The output is not a file named `[slug].html`; each value returned by the API determines a file name. When API data changes, rebuild to update the HTML and related assets.
+
+## Credentials and execution timing ||data-fetching-environment||
+
+For APIs requiring authentication, use environment variables set in the build environment. For example, read `process.env.CMS_TOKEN` and pass it in the request headers.
+
+Do not include credentials in page props, HTML, or values passed to Islands. Keep them out of browser-exposed `VITE_*` variables as well. Set required environment variables wherever you run builds, such as a terminal or CI.
+
+`getStaticData()` also runs when displaying pages during development and in `check` and `inspect`. Sharing a fetching function between list and detail pages does not automatically combine API requests into one.
+
+## Validate generated pages
+
+```sh
+npx minista check --json
+npx minista inspect --json
+npm run build
+npm run preview
+```
+
+Check for duplicate URLs, API fetching failures, and page display. Use a structure such as `[category]/[slug].tsx` for multiple parameters. See [TypeScript](/docs/reference/typescript) for public types and [pluginSsg](/docs/plugins/ssg#fetch) for the API contract.
+
+See [Build and deploy](/docs/guide/build-deploy) for publishing instructions.
+
+Next, [Layouts](/docs/guide/layouts) adds a shared header and footer to each page.

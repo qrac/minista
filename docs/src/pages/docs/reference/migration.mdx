@@ -1,0 +1,233 @@
+---
+layout: docs
+locale: en
+title: Migrating from v4 to v5
+---
+
+# Migrating from v4 to v5
+
+This page explains how to migrate from minista v4 to v5.
+
+If you use v3 or earlier, first see the [archived v3 to v4 migration guide (Japanese)](https://github.com/qrac/minista/blob/23d6676557f241ba33141b5f8abba7fabd8bc9ff/docs/src/pages/docs/migration.mdx#v3からv4).
+
+## Table of Contents
+
+contents list
+
+## Migrate with agents
+
+Give an agent this page's URL and ask it to migrate from v4 to v5. Along with the URL, specify the target project and what to verify. With the project open, you can use a request like this:
+
+```text
+Migrate this project from minista v4 to v5.
+Read the following migration guide and update dependencies, configuration, and code.
+https://minista.qranoko.jp/docs/reference/migration
+
+Preserve appearance and functionality, then check types, build, and preview after migration.
+Report the changes and any items you could not verify.
+```
+
+After updating to v5, run `npx minista agents` to retrieve the agent guide for the installed version. See [Building with agents](/docs/guide/agents) for using agents.
+
+## Requirements and setup
+
+Node.js `^20.19.0 || >=22.12.0` and Vite `^8.1.0` are required.
+
+React and React DOM peerDependencies changed to `>=19.0.0`. React 18 support and dedicated tests have ended; React 19 is the verification baseline. Update both packages to version 19 or later when migrating projects using React 18.
+
+If you use TypeScript, update `@types/react` and `@types/react-dom` to match your React version.
+
+Basic Vite configuration remains usable. Move the public MDX, Bundle, and Entry plugin APIs into SSG as described below. Internally, builds changed from launching the Vite CLI twice for HTML generation and browser output to building both environments in sequence within one Vite application build.
+
+After moving settings for plugins integrated into SSG, remove any remaining `--oneBuild` from commands. Using this option in v5 exits with `MINISTA_CLI_OPTION_REMOVED`.
+
+```diff
+- minista build --oneBuild
++ minista build
+```
+
+v5 provides the following commands and machine-readable output.
+
+- `minista check [--json]`: Check routes, pages, and `getStaticData()`
+- `minista inspect [--json]`: Show the Project Graph from source files
+- `minista inspect --manifest [--json]`: Show only the built manifest
+- `minista explain <node-id> [--json]`: Explain Graph node relationships
+
+The working directory is `node_modules/.minista` if the root has `package.json`, or `.minista` otherwise. Data stored directly under the root by older versions is not automatically moved, deleted, or read. Regenerate it with `check` or a build after updating. Use `minista agents --json` to retrieve storage locations and `minista agents --write` to add AI agent instructions to an existing project.
+
+- `node_modules/.minista/manifest.json`: Build-time project structure and output information
+- `node_modules/.minista/diagnostics.json`: Diagnostics from the latest check or build
+
+Regular CLI usage does not require building minista itself beforehand.
+
+## pluginMdx and pluginBundle integration into SSG ||bundle-mdx-integration||
+
+Remove `pluginMdx()` and `pluginBundle()` from imports and the plugins array, and move their settings to `mdx` and `bundle` in `pluginSsg()` respectively.
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg({
+      mdx: { frontmatter: { name: "metadata" } },
+      bundle: { outName: "bundle" },
+    }),
+  ],
+})
+```
+
+MDX and Markdown are enabled by default; set `mdx: false` if unneeded. Bundle's separate `src` was removed, so consolidate page discovery in `pluginSsg({ src: [...] })`. `useExportCss` was also removed, and CSS imported by pages and Layout is always output. CSS Modules use the same transformation results as the HTML generation environment.
+
+See [pluginSsg](/docs/plugins/ssg) for details.
+
+## pluginEntry integration into SSG ||entry-integration||
+
+`pluginEntry()` was removed in v5. `pluginSsg()` alone builds CSS, JavaScript, and image references from HTML. Remove `pluginEntry` from imports and the plugins array. Existing references and Vite output settings remain usable, including alongside public CSS and JS.
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({ plugins: [pluginSsg()] })
+```
+
+Cases where a script URL was incorrectly replaced with CSS imported by JS, and public CSS was inserted twice in compatibility builds, were also fixed.
+
+`pluginSsg()` now returns an array of internal Vite plugins. The usual `plugins: [pluginSsg()]` needs no change. If custom code directly inspects the return value, flatten the array before inspecting individual plugins.
+
+## HTML language and layout
+
+The default `html` language changed from `ja` to `en`. Explicitly set `lang="ja"` for Japanese sites.
+
+In v5, write `html`, `head`, and `body` in Layout to edit the entire HTML structure and attributes. The following layout is output directly as the page's HTML.
+
+```tsx title="src/layouts/index.tsx"
+import type { LayoutProps } from "minista/types"
+
+export default function Layout({ title, children }: LayoutProps) {
+  return (
+    <html lang="ja">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{title}</title>
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+For layouts that do not write the entire HTML document, continue using `Head`'s `htmlAttributes` as before.
+
+```tsx title="src/layouts/index.tsx"
+import { Head } from "minista"
+import type { LayoutProps } from "minista/types"
+
+export default function Layout({ children }: LayoutProps) {
+  return (
+    <>
+      <Head htmlAttributes={{ lang: "ja" }} />
+      <main>{children}</main>
+    </>
+  )
+}
+```
+
+See [Layouts](/docs/guide/layouts) for structural changes and [Head](/docs/guide/head) for per-page titles and meta elements.
+
+## Beautify output settings
+
+In v4, `pluginBeautify()` changed JS and CSS content even after file name hashes were assigned. The hash could therefore differ from the final content. v5 revises formatting timing and reports errors when output settings are incompatible with formatting.
+
+To format JS and CSS along with HTML, configure them as follows.
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg, pluginBeautify } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginBeautify()],
+  build: {
+    sourcemap: false,
+    cssMinify: false,
+    rolldownOptions: {
+      output: {
+        minify: false,
+        assetFileNames: "assets/[name][extname]",
+      },
+    },
+  },
+})
+```
+
+- JS is formatted before hashing. `build.rolldownOptions.output.minify: false` is required to prevent minification after formatting. `build.minify: false` alone does not disable all Rolldown processing. JS `entryFileNames` and `chunkFileNames` can still use `[hash]`.
+- CSS is formatted after file names are finalized. Set `assetFileNames` to a string without `[hash]` to avoid mismatches between hashes and content. This setting also applies to assets such as images. Set `cssMinify: false` to disable CSS minification as well.
+- Disable source maps when formatting JS or CSS because maps matching the formatted positions cannot be generated.
+
+To format only HTML, narrow the targets; no changes to JS or CSS output settings are needed.
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg, pluginBeautify } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg(), pluginBeautify({ src: ["**/*.html"] })],
+})
+```
+
+See [pluginBeautify](/docs/plugins/beautify) for settings and diagnostics.
+
+## Moving image preload settings ||beautify-and-image-preload||
+
+Move `removeImagePreload` from `pluginBeautify` to `pluginSsg`. Explicit use of the old option produces `MINISTA_BEAUTIFY_OPTION_MOVED`.
+
+```js title="vite.config.js"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg({ removeImagePreload: false })],
+})
+```
+
+SSG defaults to `true`. Even projects that did not use Beautify now remove image preloads from React renderer output in both development and builds. Set `false` as above to retain them. The target changed from direct body children to all renderer output, so move image preloads written directly in Layout's head to the `Head` API to retain them. Controlling preloads through Beautify target globs is no longer supported.
+
+## HTML assets
+
+The Entry feature integrated into SSG now rewrites the same targets it collects: `link[href]`, `script[src]`, `img[src]`, `img[srcset]`, `source[srcset]`, and `use[href]`. Excluded attributes such as `meta[content]`, `video[poster]`, and `a[href]` are unchanged even when their value matches a URL collected elsewhere. Use a URL from an SSG module import or a public asset URL to reference generated assets in these attributes.
+
+CSS imported by an entry is inserted once, only into referencing pages. If you relied on implicit CSS from another page's entry, import CSS from the target page or Layout, or add an explicit stylesheet link. External URLs starting with `//` are not collected, and a `base` with an absolute CDN URL retains its protocol. Queries and fragments are preserved but not interpreted as Vite module transformation queries. See [HTML assets in pluginSsg](/docs/plugins/ssg#html-assets) for details.
+
+## SVG attributes and missing files
+
+`pluginSvg()` preserves drawing-related root attributes after SVGO optimization. Values such as `fill`, `stroke`, and dimensions in the source file appear in output. Override them with props of the same name on `Svg`. `style` and `className` replace entire attributes.
+
+Missing source files are no longer silently left as references; they fail the build with `MINISTA_SVG_SOURCE_NOT_FOUND`. `src` resolves relative to the project root. Source changes during development are reflected without restarting.
+
+## SVG and sprite IDs
+
+Internal IDs now have deterministic prefixes. Avoid external CSS or JavaScript references to original IDs; use classes or explicit props. Sprite public symbol IDs are preserved, but duplicates cause `MINISTA_SPRITE_DUPLICATE_SYMBOL` instead of overwriting. Rename conflicting symbols. Sprite also now preserves original root drawing attributes and shared defs.
+
+## Archive source and missing files ||archive-source||
+
+When `pluginArchive()` or `archives[].srcDir` is omitted, the resolved `build.outDir` is used as input instead of a fixed `dist`. For example, `build.outDir: "output"` compresses `output` and defaults to `output/dist.zip`. Explicitly set `srcDir: "dist"` to keep using a separate `dist` as before.
+
+Missing input now causes `MINISTA_ARCHIVE_SOURCE_NOT_FOUND` instead of successfully creating an empty archive. Input that is not a directory causes `MINISTA_ARCHIVE_SOURCE_NOT_DIRECTORY`. Existing empty directories remain allowed. All output paths configured in the same `archives`, including previous output, are excluded from input to prevent nested archives on rebuild.
+
+## Island lazy loading
+
+`client:visible`, `client:media`, and `client:idle` now defer component JavaScript fetching and module evaluation as well as hydration until their condition is met. If you used top-level side effects in component modules to initialize pages, move them to an immediately executed script. `client:load` and `client:only` begin fetching when the Island entry runs. SSG CSS for initial display is preserved.
+
+## Verify migration
+
+After updating configuration and dependencies, check in the following order.
+
+```sh
+npx minista check --json
+npx minista inspect --json
+npx tsc --noEmit
+npm run build
+npm run preview
+```
+
+Projects without TypeScript do not need `tsc`. Check generated HTML, CSS, images, Island interactions, and delivery archives. If fetching CMS data, also provide environment variables required for checks and builds.
+
+See [CLI](/docs/reference/cli) for command details and the [configuration reference](/docs/reference/config) for output settings.

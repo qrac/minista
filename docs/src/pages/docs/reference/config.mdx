@@ -1,0 +1,258 @@
+---
+layout: docs
+locale: en
+title: Configuration reference
+---
+
+# Configuration reference
+
+minista uses Vite configuration. Write plugins and Vite options in `vite.config.ts` or `vite.config.js`. `defineConfig` provides the same configuration types as Vite. See the [configuration guide](/docs/guide/configuration) for basic setup examples.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+## Table of Contents
+
+contents list
+
+## Configuration file ||config-file||
+
+`minista.config.*` is also supported for backward compatibility. Use `vite.config.*` for new projects. Detecting multiple configuration files exits with `MINISTA_CLI_CONFIG_CONFLICT`; consolidate them into one.
+
+`project.json` is a user data file for site information and similar values, not configuration automatically loaded by minista.
+
+## Configuration options ||config-options||
+
+| Field | Purpose |
+| -------------------------------- | ------------------------------------------------------------------ |
+| `plugins` | Register minista and other Vite plugins |
+| `base` | Public base path for assets; apply it to handwritten page links yourself |
+| `publicDir` | Directory copied unchanged; defaults to `public` |
+| `server` | Development server settings such as the port |
+| `build.outDir` | Output directory; defaults to `dist` |
+| `build.assetsInlineLimit` | Control inlining of small assets |
+| `build.minify`, `build.cssMinify` | Control JavaScript and CSS minification |
+| `build.rolldownOptions.output` | Configure file names, code splitting, and JavaScript output-stage minification |
+| `environments` | Settings for rendering and browser environments |
+
+## Plugins
+
+Since v4, all minista features are Vite plugins. Choose the plugins your project needs and add them to the configuration's `plugins`.
+
+`pluginSsg()` is required to output pages as static HTML. It generates HTML from JSX, TSX, Markdown, and MDX and outputs referenced CSS, JavaScript, and images. The minimal configuration for a static site is:
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+})
+```
+
+For image optimization, Islands, and other features, add the corresponding plugins alongside `pluginSsg()`. See the guide for setup and individual plugin pages for option types and defaults.
+
+## Configuration recipes
+
+### Environment configuration ||environment-config||
+
+minista builds HTML generation and browser environments in sequence within one Vite application build. Many Vite settings apply unchanged to both. To separate settings for Node.js page rendering and browser asset generation, use named environment configuration or environment-specific plugin hooks.
+
+For example, disable minification only for the browser environment.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+
+export default defineConfig({
+  plugins: [pluginSsg()],
+  environments: {
+    client: {
+      build: {
+        cssMinify: false,
+        rolldownOptions: {
+          output: { minify: false },
+        },
+      },
+    },
+  },
+})
+```
+
+Existing configuration using `isSsrBuild` records `MINISTA_VITE_APP_CONFIG_LEGACY_ENVIRONMENT` and falls back to a compatibility build in the same process to avoid mixing configuration even for plugins with the same name. If plugin names or order also differ, `MINISTA_VITE_APP_CONFIG_PLUGIN_MISMATCH` is recorded. Use `environments`, `applyToEnvironment`, and `configEnvironment` for new configuration.
+
+minista uses `builder.buildApp` to manage build order. Use a plugin's `buildApp` hook for processing before or after the entire application build. You cannot build environments directly from this hook.
+
+Regular builds and development use Vite's API. Only CLI options that cannot be safely passed to the API trigger fallback to the external CLI.
+
+### Inline images
+
+To output images as files, set `build.assetsInlineLimit` to `0` to disable automatic inlining.
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    assetsInlineLimit: 0,
+  },
+}
+```
+
+To inline an image explicitly, add `?inline` to the import path. It is also explicitly inlined in the HTML generation environment.
+
+```tsx title="src/pages/index.tsx"
+import imageUrl from "../assets/image.png?inline"
+
+export default function () {
+  return <img src={imageUrl} alt="image" width={76} height={76} />
+}
+```
+
+### Disable minification
+
+Set `build.cssMinify` to `false` to disable CSS minification, and `build.rolldownOptions.output.minify` to `false` to disable JavaScript output-stage minification. The [HTML formatting guide](/docs/guide/beautify#beautify-css-and-js) uses the same settings.
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    cssMinify: false,
+    rolldownOptions: {
+      output: { minify: false },
+    },
+  },
+}
+```
+
+`build.minify: false` is also a Vite setting that disables regular JavaScript minification, but Rolldown's later `dce-only` processing (dead code elimination) remains. Combining that processing with `pluginBeautify()` JavaScript formatting stops the build with `MINISTA_BEAUTIFY_MINIFY_UNSUPPORTED`, so use `build.rolldownOptions.output.minify: false` as shown above.
+
+Disabling minification does not format code. See [pluginBeautify](/docs/plugins/beautify) for HTML, CSS, and JavaScript formatting and constraints on source maps and CSS file names.
+
+### Image preload
+
+`pluginSsg` removes image preloads from renderer output by default. Set `pluginSsg({ removeImagePreload: false })` to retain them. Preloads explicitly declared with the `Head` API are preserved even by default. See [pluginSsg](/docs/plugins/ssg) for details.
+
+### Remove filename hashes
+
+Vite adds hashes to output file names by default. To remove them, configure the following properties without `[hash]`.
+
+- CSS, images, and fonts: `build.rolldownOptions.output.assetFileNames`
+- JavaScript entries: `build.rolldownOptions.output.entryFileNames`
+- JavaScript chunks: `build.rolldownOptions.output.chunkFileNames`
+
+When these are set, paths in the patterns determine output locations. Check file name collisions and how your host updates cached files.
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    rolldownOptions: {
+      output: {
+        assetFileNames: "assets/[name][extname]",
+        entryFileNames: "assets/[name].js",
+        chunkFileNames: "assets/[name].js",
+      },
+    },
+  },
+}
+```
+
+### Asset directories
+
+Vite outputs all assets into the same directory by default. Configure the following properties to output CSS, JavaScript, images, and fonts in separate directories.
+
+- CSS, images, and fonts: `build.rolldownOptions.output.assetFileNames`
+- JavaScript entries: `build.rolldownOptions.output.entryFileNames`
+- JavaScript chunks: `build.rolldownOptions.output.chunkFileNames`
+
+When these are set, paths in the patterns determine output locations. Check file name collisions and how your host updates cached files.
+
+`assetFileNames` can branch by extension.
+
+```ts title="vite.config.ts"
+import type { PreRenderedAsset } from "rolldown"
+
+const assetFileNames = (assetInfo: PreRenderedAsset) => {
+  const name = assetInfo.name ?? ""
+  if (name.endsWith(".css")) {
+    return "assets/css/[name][extname]"
+  }
+  if (/\.(png|jpe?g|gif|bmp|svg|webp|avif)$/.test(name)) {
+    return "assets/images/[name][extname]"
+  }
+  if (/\.(woff2?|ttf|otf|eot)$/.test(name)) {
+    return "assets/fonts/[name][extname]"
+  }
+  return "assets/others/[name][extname]"
+}
+
+export default {
+  build: {
+    rolldownOptions: {
+      output: {
+        assetFileNames,
+        entryFileNames: "assets/js/[name].js",
+        chunkFileNames: "assets/js/[name].js",
+      },
+    },
+  },
+}
+```
+
+### Code splitting
+
+Set the following property to split specific code out of JavaScript.
+
+- `build.rolldownOptions.output.codeSplitting.groups`
+
+An example grouping modules in `node_modules` under the name `vendor`.
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [{ name: "vendor", test: /\/node_modules\/(?!\.)/ }],
+        },
+      },
+    },
+  },
+}
+```
+
+An example splitting specific modules individually.
+
+```ts title="vite.config.ts"
+export default {
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: "react", test: /\/react(?:-dom)\// },
+            { name: "preact", test: /\/preact\// },
+            { name: "minista", test: /\/minista\/src|react-icons\// },
+          ],
+        },
+      },
+    },
+  },
+}
+```
+
+### Replace the client runtime with Redact ||client-redact||
+
+Keep React for static HTML generation and replace browser code with Redact. Add its official Vite plugin and use the nano preset to reduce size further. See [Reducing Island size](/docs/guide/island-size#redact) for configuration supporting both dev and production builds and behavioral differences from React.
+
+### Replace the client runtime with Preact ||client-preact||
+
+Keep React for static HTML generation and replace only browser code with Preact's compatibility layer. See [Reducing Island size](/docs/guide/island-size#preact) for configuration supporting both dev and production builds.
+
+### Empty the output directory ||empty-output-directory||
+
+By default, Vite leaves output directories outside the project root intact for safety. Set `build.emptyOutDir` to `true` only if existing files there can be deleted. Do not share the output directory with source files or other purposes.
+
+```ts title="vite.config.ts"
+export default { build: { emptyOutDir: true } }
+```

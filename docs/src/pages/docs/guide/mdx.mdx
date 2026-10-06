@@ -1,0 +1,154 @@
+---
+layout: docs
+locale: en
+title: Markdown and MDX
+---
+
+# Markdown and MDX
+
+Here, add an introduction as a Markdown page. Use Markdown for text-heavy pages and MDX when you want React components inside the content. Both are supported by `pluginSsg()` by default, without another minista plugin.
+
+## Table of Contents
+
+contents list
+
+## Markdown pages
+
+```md title="src/pages/about.md"
+---
+title: About us
+---
+
+# About us
+
+We are a small team building websites.
+
+- Planning
+- Design
+- Implementation
+```
+
+This file generates a page at `/about`. The same shared layout as JSX and TSX pages applies.
+
+## Check Markdown output ||markdown-output||
+
+If you created `about.tsx` in an earlier guide, replace its content with `about.md`. Keeping two files for the same URL causes a conflict.
+
+```text title="Project structure"
+src/pages/
+├── index.tsx
+├── about.md
+└── news/
+    ├── index.tsx
+    └── hello.tsx
+```
+
+```text title="Build output"
+dist/
+├── index.html
+├── about.html
+└── news/
+    ├── index.html
+    └── hello.html
+```
+
+The published file is HTML regardless of the source format. You can try this without a layout at this stage. Adding a [layout](/docs/guide/layouts) applies the shared structure to Markdown and MDX pages as well.
+
+## Frontmatter
+
+The section enclosed by `---` at the start of a file is called frontmatter. By default, it is read as `metadata` and passed to layout and page props.
+
+```md
+---
+title: Article in progress
+draft: true
+---
+
+# Article in progress
+```
+
+`draft: true` excludes the page from production builds. Use `title` in the layout to reflect it in the head. You can add custom fields, but adding them alone does not automatically generate HTML elements or switch layouts.
+
+TOML frontmatter enclosed by `+++` is also supported.
+
+## MDX components
+
+Prepare the following component.
+
+```tsx title="src/components/note.tsx"
+import type { ReactNode } from "react"
+
+export default function Note({ children }: { children: ReactNode }) {
+  return <aside className="note">{children}</aside>
+}
+```
+
+In a `.mdx` file, insert imported components into the content.
+
+```mdx title="src/pages/guide.mdx"
+---
+title: Usage guide
+---
+
+import Note from "../components/note"
+
+# Usage guide
+
+Check the configuration first.
+
+<Note>Rebuild after changing the configuration.</Note>
+```
+
+When using static components, no client-side JavaScript is shipped for MDX itself.
+
+## Import content as a component ||import-content||
+
+Place content that should not be published as a page outside `src/pages/` and import it.
+
+```md title="src/components/terms.md"
+## Terms of use
+
+Please review these terms before using the service.
+```
+
+```tsx title="src/pages/terms.tsx"
+import Terms from "../components/terms.md"
+
+export default function TermsPage() {
+  return (
+    <article>
+      <h1>Terms of use</h1>
+      <Terms />
+    </article>
+  )
+}
+```
+
+## Extend Markdown
+
+For example, add `remark-gfm` to use GFM syntax such as tables and strikethrough.
+
+```sh
+npm install --save-dev remark-gfm
+```
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg } from "minista"
+import remarkGfm from "remark-gfm"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg({
+      mdx: {
+        remarkPlugins: [remarkGfm],
+      },
+    }),
+  ],
+})
+```
+
+Configure `remarkPlugins` for Markdown processing and `rehypePlugins` for processing after conversion to HTML. Add syntax highlighting and heading IDs with plugins suited to your needs.
+
+To disable conversion when you do not use MDX, set `pluginSsg({ mdx: false })`. See [pluginSsg](/docs/plugins/ssg#mdx) for setting details.
+
+Next, [404 page](/docs/guide/404) creates a page for URLs that do not exist.
