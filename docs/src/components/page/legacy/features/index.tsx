@@ -6,7 +6,7 @@ import ElementSectionTitle from "../../../element/section-title"
 import type { Props } from "./props"
 import { initialProps } from "./props"
 
-export default function PageHomeFeatures(props: Partial<Props>) {
+export default function PageLegacyFeatures(props: Partial<Props>) {
   const { items } = { ...initialProps, ...props }
   return (
     <section className="section">

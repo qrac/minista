@@ -12,7 +12,7 @@ import type { Props } from "./props"
 import { initialProps } from "./props"
 import "./style.css"
 
-export default function PageHomeHero(props: Partial<Props>) {
+export default function PageLegacyHero(props: Partial<Props>) {
   const {} = { ...initialProps, ...props }
   return (
     <section className="section is-hero wide:is-lg">

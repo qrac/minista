@@ -4,7 +4,7 @@ import ElementRecord from "../../../element/record"
 import type { Props } from "./props"
 import { initialProps } from "./props"
 
-export default function PageHomeTagline(props: Partial<Props>) {
+export default function PageLegacyTagline(props: Partial<Props>) {
   const { heading, texts, note } = { ...initialProps, ...props }
   return (
     <section className="section is-bg-2 wide:is-lg">
