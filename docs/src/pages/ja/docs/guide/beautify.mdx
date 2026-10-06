@@ -77,7 +77,7 @@ export default defineConfig({
 })
 ```
 
-`build.minify: false`だけでは、後段のJavaScript処理が整形を上書きする場合があります。この例では`build.rolldownOptions.output.minify: false`を使います。
+`build.minify: false`だけでは、Rolldownの後段の`dce-only`処理（不要コードの除去）が残ります。JavaScriptを整形する場合、この処理との併用は`MINISTA_BEAUTIFY_MINIFY_UNSUPPORTED`で停止するため、`build.rolldownOptions.output.minify: false`を指定します。詳しくは[設定リファレンスの「圧縮を無効にする」](/ja/docs/reference/config#disable-minification)を参照してください。
 
 CSSの整形は出力名が確定した後に行うため、CSSを対象にする場合は`assetFileNames`に`[hash]`や関数形式を使えません。JavaScriptのエントリー・チャンクにはハッシュを使えます。
 

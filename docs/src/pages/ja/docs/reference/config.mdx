@@ -28,17 +28,17 @@ contents list
 
 ## 主な設定項目 ||config-options||
 
-| 項目                              | 用途                                                               |
-| --------------------------------- | ------------------------------------------------------------------ |
-| `plugins`                         | ministaや他のViteプラグインを登録                                  |
-| `base`                            | アセットの公開ベースパス。ページへの手書きリンクには利用者側で反映 |
-| `publicDir`                       | 内容をそのままコピーするディレクトリ。デフォルトは`public`         |
-| `server`                          | 開発サーバーのポートなどを設定                                     |
-| `build.outDir`                    | 出力ディレクトリ。デフォルトは`dist`                               |
-| `build.assetsInlineLimit`         | 小さいアセットのインライン化を制御                                 |
+| 項目                             | 用途                                                               |
+| -------------------------------- | ------------------------------------------------------------------ |
+| `plugins`                        | ministaや他のViteプラグインを登録                                  |
+| `base`                           | アセットの公開ベースパス。ページへの手書きリンクには利用者側で反映 |
+| `publicDir`                      | 内容をそのままコピーするディレクトリ。デフォルトは`public`         |
+| `server`                         | 開発サーバーのポートなどを設定                                     |
+| `build.outDir`                   | 出力ディレクトリ。デフォルトは`dist`                               |
+| `build.assetsInlineLimit`        | 小さいアセットのインライン化を制御                                 |
 | `build.minify` `build.cssMinify` | JavaScript・CSSの圧縮を制御                                        |
-| `build.rolldownOptions.output`    | ファイル名やコード分割を設定                                       |
-| `environments`                    | 描画／ブラウザ向けの環境ごとの設定                               |
+| `build.rolldownOptions.output`   | ファイル名・コード分割・JavaScriptの出力段階の圧縮を設定           |
+| `environments`                   | 描画／ブラウザ向けの環境ごとの設定                                 |
 
 ## プラグイン ||plugins||
 
@@ -71,7 +71,12 @@ export default defineConfig({
   plugins: [pluginSsg()],
   environments: {
     client: {
-      build: { minify: false },
+      build: {
+        cssMinify: false,
+        rolldownOptions: {
+          output: { minify: false },
+        },
+      },
     },
   },
 })
@@ -107,11 +112,22 @@ export default function () {
 
 ### 圧縮を無効にする ||disable-minification||
 
-圧縮を無効にするには、JavaScriptは`build.minify`、CSSは`build.cssMinify`を`false`にします。HTMLなどの整形は[pluginBeautify](/ja/docs/plugins/beautify)で設定します。
+CSSの圧縮を無効にするには`build.cssMinify`を`false`、JavaScriptの出力段階の圧縮を無効にするには`build.rolldownOptions.output.minify`にします。[HTMLの整形ガイド](/ja/docs/guide/beautify#beautify-css-and-js)でも同じ設定を使います。
 
 ```ts title="vite.config.ts"
-export default { build: { minify: false, cssMinify: false } }
+export default {
+  build: {
+    cssMinify: false,
+    rolldownOptions: {
+      output: { minify: false },
+    },
+  },
+}
 ```
+
+`build.minify: false`も通常のJavaScript圧縮を無効にするViteの設定ですが、Rolldownの後段の`dce-only`処理（不要コードの除去）は残ります。JavaScriptを`pluginBeautify()`で整形する場合、この処理との併用は`MINISTA_BEAUTIFY_MINIFY_UNSUPPORTED`で停止するため、上記の`build.rolldownOptions.output.minify: false`を指定してください。
+
+圧縮の無効化だけでは整形は行いません。HTML・CSS・JavaScriptの整形とソースマップ・CSSファイル名の制約は[pluginBeautify](/ja/docs/plugins/beautify)を参照してください。
 
 ### 画像のpreloadを制御する ||image-preload||
 
