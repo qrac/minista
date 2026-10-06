@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Support - minista</title>
+    <meta name="description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:title" content="Delivery Support - minista">
+    <meta property="og:description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:url" content="https://minista.dev/v3/docs/delivery-support">
+    <meta property="og:image" content="https://minista.dev/v3/assets/images/ogp.png">
+    <meta property="og:site_name" content="minista">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@Qrac_JP">
+    <link rel="stylesheet" href="/v3/assets/entry.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="apple-touch-icon" href="/v3/assets/images/apple-touch-icon.png">
+    <link rel="icon" href="/v3/assets/images/favicon.png">
+    <script type="module" src="/v3/assets/hydrate.js"></script>
+  </head>
+  <body>
+    <div class="app-layout">
+      <header class="app-header">
+        <div class="app-header-inner">
+          <div class="app-header-main">
+            <a href="/v3/">
+              <img class="app-header-logo" src="/v3/assets/images/logo.svg" alt="minista" width="156" height="34">
+            </a><span class="app-header-badge">v3.1.12</span>
+          </div>
+          <nav class="app-header-nav">
+            <ul>
+              <li>
+                <a href="/v3/docs/">Docs</a>
+              </li>
+              <li>
+                <a href="https://github.com/qrac/minista">GitHub</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+      <main class="app-main">
+        <div class="docs-layout">
+          <div class="docs-layout-inner">
+            <aside class="docs-menu">
+              <details class="docs-menu-mobile">
+                <summary class="docs-menu-mobile-summary">MENU</summary>
+                <div class="docs-menu-mobile-contents">
+                  <div data-partial-hydration="ph-1" style="display:contents">
+                    <div class="block-search">
+                      <div class="block-search-field">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" class="block-search-icon">
+                          <path fill-rule="evenodd" d="M9.61752431,11.0317379 C8.73148308,11.642436 7.65749832,12 6.5,12 C3.46243388,12 1,9.53756612 1,6.5 C1,3.46243388 3.46243388,1 6.5,1 C9.53756612,1 12,3.46243388 12,6.5 C12,7.65749832 11.642436,8.73148308 11.0317379,9.61752431 L14.7071068,13.2928932 L13.2928932,14.7071068 L9.61752431,11.0317379 Z M6.5,10 C8.43299662,10 10,8.43299662 10,6.5 C10,4.56700338 8.43299662,3 6.5,3 C4.56700338,3 3,4.56700338 3,6.5 C3,8.43299662 4.56700338,10 6.5,10 Z"></path>
+                        </svg>
+                        <input type="search" data-full-text-search="" placeholder="Search...">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Getting Started</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/">Introduction</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/migration">Migration</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Settings</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/setup">Setup</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/directories">Directories</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/config-file">Config File</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/relative-path">Relative Path</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/resolve-alias">Resolve Alias</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/typescript">TypeScript</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/css-modules">CSS Modules</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/sass">Sass</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/postcss">PostCSS</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/panda-css">Panda CSS</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/beautiful-code">Beautiful Code</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Basic Features</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/commands">Commands</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/public">Public</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/global">Global</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/pages">Pages</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/markdown-pages">Markdown Pages</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/components">Components</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Advanced</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/metadata">Metadata</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/head">Head</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/dynamic-entry">Dynamic Entry</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/image">Image</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/picture">Picture</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/svgr">SVGR</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/svg-sprite-icon">SVG Sprite Icon</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/markdown-import">Markdown Import</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/markdown-component">Markdown Component</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/comment">Comment</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/async-function">Async Function</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/fetch">Fetch</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/partial-hydration">Partial Hydration</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/search">Search</a>
+                      </li>
+                      <li class="docs-menu-item is-current">
+                        <a href="/v3/docs/delivery-support">Delivery Support</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </details>
+              <div class="docs-menu-desktop">
+                <div data-partial-hydration="ph-1" style="display:contents">
+                  <div class="block-search">
+                    <div class="block-search-field">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" class="block-search-icon">
+                        <path fill-rule="evenodd" d="M9.61752431,11.0317379 C8.73148308,11.642436 7.65749832,12 6.5,12 C3.46243388,12 1,9.53756612 1,6.5 C1,3.46243388 3.46243388,1 6.5,1 C9.53756612,1 12,3.46243388 12,6.5 C12,7.65749832 11.642436,8.73148308 11.0317379,9.61752431 L14.7071068,13.2928932 L13.2928932,14.7071068 L9.61752431,11.0317379 Z M6.5,10 C8.43299662,10 10,8.43299662 10,6.5 C10,4.56700338 8.43299662,3 6.5,3 C4.56700338,3 3,4.56700338 3,6.5 C3,8.43299662 4.56700338,10 6.5,10 Z"></path>
+                      </svg>
+                      <input type="search" data-full-text-search="" placeholder="Search...">
+                    </div>
+                  </div>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Getting Started</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/">Introduction</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/migration">Migration</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Settings</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/setup">Setup</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/directories">Directories</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/config-file">Config File</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/relative-path">Relative Path</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/resolve-alias">Resolve Alias</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/typescript">TypeScript</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/css-modules">CSS Modules</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/sass">Sass</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/postcss">PostCSS</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/panda-css">Panda CSS</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/beautiful-code">Beautiful Code</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Basic Features</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/commands">Commands</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/public">Public</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/global">Global</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/pages">Pages</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/markdown-pages">Markdown Pages</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/components">Components</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Advanced</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/metadata">Metadata</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/head">Head</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/dynamic-entry">Dynamic Entry</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/image">Image</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/picture">Picture</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/svgr">SVGR</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/svg-sprite-icon">SVG Sprite Icon</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/markdown-import">Markdown Import</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/markdown-component">Markdown Component</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/comment">Comment</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/async-function">Async Function</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/fetch">Fetch</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/partial-hydration">Partial Hydration</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/search">Search</a>
+                    </li>
+                    <li class="docs-menu-item is-current">
+                      <a href="/v3/docs/delivery-support">Delivery Support</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </aside>
+            <article class="docs-main">
+              <h1>Delivery Support</h1>
+              <div class="docs-main-contents" data-search="true">
+                <p>ビルトインコンポーネントで納品用のページリストを自動的に生成できます。スタイルも付与しますが、すべてインラインで書き込まれるため納品物を汚しません。</p>
+                <p>多くの場合は納品リストページ自体はリストから省き、納品物をさらに Zip 化してダウンロードボタンを設置するかと思います。それを実現させるには、以下のように設定します。</p>
+                <pre><code class="hljs language-sh">├── src
+│   └── pages
+│       ├── <span class="hljs-built_in">test</span>
+│       │   ├── p1.tsx
+│       │   ├── p2.tsx
+│       │   ├── p3.tsx
+│       │   └── p4.tsx
+│       └── index.tsx
+└── minista.config.tsx
+</code></pre>
+                <pre><code class="hljs language-tsx"><span class="hljs-comment">// minista.config.tsx</span>
+<span class="hljs-keyword">import</span> { defineConfig } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;minista&quot;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title function_">defineConfig</span>({
+  <span class="hljs-attr">delivery</span>: {
+    <span class="hljs-attr">include</span>: [<span class="hljs-string">&quot;/test/&quot;</span>, <span class="hljs-string">&quot;/test/*&quot;</span>, <span class="hljs-string">&quot;/test/**/*&quot;</span>],
+    <span class="hljs-attr">archives</span>: [
+      {
+        <span class="hljs-attr">srcDir</span>: <span class="hljs-string">&quot;dist&quot;</span>,
+        <span class="hljs-attr">outDir</span>: <span class="hljs-string">&quot;&quot;</span>,
+        <span class="hljs-attr">outName</span>: <span class="hljs-string">&quot;archive&quot;</span>,
+        <span class="hljs-attr">format</span>: <span class="hljs-string">&quot;zip&quot;</span>,
+        <span class="hljs-attr">options</span>: {
+          <span class="hljs-attr">zlib</span>: { <span class="hljs-attr">level</span>: <span class="hljs-number">9</span> },
+        },
+        <span class="hljs-attr">button</span>: {
+          <span class="hljs-attr">title</span>: <span class="hljs-string">&quot;Download&quot;</span>,
+          <span class="hljs-comment">//color: &quot;blue&quot;,</span>
+        },
+      },
+    ],
+  },
+})
+</code></pre>
+                <pre><code class="hljs language-tsx"><span class="hljs-comment">// src/pages/index.tsx</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Delivery</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;minista&quot;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">return</span> <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">Delivery</span> <span class="hljs-attr">title</span>=<span class="hljs-string">&quot;納品リスト&quot;</span> /&gt;</span></span>
+}
+</code></pre>
+                <pre><code class="hljs language-html"><span class="hljs-comment">&lt;!-- dist/index.html --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-container&quot;</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">header</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-header&quot;</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-header-inner&quot;</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-header-grid&quot;</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-header-column&quot;</span>&gt;</span>
+          <span class="hljs-tag">&lt;<span class="hljs-name">h1</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-header-heading&quot;</span>&gt;</span>納品リスト<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+          <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-header-date&quot;</span>&gt;</span>
+            Last Update: 2023.03.09 - 07:21
+          <span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-header-column&quot;</span>&gt;</span>
+          <span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-button&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;/archive.zip&quot;</span> <span class="hljs-attr">download</span>&gt;</span>
+            Download
+          <span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+      <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">header</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">main</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-main&quot;</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-main-inner&quot;</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">nav</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-nav&quot;</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">ul</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-list&quot;</span>&gt;</span>
+          <span class="hljs-tag">&lt;<span class="hljs-name">li</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item&quot;</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content&quot;</span>&gt;</span>
+              <span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-link&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;/test/p1&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span>
+              <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-inner&quot;</span>&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-name&quot;</span>&gt;</span>
+                  施策1のタイトル
+                <span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-slug&quot;</span>&gt;</span>/test/p1<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+              <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+              <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-background&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+            <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+          <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+          <span class="hljs-tag">&lt;<span class="hljs-name">li</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item&quot;</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content&quot;</span>&gt;</span>
+              <span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-link&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;/test/p2&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span>
+              <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-inner&quot;</span>&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-name&quot;</span>&gt;</span>
+                  施策2のタイトル
+                <span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-slug&quot;</span>&gt;</span>/test/p2<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+              <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+              <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-background&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+            <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+          <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+          <span class="hljs-tag">&lt;<span class="hljs-name">li</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item&quot;</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content&quot;</span>&gt;</span>
+              <span class="hljs-tag">&lt;<span class="hljs-name">a</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-link&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;/test/p4&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">a</span>&gt;</span>
+              <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-inner&quot;</span>&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-name&quot;</span>&gt;</span>
+                  施策4のタイトル
+                <span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-slug&quot;</span>&gt;</span>/test/p4<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+              <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+              <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;minista-delivery-item-content-background&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+            <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+          <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span>
+      <span class="hljs-tag">&lt;/<span class="hljs-name">nav</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">main</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+</code></pre>
+                <h2 id="deliveryprops">
+                  <a aria-hidden="true" tabindex="-1" href="#deliveryprops"><span class="icon icon-link"></span></a>DeliveryProps
+                </h2>
+                <pre><code class="hljs language-ts"><span class="hljs-keyword">type</span> <span class="hljs-title class_">DeliveryProps</span> = {
+  title?: <span class="hljs-built_in">string</span>
+  bodyClass?: <span class="hljs-built_in">string</span>
+  dateFormat?: <span class="hljs-built_in">string</span>
+  timezone?: <span class="hljs-built_in">string</span>
+  styles?: <span class="hljs-title class_">StylesProps</span>
+  header?: <span class="hljs-title class_">HeaderProps</span>
+  items?: <span class="hljs-title class_">Item</span>[]
+}
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">StylesProps</span> = {
+  defaultDark?: <span class="hljs-built_in">boolean</span>
+  darkMode?: <span class="hljs-built_in">boolean</span>
+  innerMaxWidth?: <span class="hljs-built_in">string</span>
+  defaultLightStyle?: <span class="hljs-built_in">string</span>
+  defaultDarkStyle?: <span class="hljs-built_in">string</span>
+  schemeDarkStyle?: <span class="hljs-built_in">string</span>
+  variableStyle?: <span class="hljs-built_in">string</span>
+  resetStyle?: <span class="hljs-built_in">string</span>
+  componentStyle?: <span class="hljs-built_in">string</span>
+}
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">HeaderProps</span> = {
+  title?: <span class="hljs-built_in">string</span>
+  dateName?: <span class="hljs-built_in">string</span>
+  date?: <span class="hljs-built_in">string</span>
+  buttons?: <span class="hljs-title class_">Button</span>[]
+}
+</code></pre>
+              </div>
+            </article>
+          </div>
+        </div>
+      </main>
+      <footer class="app-footer">
+        <div class="app-footer-inner">
+          <p class="app-footer-copyright">©️ <a href="https://qranoko.jp">QRANOKO</a> 2021 - 2026</p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

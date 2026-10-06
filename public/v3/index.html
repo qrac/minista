@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>minista</title>
+    <meta name="description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:title" content="minista">
+    <meta property="og:description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:url" content="https://minista.dev/v3/">
+    <meta property="og:image" content="https://minista.dev/v3/assets/images/ogp.png">
+    <meta property="og:site_name" content="minista">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@Qrac_JP">
+    <link rel="stylesheet" href="/v3/assets/entry.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="apple-touch-icon" href="/v3/assets/images/apple-touch-icon.png">
+    <link rel="icon" href="/v3/assets/images/favicon.png">
+  </head>
+  <body>
+    <div class="app-layout">
+      <header class="app-header">
+        <div class="app-header-inner">
+          <div class="app-header-main">
+            <a href="/v3/">
+              <img class="app-header-logo" src="/v3/assets/images/logo.svg" alt="minista" width="156" height="34">
+            </a><span class="app-header-badge">v3.1.12</span>
+          </div>
+          <nav class="app-header-nav">
+            <ul>
+              <li>
+                <a href="/v3/docs/">Docs</a>
+              </li>
+              <li>
+                <a href="https://github.com/qrac/minista">GitHub</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+      <main class="app-main">
+        <section class="section-hero" id="section-hero">
+          <div class="section-hero-inner">
+            <ul class="section-hero-grid">
+              <li class="section-hero-column">
+                <h1>
+                  <img class="section-hero-message" src="/v3/assets/images/message.svg" alt="ReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーター" width="480" height="240">
+                </h1>
+                <p class="section-hero-description"><span style="word-break: keep-all; overflow-wrap: anywhere;">minista<wbr>（ミニスタ）は<wbr>静的サイト制作に<wbr>特化した<wbr>ツールです。<wbr>Viteの<wbr>モダンな<wbr>開発環境で<wbr>JSXを<wbr>書いて<wbr>納品向きの<wbr>綺麗な<wbr>HTMLと<wbr>アセットを<wbr>出力。<wbr>100%静的で<wbr>サーバーに<wbr>依存しません。</span></p>
+                <div class="section-hero-buttons">
+                  <a href="/v3/docs/setup" class="section-hero-button is-strong">Basic Setup</a>
+                  <a href="/v3/docs/" class="section-hero-button">Read the Docs</a>
+                </div>
+              </li>
+              <li class="section-hero-column">
+                <ul class="section-hero-images">
+                  <li class="section-hero-image">
+                    <div class="section-hero-window">
+                      <div class="section-hero-window-header">
+                        <div class="section-hero-window-header-buttons"><span class="section-hero-window-header-button"></span><span class="section-hero-window-header-button"></span><span class="section-hero-window-header-button"></span></div>
+                      </div>
+                      <div class="section-hero-window-content">
+                        <pre><code class="hljs language-tsx"><span class="hljs-keyword">import</span> { <span class="hljs-title class_">Head</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;minista&quot;</span>
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">MyComponent</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;../components/my-component.tsx&quot;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">function</span> (<span class="hljs-params">{ children }: { children: React.ReactNode }</span>) {
+  <span class="hljs-keyword">return</span> (
+    <span class="xml"><span class="hljs-tag">&lt;&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">Head</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>minista<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;src/assets/style.css&quot;</span> /&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;src/assets/script.ts&quot;</span> /&gt;</span><span class="xml">
+      <span class="hljs-tag">&lt;/<span class="hljs-name">Head</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">header</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;header&quot;</span>&gt;</span>minista<span class="hljs-tag">&lt;/<span class="hljs-name">header</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">main</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">MyComponent</span> <span class="hljs-attr">title</span>=<span class="hljs-string">&quot;Static site generator&quot;</span> /&gt;</span>
+      <span class="hljs-tag">&lt;/<span class="hljs-name">main</span>&gt;</span>
+    <span class="hljs-tag">&lt;/&gt;</span></span></span>
+  )
+}
+</code></pre>
+                      </div>
+                    </div>
+                    <div class="section-hero-brand-wrap">
+                      <img class="section-hero-brand" src="/v3/assets/images/brand-react.svg" alt="React" width="200" height="200">
+                    </div>
+                  </li>
+                  <li class="section-hero-image">
+                    <div class="section-hero-window">
+                      <div class="section-hero-window-header">
+                        <div class="section-hero-window-header-buttons"><span class="section-hero-window-header-button"></span><span class="section-hero-window-header-button"></span><span class="section-hero-window-header-button"></span></div>
+                      </div>
+                      <div class="section-hero-window-content">
+                        <pre><code class="hljs language-html"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;ja&quot;</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;UTF-8&quot;</span> /&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">http-equiv</span>=<span class="hljs-string">&quot;X-UA-Compatible&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;IE=edge&quot;</span> /&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;viewport&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>minista<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;/assets/style.css&quot;</span> /&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;module&quot;</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;/assets/script.js&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">header</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;header&quot;</span>&gt;</span>minista<span class="hljs-tag">&lt;/<span class="hljs-name">header</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">main</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;my-component&quot;</span>&gt;</span>Static site generator<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">main</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span>
+</code></pre>
+                      </div>
+                    </div>
+                    <div class="section-hero-brand-wrap">
+                      <img class="section-hero-brand" src="/v3/assets/images/brand-vite.svg" alt="Vite" width="200" height="202">
+                    </div>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </section>
+        <section class="section-feature" id="section-feature">
+          <div class="section-feature-inner">
+            <h2 class="section-feature-title">Feature</h2>
+            <div class="section-feature-grids">
+              <div class="section-feature-grid">
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">🔥 Modern Development</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">ministaは、<wbr>静的サイト制作の<wbr>開発体験を<wbr>Next.js等に<wbr>近づけ、<wbr>ツールを<wbr>持ち替えた<wbr>ときの<wbr>違和感を<wbr>減らします。</span></p>
+                  </div>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">🔥 100% Static Generate</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">ministaは、<wbr>普通の<wbr>HTML・CSS・JSを<wbr>書き出すSSGです。<wbr>100%静的で<wbr>無駄のない<wbr>コードは<wbr>環境に<wbr>依存しません。</span></p>
+                  </div>
+                </div>
+              </div>
+              <div class="section-feature-grid">
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">💎 Vite 4</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">Vite v4を<wbr>ビルドツールと<wbr>して<wbr>採用。<wbr>webpackよりも<wbr>高速な<wbr>開発サーバーの<wbr>立ち上げ・本番ビルドが<wbr>可能です。</span></p>
+                  </div>
+                  <a href="https://ja.vitejs.dev/" class="section-feature-card-link">Vite公式サイト →</a>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">💎 MDX 2</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">MDX v2を<wbr>統合しているので、<wbr>すぐに<wbr>MDXや<wbr>Markdownで<wbr>ページを<wbr>書けます。<wbr>プラグインの<wbr>追加も<wbr>簡単。</span></p>
+                  </div>
+                  <a href="https://mdxjs.com/" class="section-feature-card-link">MDX公式サイト →</a>
+                </div>
+              </div>
+              <div class="section-feature-grid">
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">⚙️ Relative Path</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">サブディレクトリ設置の<wbr>LPなどを<wbr>想定し相対パスに<wbr>対応。</span></p>
+                  </div>
+                  <a href="/v3/docs/relative-path" class="section-feature-card-link">詳細 →</a>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">⚙️ TypeScript</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">TypeScript(.tsx)に<wbr>よる<wbr>開発を<wbr>前提に<wbr>動作検証を<wbr>行っています。</span></p>
+                  </div>
+                  <a href="/v3/docs/typescript" class="section-feature-card-link">詳細 →</a>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">⚙️ Beautiful Code</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">ビルド後の<wbr>HTMLは<wbr>読みやすく<wbr>整形。<wbr>コンポーネントで<wbr>コメントを<wbr>付与。</span></p>
+                  </div>
+                  <a href="/v3/docs/beautiful-code" class="section-feature-card-link">詳細 →</a>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">⚙️ Dynamic Entry</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">Headで<wbr>ページに<wbr>必要な<wbr>CSSと<wbr>JSを<wbr>エントリーし、<wbr>それぞれ個別出力。</span></p>
+                  </div>
+                  <a href="/v3/docs/dynamic-entry" class="section-feature-card-link">詳細 →</a>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">⚙️ Image Optimisation</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">専用コンポーネントで<wbr>画像を<wbr>最適化、<wbr>リモート画像を<wbr>ダウンロード。</span></p>
+                  </div>
+                  <a href="/v3/docs/image" class="section-feature-card-link">詳細 →</a>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">⚙️ SVG Sprite Icon</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">複数の<wbr>SVGアイコンファイルを<wbr>まとめ、<wbr>スプライト化できます。</span></p>
+                  </div>
+                  <a href="/v3/docs/svg-sprite-icon" class="section-feature-card-link">詳細 →</a>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">⚙️ Fetch</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">非同期関数で<wbr>APIを<wbr>叩いて<wbr>ページを<wbr>生成できます。<wbr>CMSと<wbr>連携可能。</span></p>
+                  </div>
+                  <a href="/v3/docs/fetch" class="section-feature-card-link">詳細 →</a>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">⚙️ Partial Hydration</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">部分的な<wbr>React Component化で<wbr>動的な<wbr>エリアを<wbr>作れます。</span></p>
+                  </div>
+                  <a href="/v3/docs/partial-hydration" class="section-feature-card-link">詳細 →</a>
+                </div>
+                <div class="section-feature-card">
+                  <div class="section-feature-card-inner">
+                    <h3 class="section-feature-card-title">⚙️ Delivery Support</h3>
+                    <p class="section-feature-card-text"><span style="word-break: keep-all; overflow-wrap: anywhere;">納品用の<wbr>ページリストや<wbr>Zipファイルの<wbr>生成を<wbr>自動化します。</span></p>
+                  </div>
+                  <a href="/v3/docs/delivery-support" class="section-feature-card-link">詳細 →</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <footer class="app-footer">
+        <div class="app-footer-inner">
+          <p class="app-footer-copyright">©️ <a href="https://qranoko.jp">QRANOKO</a> 2021 - 2026</p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

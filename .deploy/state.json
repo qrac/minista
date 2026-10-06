@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "main": {
+      "sha": "aed2adbd421553812432e44dda91e392d5b223db",
+      "toolRevision": "5c86cf0656fbfba9d2b89e412f070f14d8e42ece106ccda9c4d7aa1ca6f42ba8"
+    },
+    "v3": {
+      "sha": "a5850ac065dbe7acd8f074fcc8d948c26b4a5fc2",
+      "toolRevision": "5c86cf0656fbfba9d2b89e412f070f14d8e42ece106ccda9c4d7aa1ca6f42ba8"
+    },
+    "v4": {
+      "sha": "c1e5978ffef7b399fd0694e2d533452c5c0d9b73",
+      "toolRevision": "5c86cf0656fbfba9d2b89e412f070f14d8e42ece106ccda9c4d7aa1ca6f42ba8"
+    }
+  }
+}

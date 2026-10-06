@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beautiful Code - minista</title>
+    <meta name="description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:title" content="Beautiful Code - minista">
+    <meta property="og:description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:url" content="https://minista.dev/v3/docs/beautiful-code">
+    <meta property="og:image" content="https://minista.dev/v3/assets/images/ogp.png">
+    <meta property="og:site_name" content="minista">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@Qrac_JP">
+    <link rel="stylesheet" href="/v3/assets/entry.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="apple-touch-icon" href="/v3/assets/images/apple-touch-icon.png">
+    <link rel="icon" href="/v3/assets/images/favicon.png">
+    <script type="module" src="/v3/assets/hydrate.js"></script>
+  </head>
+  <body>
+    <div class="app-layout">
+      <header class="app-header">
+        <div class="app-header-inner">
+          <div class="app-header-main">
+            <a href="/v3/">
+              <img class="app-header-logo" src="/v3/assets/images/logo.svg" alt="minista" width="156" height="34">
+            </a><span class="app-header-badge">v3.1.12</span>
+          </div>
+          <nav class="app-header-nav">
+            <ul>
+              <li>
+                <a href="/v3/docs/">Docs</a>
+              </li>
+              <li>
+                <a href="https://github.com/qrac/minista">GitHub</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+      <main class="app-main">
+        <div class="docs-layout">
+          <div class="docs-layout-inner">
+            <aside class="docs-menu">
+              <details class="docs-menu-mobile">
+                <summary class="docs-menu-mobile-summary">MENU</summary>
+                <div class="docs-menu-mobile-contents">
+                  <div data-partial-hydration="ph-1" style="display:contents">
+                    <div class="block-search">
+                      <div class="block-search-field">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" class="block-search-icon">
+                          <path fill-rule="evenodd" d="M9.61752431,11.0317379 C8.73148308,11.642436 7.65749832,12 6.5,12 C3.46243388,12 1,9.53756612 1,6.5 C1,3.46243388 3.46243388,1 6.5,1 C9.53756612,1 12,3.46243388 12,6.5 C12,7.65749832 11.642436,8.73148308 11.0317379,9.61752431 L14.7071068,13.2928932 L13.2928932,14.7071068 L9.61752431,11.0317379 Z M6.5,10 C8.43299662,10 10,8.43299662 10,6.5 C10,4.56700338 8.43299662,3 6.5,3 C4.56700338,3 3,4.56700338 3,6.5 C3,8.43299662 4.56700338,10 6.5,10 Z"></path>
+                        </svg>
+                        <input type="search" data-full-text-search="" placeholder="Search...">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Getting Started</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/">Introduction</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/migration">Migration</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Settings</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/setup">Setup</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/directories">Directories</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/config-file">Config File</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/relative-path">Relative Path</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/resolve-alias">Resolve Alias</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/typescript">TypeScript</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/css-modules">CSS Modules</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/sass">Sass</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/postcss">PostCSS</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/panda-css">Panda CSS</a>
+                      </li>
+                      <li class="docs-menu-item is-current">
+                        <a href="/v3/docs/beautiful-code">Beautiful Code</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Basic Features</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/commands">Commands</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/public">Public</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/global">Global</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/pages">Pages</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/markdown-pages">Markdown Pages</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/components">Components</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Advanced</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/metadata">Metadata</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/head">Head</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/dynamic-entry">Dynamic Entry</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/image">Image</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/picture">Picture</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/svgr">SVGR</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/svg-sprite-icon">SVG Sprite Icon</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/markdown-import">Markdown Import</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/markdown-component">Markdown Component</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/comment">Comment</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/async-function">Async Function</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/fetch">Fetch</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/partial-hydration">Partial Hydration</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/search">Search</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/delivery-support">Delivery Support</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </details>
+              <div class="docs-menu-desktop">
+                <div data-partial-hydration="ph-1" style="display:contents">
+                  <div class="block-search">
+                    <div class="block-search-field">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" class="block-search-icon">
+                        <path fill-rule="evenodd" d="M9.61752431,11.0317379 C8.73148308,11.642436 7.65749832,12 6.5,12 C3.46243388,12 1,9.53756612 1,6.5 C1,3.46243388 3.46243388,1 6.5,1 C9.53756612,1 12,3.46243388 12,6.5 C12,7.65749832 11.642436,8.73148308 11.0317379,9.61752431 L14.7071068,13.2928932 L13.2928932,14.7071068 L9.61752431,11.0317379 Z M6.5,10 C8.43299662,10 10,8.43299662 10,6.5 C10,4.56700338 8.43299662,3 6.5,3 C4.56700338,3 3,4.56700338 3,6.5 C3,8.43299662 4.56700338,10 6.5,10 Z"></path>
+                      </svg>
+                      <input type="search" data-full-text-search="" placeholder="Search...">
+                    </div>
+                  </div>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Getting Started</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/">Introduction</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/migration">Migration</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Settings</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/setup">Setup</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/directories">Directories</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/config-file">Config File</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/relative-path">Relative Path</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/resolve-alias">Resolve Alias</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/typescript">TypeScript</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/css-modules">CSS Modules</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/sass">Sass</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/postcss">PostCSS</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/panda-css">Panda CSS</a>
+                    </li>
+                    <li class="docs-menu-item is-current">
+                      <a href="/v3/docs/beautiful-code">Beautiful Code</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Basic Features</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/commands">Commands</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/public">Public</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/global">Global</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/pages">Pages</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/markdown-pages">Markdown Pages</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/components">Components</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Advanced</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/metadata">Metadata</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/head">Head</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/dynamic-entry">Dynamic Entry</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/image">Image</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/picture">Picture</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/svgr">SVGR</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/svg-sprite-icon">SVG Sprite Icon</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/markdown-import">Markdown Import</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/markdown-component">Markdown Component</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/comment">Comment</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/async-function">Async Function</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/fetch">Fetch</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/partial-hydration">Partial Hydration</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/search">Search</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/delivery-support">Delivery Support</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </aside>
+            <article class="docs-main">
+              <h1>Beautiful Code</h1>
+              <div class="docs-main-contents" data-search="true">
+                <p>納品先がコーディングデータを再利用しやすいよう、ビルド後のソースコードはデフォルトでは HTML が整形されアセット（CSS・JS） は minify されます。この設定は <a href="/v3/docs/config-file">Config File</a> で変更可能です。コンフィグの <code>htmlOptions</code> <code>cssOptions</code> <code>jsOptions</code> には <a href="https://github.com/beautify-web/js-beautify">js-beautify</a> のオプションが使えます。</p>
+                <p>また、HTML 内にコメントを残したい場合は <a href="/v3/docs/comment">Comment</a> コンポーネントを使用してください。</p>
+                <pre><code class="hljs language-ts"><span class="hljs-comment">// Default Settings</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">beautify</span>: {
+    <span class="hljs-attr">useHtml</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// Pretty: HTML</span>
+    <span class="hljs-attr">useAssets</span>: <span class="hljs-literal">false</span>, <span class="hljs-comment">// Pretty: CSS and JS</span>
+    <span class="hljs-attr">htmlOptions</span>: {
+      <span class="hljs-attr">indent_size</span>: <span class="hljs-number">2</span>,
+      <span class="hljs-attr">max_preserve_newlines</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">indent_inner_html</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">extra_liners</span>: [],
+      <span class="hljs-attr">inline</span>: [<span class="hljs-string">&quot;span&quot;</span>, <span class="hljs-string">&quot;strong&quot;</span>, <span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-string">&quot;small&quot;</span>, <span class="hljs-string">&quot;del&quot;</span>, <span class="hljs-string">&quot;s&quot;</span>, <span class="hljs-string">&quot;code&quot;</span>, <span class="hljs-string">&quot;br&quot;</span>, <span class="hljs-string">&quot;wbr&quot;</span>],
+    },
+    <span class="hljs-attr">cssOptions</span>: {
+      <span class="hljs-attr">indent_size</span>: <span class="hljs-number">2</span>,
+      <span class="hljs-attr">space_around_combinator</span>: <span class="hljs-literal">true</span>,
+    },
+    <span class="hljs-attr">jsOptions</span>: {
+      <span class="hljs-attr">indent_size</span>: <span class="hljs-number">2</span>,
+    },
+  },
+}
+</code></pre>
+              </div>
+            </article>
+          </div>
+        </div>
+      </main>
+      <footer class="app-footer">
+        <div class="app-footer-inner">
+          <p class="app-footer-copyright">©️ <a href="https://qranoko.jp">QRANOKO</a> 2021 - 2026</p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

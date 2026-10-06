@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search - minista</title>
+    <meta name="description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:title" content="Search - minista">
+    <meta property="og:description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:url" content="https://minista.dev/v3/docs/search">
+    <meta property="og:image" content="https://minista.dev/v3/assets/images/ogp.png">
+    <meta property="og:site_name" content="minista">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@Qrac_JP">
+    <link rel="stylesheet" href="/v3/assets/entry.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="apple-touch-icon" href="/v3/assets/images/apple-touch-icon.png">
+    <link rel="icon" href="/v3/assets/images/favicon.png">
+    <script type="module" src="/v3/assets/hydrate.js"></script>
+  </head>
+  <body>
+    <div class="app-layout">
+      <header class="app-header">
+        <div class="app-header-inner">
+          <div class="app-header-main">
+            <a href="/v3/">
+              <img class="app-header-logo" src="/v3/assets/images/logo.svg" alt="minista" width="156" height="34">
+            </a><span class="app-header-badge">v3.1.12</span>
+          </div>
+          <nav class="app-header-nav">
+            <ul>
+              <li>
+                <a href="/v3/docs/">Docs</a>
+              </li>
+              <li>
+                <a href="https://github.com/qrac/minista">GitHub</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+      <main class="app-main">
+        <div class="docs-layout">
+          <div class="docs-layout-inner">
+            <aside class="docs-menu">
+              <details class="docs-menu-mobile">
+                <summary class="docs-menu-mobile-summary">MENU</summary>
+                <div class="docs-menu-mobile-contents">
+                  <div data-partial-hydration="ph-1" style="display:contents">
+                    <div class="block-search">
+                      <div class="block-search-field">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" class="block-search-icon">
+                          <path fill-rule="evenodd" d="M9.61752431,11.0317379 C8.73148308,11.642436 7.65749832,12 6.5,12 C3.46243388,12 1,9.53756612 1,6.5 C1,3.46243388 3.46243388,1 6.5,1 C9.53756612,1 12,3.46243388 12,6.5 C12,7.65749832 11.642436,8.73148308 11.0317379,9.61752431 L14.7071068,13.2928932 L13.2928932,14.7071068 L9.61752431,11.0317379 Z M6.5,10 C8.43299662,10 10,8.43299662 10,6.5 C10,4.56700338 8.43299662,3 6.5,3 C4.56700338,3 3,4.56700338 3,6.5 C3,8.43299662 4.56700338,10 6.5,10 Z"></path>
+                        </svg>
+                        <input type="search" data-full-text-search="" placeholder="Search...">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Getting Started</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/">Introduction</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/migration">Migration</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Settings</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/setup">Setup</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/directories">Directories</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/config-file">Config File</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/relative-path">Relative Path</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/resolve-alias">Resolve Alias</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/typescript">TypeScript</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/css-modules">CSS Modules</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/sass">Sass</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/postcss">PostCSS</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/panda-css">Panda CSS</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/beautiful-code">Beautiful Code</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Basic Features</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/commands">Commands</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/public">Public</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/global">Global</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/pages">Pages</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/markdown-pages">Markdown Pages</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/components">Components</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="docs-menu-group">
+                    <p class="docs-menu-group-heading">Advanced</p>
+                    <ul class="docs-menu-list">
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/metadata">Metadata</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/head">Head</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/dynamic-entry">Dynamic Entry</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/image">Image</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/picture">Picture</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/svgr">SVGR</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/svg-sprite-icon">SVG Sprite Icon</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/markdown-import">Markdown Import</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/markdown-component">Markdown Component</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/comment">Comment</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/async-function">Async Function</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/fetch">Fetch</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/partial-hydration">Partial Hydration</a>
+                      </li>
+                      <li class="docs-menu-item is-current">
+                        <a href="/v3/docs/search">Search</a>
+                      </li>
+                      <li class="docs-menu-item">
+                        <a href="/v3/docs/delivery-support">Delivery Support</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </details>
+              <div class="docs-menu-desktop">
+                <div data-partial-hydration="ph-1" style="display:contents">
+                  <div class="block-search">
+                    <div class="block-search-field">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" class="block-search-icon">
+                        <path fill-rule="evenodd" d="M9.61752431,11.0317379 C8.73148308,11.642436 7.65749832,12 6.5,12 C3.46243388,12 1,9.53756612 1,6.5 C1,3.46243388 3.46243388,1 6.5,1 C9.53756612,1 12,3.46243388 12,6.5 C12,7.65749832 11.642436,8.73148308 11.0317379,9.61752431 L14.7071068,13.2928932 L13.2928932,14.7071068 L9.61752431,11.0317379 Z M6.5,10 C8.43299662,10 10,8.43299662 10,6.5 C10,4.56700338 8.43299662,3 6.5,3 C4.56700338,3 3,4.56700338 3,6.5 C3,8.43299662 4.56700338,10 6.5,10 Z"></path>
+                      </svg>
+                      <input type="search" data-full-text-search="" placeholder="Search...">
+                    </div>
+                  </div>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Getting Started</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/">Introduction</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/migration">Migration</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Settings</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/setup">Setup</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/directories">Directories</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/config-file">Config File</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/relative-path">Relative Path</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/resolve-alias">Resolve Alias</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/typescript">TypeScript</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/css-modules">CSS Modules</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/sass">Sass</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/postcss">PostCSS</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/panda-css">Panda CSS</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/beautiful-code">Beautiful Code</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Basic Features</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/commands">Commands</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/public">Public</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/global">Global</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/pages">Pages</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/markdown-pages">Markdown Pages</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/components">Components</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="docs-menu-group">
+                  <p class="docs-menu-group-heading">Advanced</p>
+                  <ul class="docs-menu-list">
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/metadata">Metadata</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/head">Head</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/dynamic-entry">Dynamic Entry</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/image">Image</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/picture">Picture</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/svgr">SVGR</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/svg-sprite-icon">SVG Sprite Icon</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/markdown-import">Markdown Import</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/markdown-component">Markdown Component</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/comment">Comment</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/async-function">Async Function</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/fetch">Fetch</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/partial-hydration">Partial Hydration</a>
+                    </li>
+                    <li class="docs-menu-item is-current">
+                      <a href="/v3/docs/search">Search</a>
+                    </li>
+                    <li class="docs-menu-item">
+                      <a href="/v3/docs/delivery-support">Delivery Support</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </aside>
+            <article class="docs-main">
+              <h1>Search</h1>
+              <div class="docs-main-contents" data-search="true">
+                <p>minista には全文検索をサポートする 2 つの機能が備わっています。一つは HTML を解析してインデックス化された JSON を生成する機能。もう一つは JSON をもとに検索するビルトインコンポーネント。</p>
+                <p>HTML と出力される JSON の関係は以下の通りです。</p>
+                <pre><code class="hljs language-html"><span class="hljs-comment">&lt;!-- dist/docs/css.html --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>CSS<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>CSS<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">data-search</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">h2</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;cms&quot;</span>&gt;</span>CMS<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>CMSで使うCSS。<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
+</code></pre>
+                <pre><code class="hljs language-json"><span class="hljs-comment">// dist/assets/search.json</span>
+<span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;words&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;CMS&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;CSS&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;。&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;う&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;で&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;使&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;hits&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;pages&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;path&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;/docs/css&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;title&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-number">1</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;toc&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">[</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;cms&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;content&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span> <span class="hljs-number">5</span><span class="hljs-punctuation">,</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-number">2</span><span class="hljs-punctuation">]</span>
+    <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+                <ul>
+                  <li><code>words</code> にすべての文字が種類ごとに収納されており index で参照が可能</li>
+                  <li><code>hits</code> が <code>[0, 1]</code> なので、検索対象の文字は「CMS」と「CSS」</li>
+                  <li><code>pages</code> は各ページデータ（<code>title</code> は「CSS」、見出し ID <code>cms</code> の content は 0 番目）</li>
+                  <li><code>content</code> には「CMS CMS で使う CSS。」の index が配列形式で格納</li>
+                </ul>
+                <h2 id="build-json">
+                  <a aria-hidden="true" tabindex="-1" href="#build-json"><span class="icon icon-link"></span></a>Build JSON
+                </h2>
+                <p>Search コンポーネントを使用していると自動的に開発時・本番ビルドで JSON が生成されます。コンフィグのデフォルト値は以下の通りです。サイトに合わせて必要な部分を調整します。</p>
+                <pre><code class="hljs language-ts"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">search</span>: {
+    <span class="hljs-attr">outDir</span>: <span class="hljs-string">&quot;assets&quot;</span>,
+    <span class="hljs-attr">outName</span>: <span class="hljs-string">&quot;search&quot;</span>,
+    <span class="hljs-attr">include</span>: [<span class="hljs-string">&quot;**/*&quot;</span>],
+    <span class="hljs-attr">exclude</span>: [<span class="hljs-string">&quot;/404&quot;</span>],
+    <span class="hljs-attr">baseUrl</span>: <span class="hljs-string">&quot;&quot;</span>,
+    <span class="hljs-attr">trimTitle</span>: <span class="hljs-string">&quot;&quot;</span>,
+    <span class="hljs-attr">targetSelector</span>: <span class="hljs-string">&quot;[data-search]&quot;</span>,
+    <span class="hljs-attr">hit</span>: {
+      <span class="hljs-attr">minLength</span>: <span class="hljs-number">3</span>,
+      <span class="hljs-attr">number</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">english</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">hiragana</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">katakana</span>: <span class="hljs-literal">true</span>,
+      <span class="hljs-attr">kanji</span>: <span class="hljs-literal">true</span>,
+    },
+  },
+}
+</code></pre>
+                <h3 id="cache">
+                  <a aria-hidden="true" tabindex="-1" href="#cache"><span class="icon icon-link"></span></a>cache
+                </h3>
+                <p><code>true</code> にすると、前回作った JSON を再利用します。※開発時のみ</p>
+                <h3 id="include">
+                  <a aria-hidden="true" tabindex="-1" href="#include"><span class="icon icon-link"></span></a>include
+                </h3>
+                <p>検索対象にしたいディレクトリやファイルを配列と glob 形式を使って設定できます。デフォルトの <code>[&quot;**/*&quot;]</code> はすべてのページが検索対象になりますので <code>[&quot;posts/**/*&quot;]</code> などで絞り込むことをお勧めします。</p>
+                <h3 id="exclude">
+                  <a aria-hidden="true" tabindex="-1" href="#exclude"><span class="icon icon-link"></span></a>exclude
+                </h3>
+                <p>検索対象から省きたいディレクトリやファイルを配列と glob 形式を使って設定できます。</p>
+                <h3 id="trimtitle">
+                  <a aria-hidden="true" tabindex="-1" href="#trimtitle"><span class="icon icon-link"></span></a>trimTitle
+                </h3>
+                <p>検索したページのタイトルから任意の文字列を削除します。主にサイトタイトルを消す用途で使います。</p>
+                <h3 id="targetselector">
+                  <a aria-hidden="true" tabindex="-1" href="#targetselector"><span class="icon icon-link"></span></a>targetSelector
+                </h3>
+                <p>検索対象ページのインデックス化するセレクターを設定します。</p>
+                <h3 id="hit">
+                  <a aria-hidden="true" tabindex="-1" href="#hit"><span class="icon icon-link"></span></a>hit
+                </h3>
+                <p>検索にヒットする単語の最低文字数 <code>minLength</code> や、ヒットする文字の種類を設定します。</p>
+                <h2 id="built-in-component">
+                  <a aria-hidden="true" tabindex="-1" href="#built-in-component"><span class="icon icon-link"></span></a>Built-in Component
+                </h2>
+                <p>検索用のコンポーネント <code>&lt;Search /&gt;</code> が同封されているので生成した JSON をすぐに使えます。</p>
+                <div class="block-custom-box is-warning">
+                  <p class="block-custom-box-title is-font-en">CAUTION</p>
+                  <ul>
+                    <li><code>&lt;Search /&gt;</code> は <a href="/v3/docs/partial-hydration">Partial Hydration</a> 化した場所でのみ使えます</li>
+                    <li>固有のスタイルは付属していません（<a href="https://github.com/qrac/minista/blob/2.7.4/user/src/components/block-search.css">試用 CSS</a>）</li>
+                  </ul>
+                </div>
+                <p>まずは、ページかコンポーネントのどこかで Partial Hydration の場所を作り、その中で <code>&lt;Search /&gt;</code> を使います。<code>jsonPath</code> が必須で <code>search.json</code> の場所を入力します。</p>
+                <pre><code class="hljs language-tsx"><span class="hljs-comment">// src/pages/index.tsx</span>
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">BlockSearch</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;../components/block-search?ph&quot;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">return</span> <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">BlockSearch</span> /&gt;</span></span>
+}
+</code></pre>
+                <pre><code class="hljs language-tsx"><span class="hljs-comment">// src/components/block-search.tsx</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-title class_">Search</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;minista&quot;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) {
+  <span class="hljs-keyword">return</span> (
+    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">Search</span>
+      <span class="hljs-attr">jsonPath</span>=<span class="hljs-string">&quot;/assets/search.json&quot;</span>
+      <span class="hljs-attr">placeholder</span>=<span class="hljs-string">&quot;Search...&quot;</span>
+      <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;block-search&quot;</span>
+      <span class="hljs-attr">searchFieldClassName</span>=<span class="hljs-string">&quot;block-search-field&quot;</span>
+      <span class="hljs-attr">searchListClassName</span>=<span class="hljs-string">&quot;block-search-list&quot;</span>
+    /&gt;</span></span>
+  )
+}
+</code></pre>
+                <h2 id="searchprops">
+                  <a aria-hidden="true" tabindex="-1" href="#searchprops"><span class="icon icon-link"></span></a>SearchProps
+                </h2>
+                <pre><code class="hljs language-ts"><span class="hljs-keyword">type</span> <span class="hljs-title class_">SearchResult</span> = {
+  <span class="hljs-attr">path</span>: <span class="hljs-built_in">string</span>
+  <span class="hljs-attr">content</span>: <span class="hljs-built_in">string</span>
+}
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">SearchProps</span> = {
+  placeholder?: <span class="hljs-built_in">string</span>
+  minHitLength?: <span class="hljs-built_in">number</span>
+  maxHitPages?: <span class="hljs-built_in">number</span>
+  maxHitWords?: <span class="hljs-built_in">number</span>
+  searchFieldClassName?: <span class="hljs-built_in">string</span>
+  searchFieldInsertBeforeElement?: <span class="hljs-title class_">React</span>.<span class="hljs-property">ReactElement</span>
+  searchFieldInsertAfterElement?: <span class="hljs-title class_">React</span>.<span class="hljs-property">ReactElement</span>
+  searchListClassName?: <span class="hljs-built_in">string</span>
+  attributes?: <span class="hljs-title class_">React</span>.<span class="hljs-property">HTMLAttributes</span>&lt;<span class="hljs-title class_">HTMLElement</span>&gt;
+} &amp; <span class="hljs-title class_">React</span>.<span class="hljs-property">HTMLAttributes</span>&lt;<span class="hljs-title class_">HTMLElement</span>&gt;
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">SearchFieldProps</span> = {
+  placeholder?: <span class="hljs-built_in">string</span>
+  minHitLength?: <span class="hljs-built_in">number</span>
+  maxHitPages?: <span class="hljs-built_in">number</span>
+  maxHitWords?: <span class="hljs-built_in">number</span>
+  insertBeforeElement?: <span class="hljs-title class_">React</span>.<span class="hljs-property">ReactElement</span>
+  insertAfterElement?: <span class="hljs-title class_">React</span>.<span class="hljs-property">ReactElement</span>
+  setSearchValues?: <span class="hljs-title class_">React</span>.<span class="hljs-property">Dispatch</span>&lt;<span class="hljs-title class_">React</span>.<span class="hljs-property">SetStateAction</span>&lt;<span class="hljs-built_in">string</span>[]&gt;&gt;
+  setSearchHitValues?: <span class="hljs-title class_">React</span>.<span class="hljs-property">Dispatch</span>&lt;<span class="hljs-title class_">React</span>.<span class="hljs-property">SetStateAction</span>&lt;<span class="hljs-built_in">string</span>[]&gt;&gt;
+  setSearchResults?: <span class="hljs-title class_">React</span>.<span class="hljs-property">Dispatch</span>&lt;<span class="hljs-title class_">React</span>.<span class="hljs-property">SetStateAction</span>&lt;<span class="hljs-title class_">SearchResult</span>[]&gt;&gt;
+  attributes?: <span class="hljs-title class_">React</span>.<span class="hljs-property">HTMLAttributes</span>&lt;<span class="hljs-title class_">HTMLElement</span>&gt;
+} &amp; <span class="hljs-title class_">React</span>.<span class="hljs-property">HTMLAttributes</span>&lt;<span class="hljs-title class_">HTMLElement</span>&gt;
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">SearchListProps</span> = {
+  searchValues?: <span class="hljs-built_in">string</span>[]
+  searchHitValues?: <span class="hljs-built_in">string</span>[]
+  searchResults?: <span class="hljs-title class_">SearchResult</span>[]
+  attributes?: <span class="hljs-title class_">React</span>.<span class="hljs-property">HTMLAttributes</span>&lt;<span class="hljs-title class_">HTMLElement</span>&gt;
+} &amp; <span class="hljs-title class_">React</span>.<span class="hljs-property">HTMLAttributes</span>&lt;<span class="hljs-title class_">HTMLElement</span>&gt;
+</code></pre>
+              </div>
+            </article>
+          </div>
+        </div>
+      </main>
+      <footer class="app-footer">
+        <div class="app-footer-inner">
+          <p class="app-footer-copyright">©️ <a href="https://qranoko.jp">QRANOKO</a> 2021 - 2026</p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - minista</title>
+    <meta name="description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:title" content="404 - minista">
+    <meta property="og:description" content="minista（ミニスタ）はReactのJSXから綺麗なHTMLを作る日本製のスタティックサイトジェネレーターです。">
+    <meta property="og:url" content="https://minista.dev/v3/404">
+    <meta property="og:image" content="https://minista.dev/v3/assets/images/ogp.png">
+    <meta property="og:site_name" content="minista">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@Qrac_JP">
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/v3/assets/entry.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" as="style" onLoad="this.onload=null;this.rel=&#x27;stylesheet&#x27;">
+    <link rel="apple-touch-icon" href="/v3/assets/images/apple-touch-icon.png">
+    <link rel="icon" href="/v3/assets/images/favicon.png">
+  </head>
+  <body>
+    <div class="app-layout">
+      <header class="app-header">
+        <div class="app-header-inner">
+          <div class="app-header-main">
+            <a href="/v3/">
+              <img class="app-header-logo" src="/v3/assets/images/logo.svg" alt="minista" width="156" height="34">
+            </a><span class="app-header-badge">v3.1.12</span>
+          </div>
+          <nav class="app-header-nav">
+            <ul>
+              <li>
+                <a href="/v3/docs/">Docs</a>
+              </li>
+              <li>
+                <a href="https://github.com/qrac/minista">GitHub</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+      <main class="app-main">
+        <style>
+          .section-notfound {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 70vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+              "Helvetica Neue", Arial, sans-serif;
+          }
+
+          .section-notfound-box {
+            display: grid;
+            gap: 24px;
+          }
+
+          .section-notfound-message {
+            display: flex;
+            align-items: center;
+          }
+
+          .section-notfound-title {
+            flex: none;
+            margin: 0 20px 0 0;
+            border-right: 1px solid var(--theme-tx-4);
+            padding: 10px 23px 10px 0;
+            font-size: 24px;
+            font-weight: 500;
+          }
+
+          .section-notfound-description {
+            font-size: 14px;
+          }
+
+          .section-notfound-link-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: fit-content;
+            margin: 0 auto;
+            padding: 8px 16px;
+            background-color: transparent;
+            border: 1px solid var(--theme-tx-4);
+            border-radius: 4px;
+            font-size: 14px;
+            text-decoration: none;
+          }
+
+          @media (hover: hover) and (pointer: fine) {
+            .section-notfound-link-button:hover {
+              background-color: var(--theme-ac-2-alpha);
+            }
+          }
+        </style>
+        <div class="section-notfound">
+          <div class="section-notfound-box">
+            <div class="section-notfound-message">
+              <h1 class="section-notfound-title">404</h1>
+              <p class="section-notfound-description">This page could not be found.</p>
+            </div>
+            <a href="/v3/" class="section-notfound-link-button">Back to Home</a>
+          </div>
+        </div>
+      </main>
+      <footer class="app-footer">
+        <div class="app-footer-inner">
+          <p class="app-footer-copyright">©️ <a href="https://qranoko.jp">QRANOKO</a> 2021 - 2026</p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
