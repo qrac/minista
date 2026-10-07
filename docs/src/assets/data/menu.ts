@@ -19,8 +19,8 @@ export default {
     items: [
       {
         name: "v3.1.12",
-        url: "https://minista-archive-v3.netlify.app/",
-        externalLink: true,
+        url: "/v3/",
+        externalLink: false,
       },
     ],
   },
