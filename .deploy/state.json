@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "targets": {
     "main": {
-      "sha": "e09a169986825b289f9dda378ef2f00ab7d3354a",
+      "sha": "be87373eebf6f1b3f64ad09c0d6e7663f8cb66a9",
       "toolRevision": "b0c6288cb6d5927d7967b1d92cbff2b964746469960199fbcca5a978c34f9c0b"
     },
     "v3": {
