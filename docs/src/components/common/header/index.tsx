@@ -16,28 +16,38 @@ import { initialProps } from "./props"
 export default function CommonHeader(props: Partial<Props>) {
   const { isSticky } = { ...initialProps, ...props }
   return (
-    <header className={clsx("section is-header", isSticky && "is-sticky")}>
-      <div className="inner is-py-sm is-pr-md is-pl-lg">
-        <div className="box is-flex is-between is-middle is-gap-sm">
-          <div className="box is-flex is-middle is-gap-sm">
-            <a href="/">
-              <Svg
-                src="/src/assets/images/logo.svg"
-                width={110}
-                height={24}
-                className="image"
-              />
-            </a>
-            <NavVersions {...props} />
-          </div>
-          <div className="box is-flex is-middle is-gap-xs">
-            <NavMain {...props} />
-            <NavThemes />
-            <NavButton />
+    <>
+      <div className="header-notice">
+        <p className="header-notice-inner">
+          このドキュメントはminista 4<strong>（旧バージョン）</strong>
+          に関するものです。最新バージョンについては、
+          <a href="https://minista.dev">https://minista.dev</a>
+          を参照してください。
+        </p>
+      </div>
+      <header className={clsx("section is-header", isSticky && "is-sticky")}>
+        <div className="inner is-py-sm is-pr-md is-pl-lg">
+          <div className="box is-flex is-between is-middle is-gap-sm">
+            <div className="box is-flex is-middle is-gap-sm">
+              <a href="/">
+                <Svg
+                  src="/src/assets/images/logo.svg"
+                  width={110}
+                  height={24}
+                  className="image"
+                />
+              </a>
+              <NavVersions {...props} />
+            </div>
+            <div className="box is-flex is-middle is-gap-xs">
+              <NavMain {...props} />
+              <NavThemes />
+              <NavButton />
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   )
 }
 
@@ -60,7 +70,7 @@ function NavVersions(props: Partial<Props>) {
         <ul>
           <li className="box is-flex">
             <div className="box is-flex is-middle is-nowrap is-py-xs is-px-sm is-gap-xs is-radius-ml is-flex-full">
-              <span className="text is-font-sans-en is-primary">{`Latest(v${currentVersion})`}</span>
+              <span className="text is-font-sans-en is-primary">{`v${currentVersion}（旧バージョン）`}</span>
             </div>
           </li>
           {versionItems.map((item, itemIndex) => (

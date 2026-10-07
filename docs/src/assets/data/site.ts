@@ -2,7 +2,7 @@ export default {
   name: "minista",
   description:
     "minista（ミニスタ）は、ReactのJSXとViteで100%静的なサイトを作るスタティックサイトジェネレーターです。",
-  url: "https://minista.qranoko.jp",
+  url: "https://minista.dev",
   ogp: "/ogp.png",
   appleTouchIcon: "/apple-touch-icon.png",
   favicon: "/favicon.png",

@@ -1,3 +1,23 @@
+.header-notice {
+  background: var(--theme-bg-2);
+  color: var(--theme-tx-1);
+  border-bottom: 1px solid var(--theme-bd-1);
+}
+
+.header-notice-inner {
+  margin: 0 auto;
+  padding: 12px 24px;
+  font-size: 14px;
+  line-height: 1.8;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.header-notice a {
+  color: var(--theme-tx-1);
+  text-decoration: underline;
+}
+
 .section.is-header {
   display: grid;
   grid-template-columns: 1fr;
