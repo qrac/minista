@@ -6,6 +6,14 @@ export default function () {
   const resolvedVersion = version.replace(new RegExp("-alpha" + ".*"), "")
   return (
     <header className="app-header">
+      <div className="app-header-notice">
+        <p className="app-header-notice-inner">
+          このドキュメントはminista 3<strong>（旧バージョン）</strong>
+          に関するものです。最新バージョンについては、
+          <a href="https://minista.dev">https://minista.dev</a>
+          を参照してください。
+        </p>
+      </div>
       <div className="app-header-inner">
         <div className="app-header-main">
           <a href="/">

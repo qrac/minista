@@ -1,3 +1,21 @@
+.app-header-notice {
+  background-color: var(--theme-ac-3-alpha);
+  color: var(--theme-tx-1);
+}
+
+.app-header-notice-inner {
+  max-width: var(--theme-site-width);
+  margin: 0 auto;
+  padding: 12px var(--theme-space-vw);
+  font-size: 14px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.app-header-notice a {
+  color: var(--theme-ac-3);
+}
+
 .app-header-inner {
   display: flex;
   justify-content: space-between;
