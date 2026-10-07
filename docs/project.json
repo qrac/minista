@@ -538,8 +538,8 @@
             {
               "id": "beautify",
               "name": {
-                "en": "HTML formatting",
-                "ja": "HTMLの整形"
+                "en": "Code formatting for delivery",
+                "ja": "納品コードの整形"
               },
               "url": "/docs/guide/beautify"
             },
