@@ -67,7 +67,7 @@ export default defineConfig({
       },
     }),
     pluginSeo({
-      src: ["docs/**/*.html"],
+      src: ["docs/**/*.html", "ja/docs/**/*.html"],
       targetSelector: "[data-search]",
       ignoreSelectors: [
         "h1",
