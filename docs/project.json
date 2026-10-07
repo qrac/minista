@@ -60,8 +60,8 @@
   "home": {
     "hero": {
       "title": {
-        "en": "React Static Site Generator for Vite",
-        "ja": "ViteのためのReactスタティックサイトジェネレーター"
+        "en": "100% Static Sites with React and Vite",
+        "ja": "ReactとViteで100%静的サイトを構築"
       },
       "description": {
         "en": "Build 100% static websites with React JSX, TypeScript, and Vite. Add client-side JavaScript only where you need it.",
