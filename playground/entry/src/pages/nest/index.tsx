@@ -6,7 +6,6 @@ export default function () {
       <Head>
         <link rel="stylesheet" href="/src/assets/ct1/style.css" data-test="" />
         <link rel="stylesheet" href="/src/assets/ct2/style.css" />
-        <link rel="stylesheet" href="/src/assets/dummy.css" />
         <script type="module" src="/src/assets/ct3/script.ts" />
       </Head>
       <h1>Nest</h1>
