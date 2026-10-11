@@ -1,5 +1,7 @@
 // @ts-check
 
+import { normalizePath } from "vite"
+
 /**
  * Collect render dependencies in import order. Styles are document resources,
  * so loading them must not depend on executing page modules in the browser.
@@ -28,7 +30,7 @@ export function getViteDevStyles(server, sourceFiles) {
     }
     for (const dependency of module.importedModules) visit(dependency)
   }
-  for (const file of sourceFiles) visit(graph.getModuleById(file))
+  for (const file of sourceFiles) visit(graph.getModuleById(normalizePath(file)))
   return [...urls].map((href) => ({
     tag: "link",
     attrs: { rel: "stylesheet", href },
