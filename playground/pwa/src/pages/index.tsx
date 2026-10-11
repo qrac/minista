@@ -2,6 +2,7 @@ export default function Home() {
   return (
     <>
       <h2>Home</h2>
+      <p>test</p>
       <p>
         This demo saves pages and assets so you can browse the site offline.
       </p>
