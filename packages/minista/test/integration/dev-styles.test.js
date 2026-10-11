@@ -1,14 +1,15 @@
 import fs from "node:fs/promises"
 import path from "node:path"
-import { expect, test } from "vitest"
+import { expect, test, vi } from "vitest"
 import { ViteDevServerAdapter } from "../../src/adapters/vite/dev-server.js"
 import { pluginSsg } from "../../src/plugins/ssg/index.js"
 
-test("serves render-imported CSS under a configured base", async () => {
+test("serves and refreshes render-imported CSS under a configured base", async () => {
   const temp = path.resolve("packages/minista/test/.tmp")
   await fs.mkdir(temp, { recursive: true })
   const root = await fs.mkdtemp(path.join(temp, "dev-styles-"))
   let running
+  let hotSend
   try {
     await fs.mkdir(path.join(root, "src/pages"), { recursive: true })
     await fs.writeFile(path.join(root, "src/pages/index.jsx"),
@@ -34,8 +35,24 @@ test("serves render-imported CSS under a configured base", async () => {
     const className = html.match(/class="([^"]+)"/)?.[1]
     expect(className).toBeTruthy()
     expect(await css.text()).toContain(`.${className}`)
+
+    hotSend = vi.spyOn(running.server.environments.client.hot, "send")
+    await fs.writeFile(path.join(root, "src/pages/style.module.css"),
+      '.label { color: rgb(7, 8, 9); }')
+    await vi.waitFor(() => {
+      expect(hotSend).toHaveBeenCalledWith("minista:full-reload", { paths: ["/"] })
+    }, { timeout: 10_000 })
+    const updated = await fetch(`${origin}/preview/`).then((response) => response.text())
+    const updatedClassName = updated.match(/class="([^"]+)"/)?.[1]
+    expect(updatedClassName).toBeTruthy()
+    expect(updatedClassName).not.toBe(className)
+    const updatedCss = await fetch(`${origin}${href}`).then((response) => response.text())
+    expect(updatedCss).toContain(`.${updatedClassName}`)
+    expect(updatedCss).toContain("rgb(7, 8, 9)")
+    expect(updated).toContain(`href="${href}"`)
   } finally {
+    hotSend?.mockRestore()
     await running?.close()
     await fs.rm(root, { recursive: true, force: true })
   }
-})
+}, 20_000)

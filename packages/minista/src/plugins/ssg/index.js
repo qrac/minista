@@ -948,7 +948,7 @@ export function pluginSsg(uOpts = {}) {
           if (!mod) return false
           q.push(mod)
 
-          const rootA = stripQuery(globFileAbs)
+          const rootA = stripQuery(normalizePath(globFileAbs))
           const rootB = stripQuery(virtualId)
 
           while (q.length) {
