@@ -27,6 +27,8 @@ adapter名の`compatibility`やテストの由来だけで除外しない。注�
 
 ## 2. 必要時実行
 
+Windows固有のCLI挙動やブラウザ表示を確認する場合は[Parallels DesktopによるWindows検証](windows-parallels.md)と[parallels-windowsスキル](../.agents/skills/parallels-windows/SKILL.md)を使う。VM検証は通常suiteへ追加せず、対象fixtureまたはplaygroundだけを選ぶ。
+
 `vitest.integration.config.ts`は`integration/`、`vitest.regression.config.ts`は`regression/`だけを収集する。通常設定へ統合しない。既存fixtureと再現ケースは、下記の不具合を確認する価値があるため保持する。
 
 | 対象 | 通常実行から外す理由／必要時に確認する不具合 |

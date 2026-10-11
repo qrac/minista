@@ -1,0 +1,4 @@
+interface:
+  display_name: "Parallels Windows検証"
+  short_description: "Parallels DesktopのCLIでWindowsのコマンドとブラウザ表示を検証"
+  default_prompt: "$parallels-windowsを使って、対象のCLIまたはページをWindows VMで検証し、結果と環境情報を記録してください。"
