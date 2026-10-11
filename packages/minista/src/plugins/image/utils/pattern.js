@@ -165,9 +165,7 @@ export function getPatternAttrs(optimize, recipe, view, resizeOnly) {
       format,
     )
 
-    if (!resizeOnly) {
-      result.srcset[`${item}${suffix}`] = fileName
-    }
+    result.srcset[`${item}${suffix}`] = fileName
     if (resizeOnly || item === Math.max(...items)) {
       result.src = fileName
     }

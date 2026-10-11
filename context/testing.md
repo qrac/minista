@@ -35,7 +35,7 @@ Windows固有のCLI挙動やブラウザ表示を確認する場合は[Parallels
 | --- | --- |
 | `integration/application-contract`、`compat-app-build`、`compat-build`、`ssg-app-build`、`vite-app-builder` | Vite実buildを伴う。late input欠落、feature間の受け渡し、hook順序、再build時のstale結果、出力rollbackの破損 |
 | `integration/preact-app-build`、`plugin-mismatch-build`、`external-cli-build` | 代替runtimeやfallback経路。Preact alias混入、fallback選択、外部processのhandoff／metadata昇格の破損 |
-| `integration/dev-server`、`dev-styles`、`svg-dev` | server／HTTP／watch待機を伴う。CSS配信、HMR、source追加削除、server間state分離の不具合 |
+| `integration/dev-server`、`dev-styles`、`image-dev`、`svg-dev` | server／HTTP／watch待機を伴う。CSS・Image／Picture配信、HMR、source追加削除、server間state分離の不具合 |
 | `integration/ssg-entry`、`entry-references`、`ssg-preload`、`island-lazy`、`search-indexes` | dev／buildやbundleを使った参照解決、base URL、preload、遅延chunk、複数検索indexの結合確認 |
 | `integration/beautify-output`、`archive-app-build` | 実build・圧縮・展開commandを伴う。hash／参照／sourcemapの不整合、archiveへの自己混入や破損 |
 | `integration/project-commands`、`agents`、`cli-diagnostic` | CLI子processとfixtureを使う。終了code、JSON／stderr、config衝突・削除option拒否、agent入口の配布契約 |
