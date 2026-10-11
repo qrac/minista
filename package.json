@@ -67,6 +67,9 @@
     "play:redact": "minista ./playground/redact",
     "play-build:redact": "minista build ./playground/redact",
     "play-preview:redact": "minista preview ./playground/redact",
+    "play:pwa": "minista ./playground/pwa",
+    "play-build:pwa": "minista build ./playground/pwa",
+    "play-preview:pwa": "minista preview ./playground/pwa",
     "create": "cd ./playground/_create && create-minista dist",
     "play:create": "cd ./packages/create-minista/templates/basic-ts && npm run dev",
     "play-build:create": "cd ./packages/create-minista/templates/basic-ts && npm run build",
@@ -110,6 +113,7 @@
     "react-dom": "^19.3.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.2",
+    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.3"
   }
 }

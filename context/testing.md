@@ -85,3 +85,7 @@ npm run test:public-types
 | `integration/package-metadata.test.js` | peer rangeの固定文字列とtoolchain／engine文字列の一致だけでは、対応versionで実際に動くかを保証できない。意図的な依存更新にも追従修正が必要になる。互換性の根拠は必要時の実contract検証に置き、配布metadataは変更時に差分を確認する |
 
 `public-api.test.js`はbuildを伴わないためintegrationからunitへ移動した。`cli/diagnostic.test.js`は診断生成・表示のunitを残し、既存のprocess実行2ケースだけを`integration/cli-diagnostic.test.js`へ分離した。新しい検証用テストは追加していない。
+
+### PWA
+
+`npm run play-build:pwa`／`npm run play-preview:pwa`でproductionの保存・オフライン遷移を確認します。`play:pwa`は通常のSSG devであり、Service Workerは有効化しません。`npm run test:integration -- packages/minista/test/integration/pwa-build.test.js`はrootとpath base、配列順、Beautify併用、最終HTMLのprecache revisionを検証します。2026-10-11にChromeで保存完了後の未閲覧ページへのオフライン遷移・reload・ホーム復帰・CSS・画像を確認しました。その後、virtual:pwa-registerを使う自動再読み込みデモで、旧版→新版の更新チェックをregistration.update()で明示的に実行し、Homeの自動reload、未閲覧Aboutの新版をオフライン表示、reloadとHome復帰、CSSと画像をChromeで確認しました。iOS／Android実機、更新通知UI、長時間開いたページの更新検出頻度は未検証です。依存解決を拒否するNode loaderでoptional peerなしの通常importと明示的PWA呼出し時の診断も確認しています。

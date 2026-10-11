@@ -394,6 +394,10 @@ packages/minista/test/
 
 manifest snapshotだけに依存せず、graph invariant、diagnostic code、dist artifact、公開API type testを検証します。Vite experimental optionのtest matrixは通常suiteと分離し、失敗してもstable pathの品質を隠さないようにします。
 
+## PWA連携
+
+`pluginPwa()`はoptional peerのvite-plugin-pwaをfactory呼出しで遅延ロードする新規の非同期factoryです。公開optionは`plugins/pwa/index.d.ts`に置き、外部PWAの型に依存しません。`adapters/vite/pwa.js`がclient限定のupstream pluginとHTML bridgeを組み合わせ、`features/pwa`が明示的なタグ入力をcompose phaseで合成します。出力処理の順序はdescriptorのoptionalAfterで宣言します。production generateSWに限定し、最終出力からのprecache生成はupstreamのcloseBundleへ委譲します。[ADR-0024](decisions/0024-pwa-ssg-integration.md)に範囲・診断・検証を記録しています。
+
 ## Public API compatibility summary
 
 | API | 現在のv5実装 | compatibility note |

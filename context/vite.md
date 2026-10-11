@@ -289,3 +289,9 @@ Rolldownの[OutputOptions](https://rolldown.rs/reference/Interface.OutputOptions
 clientの`buildStart`で解決済み`publicDir`のfile一覧を収集し、生成HTMLのemit前にbaseを補正する。通常app／legacy／外部CLIで同じ処理を使用する。Entry登録済みsourceを優先し、publicの出力claimやコピー処理は追加しない。devは既存の`server.transformIndexHtml()`を維持する。新しいVite API、対応range、fallbackは追加しない。[ADR-0022](decisions/0022-ssg-public-asset-base.md)を参照。
 
 公式仕様の確認: [Vite public directory](https://vite.dev/guide/assets#the-public-directory)、[Public Base Path](https://vite.dev/guide/build#public-base-path)（2026-09-16）。public本体の無加工コピーとbaseの意味を維持し、生成HTMLの処理はMinistaが所有する。
+
+## PWA adapter（2026-10-11）
+
+vite-plugin-pwa 2.0.0／Vite 8.3.2で確認しました。`pluginPwa()`は公開factoryから遅延ロードし、upstream pluginの`applyToEnvironment`をclientに限定します。SSG HTMLは`transformIndexHtml`の対象ではないため、upstream APIの`webManifestData()`／`registerSWData()`で得たタグをMinistaのcomposeへ渡します。Service Worker生成はupstreamの`closeBundle`を維持し、client出力とMinistaのHTML合成が完了した後に収集します。追加のVite build環境やbuilder callbackは作りません。既存のlegacy／外部CLI fallbackを変更せず、今回の検証は通常のVite app buildに限定します。
+
+参照: [vite-plugin-pwa integration API](https://github.com/vite-pwa/vite-plugin-pwa/blob/v2.0.0/src/types.ts)、[Astro integration](https://github.com/vite-pwa/astro)、[ADR-0024](decisions/0024-pwa-ssg-integration.md)。

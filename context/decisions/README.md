@@ -15,3 +15,4 @@
 | Search | [0020: 複数indexと解析Artifact](0020-search-multiple-indexes.md) |
 | Island | [0021: SSR propsのserialization](0021-island-serialized-props.md) |
 | docsのCloudflare公開・バージョン別更新 | [0023: docs成果物の合成](0023-docs-cloudflare-publication.md) |
+| PWAとSSGの連携 | [0024: optional peerとHTML合成](0024-pwa-ssg-integration.md) |

@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+  background: #eef2f6;
+  color: #182433;
+  font-family: system-ui, sans-serif;
+}
+
+main {
+  max-width: 640px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+a {
+  color: #2358ae;
+}
+
+dt {
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+dd {
+  margin: 0.5rem 0;
+}
+
+#offline-status {
+  border-top: 1px solid #ccc;
+  padding-top: 1rem;
+}
