@@ -131,7 +131,7 @@ setupTheme()
 <span data-line=""><span style="--shiki-light:#24292E;--shiki-dark:#F6F6F4">})</span></span></code></pre></figure>
 <p>この方法ではページの<code>link</code>を外します。ビルド時に、このscriptを参照するページへstylesheetが追加されます。別のページでもスタイルを使うなら、そのページや共通レイアウトから読み込んでください。</p>
 <h2 id="reference-scope"><a aria-hidden="true" tabindex="-1" href="#reference-scope"><span class="icon icon-link"></span></a>HTMLから直接参照できる範囲</h2>
-<p>このガイドのCSSは<code>link</code>の<code>href</code>属性、JavaScript・TypeScriptは<code>script</code>の<code>src</code>属性から参照します。<code>link[href]</code>という記法は「<code>link</code>要素の<code>href</code>属性」を意味します。</p>
+<p>このガイドのCSSは<code>link</code>の<code>href</code>属性、JavaScript・TypeScriptは<code>script</code>の<code>src</code>属性から参照します。</p>
 <p>処理対象は<code>/</code>から始まり、プロジェクトルート内に実ファイルがある参照です。<code>https://</code>や<code>//</code>で始まる外部URL、<code>./scripts.js</code>のようなHTML内の相対URLは変更しません。一方、エントリー内の<code>import &quot;../layouts/globals.css&quot;</code>のような相対パスは、importするファイルを基準にViteが解決します。</p>
 <p>画像も<code>img</code>の<code>src</code>や<code>srcset</code>などから直接参照できますが、HTML内のすべてのURL属性が対象になるわけではありません。例えば、OGP用の<code>meta</code>の<code>content</code>属性へ元ファイルのパスを書いても、画像の出力やURLの置き換えは行いません。画像のimportから得たURLか、publicのファイルのURLを指定してください。</p>
 <p>画像の読み込みとOGPでの使い分けは<a href="/ja/docs/guide/images-assets#image-attributes">画像のバンドル</a>、対象の要素・属性の一覧は<a href="/ja/docs/plugins/ssg#html-assets">pluginSsgのHTMLアセット参照</a>を参照してください。</p>
