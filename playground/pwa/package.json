@@ -1,1 +1,5 @@
-{"name":"play-pwa","private":true,"type":"module"}
+{
+  "name": "play-pwa",
+  "private": true,
+  "type": "module"
+}
