@@ -6,7 +6,9 @@ title: CSS, JS, and TS entries
 
 # CSS, JS, and TS entries
 
-Declare CSS, JavaScript, and TypeScript referenced from HTML as build entries. `pluginSsg()` processes the files and updates reference URLs, so the old `pluginEntry()` is unnecessary.
+An entry is a file used as the starting point for build processing. For example, when `scripts.ts` is the starting point for a script loaded from HTML, the build processes that file along with the code and CSS it imports.
+
+You can declare CSS, JavaScript, and TypeScript as entries by referencing them with `link` or `script` in HTML. `pluginSsg()` processes the referenced files with Vite and replaces the URLs in the HTML with the built URLs. No additional plugin is needed.
 
 Here, add regular JavaScript to the home page to display a greeting when a button is clicked. See [Island](/docs/guide/island) for UI that uses React state.
 
@@ -49,9 +51,17 @@ export default function Page() {
 }
 ```
 
+The leading `/` makes the path relative to the project root. For example, `/src/assets/scripts.ts` refers to `src/assets/scripts.ts` in your project. Set `type="module"` on the `script` element.
+
 When referencing CSS this way, remove the import of the same file to avoid loading it twice. Move references to the layout for entries shared by all pages.
 
 ## Check entry output ||entry-output||
+
+Running `npm run build` performs the following steps.
+
+1. Inspect the `href` attributes of `link` elements and the `src` attributes of `script` elements in the HTML generated from pages and Layout to find source file references.
+2. Process the referenced files and their imported dependencies with Vite to output CSS and JavaScript. TypeScript is converted to JavaScript.
+3. Replace the source file URLs in the HTML with the output file URLs.
 
 ```text title="Project structure"
 src/
@@ -72,7 +82,14 @@ dist/
     └── scripts-[hash].js
 ```
 
-TypeScript is converted to JavaScript. HTML references are rewritten to the output location, so you do not need to upload `src/` to your host. File names and splitting depend on configuration and dependencies.
+In the generated HTML, the references written in `Head` above become:
+
+```html title="Excerpt from dist/index.html"
+<link rel="stylesheet" href="/assets/globals-[hash].css" />
+<script type="module" src="/assets/scripts-[hash].js"></script>
+```
+
+`[hash]` represents a string determined by the file's content. The browser loads the output CSS and JavaScript, so you do not need to upload `src/` to your host. Actual file names and splitting depend on configuration and dependencies, and URLs reflect Vite's `base`.
 
 ## Load CSS from JavaScript ||entry-css||
 
@@ -88,6 +105,16 @@ document.querySelector("[data-greeting]")?.addEventListener("click", () => {
 
 With this method, remove the page's `link`. At build time, a stylesheet is added to pages that reference this script. Load it from other pages or a shared layout if they also use the styles.
 
+## Supported HTML references ||reference-scope||
+
+In this guide, CSS is referenced through the `href` attribute of a `link` element, and JavaScript or TypeScript through the `src` attribute of a `script` element. The notation `link[href]` means “the `href` attribute of a `link` element.”
+
+Processing applies to references that start with `/` and point to existing files within the project root. External URLs starting with `https://` or `//`, and relative URLs in HTML such as `./scripts.js`, are unchanged. By contrast, Vite resolves relative imports inside an entry, such as `import "../layouts/globals.css"`, relative to the importing file.
+
+Images can also be referenced directly through attributes such as `src` or `srcset` on `img`, but not every URL attribute in HTML is supported. For example, writing a source file path in the `content` attribute of an Open Graph `meta` element does not output the image or replace the URL. Use a URL obtained by importing the image or a public file URL instead.
+
+See [Image bundling](/docs/guide/images-assets#image-attributes) for loading images and choosing references for Open Graph, and [HTML assets in pluginSsg](/docs/plugins/ssg#html-assets) for the full list of supported elements and attributes.
+
 ## Public scripts
 
 Place existing CSS and JavaScript in `public/` to use them without processing.
@@ -101,8 +128,6 @@ Place existing CSS and JavaScript in `public/` to use them without processing.
 
 This example references `public/css/legacy.css` and `public/js/legacy.js`. Source entries and public files can be used on the same page.
 
-Processing applies to references that start with `/` and point to actual files in the project. External URLs and relative URLs starting with `./` in HTML are not changed.
-
-See [pluginSsg](/docs/plugins/ssg#html-assets) for supported attributes and other details.
+Public files are copied to the output directory unchanged, without bundling. Their reference URLs in HTML reflect Vite's `base`. See [public](/docs/guide/public) for file placement.
 
 Next, [Image optimization](/docs/guide/image) adds a plugin to adjust image sizes and formats.

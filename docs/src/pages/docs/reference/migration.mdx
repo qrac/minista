@@ -192,9 +192,61 @@ SSG defaults to `true`. Even projects that did not use Beautify now remove image
 
 ## HTML assets
 
-The Entry feature integrated into SSG now rewrites the same targets it collects: `link[href]`, `script[src]`, `img[src]`, `img[srcset]`, `source[srcset]`, and `use[href]`. Excluded attributes such as `meta[content]`, `video[poster]`, and `a[href]` are unchanged even when their value matches a URL collected elsewhere. Use a URL from an SSG module import or a public asset URL to reference generated assets in these attributes.
+This feature replaces URLs for CSS, JavaScript, and images written in pages or Layout with URLs pointing to the built files. In v4, `pluginEntry()` handled this. In v5, it is included in `pluginSsg()`, so you no longer need to add `pluginEntry()`.
 
-CSS imported by an entry is inserted once, only into referencing pages. If you relied on implicit CSS from another page's entry, import CSS from the target page or Layout, or add an explicit stylesheet link. External URLs starting with `//` are not collected, and a `base` with an absolute CDN URL retains its protocol. Queries and fragments are preserved but not interpreted as Vite module transformation queries. See [HTML assets in pluginSsg](/docs/plugins/ssg#html-assets) for details.
+For example, write paths to your source files as follows. The leading `/` represents the project root, so `/src/assets/scripts.ts` refers to `src/assets/scripts.ts` in your project.
+
+```html title="HTML before building"
+<link rel="stylesheet" href="/src/assets/styles.css" />
+<script type="module" src="/src/assets/scripts.ts"></script>
+```
+
+During a build, minista finds the referenced files and processes them with Vite to output CSS and JavaScript. It also replaces the URLs in the HTML with the output URLs. TypeScript is converted to JavaScript, so you do not need to upload `src/` to your hosting service.
+
+```html title="Example HTML after building"
+<link rel="stylesheet" href="/assets/styles-[hash].css" />
+<script type="module" src="/assets/scripts-[hash].js"></script>
+```
+
+`[hash]` represents a string determined by the file's content. Actual file names and URLs depend on Vite's output settings and `base`. See [CSS, JS, and TS entries](/docs/guide/entry) for examples in pages and Layout.
+
+In v5, source file URLs are found and replaced with output URLs in the following elements and attributes. The notation `link[href]` means “the `href` attribute of a `link` element.” In the example above, this is `href="/src/assets/styles.css"`.
+
+| HTML element | Attribute containing URLs | Example use |
+| --- | --- | --- |
+| `link` | `href` | Loading a CSS file |
+| `script` | `src` | Loading a JavaScript or TypeScript file |
+| `img` | `src` | Displaying an image |
+| `img`, `source` | `srcset` | Image candidates for different screen widths or resolutions |
+| SVG `use` | `href` | Referencing an SVG symbol |
+
+This processing applies to references that start with `/` and point to existing files within the project root. External URLs and relative URLs in HTML such as `./image.png` are excluded. Files in public are copied without bundling; see [Public file references](/docs/plugins/ssg#public-assets).
+
+When migrating, check for source file URLs written directly in elements or attributes outside this table. In v4, a URL found in another element could also be replaced in an excluded attribute if it contained the same string. In v5, this processing does not replace URLs in attributes such as `content` on `meta`, `poster` on `video`, or `href` on `a`. For example, if both an image's `src` and an Open Graph meta element's `content` contain `/src/assets/photo.jpg`, only the image's URL is replaced. The meta element retains the source file URL.
+
+For Open Graph images and similar uses, import the image in a page or Layout and pass the resulting URL to the attribute.
+
+```tsx title="src/pages/index.tsx"
+import { Head } from "minista/head"
+import photoUrl from "../assets/photo.jpg"
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <meta property="og:image" content={photoUrl} />
+      </Head>
+      <img src={photoUrl} alt="View of the production studio" />
+    </>
+  )
+}
+```
+
+To keep the original file name, you can instead place the image at `public/assets/photo.jpg` and reference it with `content="/assets/photo.jpg"`. See [Image bundling](/docs/guide/images-assets) for details on image imports.
+
+CSS imported by a JavaScript or TypeScript entry is also inserted once, only into pages referencing that entry. If you relied on CSS from another page's entry, import CSS from the target page or Layout, or add an explicit reference such as `<link rel="stylesheet" href="/src/assets/styles.css" />`.
+
+External URLs starting with `//` are not processed, and a `base` with an absolute CDN URL retains its protocol. Queries such as `?v=1` and fragments such as `#icon` are preserved in output URLs but are not interpreted as Vite module transformation queries such as `?raw`. See [HTML assets in pluginSsg](/docs/plugins/ssg#html-assets) for details.
 
 ## SVG attributes and missing files
 

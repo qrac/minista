@@ -192,9 +192,61 @@ SSGの既定値は`true`です。以前Beautifyを使わなかったプロジェ
 
 ## HTMLからのアセット参照 ||html-assets||
 
-SSGに統合したEntry機能の書換え対象を収集対象と同じ`link[href]`、`script[src]`、`img[src]`、`img[srcset]`、`source[srcset]`、`use[href]`へ揃えました。別の要素で収集されたURLと同じ値でも、`meta[content]`、`video[poster]`、`a[href]`などの対象外属性は変更しません。これらの属性で生成アセットを使う場合は、SSGのモジュールのimportから得たURLかpublicアセットのURLを指定してください。
+ページやLayoutに書いたCSS・JavaScript・画像のURLを、ビルド後のファイルを指すURLへ置き換える機能です。v4では`pluginEntry()`が担当していましたが、v5では`pluginSsg()`に含まれるため、`pluginEntry()`の追加は不要です。
 
-エントリーがimportするCSSは参照ページにだけ一度挿入します。別ページのエントリーを通じた暗黙のCSS適用に依存していた場合は、対象ページ／LayoutからCSSをimportするか、明示的なstylesheet linkを追加してください。`//`で始まる外部URLは収集せず、CDNの絶対URLを指定した`base`はプロトコルを保持します。クエリ／フラグメントは保持しますが、Viteのモジュール変換クエリとしては解釈しません。詳細は[pluginSsgのHTMLアセット参照](/ja/docs/plugins/ssg#html-assets)を参照してください。
+例えば、次のように元ファイルへのパスを書きます。先頭の`/`はプロジェクトルートを表し、`/src/assets/scripts.ts`はプロジェクト内の`src/assets/scripts.ts`を参照します。
+
+```html title="ビルド前のHTML"
+<link rel="stylesheet" href="/src/assets/styles.css" />
+<script type="module" src="/src/assets/scripts.ts"></script>
+```
+
+ビルド時にministaが参照先のファイルを見つけてViteで処理し、CSSやJavaScriptを出力します。HTML内のURLも出力先へ置き換わります。TypeScriptはJavaScriptへ変換されるため、公開先へ`src/`をアップロードする必要はありません。
+
+```html title="ビルド後のHTMLの例"
+<link rel="stylesheet" href="/assets/styles-[hash].css" />
+<script type="module" src="/assets/scripts-[hash].js"></script>
+```
+
+`[hash]`はファイルの内容に応じて決まる文字列です。実際のファイル名やURLはViteの出力設定と`base`によって変わります。ページやLayoutへの記述例は[CSS・JS・TSのエントリー](/ja/docs/guide/entry)を参照してください。
+
+v5で元ファイルへのURLを探し、出力先へ置き換える対象は、次の要素と属性です。`link[href]`という記法は「`link`要素の`href`属性」を意味します。上の例では`href="/src/assets/styles.css"`が該当します。
+
+| HTML要素 | URLを書く属性 | 用途の例 |
+| --- | --- | --- |
+| `link` | `href` | CSSファイルの読み込み |
+| `script` | `src` | JavaScript・TypeScriptファイルの読み込み |
+| `img` | `src` | 画像の表示 |
+| `img`、`source` | `srcset` | 画面幅や解像度に応じた画像の候補 |
+| SVGの`use` | `href` | SVGシンボルの参照 |
+
+この処理は、`/`で始まり、プロジェクトルート内に実ファイルがある参照が対象です。外部URLや`./image.png`のようなHTML内の相対URLは対象外です。publicのファイルはバンドルせずコピーするため、[publicのファイル参照](/ja/docs/plugins/ssg#public-assets)を参照してください。
+
+移行時に注意するのは、表にない要素・属性へ元ファイルのURLを直接書いている場合です。v4では、別の要素で見つかったURLと同じ文字列が、対象外の属性でも置き換わることがありました。v5では、`meta`の`content`、`video`の`poster`、`a`の`href`などは、この処理では置き換えません。例えば、`img`の`src`とOGP用の`meta`の`content`に同じ`/src/assets/photo.jpg`を書いても、`img`のURLだけが置き換わり、`meta`には元ファイルのURLが残ります。
+
+OGP画像などには、ページやLayoutで画像をimportして得たURLを渡してください。
+
+```tsx title="src/pages/index.tsx"
+import { Head } from "minista/head"
+import photoUrl from "../assets/photo.jpg"
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <meta property="og:image" content={photoUrl} />
+      </Head>
+      <img src={photoUrl} alt="制作スタジオの風景" />
+    </>
+  )
+}
+```
+
+ファイル名を変えずに使う場合は、`public/assets/photo.jpg`へ置き、`content="/assets/photo.jpg"`と参照する方法もあります。importでの画像の扱いは[画像のバンドル](/ja/docs/guide/images-assets)を参照してください。
+
+また、JavaScript・TypeScriptのエントリーがimportするCSSは、そのエントリーを参照するページにだけ一度挿入します。別ページのエントリーを通じたCSS適用に依存していた場合は、対象ページやLayoutからCSSをimportするか、`<link rel="stylesheet" href="/src/assets/styles.css" />`のように明示してください。
+
+`//`で始まる外部URLは処理せず、CDNの絶対URLを指定した`base`はプロトコルを保持します。`?v=1`のようなクエリと`#icon`のようなフラグメントは出力URLにも残しますが、`?raw`などのViteのモジュール変換指定としては解釈しません。詳細は[pluginSsgのHTMLアセット参照](/ja/docs/plugins/ssg#html-assets)を参照してください。
 
 ## SVGの属性保持とファイルの欠落 ||svg-attributes-and-missing-files||
 

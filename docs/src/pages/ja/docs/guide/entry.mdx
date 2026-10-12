@@ -6,7 +6,9 @@ title: CSS・JS・TSのエントリー
 
 # CSS・JS・TSのエントリー
 
-HTMLから参照するCSS・JavaScript・TypeScriptを、ビルドの入口（エントリー）として指定できます。`pluginSsg()`がファイルを処理して参照URLを更新するため、旧`pluginEntry()`は不要です。
+エントリーは、ビルドで処理する入口となるファイルです。例えば、HTMLから読み込む`scripts.ts`を入口にすると、そのファイルと、そこからimportするコードやCSSもまとめて処理されます。
+
+CSS・JavaScript・TypeScriptは、HTMLの`link`や`script`で参照することでエントリーとして指定できます。`pluginSsg()`が参照先のファイルをViteで処理し、HTML内のURLをビルド後のものへ置き換えます。追加のプラグインは不要です。
 
 ここではトップページに、ボタンを押すと挨拶を表示する通常のJavaScriptを追加します。Reactの状態を使うUIは[Island](/ja/docs/guide/island)で扱います。
 
@@ -49,9 +51,17 @@ export default function Page() {
 }
 ```
 
+先頭の`/`はプロジェクトルートを基準にします。例えば、`/src/assets/scripts.ts`はプロジェクト内の`src/assets/scripts.ts`を参照します。`script`には`type="module"`を指定してください。
+
 CSSをこの方法で指定する場合は、同じファイルのimportを外して二重読み込みを避けます。全ページ共通のエントリーなら、参照をレイアウトへ移します。
 
 ## ビルド結果を確認する ||entry-output||
+
+`npm run build`を実行すると、次の順に処理します。
+
+1. ページやLayoutから生成したHTMLの`link`の`href`属性と`script`の`src`属性を調べ、元ファイルへの参照を見つけます。
+2. 参照先のファイルと、そのファイルがimportする依存先をViteで処理し、CSSやJavaScriptを出力します。TypeScriptはJavaScriptへ変換します。
+3. HTML内の元ファイルのURLを、出力したファイルのURLへ置き換えます。
 
 ```text title="プロジェクト構成"
 src/
@@ -72,7 +82,14 @@ dist/
     └── scripts-[hash].js
 ```
 
-TypeScriptはJavaScriptへ変換されます。HTML内の参照も出力先へ書き換わるため、公開先へ`src/`をアップロードする必要はありません。ファイル名や分割結果は設定と依存関係によって変わります。
+生成HTMLでは、先ほどの`Head`に書いた参照が次のようになります。
+
+```html title="dist/index.htmlの抜粋"
+<link rel="stylesheet" href="/assets/globals-[hash].css" />
+<script type="module" src="/assets/scripts-[hash].js"></script>
+```
+
+`[hash]`はファイルの内容に応じて決まる文字列です。ブラウザは出力されたCSSとJavaScriptを読み込むため、公開先へ`src/`をアップロードする必要はありません。実際のファイル名や分割結果は設定と依存関係によって変わり、URLにはViteの`base`が反映されます。
 
 ## JavaScriptからCSSを読み込む ||entry-css||
 
@@ -88,6 +105,16 @@ document.querySelector("[data-greeting]")?.addEventListener("click", () => {
 
 この方法ではページの`link`を外します。ビルド時に、このscriptを参照するページへstylesheetが追加されます。別のページでもスタイルを使うなら、そのページや共通レイアウトから読み込んでください。
 
+## HTMLから直接参照できる範囲 ||reference-scope||
+
+このガイドのCSSは`link`の`href`属性、JavaScript・TypeScriptは`script`の`src`属性から参照します。`link[href]`という記法は「`link`要素の`href`属性」を意味します。
+
+処理対象は`/`から始まり、プロジェクトルート内に実ファイルがある参照です。`https://`や`//`で始まる外部URL、`./scripts.js`のようなHTML内の相対URLは変更しません。一方、エントリー内の`import "../layouts/globals.css"`のような相対パスは、importするファイルを基準にViteが解決します。
+
+画像も`img`の`src`や`srcset`などから直接参照できますが、HTML内のすべてのURL属性が対象になるわけではありません。例えば、OGP用の`meta`の`content`属性へ元ファイルのパスを書いても、画像の出力やURLの置き換えは行いません。画像のimportから得たURLか、publicのファイルのURLを指定してください。
+
+画像の読み込みとOGPでの使い分けは[画像のバンドル](/ja/docs/guide/images-assets#image-attributes)、対象の要素・属性の一覧は[pluginSsgのHTMLアセット参照](/ja/docs/plugins/ssg#html-assets)を参照してください。
+
 ## publicのコードを併用する ||public-scripts||
 
 既存のCSSやJavaScriptを無加工で使う場合は、`public/`へ置きます。
@@ -101,8 +128,6 @@ document.querySelector("[data-greeting]")?.addEventListener("click", () => {
 
 この例は`public/css/legacy.css`と`public/js/legacy.js`を参照します。ソースのエントリーとpublicのファイルは同じページで併用できます。
 
-処理対象は`/`から始まり、プロジェクト内に実ファイルがある参照です。外部URLやHTML内の`./`から始まる相対URLは変更しません。
-
-対象属性などの詳細は[pluginSsg](/ja/docs/plugins/ssg#html-assets)を参照してください。
+publicのファイルはバンドルせず、そのまま出力先へコピーします。HTML内の参照URLにはViteの`base`が反映されます。配置方法は[public](/ja/docs/guide/public)を参照してください。
 
 次は[画像最適化](/ja/docs/guide/image)で、プラグインを追加して画像のサイズと形式を調整します。
