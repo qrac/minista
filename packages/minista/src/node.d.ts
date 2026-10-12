@@ -21,3 +21,5 @@ export declare function pluginIsland(options?: PluginIslandOptions): Plugin
 export declare function pluginSearch(options?: PluginSearchOptions): Plugin
 export declare function pluginBeautify(options?: PluginBeautifyOptions): Plugin
 export declare function pluginArchive(options?: PluginArchiveOptions): Plugin
+export { pluginPwa } from "./plugins/pwa/index.js"
+export type { PluginPwaOptions } from "./plugins/pwa/index.js"
