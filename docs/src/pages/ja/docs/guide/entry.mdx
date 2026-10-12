@@ -107,7 +107,7 @@ document.querySelector("[data-greeting]")?.addEventListener("click", () => {
 
 ## HTMLから直接参照できる範囲 ||reference-scope||
 
-このガイドのCSSは`link`の`href`属性、JavaScript・TypeScriptは`script`の`src`属性から参照します。`link[href]`という記法は「`link`要素の`href`属性」を意味します。
+このガイドのCSSは`link`の`href`属性、JavaScript・TypeScriptは`script`の`src`属性から参照します。
 
 処理対象は`/`から始まり、プロジェクトルート内に実ファイルがある参照です。`https://`や`//`で始まる外部URL、`./scripts.js`のようなHTML内の相対URLは変更しません。一方、エントリー内の`import "../layouts/globals.css"`のような相対パスは、importするファイルを基準にViteが解決します。
 

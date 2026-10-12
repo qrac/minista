@@ -107,7 +107,7 @@ With this method, remove the page's `link`. At build time, a stylesheet is added
 
 ## Supported HTML references ||reference-scope||
 
-In this guide, CSS is referenced through the `href` attribute of a `link` element, and JavaScript or TypeScript through the `src` attribute of a `script` element. The notation `link[href]` means “the `href` attribute of a `link` element.”
+In this guide, CSS is referenced through the `href` attribute of a `link` element, and JavaScript or TypeScript through the `src` attribute of a `script` element.
 
 Processing applies to references that start with `/` and point to existing files within the project root. External URLs starting with `https://` or `//`, and relative URLs in HTML such as `./scripts.js`, are unchanged. By contrast, Vite resolves relative imports inside an entry, such as `import "../layouts/globals.css"`, relative to the importing file.
 
