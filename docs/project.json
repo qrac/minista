@@ -536,6 +536,14 @@
               "url": "/docs/guide/comment"
             },
             {
+              "id": "pwa",
+              "name": {
+                "en": "PWA support",
+                "ja": "PWA対応"
+              },
+              "url": "/docs/guide/pwa"
+            },
+            {
               "id": "beautify",
               "name": {
                 "en": "Code formatting for delivery",
@@ -637,6 +645,11 @@
               "id": "plugin-search",
               "name": "pluginSearch",
               "url": "/docs/plugins/search"
+            },
+            {
+              "id": "plugin-pwa",
+              "name": "pluginPwa",
+              "url": "/docs/plugins/pwa"
             },
             {
               "id": "plugin-beautify",

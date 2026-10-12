@@ -1,0 +1,116 @@
+---
+layout: docs
+locale: en
+title: PWA support
+---
+
+# PWA support
+
+`pluginPwa()` adds a Web App Manifest and a service worker to a site generated with SSG. It saves HTML and assets in the browser so pages can be opened offline. Publishing to an app store is not required.
+
+## Table of Contents
+
+contents list
+
+## Add the PWA plugin ||add-pwa-plugin||
+
+Install `vite-plugin-pwa` in the project that uses PWA features. It is an optional peer dependency of minista, so projects without PWA features do not need to install it.
+
+```sh
+npm install -D vite-plugin-pwa
+```
+
+Use minista's `pluginPwa()` instead of adding `VitePWA()` directly. It coordinates tag injection into each SSG document and precaching of the final build output.
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginPwa } from "minista"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg(),
+    pluginPwa({
+      registerType: "autoUpdate",
+      manifest: {
+        name: "My Site",
+        short_name: "My Site",
+        theme_color: "#182433",
+        icons: [
+          { src: "icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "icon-512.png", sizes: "512x512", type: "image/png" },
+        ],
+      },
+    }),
+  ],
+})
+```
+
+Create `public/icon-192.png` and `public/icon-512.png` at the specified sizes. With a site name and icons in the manifest, supported browsers can offer installation or adding the site to the home screen.
+
+## Configure automatic reload ||automatic-reload||
+
+Combine `registerType: "autoUpdate"` with the client module `virtual:pwa-register`. Once a new service worker is detected and installed, open pages reload automatically.
+
+```ts title="src/assets/pwa.ts"
+/// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/vanillajs" />
+
+import { registerSW } from "virtual:pwa-register"
+
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  registerSW({ immediate: true })
+}
+```
+
+Load this module through a `script` in the shared layout. Keep it as a browser entry rather than importing it directly into the server code of a page or layout.
+
+```tsx title="src/layouts/index.tsx"
+import type { LayoutProps } from "minista/types"
+
+export default function Layout({ children }: LayoutProps) {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>My Site</title>
+        <script type="module" src="/src/assets/pwa.ts" />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+Reloading can discard state such as unfinished form input. To let users choose when to update, use `registerType: "prompt"` and provide an update UI with `onNeedRefresh`. See [Automatic reload](https://vite-pwa-org.netlify.app/guide/auto-update) and [Prompt for update](https://vite-pwa-org.netlify.app/guide/prompt-for-update).
+
+## Offline files and updates
+
+By default, built HTML, JavaScript, CSS, JSON, images, and fonts are included in the service worker precache. Once saving completes, even pages you have not visited can open offline if they are included. Files are stored in the browser cache; this does not download a ZIP to the device.
+
+Set `workbox.globPatterns` to change the extensions to cache. Your array replaces the defaults, so include HTML and all required assets. External APIs and files on other domains are not saved by this glob alone.
+
+```ts
+pluginPwa({
+  workbox: {
+    globPatterns: ["**/*.{html,js,css,json,svg,png}"],
+  },
+})
+```
+
+When a new version is detected online, changed files across the precache are fetched. Navigation does not download every file each time. The client configuration above handles reloading open pages.
+
+Update detection depends on the browser and its execution state. A single app restart or a particular navigation cannot guarantee the latest version. This example does not add periodic update checks. Storage limits and browser cache eviction also affect offline access, so permanent offline storage is not guaranteed.
+
+## Build and test on devices ||test-pwa||
+
+The regular development server does not enable the service worker. Generate output with `npm run build`, then test with `npm run preview` or an HTTPS deployment. Localhost also supports testing without HTTPS.
+
+1. Open the site online and wait for caching to finish. You can display completion through `registerSW`'s `onOfflineReady` callback.
+2. Go offline and check navigation to another page and page reloads.
+3. Go online, change the content, and redeploy. Check that the displayed content updates after the new version is detected.
+
+On iOS, use Safari's share menu to add the site to the home screen, then test the installed app too. Check displayed content and offline pages rather than treating a restart alone as proof of an update.
+
+The repository's [playground/pwa](https://github.com/qrac/minista/tree/main/playground/pwa) demonstrates automatic reload with Home and About pages. See [pluginPwa](/docs/plugins/pwa) for options and constraints.
+
+Next, [Code formatting for delivery](/docs/guide/beautify) makes output easier to read.

@@ -1,0 +1,69 @@
+---
+layout: docs
+locale: en
+title: pluginPwa
+---
+
+# pluginPwa
+
+Adds a Web App Manifest and a service worker to SSG output.
+
+See the [PWA support guide](/docs/guide/pwa) for setup and automatic reload examples.
+
+## Table of Contents
+
+contents list
+
+## Dependency and return value
+
+`vite-plugin-pwa` is an optional peer dependency. Install it with `npm install -D vite-plugin-pwa`. Other minista features remain available without it; calling `pluginPwa()` without the dependency reports `MINISTA_PWA_DEPENDENCY_MISSING`.
+
+The return value is `Promise<Plugin[]>`. You can place it directly in `defineConfig()`'s `plugins` array.
+
+## Options
+
+The following options are forwarded to `vite-plugin-pwa`.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `registerType` | `"prompt" \| "autoUpdate"` | `"prompt"` | How updates are applied. Automatic page reload also requires client registration code. |
+| `injectRegister` | `"auto" \| "inline" \| "script" \| "script-defer" \| false \| null` | `"auto"` | How registration code is injected. `"auto"` detects virtual module use and omits a separate registration script when one is used. |
+| `manifest` | `false \| { [key: string]: unknown }` | vite-plugin-pwa defaults | Web App Manifest settings. `false` disables manifest generation. |
+| `manifestFilename` | `string` | `"manifest.webmanifest"` | Manifest output file name. |
+| `filename` | `string` | `"sw.js"` | Service worker output file name. |
+| `base` | `string` | Vite `base` | Base URL for PWA files. |
+| `scope` | `string` | Path from `base` | URL scope controlled by the service worker. |
+| `disable` | `boolean` | `false` | Disables PWA generation and HTML tag injection. |
+| `workbox` | `{ [key: string]: unknown }` | See below | Settings passed to `generateSW`. |
+| `includeAssets` | `string \| string[]` | `undefined` | Globs for additional files to precache from `public`. |
+| `useCredentials` | `boolean` | `false` | Adds `crossorigin="use-credentials"` to the manifest link. |
+
+`manifest` is merged with upstream defaults for the site name, start URL, display mode, and other fields. Supply icons in your project. See [Web App Manifest](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest) for manifest fields and the [vite-plugin-pwa registration guide](https://vite-pwa-org.netlify.app/guide/register-service-worker) for registration methods.
+
+## Workbox defaults
+
+```ts
+pluginPwa({
+  workbox: {
+    globPatterns: [
+      "**/*.{html,js,css,json,svg,png,jpg,jpeg,webp,avif,ico,woff,woff2}",
+    ],
+    navigateFallback: null,
+  },
+})
+```
+
+These are the defaults set by minista. Other settings follow vite-plugin-pwa and Workbox. Override individual values through `workbox`. The `globPatterns` array is replaced, so list every required extension when customizing it.
+
+`navigateFallback` is `null` for sites with multiple static HTML documents. An SPA fallback that replaces missing pages with the home page is not enabled by default. Workbox file size limits and exclusions also apply. See [Precache](https://vite-pwa-org.netlify.app/guide/service-worker-precache) and [generateSW](https://developer.chrome.com/docs/workbox/modules/workbox-build#generatesw-mode).
+
+## Constraints and diagnostics
+
+The service worker uses `generateSW`. Upstream options not listed in `PluginPwaOptions`, such as `strategies`, `injectManifest`, and `devOptions`, are outside the supported public API.
+
+The manifest link and registration script are inserted into each SSG document's `head`. An existing manifest link is not duplicated. When using `virtual:pwa-register`, load the shared client entry on every page.
+
+| Diagnostic code | Condition and resolution |
+| --- | --- |
+| `MINISTA_PWA_DEPENDENCY_MISSING` | `vite-plugin-pwa` is missing. Install the optional peer. |
+| `MINISTA_PWA_HEAD_MISSING` | The document has no `head` for PWA tags. Add a `head` to the layout. |

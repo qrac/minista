@@ -1,0 +1,69 @@
+---
+layout: docs
+locale: ja
+title: pluginPwa
+---
+
+# pluginPwa
+
+SSGの成果物にWeb App ManifestとService Workerを追加するプラグイン。
+
+導入と自動再読み込みの例は[PWA対応ガイド](/ja/docs/guide/pwa)を参照してください。
+
+## Table of Contents
+
+contents list
+
+## 依存関係と戻り値 ||dependency-and-return-value||
+
+`vite-plugin-pwa`はoptional peer dependencyです。`npm install -D vite-plugin-pwa`で追加してください。未インストールでもministaの他の機能は利用でき、`pluginPwa()`を呼び出した場合にのみ`MINISTA_PWA_DEPENDENCY_MISSING`を報告します。
+
+戻り値は`Promise<Plugin[]>`です。`defineConfig()`の`plugins`へそのまま追加できます。
+
+## オプション ||options||
+
+以下のオプションを`vite-plugin-pwa`へ渡します。
+
+| オプション | 型 | 既定値 | 説明 |
+| --- | --- | --- | --- |
+| `registerType` | `"prompt" \| "autoUpdate"` | `"prompt"` | 更新の適用方法。自動再読み込みにはクライアントの登録コードも必要です。 |
+| `injectRegister` | `"auto" \| "inline" \| "script" \| "script-defer" \| false \| null` | `"auto"` | Service Worker登録コードの挿入方法。`"auto"`ではvirtual moduleの使用を検出し、使用時は別の登録スクリプトを挿入しません。 |
+| `manifest` | `false \| { [key: string]: unknown }` | vite-plugin-pwaの既定値 | Web App Manifestの設定。`false`でManifest生成を無効にします。 |
+| `manifestFilename` | `string` | `"manifest.webmanifest"` | Manifestの出力ファイル名。 |
+| `filename` | `string` | `"sw.js"` | Service Workerの出力ファイル名。 |
+| `base` | `string` | Viteの`base` | PWAファイルの公開URLの基準。 |
+| `scope` | `string` | `base`のパス | Service Workerが制御するURLの範囲。 |
+| `disable` | `boolean` | `false` | PWAの生成とHTMLへのタグ挿入を無効にします。 |
+| `workbox` | `{ [key: string]: unknown }` | 下記参照 | `generateSW`に渡す設定。 |
+| `includeAssets` | `string \| string[]` | `undefined` | `public`内で追加保存するファイルをglobで指定します。 |
+| `useCredentials` | `boolean` | `false` | Manifestのlinkに`crossorigin="use-credentials"`を付けます。 |
+
+`manifest`はサイト名・開始URL・表示モードなどの上流の既定値とマージされます。アイコンはプロジェクト側で用意してください。Manifestのフィールドは[Web App Manifest](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest)、登録方法は[vite-plugin-pwaの登録ガイド](https://vite-pwa-org.netlify.app/guide/register-service-worker)を参照してください。
+
+## workboxの既定値 ||workbox-defaults||
+
+```ts
+pluginPwa({
+  workbox: {
+    globPatterns: [
+      "**/*.{html,js,css,json,svg,png,jpg,jpeg,webp,avif,ico,woff,woff2}",
+    ],
+    navigateFallback: null,
+  },
+})
+```
+
+上記はministaが設定する既定値です。その他は`vite-plugin-pwa`とWorkboxの設定に従います。`workbox`で個別に上書きできます。`globPatterns`の配列は置き換えになり、追加する場合も必要な拡張子をすべて指定します。
+
+複数の静的HTMLを持つサイト向けに、`navigateFallback`を`null`にしています。存在しないページをトップページへ置き換えるSPA用fallbackを既定では使いません。キャッシュ対象にはWorkboxのサイズ上限や除外設定も適用されます。詳細は[precache](https://vite-pwa-org.netlify.app/guide/service-worker-precache)と[generateSW](https://developer.chrome.com/docs/workbox/modules/workbox-build#generatesw-mode)を参照してください。
+
+## 対応範囲と診断 ||constraints-and-diagnostics||
+
+Service Workerは`generateSW`方式で生成します。`strategies`・`injectManifest`・`devOptions`など、`PluginPwaOptions`にない上流オプションは公開APIの対応範囲に含みません。
+
+Manifestのlinkと登録用scriptをSSGの各HTMLの`head`に挿入します。既存のManifestのlinkがある場合は重複追加しません。`virtual:pwa-register`を使う場合は、各ページで共通のクライアントエントリーを読み込んでください。
+
+| 診断コード | 条件と対処 |
+| --- | --- |
+| `MINISTA_PWA_DEPENDENCY_MISSING` | `vite-plugin-pwa`がありません。optional peerをインストールします。 |
+| `MINISTA_PWA_HEAD_MISSING` | PWAタグの挿入先に`head`がありません。レイアウトへ`head`を追加します。 |

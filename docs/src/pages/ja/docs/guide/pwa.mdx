@@ -1,0 +1,116 @@
+---
+layout: docs
+locale: ja
+title: PWA対応
+---
+
+# PWA対応
+
+`pluginPwa()`はSSGで生成したサイトにWeb App ManifestとService Workerを追加します。HTMLやアセットをブラウザに保存し、オフラインでもページを開けるようにします。ストアへの公開は不要です。
+
+## Table of Contents
+
+contents list
+
+## プラグインを追加する ||add-pwa-plugin||
+
+PWAを使うプロジェクトに`vite-plugin-pwa`を追加します。ministaではoptional peer dependencyとして扱うため、PWAを使わないプロジェクトではインストール不要です。
+
+```sh
+npm install -D vite-plugin-pwa
+```
+
+`VitePWA()`を直接追加する代わりに、ministaの`pluginPwa()`を使います。SSGで生成した各HTMLへのタグ挿入と、最終成果物のキャッシュ対象への追加を連携します。
+
+```ts title="vite.config.ts"
+import { defineConfig, pluginSsg, pluginPwa } from "minista"
+
+export default defineConfig({
+  plugins: [
+    pluginSsg(),
+    pluginPwa({
+      registerType: "autoUpdate",
+      manifest: {
+        name: "My Site",
+        short_name: "My Site",
+        theme_color: "#182433",
+        icons: [
+          { src: "icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "icon-512.png", sizes: "512x512", type: "image/png" },
+        ],
+      },
+    }),
+  ],
+})
+```
+
+`public/icon-192.png`と`public/icon-512.png`に、指定したサイズのアイコンを用意してください。Manifestにサイト名やアイコンを設定すると、対応ブラウザからホーム画面への追加やインストールを行えます。
+
+## 自動再読み込みを設定する ||automatic-reload||
+
+`registerType: "autoUpdate"`とクライアント側の`virtual:pwa-register`を組み合わせます。新しいService Workerの検出・インストール後に、開いているページを自動で再読み込みします。
+
+```ts title="src/assets/pwa.ts"
+/// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/vanillajs" />
+
+import { registerSW } from "virtual:pwa-register"
+
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  registerSW({ immediate: true })
+}
+```
+
+このモジュールを共通レイアウトの`script`から読み込みます。ページやレイアウトのサーバー側コードから直接importせず、ブラウザで実行するエントリーとして配置します。
+
+```tsx title="src/layouts/index.tsx"
+import type { LayoutProps } from "minista/types"
+
+export default function Layout({ children }: LayoutProps) {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>My Site</title>
+        <script type="module" src="/src/assets/pwa.ts" />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+更新時には再読み込みが発生するため、フォーム入力などの状態が失われる可能性があります。利用者に更新タイミングを選んでもらう場合は、`registerType: "prompt"`と`onNeedRefresh`を使う更新UIを用意してください。詳細は[自動再読み込み](https://vite-pwa-org.netlify.app/guide/auto-update)と[更新通知](https://vite-pwa-org.netlify.app/guide/prompt-for-update)を参照してください。
+
+## 保存されるファイルと更新 ||offline-files-and-updates||
+
+既定では、ビルドしたHTML・JavaScript・CSS・JSON・画像・フォントをService Workerのprecacheに含めます。保存が完了すれば、まだ訪れていないページも対象に含まれている限りオフラインで開けます。保存先はブラウザのキャッシュであり、ZIPを端末へダウンロードする機能ではありません。
+
+キャッシュする拡張子を変更する場合は`workbox.globPatterns`を指定します。指定した配列は既定値を置き換えるため、HTMLと必要なアセットを含めてください。外部APIや外部ドメインのファイルは、このglobだけでは保存されません。
+
+```ts
+pluginPwa({
+  workbox: {
+    globPatterns: ["**/*.{html,js,css,json,svg,png}"],
+  },
+})
+```
+
+オンラインで新版が検出されると、precache対象全体について変更されたファイルを取得します。ページ遷移のたびにすべてのファイルを取得するわけではありません。開いたページの再読み込みは、前述のクライアント設定が担当します。
+
+更新の検出時期はブラウザや実行状態に依存します。アプリの再起動1回や特定のページ遷移だけで、必ず最新版になるとは保証できません。この例では定期的な更新チェックを追加していません。保存容量やブラウザによるキャッシュ削除にも影響されるため、オフラインでの永続保存は保証されません。
+
+## ビルドと端末での確認 ||test-pwa||
+
+通常の開発サーバーではService Workerを有効にしません。`npm run build`で生成した成果物を、`npm run preview`またはHTTPSの公開サイトで確認してください。localhostではHTTPSなしでも動作確認できます。
+
+1. オンラインでサイトを開き、キャッシュの保存完了を待ちます。`registerSW`の`onOfflineReady`で完了を表示できます。
+2. オフラインにして、別ページへの遷移と再読み込みを確認します。
+3. オンラインに戻して内容を変更・再デプロイし、新版の検出後に表示が更新されることを確認します。
+
+iOSではSafariの共有メニューから「ホーム画面に追加」し、追加したアプリでも確認します。再起動だけを更新完了の判定にせず、表示内容とオフライン時のページを確認してください。
+
+リポジトリの[playground/pwa](https://github.com/qrac/minista/tree/main/playground/pwa)には、HomeとAboutを使った自動再読み込みの例があります。オプションと制約は[pluginPwa](/ja/docs/plugins/pwa)を参照してください。
+
+次は[納品コードの整形](/ja/docs/guide/beautify)で成果物を読みやすくします。
