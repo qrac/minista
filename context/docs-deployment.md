@@ -8,7 +8,9 @@ v5をmainへマージする変更で、`.github/workflows/gh-pages.yml`を削除
 
 `cloudflare`ブランチは成果物だけの独立履歴とする。公開directoryは`public/`、最新docsは直下、v3は`v3/`、v4は`v4/`。mainの`scripts/docs-deploy/wrangler.jsonc`をcloudflare branchのrootへコピーし、Workers Static Assetsの配信設定とする。Worker scriptは不要。HTMLはauto-trailing-slash、欠落URLは最寄りの404.htmlを404 statusで返す。Wrangler設定変更も公開処理hashに含める。`.deploy/state.json`は公開directory外に置き、schemaVersion 1、各対象のビルド元SHAと公開処理のhashを記録する。
 
-mainからのpush、archiveからのrepository_dispatch、手動実行で起動する。共通concurrency groupを取得してから公開状態を読み、3ブランチの最新SHAを固定する。最後にビルドしたSHAと比較し、docs、本体、依存関係、scriptsの変更がある対象だけビルドする。公開処理のhash変更、初回、過去SHAの取得失敗は再ビルドする。イベント間の差分だけを使わず、未公開の変更を次回実行で回収する。
+mainからのpush、archiveからのrepository_dispatch、手動実行で起動する。mainのpush対象は`docs/**`、`scripts/**`、ルート`package.json`のversion更新、`.github/workflows/cloudflare.yml`自身。ActionsのpathsはJSON fieldを判定できないため、`package.json`の変更でworkflowを起動し、trigger stepでpushのbefore／afterのversionを比較する。version以外の変更だけならplan・build・publishをスキップする。比較元SHAはforce pushにも対応するため明示fetchし、取得失敗時は判定を失敗させる。branch初回pushのbeforeがzero SHAの場合は処理を進める。複数commitを含むpushも両端の差分で判定する。手動実行とrepository_dispatchはこのpush判定を通さず進める。
+
+共通concurrency groupを取得してから公開状態を読み、3ブランチの最新SHAを固定する。最後にビルドしたSHAと比較し、mainは同じ4条件で対象を選択する。本体ソース・lockfile・version以外のpackage metadataだけではmainをビルドしない。archiveの入口と対象選択は従来どおりdocs、本体、依存関係、scriptsを対象にする。公開処理のhash変更、初回、過去SHAの取得失敗は再ビルドする。有効な起動時はイベント間の差分だけを使わず、未公開の対象変更を次回実行で回収する。
 
 対象ごとにソースと依存を分離する。v3はNode 20.19.0で`build:main-src`後に`docs:build`、main／v4はNode 22.12.0で`docs-build`。v3のdist参照は旧CLI固有の要件であり、v5へ事前buildを導入しない。
 
@@ -45,7 +47,7 @@ workflow_dispatchのtargetはauto／main／v3／v4／all。autoは差分確認�
 
 ## 検証
 
-`node --test scripts/docs-deploy/deploy.test.js`で、main更新時のarchive保持、古い成果物の削除、予約path衝突、archive単独更新、URL補正、ビルド対象pathを確認する。公開scriptは`node --check scripts/docs-deploy/deploy.js`で構文確認する。workflowはYAML構造を確認する。
+`node --test scripts/docs-deploy/deploy.test.js`で、main更新時のarchive保持、古い成果物の削除、予約path衝突、archive単独更新、URL補正、ビルド対象path、version更新とversion以外の変更の判定、push／手動／dispatchの入口を確認する。公開scriptは`node --check scripts/docs-deploy/deploy.js`で構文確認する。workflowはYAML構造を確認する。
 
 2026-10-06にworkers.devで初回公開した。最新docsの英語・日本語、v3・v4のページと検索結果への遷移、version切り替えをブラウザで確認。公開成果物188ファイルのURLはすべてHTTP 200、各世代の欠落URLは404、`.html`のURLは拡張子なしURLへリダイレクトした。
 

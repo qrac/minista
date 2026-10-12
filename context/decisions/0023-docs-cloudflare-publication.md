@@ -13,6 +13,8 @@ GitHub Actionsで各ソースbranchの固定SHAを独立してビルドし、clo
 
 archive側は小さな入口workflowでmainのrepository_dispatchを起動する。共通処理はmain側に集約し、archiveの依存・Node runtime・CLI手順を分離する。archive baseの補正はCI checkoutと生成成果物に限定し、minista本体の公開API・Vite adapter・feature間の契約へ持ち込まない。
 
+2026-10-12にmainの自動公開条件を`docs/**`、`scripts/**`、ルート`package.json`のversion更新、`cloudflare.yml`自身へ限定した。packageのversion以外のmetadata、本体ソース、lockfileだけの変更では自動公開しない。JSON fieldはActionsのpathsで判定できないため、package.json変更時はpushのbefore／afterを比較する入口stepを使い、対象変更がなければ公開状態を読まず終了する。最後の成功SHAとのmain対象選択も同じ条件に揃える。archiveの条件、手動実行、初回・公開処理hash変更による再ビルドは維持する。
+
 配信先はCloudflare Workers Static Assetsとする。mainの`scripts/docs-deploy/wrangler.jsonc`を成果物branchのrootへコピーし、Workers Buildsはcloudflare branchだけを監視してWranglerで公開する。Worker scriptは作成せず、静的assetsのHTML routingと階層別404を設定する。初回はworkers.devで確認し、minista.devのcustom domainは別操作で接続する。
 
 ## Consequences

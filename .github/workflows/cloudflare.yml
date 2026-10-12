@@ -5,10 +5,9 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "packages/minista/**"
       - "scripts/**"
+      # JSON field filtering is handled by the trigger step.
       - "package.json"
-      - "package-lock.json"
       - ".github/workflows/cloudflare.yml"
   repository_dispatch:
     types: [docs-archive-updated]
@@ -44,11 +43,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22.12.0"
+      - id: trigger
+        run: node scripts/docs-deploy/deploy.js trigger
       - id: plan
+        if: steps.trigger.outputs.changed == 'true'
         env:
           FORCE_TARGET: ${{ inputs.target || 'auto' }}
         run: node scripts/docs-deploy/deploy.js plan
       - uses: actions/upload-artifact@v4
+        if: steps.trigger.outputs.changed == 'true'
         with:
           name: docs-plan
           path: .docs-plan.json

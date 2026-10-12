@@ -5,7 +5,7 @@ import os from "node:os"
 import path from "node:path"
 import { execFileSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
-import { archiveUrl, mergeOutput, relevant, siteUrl } from "./deploy.js"
+import { archiveUrl, mergeOutput, relevant, siteUrl, sourceChanged } from "./deploy.js"
 
 test("latest docs replacement keeps archives and removes obsolete latest files", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "minista-docs-deploy-"))
@@ -65,8 +65,8 @@ test("publication bootstraps all targets and reconciles changes since the last s
   const repo = path.join(dir, "source")
   const remote = path.join(dir, "remote.git")
   const runGit = (...args) => execFileSync("git", args, { cwd: repo, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim()
-  const run = (command) => execFileSync(process.execPath, ["scripts/docs-deploy/deploy.js", command], {
-    cwd: repo, encoding: "utf8", env: { ...process.env, FORCE_TARGET: "auto", GITHUB_OUTPUT: "" }, stdio: ["ignore", "pipe", "pipe"],
+  const run = (command, env = {}) => execFileSync(process.execPath, ["scripts/docs-deploy/deploy.js", command], {
+    cwd: repo, encoding: "utf8", env: { ...process.env, FORCE_TARGET: "auto", GITHUB_OUTPUT: "", ...env }, stdio: ["ignore", "pipe", "pipe"],
   })
   try {
     await fs.mkdir(repo)
@@ -77,7 +77,7 @@ test("publication bootstraps all targets and reconciles changes since the last s
     await fs.mkdir(path.join(repo, ".github/workflows"), { recursive: true })
     await fs.cp(path.dirname(fileURLToPath(import.meta.url)), path.join(repo, "scripts/docs-deploy"), { recursive: true })
     await fs.copyFile(fileURLToPath(new URL("../../.github/workflows/cloudflare.yml", import.meta.url)), path.join(repo, ".github/workflows/cloudflare.yml"))
-    await fs.writeFile(path.join(repo, "package.json"), '{"type":"module"}\n')
+    await fs.writeFile(path.join(repo, "package.json"), '{"type":"module","version":"1.0.0"}\n')
     await fs.mkdir(path.join(repo, "docs"))
     await fs.writeFile(path.join(repo, "docs/content.txt"), "first")
     runGit("add", ".")
@@ -108,10 +108,44 @@ test("publication bootstraps all targets and reconciles changes since the last s
     run("plan")
     const unchanged = JSON.parse(await fs.readFile(path.join(repo, ".docs-plan.json"), "utf8"))
     assert.equal(unchanged.selected.length, 0)
+    const before = runGit("rev-parse", "HEAD")
+    await fs.writeFile(path.join(repo, "package.json"), '{"type":"module","version":"1.0.0","description":"updated"}\n')
+    await fs.writeFile(path.join(repo, "package-lock.json"), "{}\n")
+    await fs.mkdir(path.join(repo, "packages/minista/src"), { recursive: true })
+    await fs.writeFile(path.join(repo, "packages/minista/src/node.js"), "export {}\n")
+    runGit("add", "package.json", "package-lock.json", "packages")
+    runGit("commit", "-m", "Update runtime and package metadata without release")
+    runGit("push", "origin", "main")
+    const metadata = runGit("rev-parse", "HEAD")
+    assert.equal(sourceChanged(before, metadata, "main", repo), false)
+    assert.equal(sourceChanged(before, metadata, "v4", repo), true)
+    run("plan")
+    assert.equal(JSON.parse(await fs.readFile(path.join(repo, ".docs-plan.json"), "utf8")).selected.length, 0)
+    const eventFile = path.join(dir, "event.json")
+    const outputFile = path.join(dir, "output.txt")
+    const checkTrigger = async (event, expected, eventName = "push") => {
+      await fs.writeFile(eventFile, JSON.stringify(event))
+      await fs.writeFile(outputFile, "")
+      run("trigger", { GITHUB_EVENT_NAME: eventName, GITHUB_EVENT_PATH: eventFile, GITHUB_OUTPUT: outputFile })
+      assert.equal(await fs.readFile(outputFile, "utf8"), `changed=${expected}\n`)
+    }
+    await checkTrigger({ before, after: metadata }, false)
+    await fs.writeFile(path.join(repo, "package.json"), '{"type":"module","version":"1.1.0"}\n')
+    runGit("add", "package.json")
+    runGit("commit", "-m", "Release version")
+    runGit("push", "origin", "main")
+    const release = runGit("rev-parse", "HEAD")
+    await checkTrigger({ before: metadata, after: release }, true)
+    run("plan")
+    assert.deepEqual(JSON.parse(await fs.readFile(path.join(repo, ".docs-plan.json"), "utf8")).selected.map((t) => t.id), ["main"])
+    await checkTrigger({ before: "0".repeat(40), after: release }, true)
+    await checkTrigger({}, true, "workflow_dispatch")
+    await checkTrigger({}, true, "repository_dispatch")
     await fs.writeFile(path.join(repo, "docs/content.txt"), "second")
     runGit("add", "docs/content.txt")
     runGit("commit", "-m", "Update main docs")
     runGit("push", "origin", "main")
+    await checkTrigger({ before: release, after: runGit("rev-parse", "HEAD") }, true)
     run("plan")
     const updated = JSON.parse(await fs.readFile(path.join(repo, ".docs-plan.json"), "utf8"))
     assert.deepEqual(updated.selected.map((t) => t.id), ["main"])
@@ -128,7 +162,8 @@ test("publication bootstraps all targets and reconciles changes since the last s
   }
 })
 
-test("build selection includes runtime, docs, dependencies and legacy scripts", () => {
-  for (const file of ["docs/src/pages/index.tsx", "packages/minista/src/node.js", "package.json", "package-lock.json", "scripts/build-sources.ts"]) assert.ok(relevant(file))
-  for (const file of ["README.md", "context/README.md", "packages/create-minista/README.md"]) assert.ok(!relevant(file))
+test("main selects docs, scripts and its workflow; archives keep runtime and dependency selection", () => {
+  for (const file of ["docs/src/pages/index.tsx", "scripts/build-sources.ts", ".github/workflows/cloudflare.yml"]) assert.ok(relevant(file))
+  for (const file of ["README.md", "context/README.md", "packages/minista/src/node.js", "package.json", "package-lock.json", "packages/create-minista/README.md"]) assert.ok(!relevant(file))
+  for (const file of ["packages/minista/src/node.js", "package.json", "package-lock.json"]) assert.ok(relevant(file, "v3"))
 })

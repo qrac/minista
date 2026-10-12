@@ -17,8 +17,31 @@ const exists = async (file) => fs.access(file).then(() => true, () => false)
 const json = async (file) => JSON.parse(await fs.readFile(file, "utf8"))
 const writeJson = (file, data) => fs.writeFile(file, JSON.stringify(data, null, 2) + "\n")
 
-export function relevant(file) {
-  return /^(docs\/|packages\/minista\/|scripts\/|package(?:-lock)?\.json$)/.test(file)
+export function relevant(file, id = "main") {
+  if (id !== "main") return /^(docs\/|packages\/minista\/|scripts\/|package(?:-lock)?\.json$)/.test(file)
+  return /^(docs\/|scripts\/)/.test(file) || file === ".github/workflows/cloudflare.yml"
+}
+
+export function sourceChanged(before, after, id = "main", cwd = process.cwd()) {
+  const files = git(["diff", "--name-only", "-z", before, after], cwd).split("\0")
+  if (files.some((file) => relevant(file, id))) return true
+  if (id !== "main" || !files.includes("package.json")) return false
+  const version = (sha) => JSON.parse(git(["show", `${sha}:package.json`], cwd)).version
+  return version(before) !== version(after)
+}
+
+async function trigger() {
+  let changed = true
+  if (process.env.GITHUB_EVENT_NAME === "push") {
+    const event = await json(process.env.GITHUB_EVENT_PATH)
+    if (!/^0+$/.test(event.before)) {
+      // Fetch the previous tip explicitly for force pushes that removed it from history.
+      git(["fetch", "origin", event.before])
+      changed = sourceChanged(event.before, event.after)
+    }
+  }
+  await fs.appendFile(process.env.GITHUB_OUTPUT, `changed=${changed}\n`)
+  console.log("Docs trigger:", changed ? "continue" : "skip (no docs, scripts, workflow or version change)")
 }
 
 async function revision() {
@@ -57,7 +80,7 @@ async function plan() {
     let changed = force === "all" || force === target.id || !old || old.toolRevision !== toolRevision
     if (!changed && old.sha !== sha) {
       try {
-        changed = git(["diff", "--name-only", old.sha, sha]).split("\n").some(relevant)
+        changed = sourceChanged(old.sha, sha, target.id)
       } catch {
         // An unavailable historical SHA requires a fresh build.
         changed = true
@@ -252,10 +275,11 @@ async function publish() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const [command, source, id] = process.argv.slice(2)
-  if (command === "plan") await plan()
+  if (command === "trigger") await trigger()
+  else if (command === "plan") await plan()
   else if (command === "publish") await publish()
   else if (["prepare", "finalize"].includes(command) && targets.some((t) => t.id === id) && source) {
     if (command === "prepare") await prepare(source, id)
     else await finalize(source, id)
-  } else throw new Error("Usage: deploy.js plan|publish|prepare <source> <target>|finalize <source> <target>")
+  } else throw new Error("Usage: deploy.js trigger|plan|publish|prepare <source> <target>|finalize <source> <target>")
 }
