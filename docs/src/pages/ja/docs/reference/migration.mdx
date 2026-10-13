@@ -58,8 +58,6 @@ v5では次の機械可読な出力とコマンドを利用できます。
 - `node_modules/.minista/manifest.json`: ビルド時のプロジェクト構成と出力情報
 - `node_modules/.minista/diagnostics.json`: 直近の検査・ビルドの診断
 
-通常のCLI実行にminista自身の事前ビルドは必要ありません。
-
 ## pluginMdx／pluginBundleのSSG統合 ||bundle-mdx-integration||
 
 `pluginMdx()`と`pluginBundle()`をimportとplugins配列から削除し、それぞれの設定を`pluginSsg()`の`mdx`と`bundle`へ移してください。
@@ -90,8 +88,6 @@ import { defineConfig, pluginSsg } from "minista"
 
 export default defineConfig({ plugins: [pluginSsg()] })
 ```
-
-JSがimportしたCSSへscriptのURLが誤って置換される場合と、互換ビルドでpublic CSSが重複挿入される場合も修正しました。
 
 `pluginSsg()`の戻り値は内部Viteプラグインの配列になりました。通常の`plugins: [pluginSsg()]`は変更不要です。独自コードで戻り値を直接調べている場合は、配列を展開してから各プラグインを参照してください。
 

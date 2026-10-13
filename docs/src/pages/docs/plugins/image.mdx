@@ -80,10 +80,10 @@ The name assigned when downloading a remote image, without an extension. It is u
 - Type: `"constrained" | "fixed"`
 - Default: `"constrained"`
 
-The output image layout. The choice determines the output variants used.
+Choose how image sizes are generated for the intended display width.
 
-- `"constrained"`: Container size (uses `breakpoints`)
-- `"fixed"`: Fixed size (uses `resolutions`)
+- `"constrained"`: For images whose display width varies. Generates multiple sizes based on `breakpoints` for the browser to choose from.
+- `"fixed"`: For images with a fixed display width. Multiplies the specified display dimensions by each value in `resolutions`.
 
 ### optimize.breakpoints
 
@@ -97,7 +97,7 @@ Responsive widths for output images. Specify an array of numbers, or a range fro
 - Type: `number[]`
 - Default: `[1, 2]`
 
-Output image resolutions. Defaults to standard and double-size variants.
+Image size multipliers for `layout: "fixed"`. For example, `[1, 2]` generates 200- and 400-pixel-wide variants for an image displayed at 200 pixels wide.
 
 ### optimize.format
 
@@ -183,7 +183,7 @@ A component that optimizes an image using a simple `<img>` tag.
 - Automatically reads image dimensions and adds `width` and `height`
 - Downloads remote images
 
-Pass individual props, including the plugin's `optimize` options, to `<Image>` to override settings.
+Pass the settings from the plugin’s `optimize` object directly as props to `<Image>` to override them for that image. For example, use `<Image src="/src/assets/photo.jpg" format="webp" quality={80} />`. Do not pass an `optimize={{ ... }}` object.
 
 ```ts
 type ImageProps = {
@@ -207,7 +207,7 @@ A component for advanced image optimization using `<picture>` with `<source>` an
 - Automatically reads image dimensions and adds `width` and `height`
 - Downloads remote images
 
-Pass individual props, including the plugin's `optimize` options, to `<Picture>` to override settings. Use `artDirectives` to change source images according to viewport width.
+For `<Picture>`, also pass optimization settings directly as props to override them for that image. Specify output formats with `formats` rather than `format`. For example, use `<Picture src="/src/assets/photo.jpg" formats={["webp", "inherit"]} quality={80} />`. Use `artDirectives` to change source images according to viewport width.
 
 ```ts
 type PictureProps = {

@@ -41,7 +41,7 @@ pluginBeautify({
 - 型: `string[]`
 - デフォルト: `["**/*.{html,css,js}"]`
 
-対象ファイルをdistからのglob形式で指定します。対象ファイルはビルドパイプラインに含まれているものから[picomatch](https://www.npmjs.com/package/picomatch)で選ばれます。
+整形するファイルを、出力先を基準にしたパスのglob形式で指定します。例えば`["**/*.html"]`なら、`build.outDir`で指定した出力先のHTMLを対象にします。ビルドで生成するファイルから[picomatch](https://www.npmjs.com/package/picomatch)で選びます。
 
 ### htmlOptions ||htmloptions||
 

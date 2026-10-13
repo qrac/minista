@@ -131,7 +131,7 @@ Use `client:load` for UI that needs immediate interaction. For offscreen UI, you
 
 Regular Islands also render at build time. Put code using `window` or `document` in event handlers or `useEffect()`. Keep the initial content consistent between build-time and browser rendering.
 
-Even with `client:only`, props and children expressions are evaluated on the server, with the same serialization constraints. It skips rendering the component body; it does not guarantee that using `window` at the top level of an imported module will work.
+Even with `client:only`, props and children expressions are evaluated on the server, with the same serialization constraints. Only rendering the component body is skipped; statically imported modules are still loaded on the server. Referencing `window` or similar APIs at module top level can therefore cause an error. Put browser API calls in event handlers or `useEffect()`.
 
 Use `client:only` for UI that should not generate static HTML, but the component will not appear until JavaScript runs. Provide a fallback if you need a loading display.
 

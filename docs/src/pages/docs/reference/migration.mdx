@@ -58,8 +58,6 @@ The working directory is `node_modules/.minista` if the root has `package.json`,
 - `node_modules/.minista/manifest.json`: Build-time project structure and output information
 - `node_modules/.minista/diagnostics.json`: Diagnostics from the latest check or build
 
-Regular CLI usage does not require building minista itself beforehand.
-
 ## pluginMdx and pluginBundle integration into SSG ||bundle-mdx-integration||
 
 Remove `pluginMdx()` and `pluginBundle()` from imports and the plugins array, and move their settings to `mdx` and `bundle` in `pluginSsg()` respectively.
@@ -90,8 +88,6 @@ import { defineConfig, pluginSsg } from "minista"
 
 export default defineConfig({ plugins: [pluginSsg()] })
 ```
-
-Cases where a script URL was incorrectly replaced with CSS imported by JS, and public CSS was inserted twice in compatibility builds, were also fixed.
 
 `pluginSsg()` now returns an array of internal Vite plugins. The usual `plugins: [pluginSsg()]` needs no change. If custom code directly inspects the return value, flatten the array before inspecting individual plugins.
 

@@ -49,7 +49,7 @@ Specify page templates as project-root-relative globs. Vite's glob import loads 
 - Type: `string[]`
 - Default: `["src/pages"]`
 
-Project-root-relative path prefixes removed when converting page templates to URLs. Matching prefixes are removed. Legacy paths with a leading slash are treated as the same locations.
+Specify directories relative to the project root to remove from the start of page file paths when determining URLs. For example, with `srcBases: ["src/pages"]`, removing `src/pages` and the extension from `src/pages/about.tsx` produces `/about`. Legacy paths with a leading slash are treated as the same locations.
 
 ### layout ||layout-option||
 
@@ -70,7 +70,7 @@ MDX and Markdown conversion settings. YAML and TOML frontmatter become an MDX ex
 - Type: `{ outName: string }`
 - Default: `{ outName: "bundle" }`
 
-Outputs CSS and images referenced by pages and layouts using the same transformation results as rendering. `outName` is the CSS bundle entry name without an extension. CSS Modules are output with the same class names as the HTML.
+Bundles CSS imported by pages and layouts and outputs referenced images. `outName` is the base name for the bundled CSS file, without an extension. For example, `outName: "site"` produces `assets/site-[hash].css` with the default output settings. With CSS Modules, the generated HTML and CSS use the same class names.
 
 ### removeImagePreload
 
@@ -125,11 +125,36 @@ Reference `public/logo.svg` as `/logo.svg` in JSX or MDX. At build time, `plugin
 | `./` or an empty string | `logo.svg` | `../logo.svg` |
 | `https://cdn.example.com/` | `https://cdn.example.com/logo.svg` | `https://cdn.example.com/logo.svg` |
 
-Supported attributes include image `src` and `srcset`, link `href` and `imagesrcset`, script `src`, video/audio/track `src`, video `poster`, SVG `image`/`use` `href` and `xlink:href`, `object[data]`, `embed[src]`, and `input[src]`. Open Graph `og:image`, `og:audio`, and `og:video` and their URL-related derived properties, `twitter:image`, and Microsoft tile image and configuration meta elements are also adjusted.
+The following HTML elements and attributes are adjusted. In each case, `base` is applied when a URL starts with `/` and points to an existing public file.
 
-`a[href]` is adjusted only for links to actual public files. Regular `url()` in style attributes and `<style>` is also supported. Query strings and fragments such as `/logo.svg?v=1#mark`, and srcset descriptors, are preserved. External URLs, data URLs, fragment-only references, relative references such as `./`, regular page links, and custom data attributes are unchanged.
+| HTML element | URL attribute | Example use |
+| --- | --- | --- |
+| `img` | `src`, `srcset` | Images and size variants |
+| `source` | `src`, `srcset` | Video, audio, and image sources |
+| `link` | `href`, `imagesrcset` | CSS, favicons, and image preloads |
+| `script` | `src` | Loading JavaScript |
+| `video` | `src`, `poster` | Videos and poster images |
+| `audio`, `track` | `src` | Loading audio and subtitles |
+| SVG `image`, `use` | `href`, `xlink:href` | Image and symbol references |
+| `object` | `data` | Embedding external files |
+| `embed`, `input` | `src` | External files and image buttons |
+| `a` | `href` | Links to public files such as PDFs |
+| Supported `meta` | `content` | OGP images and similar resources; see below |
 
-Public files are copied unchanged. URLs inside public CSS, JS, or JSON, escaped URLs, `@import` strings, and image-set strings in inline CSS, and browser runtime URLs are not automatically adjusted. Island internals, including `client:only` fallbacks, are excluded to maintain consistency between SSR and the client. Pass required URLs as identical props to both SSR and the client.
+Supported `meta` elements have a `property` of `og:image`, `og:image:url`, `og:image:secure_url`, `og:audio`, `og:audio:secure_url`, `og:video`, or `og:video:secure_url`. A `name` of `twitter:image`, `msapplication-TileImage`, `msapplication-square70x70logo`, `msapplication-square150x150logo`, `msapplication-wide310x150logo`, `msapplication-square310x310logo`, or `msapplication-config` is also supported.
+
+Regular `url()` references in `style` attributes and `<style>` are also supported. Query strings and fragments such as `/logo.svg?v=1#mark`, and `srcset` descriptors such as `1x` and `640w`, are preserved.
+
+The following references are not automatically adjusted.
+
+- External URLs, data URLs, fragment-only references such as `#icon`, and relative URLs such as `./logo.svg`
+- Regular page links and custom data attributes
+- URLs inside public CSS, JavaScript, JSON, and other files. The files themselves are copied unchanged.
+- URLs with CSS escapes, `@import` strings, and `image-set()` strings in `style` attributes or `<style>`
+- URLs constructed by JavaScript in the browser
+- References inside Islands, including `client:only` fallbacks
+
+Islands need to use the same URLs in static HTML and the initial browser render. Prepare URLs that include `base` and pass them as props, for example, to keep both renders consistent.
 
 ## HTML assets
 

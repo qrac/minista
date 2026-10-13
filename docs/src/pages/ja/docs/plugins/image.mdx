@@ -80,10 +80,10 @@ pluginImage({
 - 型: `"constrained" | "fixed"`
 - デフォルト: `"constrained"`
 
-出力画像のレイアウト方法。選択肢によって採用される出力パターンが決まります。
+表示幅に合わせて、生成する画像のサイズを決める方法です。
 
-- `"constrained"`:コンテナサイズ（`breakpoints`を採用）
-- `"fixed"`:固定サイズ（`resolutions` を採用）
+- `"constrained"`:表示幅が変わる画像向け。`breakpoints`で指定した幅を基に、ブラウザが選べる複数サイズの画像を生成します。
+- `"fixed"`:表示幅が固定の画像向け。指定した表示サイズに`resolutions`の倍率を掛けた画像を生成します。
 
 ### optimize.breakpoints ||optimizebreakpoints||
 
@@ -97,7 +97,7 @@ pluginImage({
 - 型: `number[]`
 - デフォルト: `[1, 2]`
 
-出力画像の解像度。デフォルトでは通常用と2倍サイズ用。
+`layout: "fixed"`で、表示サイズに対して生成する画像の倍率です。例えば幅200ピクセルの画像に`[1, 2]`を指定すると、幅200・400ピクセルの候補を生成します。
 
 ### optimize.format ||optimizeformat||
 
@@ -183,7 +183,7 @@ pluginImage({
 - 自動で画像の幅と高さを取得して `width` `height` を付与
 - リモート画像をダウンロード
 
-`<Image>` コンポーネントには、プラグインオプション `optimize` を含めたpropsを個別に渡してオーバーライドできます。
+プラグインの`optimize`内に設定する項目は、`<Image>`へ直接propsとして渡すと、その画像だけ上書きできます。例えば`<Image src="/src/assets/photo.jpg" format="webp" quality={80} />`と指定します。`optimize={{ ... }}`という形では渡しません。
 
 ```ts
 type ImageProps = {
@@ -207,7 +207,7 @@ type ImageProps = {
 - 自動で画像の幅と高さを取得して `width` `height` を付与
 - リモート画像をダウンロード
 
-`<Picture>` コンポーネントには、プラグインオプション `optimize` を含めたpropsを個別に渡してオーバーライドできます。また、画面幅によって元画像を変更するアートディレクティブを `artDirectives` に設定できます。
+`<Picture>`も、最適化の設定を直接propsとして渡して、その画像だけ上書きできます。出力形式は`format`ではなく`formats`で指定します。例えば`<Picture src="/src/assets/photo.jpg" formats={["webp", "inherit"]} quality={80} />`と指定します。画面幅によって元画像を変更する場合は`artDirectives`を使います。
 
 ```ts
 type PictureProps = {

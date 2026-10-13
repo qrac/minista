@@ -49,7 +49,7 @@ pluginSsg({
 - 型: `string[]`
 - デフォルト: `["src/pages"]`
 
-ページテンプレートをURLに変換する際に省くプロジェクトルート相対パス。前方一致で削除されます。従来の先頭スラッシュ付きパスも同じ場所として扱われます。
+ページのファイルパスからURLを決める際に、先頭から取り除くディレクトリをプロジェクトルート相対で指定します。例えば`srcBases: ["src/pages"]`なら、`src/pages/about.tsx`から`src/pages`と拡張子を除いて、URLは`/about`になります。従来の先頭スラッシュ付きパスも同じ場所として扱われます。
 
 ### layout ||layout-option||
 
@@ -70,7 +70,7 @@ MDX・Markdownの変換設定です。YAML／TOMLのフロントマターは`fro
 - 型: `{ outName: string }`
 - デフォルト: `{ outName: "bundle" }`
 
-ページとレイアウトから参照されたCSS・画像を描画結果と同じ変換結果から出力します。`outName`はCSSをまとめるエントリー名（拡張子なし）に使用されます。CSS ModulesもHTMLと同じクラス名で出力します。
+ページとレイアウトがimportするCSSをまとめ、参照する画像も出力します。`outName`は、まとめたCSSのファイル名の基になる名前です。拡張子は含めず、例えば`outName: "site"`なら、既定の出力設定では`assets/site-[hash].css`になります。CSS Modulesを使う場合は、生成HTMLとCSSで同じクラス名を使います。
 
 ### removeImagePreload ||removeimagepreload||
 
@@ -125,11 +125,36 @@ Reactのレンダラーの出力に含まれる`link[rel="preload"][as="image"]`
 | `./`または空文字           | `logo.svg`                         | `../logo.svg`                      |
 | `https://cdn.example.com/` | `https://cdn.example.com/logo.svg` | `https://cdn.example.com/logo.svg` |
 
-画像の`src`／`srcset`、linkの`href`／`imagesrcset`、scriptの`src`、動画・音声・trackの`src`、動画の`poster`、SVGの`image`／`use`の`href`／`xlink:href`、`object[data]`、`embed[src]`、`input[src]`が対象です。`og:image`／`og:audio`／`og:video`とURL関連の派生property、`twitter:image`、Microsoftのtile画像・設定のmetaも補正します。
+補正するHTMLの要素・属性は次のとおりです。いずれも、`/`で始まるURLが実在するpublicファイルを指す場合に`base`を反映します。
 
-`a[href]`はpublic実ファイルへのリンクだけ補正します。style属性と`<style>`内の通常の`url()`にも対応します。`/logo.svg?v=1#mark`のクエリ／フラグメント、srcsetの記述子は保持します。外部URL、data URL、フラグメントのみ、`./`などの相対参照、通常のページリンク、独自data属性は変更しません。
+| HTML要素 | URLを書く属性 | 用途の例 |
+| --- | --- | --- |
+| `img` | `src`、`srcset` | 画像とサイズ別の候補 |
+| `source` | `src`、`srcset` | 動画・音声・画像の候補 |
+| `link` | `href`、`imagesrcset` | CSS・favicon・画像の先読み |
+| `script` | `src` | JavaScriptの読み込み |
+| `video` | `src`、`poster` | 動画と再生前の画像 |
+| `audio`、`track` | `src` | 音声・字幕の読み込み |
+| SVGの`image`、`use` | `href`、`xlink:href` | 画像・シンボルの参照 |
+| `object` | `data` | 外部ファイルの埋め込み |
+| `embed`、`input` | `src` | 外部ファイル・画像ボタン |
+| `a` | `href` | PDFなどpublicファイルへのリンク |
+| 対象の`meta` | `content` | OGP画像など。対象は下記を参照 |
 
-publicファイル本体は無加工でコピーします。public内のCSS・JS・JSONなどに書かれたURL、inline CSSのescape付きURL・`@import`文字列・image-set文字列、ブラウザ実行時のURLは自動補正しません。Island内部（`client:only`のフォールバックを含む）もSSRとクライアントの一致を保つため対象外です。必要なURLはSSRとクライアントへ同じpropsとして渡してください。
+`meta`は、`property`が`og:image`、`og:image:url`、`og:image:secure_url`、`og:audio`、`og:audio:secure_url`、`og:video`、`og:video:secure_url`の場合に対応します。`name`が`twitter:image`、`msapplication-TileImage`、`msapplication-square70x70logo`、`msapplication-square150x150logo`、`msapplication-wide310x150logo`、`msapplication-square310x310logo`、`msapplication-config`の場合も対応します。
+
+`style`属性と`<style>`内の通常の`url()`にも対応します。`/logo.svg?v=1#mark`のクエリとフラグメント、`srcset`の`1x`や`640w`などの記述子は、そのまま残します。
+
+次の参照は自動補正しません。
+
+- 外部URL、data URL、`#icon`のようなフラグメントだけの参照、`./logo.svg`などの相対URL
+- 通常のページリンク、独自のdata属性
+- public内のCSS・JavaScript・JSONなどに書かれたURL。ファイル本体は無加工でコピーします。
+- `style`属性や`<style>`内の、CSSのエスケープを含むURL、`@import`の文字列、`image-set()`の文字列
+- ブラウザのJavaScriptで組み立てるURL
+- Island内部の参照。`client:only`のフォールバックも含みます。
+
+Islandでは、静的HTMLとブラウザ側の初回表示で同じURLを使う必要があります。`base`を含むURLを用意し、propsとして渡すなどして両方の表示を揃えてください。
 
 ## HTMLからのアセット参照 ||html-assets||
 
