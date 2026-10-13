@@ -64,7 +64,7 @@ export function pluginBeautify(uOpts = {}) {
     },
     applyToEnvironment: isViteAppClientEnvironment,
     buildStart() {
-      if (uOpts.removeImagePreload !== undefined) {
+      if ("removeImagePreload" in uOpts && uOpts.removeImagePreload !== undefined) {
         throw new BeautifyOutputError(
           "MINISTA_BEAUTIFY_OPTION_MOVED",
           "removeImagePreload moved to pluginSsg (default: true). Move the option to pluginSsg and remove it from pluginBeautify.",

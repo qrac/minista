@@ -75,4 +75,4 @@ Formatting makes delivered files readable. Spaces and line breaks increase uncom
 
 ## Preload migration
 
-`removeImagePreload` moved to `pluginSsg` and defaults to `true`. The old Beautify option remains as a deprecated type only during migration; explicit use returns `MINISTA_BEAUTIFY_OPTION_MOVED`. Move the same value to `pluginSsg` and remove it from Beautify. See [pluginSsg](/docs/plugins/ssg) for details.
+`removeImagePreload` moved to `pluginSsg` and defaults to `true`. The old option has been removed from Beautify’s public types, so TypeScript reports an error when it is specified. Untyped callers, such as JavaScript code, also fail at build time with `MINISTA_BEAUTIFY_OPTION_MOVED`. Move the same value to `pluginSsg` and remove it from Beautify. See [pluginSsg](/docs/plugins/ssg) for details.

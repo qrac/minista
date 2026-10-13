@@ -69,6 +69,7 @@ test("allows sourcemaps when JS and CSS are excluded", async () => {
 test("rejects hashed CSS and the old preload option explicitly", async () => {
   await expect(bundle({}, { assetFileNames: "[name]-[hash][extname]" }, true))
     .rejects.toThrow("CSS beautification requires a fixed")
+  // @ts-expect-error Exercise the migration diagnostic for untyped callers.
   await expect(bundle({ removeImagePreload: false })).rejects.toThrow("moved to pluginSsg")
 })
 

@@ -75,4 +75,4 @@ js-beautifyはソースマップを生成しないため、整形対象のJS／C
 
 ## preload設定の移行 ||preload-migration||
 
-`removeImagePreload`は`pluginSsg`へ移動し、既定値は`true`です。旧Beautify オプションは移行期間中のみ非推奨な型として残し、明示指定には`MINISTA_BEAUTIFY_OPTION_MOVED`を返します。同じ値を`pluginSsg`へ移し、Beautify側の指定を削除してください。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。
+`removeImagePreload`は`pluginSsg`へ移動し、既定値は`true`です。Beautifyの公開型からは削除しているため、旧オプションの指定はTypeScriptの型チェックでエラーになります。JavaScriptなどで指定した場合も、ビルド時に`MINISTA_BEAUTIFY_OPTION_MOVED`で停止します。同じ値を`pluginSsg`へ移し、Beautify側の指定を削除してください。詳細は[pluginSsg](/ja/docs/plugins/ssg)を参照してください。

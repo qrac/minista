@@ -174,7 +174,7 @@ export default defineConfig({
 
 ## 画像の先読み設定の移動 ||beautify-and-image-preload||
 
-`removeImagePreload`を`pluginBeautify`から`pluginSsg`へ移します。旧オプションの明示指定は`MINISTA_BEAUTIFY_OPTION_MOVED`になります。
+`removeImagePreload`を`pluginBeautify`から`pluginSsg`へ移します。Beautifyの公開型から旧オプションを削除したため、TypeScriptの型チェックで検出できます。JavaScriptなどで指定した場合も、ビルド時に`MINISTA_BEAUTIFY_OPTION_MOVED`で停止します。
 
 ```js title="vite.config.js"
 import { defineConfig, pluginSsg } from "minista"

@@ -174,7 +174,7 @@ See [pluginBeautify](/docs/plugins/beautify) for settings and diagnostics.
 
 ## Moving image preload settings ||beautify-and-image-preload||
 
-Move `removeImagePreload` from `pluginBeautify` to `pluginSsg`. Explicit use of the old option produces `MINISTA_BEAUTIFY_OPTION_MOVED`.
+Move `removeImagePreload` from `pluginBeautify` to `pluginSsg`. The old option has been removed from Beautify’s public types, so TypeScript detects it during type checking. Untyped callers, such as JavaScript code, also fail at build time with `MINISTA_BEAUTIFY_OPTION_MOVED`.
 
 ```js title="vite.config.js"
 import { defineConfig, pluginSsg } from "minista"

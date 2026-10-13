@@ -47,6 +47,8 @@ pluginIsland({ rootDOMElement: "section" })
 pluginSearch({ hit: { minLength: "two" } })
 // @ts-expect-error Must retain dependency option types.
 pluginBeautify({ htmlOptions: { indent_size: "two" } })
+// @ts-expect-error Image preload policy belongs to SSG, not Beautify.
+pluginBeautify({ removeImagePreload: false })
 // @ts-expect-error Invalid archive format.
 pluginArchive({ archives: [{ outName: "site", format: "7z" }] })
 // @ts-expect-error Image source required.
