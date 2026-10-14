@@ -26,6 +26,7 @@ import {
 import { ViteDevServerRegistry } from "../../adapters/vite/dev-server-registry.js"
 import { ViteEnvironmentInputAdapter } from "../../adapters/vite/environment-input.js"
 import { ViteEnvironmentState } from "../../adapters/vite/environment-state.js"
+import { resolveIslandImport } from "../../adapters/vite/island-import.js"
 import { createNodeId } from "../../core/graph/index.js"
 import {
   createIslandFeature,
@@ -196,6 +197,10 @@ export function pluginIsland(uOpts = {}) {
       },
     },
     enforce: "pre",
+    async resolveId(source, _importer, options) {
+      if (this.environment.config.consumer !== "client") return null
+      return resolveIslandImport(this, source, options)
+    },
     apply(config, { command, isSsrBuild }) {
       const isAppBuild = command === "build" &&
         Boolean(getViteAppEnvironmentNames(config))

@@ -10,6 +10,7 @@ import MagicString from "magic-string"
 import { normalizePath } from "vite"
 
 import { encodeSnippet } from "./snippet.js"
+import { encodeIslandImport } from "../../../adapters/island/import-reference.js"
 
 /** @param {unknown} value @returns {value is ASTNode} */
 function isNode(value) {
@@ -169,7 +170,7 @@ export function transformDirectives(code, id, opts, program) {
     if (typeof relativeSource !== "string") continue
     const source = relativeSource.startsWith(".") || relativeSource.startsWith("/")
       ? normalizePath(path.resolve(path.dirname(id), relativeSource))
-      : relativeSource
+      : encodeIslandImport(relativeSource, normalizePath(id))
     for (const specifier of node.specifiers ?? []) {
       if (specifier.importKind === "type") continue
       const local = specifier.local?.name

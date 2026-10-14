@@ -421,6 +421,8 @@ IslandのAST変換はprops式を元のpage scopeに残し、評価済みelement�
 
 ### Islandのbrowser読み込み
 
+componentの非相対importは元のsource／importerを含むversion付き内部参照としてsnippet内に保持し、client environmentのVite adapterで元のimport元から解決します。生成snippetの保存先をtsconfigの適用対象にする必要はありません。client限定resolverとページごとのtsconfigを維持し、既存のArtifact／外部JSON handoff以外の共有stateは追加しません。[ADR-0021](decisions/0021-island-serialized-props.md)の追記を参照してください。
+
 Islandのdev/build entryは共通runtimeとsnippet loader表を持ちます。`visible`／`media`／`idle`は条件成立時にsnippetとReact rendererをdynamic importし、`load`／`only`はentry評価時に取得を開始します。要素ごとの開始guardと取得Promiseの共有で重複hydrateを防ぎます。各要素のpayloadをrendererが復元して初期propsとして渡し、React／Preactのelement生成をCoreから分離します。取得失敗はSSRを保持し、browserのstructured diagnosticへ接続します。Vite adapterは静的・動的chunkとCSSの到達関係からoutput claimを生成し、遅延出力をHTMLの先行取得へ変換しません。
 
 ## Svg／SpriteのID（2026-09-09）

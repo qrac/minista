@@ -284,6 +284,12 @@ Rolldownの[OutputOptions](https://rolldown.rs/reference/Interface.OutputOptions
 
 [ADR-0021](decisions/0021-island-serialized-props.md)に従い、server environmentのsource transformでSSR boundaryを追加する。browserのcomponent moduleにはserver helperを追加しない。component entryとSSR payloadを分離するが、既存のArtifact／external JSON handoff、late client input、dynamic importとHMR経路は維持する。Vite APIの新規採用とfallbackの追加はない。
 
+### Island importの元module保持（2026-10-15）
+
+Issue #158への対応として、非相対component importを元のsource／importerを持つ内部参照にし、client environmentの`resolveId`からstableなPluginContextの`this.resolve()`へ委譲します。SSR側の解決結果は固定せず、clientのalias／resolver／package conditionとページごとのtsconfigを使います。dev／app／legacy／外部CLIの経路を共通化し、experimental APIやfallbackの追加はありません。内部参照は既存のsnippet文字列で渡し、詳細は[ADR-0021](decisions/0021-island-serialized-props.md)に記録します。
+
+公式仕様の確認: [Vite Plugin API](https://vite.dev/guide/api-plugin#rolldown-hooks)、[Rolldown PluginContext.resolve](https://rolldown.rs/reference/Interface.PluginContext#resolve)、[Vite resolve.tsconfigPaths](https://vite.dev/config/shared-options#resolve-tsconfigpaths)（2026-10-15）。
+
 ## SSGのpublicアセットbase（2026-09-16）
 
 clientの`buildStart`で解決済み`publicDir`のfile一覧を収集し、生成HTMLのemit前にbaseを補正する。通常app／legacy／外部CLIで同じ処理を使用する。Entry登録済みsourceを優先し、publicの出力claimやコピー処理は追加しない。devは既存の`server.transformIndexHtml()`を維持する。新しいVite API、対応range、fallbackは追加しない。[ADR-0022](decisions/0022-ssg-public-asset-base.md)を参照。

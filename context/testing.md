@@ -37,6 +37,7 @@ Windows固有のCLI挙動やブラウザ表示を確認する場合は[Parallels
 | `integration/preact-app-build`、`plugin-mismatch-build`、`external-cli-build` | 代替runtimeやfallback経路。Preact alias混入、fallback選択、外部processのhandoff／metadata昇格の破損 |
 | `integration/dev-server`、`dev-styles`、`image-dev`、`svg-dev` | server／HTTP／watch待機を伴う。CSS・Image／Picture配信、HMR、source追加削除、server間state分離の不具合 |
 | `integration/ssg-entry`、`entry-references`、`ssg-preload`、`island-lazy`、`search-indexes` | dev／buildやbundleを使った参照解決、base URL、preload、遅延chunk、複数検索indexの結合確認 |
+| `integration/island-tsconfig` | Issue #158のtsconfig alias。dev／app／legacy／外部CLIで元importerを保持し、ページごとのtsconfigとclient専用resolverを確認 |
 | `integration/beautify-output`、`archive-app-build` | 実build・圧縮・展開commandを伴う。hash／参照／sourcemapの不整合、archiveへの自己混入や破損 |
 | `integration/project-commands`、`agents`、`cli-diagnostic` | CLI子processとfixtureを使う。終了code、JSON／stderr、config衝突・削除option拒否、agent入口の配布契約 |
 | `integration/lazy-dependencies` | fresh processを繰り返し起動する。重い依存の先行読込、初期化失敗時の診断欠落 |

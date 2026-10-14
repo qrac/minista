@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["minista/client"],
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "exclude": ["node_modules", "dist"]
+}

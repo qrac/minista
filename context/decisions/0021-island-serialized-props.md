@@ -38,6 +38,18 @@ load／idle／visible／media／onlyの起動条件、page分割、root option�
 
 既存のbuild sessionと外部CLI JSON handoffは文字列配列を運ぶcontractを維持する。propsはRenderedPageの最終HTML属性として渡り、公開Graphへ値を複製しない。payload versionを非互換に変更する際はSSR／clientの両側を同じ変更で更新する。過去の生成cacheは再buildする。
 
+### Island importの解決元（2026-10-15追記、Issue #158）
+
+相対importは従来どおり元のmoduleからの絶対パスへ変換する。非相対importは元のsourceとimporterをschemaVersion 1の内部参照`minista:island-import:<base64url JSON>`へ格納し、component entry内で運ぶ。既存のencoded snippet、Artifact Store、外部JSON handoffの文字列配列をそのまま使用し、別のglobal registryや一時file探索を追加しない。
+
+client environmentのVite adapterは`resolveId`で内部参照を復元し、`this.resolve(source, originalImporter, { skipSelf: true })`へ委譲する。dev、通常app build、legacy build、外部CLI buildで同じ解決処理を使う。SSRで解決したmodule IDを固定しないため、client限定alias／resolver／package conditionを維持する。元のimporterを使うことでページごとのtsconfigも適用でき、`node_modules/.minista`配下の生成snippetへtsconfigを適用する設定変更を利用者へ要求しない。
+
+不正な内部参照は`MINISTA_ISLAND_IMPORT_INVALID`、client resolverで解決できないcomponentは元のsource／importerを含む`MINISTA_ISLAND_COMPONENT_UNRESOLVED`とする。内部参照は公開APIや公開manifestのschemaではない。生成cacheは再buildする。
+
+却下案: tsconfigの`paths`を独自解析して全体の`resolve.alias`へ変換するとページごとのtsconfigとVite pluginの解決規則を失う。生成先を`src`へ移しても`include`外のprojectを保証できず、利用者のsource directoryへ書き込む。SSR transformで先に解決するとclient専用resolverを使えない。
+
+検証: 2026-10-15、minista 5.1.1の変更source／Vite 8.3.2で既存Island unit 11件、専用integration 6件、変更実装／integrationの型チェックが成功。integrationはapp／legacy／外部CLI build、dev、ページごとのtsconfig、client専用resolverを対象とする。Windows 11 ARM64／Node.js 22.14.0でも変換を旧実装へ戻した際の解決エラーと修正後のbuild成功を比較し、Edge 155.0.4283.45のheadless実行で初期値3→クリック後4、console／page errorなしを確認した。対話画面の操作、報告と同じ依存version、全compatibility matrixは未検証。Windowsの作業コピーと検証用browser／serverは終了・削除し、当初runningだったVMはrunningを維持した。生ログと画像はGit管理外の`node_modules/.minista/windows-check/issue-158/`へ保存した。
+
 ### dev／HMR
 
 SSR boundaryへの変換はserver environmentに限定し、browserのcomponent moduleにserver helperを混入させない。propsの式の変更は既存SSG invalidation／page reloadで再renderされ、同じcomponent entryを使って新しいpayloadを読む。componentの更新はVite／React pluginの更新経路を使う。遅延開始前にDOMが切り離された場合は既存guardでhydrateしない。
