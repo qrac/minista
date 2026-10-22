@@ -4,11 +4,11 @@
   "type": "module",
   "dependencies": {
     "musubii": "^9.4.0",
-    "preact": "^11.0.0"
+    "preact": "^11.0.1"
   },
   "devDependencies": {
     "clsx": "^2.1.1",
-    "node-html-parser": "^9.0.4",
+    "node-html-parser": "^9.0.5",
     "picomatch": "^4.0.7",
     "react-icons": "^5.7.0",
     "rehype-autolink-headings": "^7.1.0",

@@ -84,8 +84,8 @@
     "test:regression": "vitest run --config vitest.regression.config.ts",
     "test:public-types": "node scripts/test-public-types.js",
     "audit": "npx npm-audit-trace",
-    "up": "npx npm-check-updates --deep --cooldown 1",
-    "up:u": "npx npm-check-updates --deep --cooldown 1 -u",
+    "up": "npx npm-check-updates --deep",
+    "up:u": "npx npm-check-updates --deep -u",
     "rev": "npx npm-replace-versions --deps minista --ignore node_modules",
     "release": "npm run release:main && npm run release:create",
     "release:main": "cd ./packages/minista && npm publish",
@@ -94,26 +94,23 @@
     "release-next:main": "cd ./packages/minista && npm publish --tag=next",
     "release-next:create": "cd ./packages/create-minista && npm publish --tag=next"
   },
-  "allowScripts": {
-    "fsevents@2.3.3": true
-  },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",
     "@tanstack/redact": "^0.1.4",
     "@types/cross-spawn": "^6.0.6",
     "@types/mime-types": "^3.0.1",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.5",
     "@types/picomatch": "^4.0.3",
     "@types/prompts": "^2.4.9",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "npm-run-all2": "^9.0.3",
-    "preact": "^11.0.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "npm-run-all2": "^9.0.4",
+    "preact": "^11.0.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "typescript": "^7.0.2",
-    "vite": "^8.3.2",
+    "vite": "^8.3.5",
     "vite-plugin-pwa": "^2.0.0",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.5"
   }
 }
